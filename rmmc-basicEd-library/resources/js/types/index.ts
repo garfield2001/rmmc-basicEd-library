@@ -1,40 +1,138 @@
-import { LucideIcon } from 'lucide-react';
-
-export interface Auth {
-    user: User;
+export interface AuthUser {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
 }
 
-export interface BreadcrumbItem {
-    title: string;
-    href: string;
+export interface DashboardVisit {
+    id: number;
+    visitedAt: string | null;
+    member: {
+        schoolId: string | null;
+        name: string | null;
+        type: 'student' | 'employee' | null;
+        group: string | null;
+        yearLevel: string | null;
+        section: string | null;
+        department: string | null;
+        photo: string | null;
+    };
 }
 
-export interface NavGroup {
-    title: string;
-    items: NavItem[];
+export interface PublicDashboard {
+    schoolYear: {
+        id: number;
+        name: string;
+        minimum_visits?: number;
+        target_visits?: number;
+    } | null;
+    metrics: {
+        students: number;
+        employees: number;
+        visitsToday: number;
+        studentVisitsToday: number;
+        employeeVisitsToday: number;
+        visitsThisSchoolYear: number;
+    };
+    todayVisits: DashboardVisit[];
 }
 
-export interface NavItem {
-    title: string;
-    url: string;
-    icon?: LucideIcon | null;
-    isActive?: boolean;
+export interface AdminDashboard {
+    schoolYear: PublicDashboard['schoolYear'];
+    metrics: {
+        activeMembers: number;
+        inactiveMembers: number;
+        visitsToday: number;
+        visitsThisSchoolYear: number;
+    };
+    memberBreakdown: {
+        students: number;
+        employees: number;
+    };
+    charts: {
+        visitsByDay: ChartPoint[];
+        visitsByType: ChartPoint[];
+        studentVisitsByYearLevel: ChartPoint[];
+    };
+}
+
+export interface ChartPoint {
+    label: string;
+    value: number;
+}
+
+export interface VisitReportRow {
+    id: number;
+    visited_at: string | null;
+    school_year: string | null;
+    school_id: string | null;
+    name: string | null;
+    type: string | null;
+    department: string | null;
+    year_level: string | null;
+    section: string | null;
+}
+
+export interface LibraryMemberRow {
+    id: number;
+    rfid_uid: string;
+    school_id: string;
+    type: 'student' | 'employee';
+    first_name: string;
+    middle_name: string | null;
+    last_name: string;
+    name: string;
+    photo: string | null;
+    photo_url: string | null;
+    is_active: boolean;
+    group: string | null;
+    student: {
+        year_level: string;
+        section: string;
+    } | null;
+    employee: {
+        department: string;
+    } | null;
+}
+
+export interface Paginated<T> {
+    data: T[];
+    links: {
+        url: string | null;
+        label: string;
+        active: boolean;
+    }[];
+    meta?: {
+        current_page: number;
+        last_page: number;
+        from: number | null;
+        to: number | null;
+        total: number;
+    };
+}
+
+export interface VisitReport {
+    filters: {
+        start_date: string;
+        end_date: string;
+        member_type: string | null;
+    };
+    summary: {
+        total: number;
+        students: number;
+        employees: number;
+    };
+    rows: VisitReportRow[];
 }
 
 export interface SharedData {
     name: string;
-    quote: { message: string; author: string };
-    auth: Auth;
+    auth: {
+        user: AuthUser | null;
+    };
+    flash: {
+        success?: string;
+    };
     [key: string]: unknown;
-}
-
-export interface User {
-    id: number;
-    name: string;
-    email: string;
-    avatar?: string;
-    email_verified_at: string | null;
-    created_at: string;
-    updated_at: string;
-    [key: string]: unknown; // This allows for additional properties...
 }

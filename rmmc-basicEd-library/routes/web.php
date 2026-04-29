@@ -1,17 +1,39 @@
 <?php
 
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\LibraryMemberController;
+use App\Http\Controllers\LibraryVisitController;
+use App\Http\Controllers\ReportController;
+use App\Services\Dashboard\PublicDashboardService;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('welcome');
-})->name('home');
+Route::get(
+    '/',
+    fn(PublicDashboardService $dashboard) =>
+    Inertia::render('index', [
+        'dashboard' => $dashboard->getData(detailed: false),
+        'adminDashboard' => null,
+    ])
+)->name('index');
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+Route::middleware('guest')->group(function () {
+    Route::get('login', fn() => redirect()->route('index', ['login' => 1]))->name('login');
+    Route::post('login', [AuthenticatedSessionController::class, 'store']);
 });
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+Route::middleware('auth')->group(function () {
+    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+    Route::post('session/close', [AuthenticatedSessionController::class, 'destroyOnClose'])->name('session.close');
+});
+
+Route::post('library-visits', [LibraryVisitController::class, 'store'])->name('library-visits.store');
+
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('admin', AdminDashboardController::class)->name('admin.dashboard');
+    Route::resource('admin/members', LibraryMemberController::class)->except('show')->names('admin.members');
+    Route::get('admin/reports', [ReportController::class, 'index'])->name('admin.reports');
+    Route::get('admin/reports/visits.csv', [ReportController::class, 'exportCsv'])->name('admin.reports.visits.csv');
+    Route::get('admin/reports/visits/print', [ReportController::class, 'print'])->name('admin.reports.visits.print');
+});

@@ -45,6 +45,14 @@ return [
             'throw' => false,
         ],
 
+        'member_photos' => [
+            'driver' => 'local',
+            'root' => public_path('member-photos'),
+            'url' => env('APP_URL').'/member-photos',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
