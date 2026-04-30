@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\SchoolYear;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -36,7 +37,8 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         return array_merge(parent::share($request), [
-            'name' => config('app.name'),
+            'name' => config('app.display_name'),
+            'schoolYear' => fn () => SchoolYear::active()->first()?->only(['id', 'name']),
             'auth' => [
                 'user' => $request->user()?->only(['id', 'name', 'email', 'role']),
             ],

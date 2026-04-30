@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { ToastProvider } from '@/components/ui/toaster';
 import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { FileText, LayoutDashboard, LogOut, Menu, ScanLine, ShieldCheck, UsersRound } from 'lucide-react';
+import { FileText, LayoutDashboard, LogOut, Menu, ShieldCheck, UsersRound } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
 
 type AdminNavItem = {
@@ -40,7 +40,7 @@ const navItems: AdminNavItem[] = [
     },
     {
         key: 'members',
-        label: 'Students & Staff',
+        label: 'Library Members',
         href: '/admin/members',
         icon: UsersRound,
     },
@@ -53,21 +53,36 @@ const navItems: AdminNavItem[] = [
 ];
 
 const sidebarAnimationStorageKey = 'rmmc-admin-sidebar-entered-v1';
-const sidebarCollapsedStorageKey = 'rmmc-admin-sidebar-collapsed-v1';
-const adminPreloaderDuration = 2200;
+export const sidebarCollapsedStorageKey = 'rmmc-admin-sidebar-collapsed-v1';
+const adminPreloaderDuration = 6500;
 const adminLoginSuccessMessage = 'Admin session started.';
+const rmmcLogoPath = '/images/rmmc_logo.svg';
 
-function AdminPreloader() {
+function RmmcLogoMark({ className = 'size-11' }: { className?: string }) {
+    return (
+        <span
+            className={`flex ${className} shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm`}
+        >
+            <img src={rmmcLogoPath} alt="RMMC logo" className="size-full object-contain p-1" />
+        </span>
+    );
+}
+
+function AdminPreloader({ duration, onComplete }: { duration: number; onComplete: () => void }) {
     return (
         <div className="admin-preloader flex min-h-screen items-center justify-center px-6 text-zinc-950">
             <div className="w-full max-w-sm text-center">
-                <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-zinc-950 text-white shadow-sm">
-                    <ShieldCheck className="size-5" />
+                <div className="mx-auto flex size-48 items-center justify-center">
+                    <img src={rmmcLogoPath} alt="RMMC logo" className="h-full w-full object-contain" />
                 </div>
                 <p className="mt-5 text-sm font-medium text-zinc-500">Loading admin workspace</p>
                 <p className="mt-2 text-2xl font-semibold">Preparing library tools</p>
                 <div className="mt-6 h-1.5 overflow-hidden rounded-full bg-zinc-200">
-                    <div className="admin-preloader-bar h-full rounded-full bg-zinc-950" />
+                    <div
+                        className="admin-preloader-bar h-full rounded-full bg-zinc-950"
+                        style={{ animationDuration: `${duration}ms` }}
+                        onAnimationEnd={onComplete}
+                    />
                 </div>
             </div>
         </div>
@@ -81,9 +96,7 @@ export function AdminTopBar() {
         <header className="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/90 backdrop-blur">
             <div className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="flex size-11 items-center justify-center rounded-lg bg-zinc-950 text-white shadow-sm">
-                        <ScanLine className="size-5" />
-                    </div>
+                    <RmmcLogoMark />
                     <div>
                         <p className="text-sm font-semibold">{name}</p>
                         <p className="text-xs text-zinc-500">Library RFID attendance monitor</p>
@@ -111,7 +124,7 @@ interface AdminNavbarProps {
 }
 
 export function AdminNavbar({ collapsed, onCollapsedChange }: AdminNavbarProps) {
-    const { name } = usePage<SharedData>().props;
+    const { name, schoolYear } = usePage<SharedData>().props;
 
     return (
         <header className="sticky top-0 z-40 flex flex-col gap-4 border-b border-zinc-200 bg-white/90 px-4 py-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6">
@@ -126,18 +139,27 @@ export function AdminNavbar({ collapsed, onCollapsedChange }: AdminNavbarProps) 
                 >
                     <Menu className="size-5" aria-hidden="true" />
                 </button>
+                <RmmcLogoMark />
                 <div>
                     <p className="text-sm font-semibold">{name}</p>
                     <p className="text-xs text-zinc-500">Library RFID attendance monitor</p>
                 </div>
             </div>
 
-            <Button variant="outline" asChild>
-                <Link href="/logout" method="post" as="button">
-                    <LogOut className="size-4" />
-                    Log out
-                </Link>
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+                {schoolYear && (
+                    <span className="inline-flex h-9 items-center overflow-hidden rounded-full border border-zinc-200 bg-white text-xs shadow-sm">
+                        <span className="border-r border-zinc-200 bg-zinc-50 px-3 font-medium text-zinc-500">School year</span>
+                        <span className="px-3 font-semibold text-zinc-950">{schoolYear.name}</span>
+                    </span>
+                )}
+                <Button variant="outline" asChild>
+                    <Link href="/logout" method="post" as="button">
+                        <LogOut className="size-4" />
+                        Log out
+                    </Link>
+                </Button>
+            </div>
         </header>
     );
 }
@@ -185,9 +207,7 @@ export function AdminSidebar({ active, collapsed }: AdminSidebarProps) {
             <div className="border-b border-zinc-100 pb-4">
                 <div className={sidebarRow}>
                     <div className="flex min-w-0 items-center justify-center">
-                        <div className={`flex size-10 items-center justify-center rounded-lg bg-zinc-950 text-white transition-[transform,box-shadow] ${sidebarMotion}`}>
-                            <ShieldCheck className="size-5" aria-hidden="true" />
-                        </div>
+                        <RmmcLogoMark className="size-10" />
                     </div>
                     <div className={`${sidebarLabel} pl-3`}>
                         <p className="truncate text-sm font-semibold">Admin workspace</p>
@@ -248,42 +268,15 @@ export function AdminShell({ active, children }: AdminShellProps) {
             return;
         }
 
-        const timer = window.setTimeout(() => setIsLoading(false), adminPreloaderDuration);
+        const timer = window.setTimeout(() => setIsLoading(false), adminPreloaderDuration + 500);
 
         return () => window.clearTimeout(timer);
     }, [isLoading]);
 
-    useEffect(() => {
-        const logoutOnClose = () => {
-            const token = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
-            const formData = new FormData();
-
-            if (token) {
-                formData.append('_token', token);
-            }
-
-            if (navigator.sendBeacon) {
-                navigator.sendBeacon('/session/close', formData);
-                return;
-            }
-
-            void fetch('/session/close', {
-                method: 'POST',
-                body: formData,
-                credentials: 'same-origin',
-                keepalive: true,
-            });
-        };
-
-        window.addEventListener('pagehide', logoutOnClose);
-
-        return () => window.removeEventListener('pagehide', logoutOnClose);
-    }, []);
-
     return (
         <ToastProvider>
             {isLoading ? (
-                <AdminPreloader />
+                <AdminPreloader duration={adminPreloaderDuration} onComplete={() => setIsLoading(false)} />
             ) : (
                 <div
                     className={`${shouldAnimateEntry ? 'admin-window-enter ' : ''}grid min-h-screen transition-[grid-template-columns] duration-300 ${

@@ -62,19 +62,13 @@ export default function MembersIndex({ members, filters }: MembersIndexProps) {
 
     return (
         <>
-            <Head title="Students & Staff" />
+            <Head title="Library Members" />
             <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f4f5_42%,#e7e5e4_100%)] text-zinc-950">
                 <AdminShell active="members">
                     <div className="space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
-                            title="Students & Staff"
+                            title="Library Members"
                             description="Manage RFID identities and library visit profiles for students and employees."
-                            badge={
-                                <span className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium text-zinc-600 shadow-sm">
-                                    {activeType === 'student' ? <GraduationCap className="size-3.5" /> : <BriefcaseBusiness className="size-3.5" />}
-                                    {activeType === 'student' ? 'Students' : 'Employees'}
-                                </span>
-                            }
                             actions={
                                 <Link
                                     href="/admin/members/create"
@@ -119,7 +113,10 @@ export default function MembersIndex({ members, filters }: MembersIndexProps) {
                                             className="h-10 w-full rounded-lg border border-zinc-300 pr-3 pl-9 text-sm outline-none focus:border-zinc-500 focus:ring-4 focus:ring-zinc-100"
                                         />
                                     </div>
-                                    <button type="submit" className="h-10 rounded-lg bg-zinc-950 px-4 text-sm font-medium text-white hover:bg-zinc-800">
+                                    <button
+                                        type="submit"
+                                        className="h-10 rounded-lg bg-zinc-950 px-4 text-sm font-medium text-white hover:bg-zinc-800"
+                                    >
                                         Filter
                                     </button>
                                 </form>
@@ -210,7 +207,10 @@ export default function MembersIndex({ members, filters }: MembersIndexProps) {
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={activeType === 'student' ? 7 : 6} className="px-5 py-14 text-center text-sm text-zinc-500">
+                                            <TableCell
+                                                colSpan={activeType === 'student' ? 7 : 6}
+                                                className="px-5 py-14 text-center text-sm text-zinc-500"
+                                            >
                                                 No {activeType === 'student' ? 'students' : 'employees'} found.
                                             </TableCell>
                                         </TableRow>

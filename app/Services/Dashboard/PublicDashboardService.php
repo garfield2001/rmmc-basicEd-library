@@ -53,7 +53,26 @@ class PublicDashboardService
                         'section' => $visit->member?->student?->section,
                         'department' => $visit->member?->employee?->department,
                         'photo' => $visit->member?->photo,
+                        'photoUrl' => $visit->member?->photo ? asset('member-photos/'.$visit->member->photo) : null,
                     ],
+                ]),
+            'scanTargets' => LibraryMember::active()
+                ->with([
+                    'student:id,library_member_id,year_level,section',
+                    'employee:id,library_member_id,department',
+                ])
+                ->orderBy('last_name')
+                ->orderBy('first_name')
+                ->get()
+                ->map(fn (LibraryMember $member): array => [
+                    'id' => $member->id,
+                    'rfidUid' => $member->rfid_uid,
+                    'schoolId' => $member->school_id,
+                    'name' => $member->full_name,
+                    'firstName' => $member->first_name,
+                    'lastName' => $member->last_name,
+                    'type' => $member->type,
+                    'group' => $member->group,
                 ]),
         ];
     }

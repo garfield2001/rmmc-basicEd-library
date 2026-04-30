@@ -31,7 +31,7 @@ class AdminMemberTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
 
         $response = $this->actingAs($admin)->post('/admin/members', [
-            'rfid_uid' => '100101',
+            'rfid_uid' => '1000000101',
             'school_id' => 'STU-001',
             'type' => LibraryMember::TYPE_STUDENT,
             'first_name' => 'Maria',
@@ -43,7 +43,7 @@ class AdminMemberTest extends TestCase
         ]);
 
         $response->assertRedirect('/admin/members?type=student');
-        $member = LibraryMember::where('rfid_uid', '100101')->firstOrFail();
+        $member = LibraryMember::where('rfid_uid', '1000000101')->firstOrFail();
         $this->assertSame('STU-001', $member->school_id);
         $this->assertSame(LibraryMember::TYPE_STUDENT, $member->type);
         $this->assertNotNull($member->photo);
@@ -59,7 +59,7 @@ class AdminMemberTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
 
         $response = $this->actingAs($admin)->post('/admin/members', [
-            'rfid_uid' => '200101',
+            'rfid_uid' => '2000000101',
             'school_id' => 'EMP-001',
             'type' => LibraryMember::TYPE_EMPLOYEE,
             'first_name' => 'Ana',
@@ -70,7 +70,7 @@ class AdminMemberTest extends TestCase
 
         $response->assertRedirect('/admin/members?type=employee');
         $this->assertDatabaseHas('library_members', [
-            'rfid_uid' => '200101',
+            'rfid_uid' => '2000000101',
             'type' => LibraryMember::TYPE_EMPLOYEE,
         ]);
         $this->assertDatabaseHas('employees', [

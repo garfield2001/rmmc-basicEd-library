@@ -5,6 +5,11 @@ export interface AuthUser {
     role: string;
 }
 
+export interface SchoolYearSummary {
+    id: number;
+    name: string;
+}
+
 export interface DashboardVisit {
     id: number;
     visitedAt: string | null;
@@ -17,16 +22,28 @@ export interface DashboardVisit {
         section: string | null;
         department: string | null;
         photo: string | null;
+        photoUrl: string | null;
     };
 }
 
+export interface ScanTarget {
+    id: number;
+    rfidUid: string;
+    schoolId: string;
+    name: string;
+    firstName: string;
+    lastName: string;
+    type: 'student' | 'employee';
+    group: string | null;
+}
+
 export interface PublicDashboard {
-    schoolYear: {
-        id: number;
-        name: string;
-        minimum_visits?: number;
-        target_visits?: number;
-    } | null;
+    schoolYear:
+        | (SchoolYearSummary & {
+              minimum_visits?: number;
+              target_visits?: number;
+          })
+        | null;
     metrics: {
         students: number;
         employees: number;
@@ -36,6 +53,7 @@ export interface PublicDashboard {
         visitsThisSchoolYear: number;
     };
     todayVisits: DashboardVisit[];
+    scanTargets: ScanTarget[];
 }
 
 export interface AdminDashboard {
@@ -128,6 +146,7 @@ export interface VisitReport {
 
 export interface SharedData {
     name: string;
+    schoolYear: SchoolYearSummary | null;
     auth: {
         user: AuthUser | null;
     };

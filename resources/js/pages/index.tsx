@@ -1,8 +1,10 @@
-import { AdminNavbar, AdminSidebar } from '@/components/admin-shell';
+import { AdminNavbar, AdminSidebar, sidebarCollapsedStorageKey } from '@/components/admin-shell';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ToastProvider } from '@/components/ui/toaster';
+import { LatestVisitCard } from '@/components/visits/latest-visit-card';
+import { ScanLookupInput } from '@/components/visits/scan-lookup-input';
 import { type AdminDashboard, type DashboardVisit, type PublicDashboard, type SharedData } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import {
@@ -28,6 +30,7 @@ interface IndexProps {
 
 const introStorageKey = 'rmmc-library-public-monitor-intro-seen-v1';
 const publicInfoStorageKey = 'rmmc-library-public-monitor-info-dismissed-v1';
+const rmmcLogoPath = '/images/rmmc_logo.svg';
 type VisitFilter = 'all' | 'student' | 'employee';
 interface LoginForm {
     [key: string]: string;
@@ -49,6 +52,13 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
     const [visitFilter, setVisitFilter] = useState<Exclude<VisitFilter, 'all'>>('student');
     const [search, setSearch] = useState('');
     const [manilaTime, setManilaTime] = useState(() => new Date());
+    const [isAdminSidebarCollapsed, setIsAdminSidebarCollapsed] = useState(() => {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+
+        return window.localStorage.getItem(sidebarCollapsedStorageKey) === 'true';
+    });
     const scanInputRef = useRef<HTMLInputElement | null>(null);
     const lastVisit = dashboard.todayVisits[0];
     const {
@@ -76,6 +86,16 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
         email: loginErrors.email ?? (typeof errors.email === 'string' ? errors.email : undefined),
         password: loginErrors.password ?? (typeof errors.password === 'string' ? errors.password : undefined),
     };
+    const scanValidationError = scanErrors.rfid_uid ?? (typeof errors.rfid_uid === 'string' ? errors.rfid_uid : undefined);
+    const scanTargetOptions = useMemo(() => {
+        return (dashboard.scanTargets ?? []).map((target) => ({
+            value: target.rfidUid,
+            label: target.name,
+            meta: `${target.schoolId} - ${target.type}${target.group ? ` - ${target.group}` : ''}`,
+            idTerms: [target.schoolId, ...target.schoolId.split(/[^a-zA-Z0-9]+/)].filter(Boolean),
+            textTerms: [target.name, target.firstName, target.lastName, target.type, target.group].filter(Boolean),
+        }));
+    }, [dashboard.scanTargets]);
 
     useEffect(() => {
         if (window.localStorage.getItem(introStorageKey) !== 'true') {
@@ -90,6 +110,10 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
     }, [isAdmin]);
 
     useEffect(() => {
+        if (showLogin) {
+            return;
+        }
+
         const interval = window.setInterval(() => {
             router.get(
                 window.location.pathname,
@@ -104,7 +128,7 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
         }, 15000);
 
         return () => window.clearInterval(interval);
-    }, []);
+    }, [showLogin]);
 
     useEffect(() => {
         const interval = window.setInterval(() => setManilaTime(new Date()), 1000);
@@ -138,6 +162,12 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
         }
     }, [showIntro, showLogin]);
 
+    useEffect(() => {
+        if (lastVisit?.member.type === 'student' || lastVisit?.member.type === 'employee') {
+            setVisitFilter(lastVisit.member.type);
+        }
+    }, [lastVisit?.id, lastVisit?.member.type]);
+
     const closeIntro = () => {
         window.localStorage.setItem(introStorageKey, 'true');
         setShowIntro(false);
@@ -146,6 +176,11 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
     const closePublicInfo = () => {
         window.localStorage.setItem(publicInfoStorageKey, 'true');
         setShowPublicInfo(false);
+    };
+
+    const changeAdminSidebarCollapsed = (collapsed: boolean) => {
+        setIsAdminSidebarCollapsed(collapsed);
+        window.localStorage.setItem(sidebarCollapsedStorageKey, collapsed ? 'true' : 'false');
     };
 
     const submitLogin: FormEventHandler = (event) => {
@@ -167,6 +202,12 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
         postScan('/library-visits', {
             preserveScroll: true,
             onSuccess: () => {
+                router.reload({
+                    only: ['dashboard'],
+                    preserveScroll: true,
+                });
+            },
+            onFinish: () => {
                 resetScan('rfid_uid');
                 scanInputRef.current?.focus();
             },
@@ -199,12 +240,18 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
             }
 
             if (event.key === 'Enter') {
-                if (scanBuffer.length >= 6) {
+                if (scanBuffer.length >= 10) {
                     router.post(
                         '/library-visits',
                         { rfid_uid: scanBuffer },
                         {
                             preserveScroll: true,
+                            onSuccess: () => {
+                                router.reload({
+                                    only: ['dashboard'],
+                                    preserveScroll: true,
+                                });
+                            },
                             onFinish: () => scanInputRef.current?.focus(),
                         },
                     );
@@ -425,8 +472,8 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
                     <header className="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/90 backdrop-blur">
                         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="flex size-11 items-center justify-center rounded-lg bg-zinc-950 text-white shadow-sm">
-                                    <ScanLine className="size-5" />
+                                <div className="flex size-12 items-center justify-center rounded-lg border border-zinc-200 bg-white p-1.5 shadow-sm">
+                                    <img src={rmmcLogoPath} alt="RMMC logo" className="h-full w-full object-contain" />
                                 </div>
                                 <div>
                                     <p className="text-sm font-semibold">{name}</p>
@@ -435,6 +482,13 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
                             </div>
 
                             <div className="flex flex-wrap items-center gap-2">
+                                {dashboard.schoolYear && (
+                                    <span className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs shadow-sm">
+                                        <ShieldCheck className="size-4 text-zinc-500" />
+                                        <span className="text-zinc-500">School year</span>
+                                        <span className="font-semibold text-zinc-950">{dashboard.schoolYear.name}</span>
+                                    </span>
+                                )}
                                 <Button onClick={() => setShowLogin(true)}>
                                     <LogIn className="size-4" />
                                     Admin login
@@ -444,22 +498,24 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
                     </header>
                 )}
 
-                <div className={isAdmin ? 'admin-layout-enter grid min-h-screen lg:grid-cols-[280px_minmax(0,1fr)]' : 'mx-auto max-w-7xl px-6 py-8'}>
-                    {isAdmin && <AdminSidebar active="monitor" />}
+                <div
+                    className={
+                        isAdmin
+                            ? `admin-layout-enter grid min-h-screen transition-[grid-template-columns] duration-300 ${
+                                  isAdminSidebarCollapsed ? 'lg:grid-cols-[72px_minmax(0,1fr)]' : 'lg:grid-cols-[280px_minmax(0,1fr)]'
+                              }`
+                            : 'mx-auto max-w-7xl px-6 py-8'
+                    }
+                >
+                    {isAdmin && <AdminSidebar active="monitor" collapsed={isAdminSidebarCollapsed} />}
 
                     <section className={isAdmin ? 'min-w-0' : 'space-y-6'}>
-                        {isAdmin && <AdminNavbar />}
+                        {isAdmin && <AdminNavbar collapsed={isAdminSidebarCollapsed} onCollapsedChange={changeAdminSidebarCollapsed} />}
 
                         <div className={isAdmin ? 'space-y-6 px-4 py-6 sm:px-6 lg:py-8' : 'space-y-6'}>
                             <div className="flex flex-col gap-4 rounded-2xl border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur lg:flex-row lg:items-end lg:justify-between">
                                 <div>
-                                    {dashboard.schoolYear && (
-                                        <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium text-zinc-600 shadow-sm">
-                                            <ShieldCheck className="size-3.5" />
-                                            {dashboard.schoolYear.name}
-                                        </div>
-                                    )}
-                                    <h1 className="mt-4 text-3xl font-semibold tracking-normal sm:text-4xl">Today&apos;s Library Monitoring</h1>
+                                    <h1 className="text-3xl font-semibold tracking-normal sm:text-4xl">Today&apos;s Library Monitoring</h1>
                                     <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-500">
                                         {isAdmin
                                             ? 'Detailed operations monitor for RFID attendance, member status, and visit trends.'
@@ -485,13 +541,13 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
                                         </div>
                                     </div>
                                     <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                                        <input
+                                        <ScanLookupInput
+                                            id="public-scan-lookup"
                                             ref={scanInputRef}
                                             value={scanData.rfid_uid}
-                                            onChange={(event) => setScanData('rfid_uid', event.target.value)}
-                                            placeholder="Scan or enter RFID"
-                                            className="h-11 flex-1 rounded-lg border border-zinc-300 bg-white px-3 text-sm transition outline-none focus:border-zinc-500 focus:ring-4 focus:ring-zinc-100"
-                                            autoComplete="off"
+                                            options={scanTargetOptions}
+                                            onChange={(value) => setScanData('rfid_uid', value)}
+                                            placeholder="Scan RFID or search name / ID"
                                             autoFocus
                                         />
                                         <Button type="submit" disabled={scanning}>
@@ -499,7 +555,7 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
                                             {scanning ? 'Recording...' : 'Record visit'}
                                         </Button>
                                     </div>
-                                    {scanErrors.rfid_uid && <p className="mt-2 text-sm text-red-600">{scanErrors.rfid_uid}</p>}
+                                    {scanValidationError && <p className="mt-2 text-sm text-red-600">{scanValidationError}</p>}
                                 </form>
 
                                 {isAdmin ? (
@@ -626,45 +682,10 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
                                 </section>
                             )}
 
-                            <section className="grid gap-4">
-                                <div className="rounded-xl border border-zinc-200 bg-white/90 p-5 shadow-sm">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex size-11 items-center justify-center rounded-lg bg-zinc-950 text-white">
-                                            <Clock3 className="size-5" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-zinc-500">Latest scan</p>
-                                            <p className="mt-1 text-2xl font-semibold">{lastVisit ? formatVisitTime(lastVisit) : 'No scans yet'}</p>
-                                        </div>
-                                    </div>
-                                    {lastVisit ? (
-                                        <div className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
-                                            <div>
-                                                <p className="text-zinc-500">Name</p>
-                                                <p className="mt-1 font-medium">{lastVisit.member.name ?? 'Unknown member'}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-zinc-500">ID</p>
-                                                <p className="mt-1 font-medium">{lastVisit.member.schoolId ?? 'No ID'}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-zinc-500">
-                                                    {lastVisit.member.type === 'student' ? 'Year and section' : 'Department'}
-                                                </p>
-                                                <p className="mt-1 font-medium">
-                                                    {lastVisit.member.type === 'student'
-                                                        ? [lastVisit.member.yearLevel, lastVisit.member.section].filter(Boolean).join(' - ') || '-'
-                                                        : lastVisit.member.department || '-'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <p className="mt-5 text-sm text-zinc-500">
-                                            Scanned students and employees will appear in the live table below.
-                                        </p>
-                                    )}
-                                </div>
-                            </section>
+                            <LatestVisitCard
+                                visit={lastVisit ?? null}
+                                emptyMessage="Scanned students and employees will appear in the live table below."
+                            />
 
                             <section className="overflow-hidden rounded-xl border border-zinc-200 bg-white/95 shadow-sm">
                                 <div className="flex flex-col gap-4 border-b border-zinc-200 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">

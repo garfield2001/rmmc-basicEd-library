@@ -4,6 +4,7 @@ import { CheckCircle2, Loader2, X } from 'lucide-react';
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 
 type ToastKind = 'success' | 'loading';
+const hiddenFlashSuccessMessages = ['Admin session started.'];
 
 interface Toast {
     id: number;
@@ -46,7 +47,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     );
 
     useEffect(() => {
-        if (flash.success) {
+        if (flash.success && !hiddenFlashSuccessMessages.includes(flash.success)) {
             notify({
                 kind: 'success',
                 title: flash.success,

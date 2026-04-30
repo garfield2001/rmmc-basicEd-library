@@ -41,11 +41,6 @@ export default function Reports({ report }: ReportsProps) {
                         <AdminPageHeader
                             title="Visit Records"
                             description="Filter, print, save as PDF, or export library visits for Excel."
-                            badge={
-                                <span className="inline-flex items-center rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium text-zinc-600 shadow-sm">
-                                    Visit records
-                                </span>
-                            }
                         />
 
                         <form onSubmit={submit} className="grid gap-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm md:grid-cols-4">

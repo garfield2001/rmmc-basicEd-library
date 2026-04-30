@@ -6,16 +6,18 @@ use App\Http\Controllers\LibraryMemberController;
 use App\Http\Controllers\LibraryVisitController;
 use App\Http\Controllers\ReportController;
 use App\Services\Dashboard\PublicDashboardService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get(
     '/',
-    fn(PublicDashboardService $dashboard) =>
-    Inertia::render('index', [
-        'dashboard' => $dashboard->getData(detailed: false),
-        'adminDashboard' => null,
-    ])
+    fn(Request $request, PublicDashboardService $dashboard) => $request->user()
+        ? redirect()->route('admin.dashboard')
+        : Inertia::render('index', [
+            'dashboard' => $dashboard->getData(detailed: false),
+            'adminDashboard' => null,
+        ])
 )->name('index');
 
 Route::middleware('guest')->group(function () {

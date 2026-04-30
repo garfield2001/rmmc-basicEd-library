@@ -15,7 +15,7 @@ class LibraryMemberFactory extends Factory
     public function definition(): array
     {
         return [
-            'rfid_uid' => fake()->unique()->numerify('######'),
+            'rfid_uid' => fake()->unique()->numerify('##########'),
             'school_id' => fake()->unique()->bothify('ID-####'),
             'type' => LibraryMember::TYPE_STUDENT,
             'first_name' => fake()->firstName(),

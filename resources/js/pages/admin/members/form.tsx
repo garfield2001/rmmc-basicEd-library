@@ -75,7 +75,7 @@ export default function MemberForm({ member }: MemberFormProps) {
                 }
 
                 scanTimer.current = window.setTimeout(() => {
-                    if (scanBuffer.current.length >= 6) {
+                    if (scanBuffer.current.length >= 10) {
                         setData('rfid_uid', scanBuffer.current);
                         setScanStatus('RFID captured');
                     }

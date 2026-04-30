@@ -20,6 +20,7 @@ class LoginTest extends TestCase
         $user = User::factory()->create([
             'email' => 'librarian@example.com',
             'password' => 'password',
+            'role' => 'admin',
         ]);
 
         $response = $this->post('/login', [
@@ -29,6 +30,7 @@ class LoginTest extends TestCase
 
         $this->assertAuthenticatedAs($user);
         $response->assertRedirect('/admin');
+        $this->get('/admin')->assertOk();
     }
 
     public function test_user_can_not_log_in_with_invalid_password(): void

@@ -1,9 +1,11 @@
 import { AdminPageHeader, AdminShell } from '@/components/admin-shell';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { type AdminDashboard, type DashboardVisit, type PublicDashboard } from '@/types';
-import { Head, router, useForm } from '@inertiajs/react';
-import { BarChart3, BriefcaseBusiness, Clock3, GraduationCap, Library, RadioTower, ScanLine, Search, ShieldCheck } from 'lucide-react';
+import { LatestVisitCard } from '@/components/visits/latest-visit-card';
+import { ScanLookupInput } from '@/components/visits/scan-lookup-input';
+import { type AdminDashboard, type DashboardVisit, type PublicDashboard, type SharedData } from '@/types';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { BarChart3, BriefcaseBusiness, Clock3, GraduationCap, Library, RadioTower, ScanLine, Search } from 'lucide-react';
 import { type FormEventHandler, useEffect, useMemo, useRef, useState } from 'react';
 
 interface AdminDashboardProps {
@@ -19,6 +21,7 @@ interface ScanForm {
 type VisitTab = 'student' | 'employee';
 
 export default function Dashboard({ dashboard, publicDashboard }: AdminDashboardProps) {
+    const { errors } = usePage<SharedData>().props;
     const [visitTab, setVisitTab] = useState<VisitTab>('student');
     const [search, setSearch] = useState('');
     const [manilaTime, setManilaTime] = useState(() => new Date());
@@ -34,6 +37,16 @@ export default function Dashboard({ dashboard, publicDashboard }: AdminDashboard
     } = useForm<ScanForm>({
         rfid_uid: '',
     });
+    const scanValidationError = scanErrors.rfid_uid ?? (typeof errors.rfid_uid === 'string' ? errors.rfid_uid : undefined);
+    const scanTargetOptions = useMemo(() => {
+        return (publicDashboard.scanTargets ?? []).map((target) => ({
+            value: target.rfidUid,
+            label: target.name,
+            meta: `${target.schoolId} - ${target.type}${target.group ? ` - ${target.group}` : ''}`,
+            idTerms: [target.schoolId, ...target.schoolId.split(/[^a-zA-Z0-9]+/)].filter(Boolean),
+            textTerms: [target.name, target.firstName, target.lastName, target.type, target.group].filter(Boolean),
+        }));
+    }, [publicDashboard.scanTargets]);
 
     const todayMetrics = [
         {
@@ -107,6 +120,12 @@ export default function Dashboard({ dashboard, publicDashboard }: AdminDashboard
         postScan('/library-visits', {
             preserveScroll: true,
             onSuccess: () => {
+                router.reload({
+                    only: ['dashboard', 'publicDashboard'],
+                    preserveScroll: true,
+                });
+            },
+            onFinish: () => {
                 resetScan('rfid_uid');
                 scanInputRef.current?.focus();
             },
@@ -116,6 +135,12 @@ export default function Dashboard({ dashboard, publicDashboard }: AdminDashboard
     useEffect(() => {
         scanInputRef.current?.focus();
     }, []);
+
+    useEffect(() => {
+        if (lastVisit?.member.type === 'student' || lastVisit?.member.type === 'employee') {
+            setVisitTab(lastVisit.member.type);
+        }
+    }, [lastVisit?.id, lastVisit?.member.type]);
 
     useEffect(() => {
         const interval = window.setInterval(() => setManilaTime(new Date()), 1000);
@@ -145,12 +170,18 @@ export default function Dashboard({ dashboard, publicDashboard }: AdminDashboard
             }
 
             if (event.key === 'Enter') {
-                if (scanBuffer.length >= 6) {
+                if (scanBuffer.length >= 10) {
                     router.post(
                         '/library-visits',
                         { rfid_uid: scanBuffer },
                         {
                             preserveScroll: true,
+                            onSuccess: () => {
+                                router.reload({
+                                    only: ['dashboard', 'publicDashboard'],
+                                    preserveScroll: true,
+                                });
+                            },
                             onFinish: () => scanInputRef.current?.focus(),
                         },
                     );
@@ -188,14 +219,6 @@ export default function Dashboard({ dashboard, publicDashboard }: AdminDashboard
                         <AdminPageHeader
                             title="Live Visits"
                             description="Detailed operations monitor for RFID attendance, today's visit flow, and student or employee entries."
-                            badge={
-                                dashboard.schoolYear ? (
-                                    <span className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium text-zinc-600 shadow-sm">
-                                        <ShieldCheck className="size-3.5" />
-                                        {dashboard.schoolYear.name}
-                                    </span>
-                                ) : undefined
-                            }
                             actions={
                                 <div className="flex items-center gap-2 text-sm text-zinc-500">
                                     <Clock3 className="size-4" />
@@ -206,31 +229,35 @@ export default function Dashboard({ dashboard, publicDashboard }: AdminDashboard
 
                         <section className="grid gap-4">
                             <form onSubmit={submitScan} className="rounded-xl border border-zinc-200 bg-white/90 p-5 shadow-sm">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex size-11 items-center justify-center rounded-lg bg-zinc-950 text-white">
-                                        <RadioTower className="size-5" />
+                                <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+                                    <div className="flex min-w-0 items-center gap-3">
+                                        <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-white">
+                                            <RadioTower className="size-5" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-medium text-zinc-500">RFID scanner</p>
+                                            <h2 className="text-xl font-semibold">Record a library visit</h2>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-zinc-500">RFID scanner</p>
-                                        <h2 className="text-xl font-semibold">Record a library visit</h2>
+
+                                    <div className="flex w-full flex-col gap-3 sm:flex-row xl:max-w-lg">
+                                        <ScanLookupInput
+                                            id="admin-scan-lookup"
+                                            ref={scanInputRef}
+                                            value={scanData.rfid_uid}
+                                            options={scanTargetOptions}
+                                            onChange={(value) => setScanData('rfid_uid', value)}
+                                            placeholder="Scan card or type name / school ID"
+                                            className="w-full"
+                                            autoFocus
+                                        />
+                                        <Button type="submit" disabled={scanning} className="h-11 shrink-0 px-5">
+                                            <ScanLine className="size-4" />
+                                            {scanning ? 'Recording...' : 'Record visit'}
+                                        </Button>
                                     </div>
                                 </div>
-                                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                                    <input
-                                        ref={scanInputRef}
-                                        value={scanData.rfid_uid}
-                                        onChange={(event) => setScanData('rfid_uid', event.target.value)}
-                                        placeholder="Scan or enter RFID"
-                                        className="h-11 flex-1 rounded-lg border border-zinc-300 bg-white px-3 text-sm transition outline-none focus:border-zinc-500 focus:ring-4 focus:ring-zinc-100"
-                                        autoComplete="off"
-                                        autoFocus
-                                    />
-                                    <Button type="submit" disabled={scanning}>
-                                        <ScanLine className="size-4" />
-                                        {scanning ? 'Recording...' : 'Record visit'}
-                                    </Button>
-                                </div>
-                                {scanErrors.rfid_uid && <p className="mt-2 text-sm text-red-600">{scanErrors.rfid_uid}</p>}
+                                {scanValidationError && <p className="mt-2 text-sm text-red-600">{scanValidationError}</p>}
                             </form>
                         </section>
 
@@ -253,41 +280,10 @@ export default function Dashboard({ dashboard, publicDashboard }: AdminDashboard
                             })}
                         </section>
 
-                        <section className="grid gap-4">
-                            <div className="rounded-xl border border-zinc-200 bg-white/90 p-5 shadow-sm">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex size-11 items-center justify-center rounded-lg bg-zinc-950 text-white">
-                                        <Clock3 className="size-5" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-zinc-500">Latest scan</p>
-                                        <p className="mt-1 text-2xl font-semibold">{lastVisit ? formatVisitTime(lastVisit) : 'No scans yet'}</p>
-                                    </div>
-                                </div>
-                                {lastVisit ? (
-                                    <div className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
-                                        <div>
-                                            <p className="text-zinc-500">Name</p>
-                                            <p className="mt-1 font-medium">{lastVisit.member.name ?? 'Unknown member'}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-zinc-500">ID</p>
-                                            <p className="mt-1 font-medium">{lastVisit.member.schoolId ?? 'No ID'}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-zinc-500">{lastVisit.member.type === 'student' ? 'Year and section' : 'Department'}</p>
-                                            <p className="mt-1 font-medium">
-                                                {lastVisit.member.type === 'student'
-                                                    ? [lastVisit.member.yearLevel, lastVisit.member.section].filter(Boolean).join(' - ') || '-'
-                                                    : lastVisit.member.department || '-'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <p className="mt-5 text-sm text-zinc-500">Scanned students and employees will appear in the live table below.</p>
-                                )}
-                            </div>
-                        </section>
+                        <LatestVisitCard
+                            visit={lastVisit ?? null}
+                            emptyMessage="Scanned students and employees will appear in the live table below."
+                        />
 
                         <section className="overflow-hidden rounded-xl border border-zinc-200 bg-white/95 shadow-sm">
                             <div className="flex flex-col gap-4 border-b border-zinc-200 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">

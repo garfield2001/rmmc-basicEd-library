@@ -16,7 +16,7 @@ class StoreLibraryMemberRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'rfid_uid' => ['required', 'string', 'regex:/^\d{6}$/', 'unique:library_members,rfid_uid'],
+            'rfid_uid' => ['required', 'string', 'regex:/^\d{10}$/', 'unique:library_members,rfid_uid'],
             'school_id' => ['required', 'string', 'max:255', 'unique:library_members,school_id'],
             'type' => ['required', Rule::in([LibraryMember::TYPE_STUDENT, LibraryMember::TYPE_EMPLOYEE])],
             'first_name' => ['required', 'string', 'max:255'],
