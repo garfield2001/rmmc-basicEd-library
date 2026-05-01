@@ -1,53 +1,39 @@
+import {
+    administrationRevealDistance,
+    publicScrollDeltaPerStep,
+    rmmcLogoPath,
+    scanErrorAutoCloseSeconds,
+    scanReadyDelayMs,
+} from '@/components/public/home/constants';
+
+import type { IndexProps, LoginForm, ScanForm } from '@/components/public/home/types';
+
+import { PublicRmmcLogo } from '@/components/public/home/PublicRmmcLogo';
+
+import { getRestrictedRescanDetails, getScanErrorSummary } from '@/components/public/home/helpers';
+
+import { getAdministrationStats, getAdministrationStatus, getAdminMetrics, getTodayMetrics } from '@/components/public/home/metrics';
+
+import { useManilaClock } from '@/components/public/home/use-manila-clock';
+
+import { PublicMetricCard } from '@/components/public/home/PublicMetricCard';
+
+import { AdministrationStatCard } from '@/components/public/home/AdministrationStatCard';
+
+import { AdministrationStatusCard } from '@/components/public/home/AdministrationStatusCard';
+
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ToastProvider } from '@/components/ui/toaster';
 import { ScanSuccessModal } from '@/components/visits/scan-success-modal';
 import { useRfidScanListener } from '@/hooks/use-rfid-scan-listener';
-import { type AdminDashboard, type PublicDashboard, type SharedData } from '@/types';
+import { type SharedData } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import {
-    AlertTriangle,
-    BarChart3,
-    BriefcaseBusiness,
-    ChevronDown,
-    ChevronUp,
-    Clock3,
-    GraduationCap,
-    Info,
-    LogIn,
-    RadioTower,
-    ScanLine,
-    ShieldCheck,
-    Timer,
-    UsersRound,
-} from 'lucide-react';
+import { AlertTriangle, BarChart3, ChevronDown, ChevronUp, Clock3, Info, LogIn, RadioTower, ScanLine, ShieldCheck, Timer } from 'lucide-react';
 
 import { sidebarCollapsedStorageKey } from '@/components/admin/shell';
 
 import { type FormEventHandler, useCallback, useEffect, useRef, useState } from 'react';
-
-interface IndexProps {
-    dashboard: PublicDashboard;
-    adminDashboard: AdminDashboard | null;
-}
-
-interface LoginForm {
-    [key: string]: string;
-    email: string;
-    password: string;
-}
-
-interface ScanForm {
-    [key: string]: string;
-    rfid_uid: string;
-}
-
-const rmmcLogoPath = '/images/rmmc_logo.svg';
-const administrationRevealDistance = 160;
-const publicScrollDeltaPerStep = 100;
-const scanReadyDelayMs = 5000;
-const scanErrorAutoCloseSeconds = 3;
-const fallback = '-';
 
 export default function Index({ dashboard, adminDashboard }: IndexProps) {
     const { auth, name, errors, flash } = usePage<SharedData>().props;
@@ -63,7 +49,7 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
         rfid_uid: '',
     });
     const [scanErrorCountdown, setScanErrorCountdown] = useState(scanErrorAutoCloseSeconds);
-    const [manilaTime, setManilaTime] = useState(() => new Date());
+
     const [isAdminSidebarCollapsed, setIsAdminSidebarCollapsed] = useState(() => {
         if (typeof window === 'undefined') {
             return false;
@@ -99,16 +85,10 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
     };
     const scanValidationError = typeof errors.rfid_uid === 'string' ? errors.rfid_uid : undefined;
     const isRestrictedRescan = scanValidationError?.toLowerCase().includes('repeat scans are limited') ?? false;
-    const restrictedRescanDetails = scanValidationError?.match(/scanned at (.+?)\. A new visit can be recorded after (.+?) because/i);
-    const recentScanTime = restrictedRescanDetails?.[1] ?? fallback;
-    const allowedRescanTime = restrictedRescanDetails?.[2] ?? fallback;
-    const scanErrorSummary = scanValidationError?.toLowerCase().includes('no active member matches')
-        ? 'ID not found'
-        : scanValidationError?.toLowerCase().includes('multiple active members')
-          ? 'Multiple matches'
-          : scanValidationError?.toLowerCase().includes('no active school year')
-            ? 'No school year'
-            : 'Unable to record';
+
+    const { recentScanTime, allowedRescanTime } = getRestrictedRescanDetails(scanValidationError);
+    const scanErrorSummary = getScanErrorSummary(scanValidationError);
+
     const ScanErrorIcon = isRestrictedRescan ? Info : AlertTriangle;
 
     useEffect(() => {
@@ -139,12 +119,6 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
 
         delete document.documentElement.dataset.adminTheme;
     }, [isAdmin]);
-
-    useEffect(() => {
-        const interval = window.setInterval(() => setManilaTime(new Date()), 1000);
-
-        return () => window.clearInterval(interval);
-    }, []);
 
     useEffect(() => {
         const searchParams = new URLSearchParams(window.location.search);
@@ -637,16 +611,8 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
         onFinish: finishScan,
     });
 
-    const formattedManilaTime = manilaTime.toLocaleString('en-PH', {
-        timeZone: 'Asia/Manila',
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true,
-    });
+    const { formattedManilaTime } = useManilaClock();
+
     const scannerStatusText = isScanSubmitting ? 'Recording scan' : isScannerPreparing ? 'Preparing next scan' : 'Scanner is ready';
     const scannerInstructionText = isScannerPreparing
         ? 'Please wait while the scanner prepares for the next ID.'
@@ -655,81 +621,10 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
           : 'Place your ID near the scanner.';
     const isScannerReady = !scannerUnavailable;
 
-    const todayMetrics = [
-        {
-            label: 'Visits today',
-            value: dashboard.metrics.visitsToday,
-            detail: 'RFID scans since midnight',
-            icon: ScanLine,
-        },
-        {
-            label: 'Students',
-            value: dashboard.metrics.studentVisitsToday,
-            detail: 'Student entries logged',
-            icon: GraduationCap,
-        },
-        {
-            label: 'Employees',
-            value: dashboard.metrics.employeeVisitsToday,
-            detail: 'Employee entries logged',
-            icon: BriefcaseBusiness,
-        },
-    ];
-
-    const adminMetrics = adminDashboard && [
-        {
-            label: 'Active members',
-            value: adminDashboard.metrics.activeMembers,
-            detail: 'Can record RFID visits',
-            icon: UsersRound,
-        },
-        {
-            label: 'Inactive members',
-            value: adminDashboard.metrics.inactiveMembers,
-            detail: 'Retained for records',
-            icon: ShieldCheck,
-        },
-        {
-            label: 'School year visits',
-            value: adminDashboard.metrics.visitsThisSchoolYear,
-            detail: 'Total logs this school year',
-            icon: BarChart3,
-        },
-    ];
-    const administrationStats = [
-        {
-            label: 'Visits today',
-            value: dashboard.metrics.visitsToday.toLocaleString(),
-            detail: 'Successful RFID visits recorded since midnight.',
-            icon: ScanLine,
-        },
-        {
-            label: 'Student visits',
-            value: dashboard.metrics.studentVisitsToday.toLocaleString(),
-            detail: "Student entries included in today's activity.",
-            icon: GraduationCap,
-        },
-        {
-            label: 'Employee visits',
-            value: dashboard.metrics.employeeVisitsToday.toLocaleString(),
-            detail: "Employee entries included in today's activity.",
-            icon: BriefcaseBusiness,
-        },
-    ];
-    const administrationStatus = [
-        {
-            label: 'Scan window',
-            value: '24 hours',
-            detail: 'Temporary scanner access window.',
-            icon: Clock3,
-        },
-        {
-            label: 'School year',
-            value: dashboard.schoolYear?.name ?? 'Not configured',
-            detail: 'Active visit records are attached here.',
-            icon: ShieldCheck,
-        },
-    ];
+    const todayMetrics = getTodayMetrics(dashboard);
+    const adminMetrics = getAdminMetrics(adminDashboard);
+    const administrationStats = getAdministrationStats(dashboard);
+    const administrationStatus = getAdministrationStatus(dashboard);
 
     const maxDailyVisits = Math.max(...(adminDashboard?.charts.visitsByDay.map((point) => point.value) ?? [0]), 1);
     const totalTypeVisits = adminDashboard?.charts.visitsByType.reduce((total, point) => total + point.value, 0) || 1;
@@ -935,22 +830,15 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
                                 </form>
 
                                 <section className="grid gap-4 md:grid-cols-3">
-                                    {todayMetrics.map((metric) => {
-                                        const Icon = metric.icon;
-
-                                        return (
-                                            <div key={metric.label} className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-                                                <div className="flex items-center justify-between gap-4">
-                                                    <p className="text-sm font-medium text-zinc-500">{metric.label}</p>
-                                                    <div className="flex size-9 items-center justify-center rounded-lg bg-zinc-100 text-zinc-700">
-                                                        <Icon className="size-4" />
-                                                    </div>
-                                                </div>
-                                                <p className="mt-3 text-4xl font-semibold">{metric.value.toLocaleString()}</p>
-                                                <p className="mt-2 text-sm text-zinc-500">{metric.detail}</p>
-                                            </div>
-                                        );
-                                    })}
+                                    {todayMetrics.map((metric) => (
+                                        <PublicMetricCard
+                                            key={metric.label}
+                                            label={metric.label}
+                                            value={metric.value}
+                                            detail={metric.detail}
+                                            icon={metric.icon}
+                                        />
+                                    ))}
                                 </section>
 
                                 {adminMetrics && (
@@ -1044,9 +932,7 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
                         <div className="mx-auto grid w-full max-w-7xl gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(360px,480px)] lg:items-center lg:gap-14">
                             <div className="min-w-0">
                                 <div className="flex items-center gap-4 sm:gap-5">
-                                    <div className="flex size-18 items-center justify-center rounded-xl border border-[#040DBF]/20 bg-white p-3 shadow-md shadow-[#010440]/10 sm:size-24 sm:p-4">
-                                        <img src={rmmcLogoPath} alt="RMMC logo" className="h-full w-full object-contain" />
-                                    </div>
+                                    <PublicRmmcLogo />
                                     <div className="min-w-0">
                                         <p className="max-w-xl text-lg leading-6 font-semibold text-[#010440] sm:text-2xl sm:leading-8">{name}</p>
                                         <p className="mt-1 text-sm text-[#030A8C] sm:text-lg">Library attendance station</p>
@@ -1139,48 +1025,29 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
 
                             <div className="mt-8 grid gap-8 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-10">
                                 <div className="divide-y divide-white/15 border-y border-white/15">
-                                    {administrationStats.map((item) => {
-                                        const Icon = item.icon;
-
-                                        return (
-                                            <div
-                                                key={item.label}
-                                                className="grid gap-3 py-4 sm:grid-cols-[52px_minmax(0,1fr)_150px] sm:items-center sm:gap-4 sm:py-5"
-                                            >
-                                                <div className="flex size-11 items-center justify-center rounded-lg bg-white/10 text-blue-100 ring-1 ring-white/10">
-                                                    <Icon className="size-5" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-semibold text-white">{item.label}</p>
-                                                    <p className="mt-1 text-sm leading-6 text-blue-100">{item.detail}</p>
-                                                </div>
-                                                <p className="text-3xl font-semibold tracking-normal text-white sm:text-right sm:text-4xl">
-                                                    {item.value}
-                                                </p>
-                                            </div>
-                                        );
-                                    })}
+                                    {administrationStats.map((stat) => (
+                                        <AdministrationStatCard
+                                            key={stat.label}
+                                            label={stat.label}
+                                            value={stat.value}
+                                            detail={stat.detail}
+                                            icon={stat.icon}
+                                        />
+                                    ))}
                                 </div>
 
                                 <div className="border-y border-white/15 py-4 sm:py-5">
                                     <p className="text-sm font-semibold text-blue-200">Current setup</p>
                                     <div className="mt-5 space-y-5">
-                                        {administrationStatus.map((item) => {
-                                            const Icon = item.icon;
-
-                                            return (
-                                                <div key={item.label} className="flex gap-4">
-                                                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#040DBF] text-white">
-                                                        <Icon className="size-5" />
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <p className="text-xs font-medium tracking-[0.16em] text-blue-200 uppercase">{item.label}</p>
-                                                        <p className="mt-1 text-lg font-semibold break-words text-white sm:text-xl">{item.value}</p>
-                                                        <p className="mt-1 text-sm leading-6 text-blue-100">{item.detail}</p>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
+                                        {administrationStatus.map((item) => (
+                                            <AdministrationStatusCard
+                                                key={item.label}
+                                                label={item.label}
+                                                value={item.value}
+                                                detail={item.detail}
+                                                icon={item.icon}
+                                            />
+                                        ))}
                                     </div>
                                     <div className="mt-6 border-t border-white/15 pt-5">
                                         <p className="text-sm leading-6 text-blue-100">

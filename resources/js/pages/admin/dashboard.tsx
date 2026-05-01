@@ -1,4 +1,4 @@
-import { AdminPageHeader, AdminShell } from '@/components/admin-shell';
+import { AdminPageHeader, AdminShell } from '@/components/admin/shell';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { LatestVisitCard } from '@/components/visits/latest-visit-card';

@@ -1,4 +1,4 @@
-import { AdminShell } from '@/components/admin-shell';
+import { AdminShell } from '@/components/admin/shell';
 import { type LibraryMemberRow } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { BriefcaseBusiness, GraduationCap, RadioTower, Save } from 'lucide-react';

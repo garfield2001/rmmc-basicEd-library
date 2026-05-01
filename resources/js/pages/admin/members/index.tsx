@@ -1,4 +1,4 @@
-import { AdminPageHeader, AdminShell } from '@/components/admin-shell';
+import { AdminPageHeader, AdminShell } from '@/components/admin/shell';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { type LibraryMemberRow, type Paginated } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';

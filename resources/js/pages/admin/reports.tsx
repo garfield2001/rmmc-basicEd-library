@@ -1,4 +1,4 @@
-import { AdminPageHeader, AdminShell } from '@/components/admin-shell';
+import { AdminPageHeader, AdminShell } from '@/components/admin/shell';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { type VisitReport } from '@/types';
 import { Head, router } from '@inertiajs/react';
@@ -38,10 +38,7 @@ export default function Reports({ report }: ReportsProps) {
             <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f4f5_42%,#e7e5e4_100%)] text-zinc-950">
                 <AdminShell active="reports">
                     <div className="space-y-6 px-4 py-6 sm:px-6 lg:py-8">
-                        <AdminPageHeader
-                            title="Visit Records"
-                            description="Filter, print, save as PDF, or export library visits for Excel."
-                        />
+                        <AdminPageHeader title="Visit Records" description="Filter, print, save as PDF, or export library visits for Excel." />
 
                         <form onSubmit={submit} className="grid gap-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm md:grid-cols-4">
                             <label className="text-sm font-medium">
