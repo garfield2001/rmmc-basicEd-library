@@ -17,11 +17,9 @@ export interface DashboardVisit {
         schoolId: string | null;
         name: string | null;
         type: 'student' | 'employee' | null;
-        group: string | null;
         yearLevel: string | null;
         section: string | null;
         department: string | null;
-        photo: string | null;
         photoUrl: string | null;
     };
 }
@@ -34,7 +32,7 @@ export interface ScanTarget {
     firstName: string;
     lastName: string;
     type: 'student' | 'employee';
-    group: string | null;
+    detail: string | null;
 }
 
 export interface PublicDashboard {
@@ -152,6 +150,7 @@ export interface SharedData {
     };
     flash: {
         success?: string;
+        recentVisit?: DashboardVisit | null;
     };
     [key: string]: unknown;
 }

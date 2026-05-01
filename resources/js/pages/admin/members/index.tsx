@@ -161,7 +161,6 @@ export default function MembersIndex({ members, filters }: MembersIndexProps) {
                                                         </div>
                                                         <div className="min-w-0">
                                                             <p className="font-medium">{member.name}</p>
-                                                            <p className="truncate text-xs text-zinc-500">{member.photo || 'No photo file'}</p>
                                                         </div>
                                                     </div>
                                                 </TableCell>

@@ -11,13 +11,17 @@
     html {
         font-family: var(--font-sans);
         overflow-y: scroll;
-        scrollbar-gutter: stable;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    html::-webkit-scrollbar {
+        display: none;
     }
 
     body {
         margin: 0;
     }
-
 }
 
 @layer components {
@@ -66,22 +70,59 @@
         animation: admin-layout-in 420ms cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .admin-preloader {
-        animation: admin-preloader-in 220ms ease-out;
-    }
-
-    .admin-preloader-bar {
-        animation: admin-preloader-bar 6500ms cubic-bezier(0.33, 0, 0.2, 1) forwards;
-        transform-origin: left;
-    }
-
-    .admin-window-enter {
-        animation: admin-window-enter 520ms cubic-bezier(0.16, 1, 0.3, 1);
-        transform-origin: bottom;
-    }
-
     .route-preloader {
         animation: route-preloader 900ms ease-in-out infinite;
+    }
+
+    .scan-success-content {
+        animation: scan-success-content 420ms cubic-bezier(0.16, 1, 0.3, 1);
+        transform-origin: center;
+    }
+
+    .scan-success-photo {
+        animation: scan-success-photo 520ms 90ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    html[data-admin-theme='dark'] .admin-theme-root {
+        background: #0d0d0d;
+        color: #f8fafc;
+    }
+
+    html[data-admin-theme='dark'] .admin-theme-root :is(aside, header, section, form, div).bg-white,
+    html[data-admin-theme='dark'] .admin-theme-root :is(aside, header, section, form, div).bg-white\/90,
+    html[data-admin-theme='dark'] .admin-theme-root :is(aside, header, section, form, div).bg-white\/95 {
+        border-color: rgb(63 63 70);
+        background-color: rgb(24 24 27 / 0.96);
+        color: #f8fafc;
+    }
+
+    html[data-admin-theme='dark'] .admin-theme-root :is(.bg-zinc-50, .bg-zinc-100, .bg-zinc-200) {
+        background-color: rgb(39 39 42 / 0.92);
+    }
+
+    html[data-admin-theme='dark'] .admin-theme-root :is(.border-zinc-100, .border-zinc-200, .border-zinc-300) {
+        border-color: rgb(63 63 70);
+    }
+
+    html[data-admin-theme='dark'] .admin-theme-root :is(.text-zinc-950, .text-zinc-900, .text-zinc-800, .text-zinc-700) {
+        color: #f8fafc;
+    }
+
+    html[data-admin-theme='dark'] .admin-theme-root :is(.text-zinc-600, .text-zinc-500, .text-zinc-400) {
+        color: #a1a1aa;
+    }
+
+    html[data-admin-theme='dark'] .admin-theme-root input,
+    html[data-admin-theme='dark'] .admin-theme-root select,
+    html[data-admin-theme='dark'] .admin-theme-root textarea {
+        border-color: rgb(63 63 70);
+        background-color: rgb(24 24 27);
+        color: #f8fafc;
+    }
+
+    html[data-admin-theme='dark'] .admin-theme-root input::placeholder,
+    html[data-admin-theme='dark'] .admin-theme-root textarea::placeholder {
+        color: #71717a;
     }
 }
 
@@ -175,60 +216,6 @@
     }
 }
 
-@keyframes admin-preloader-in {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes admin-preloader-bar {
-    0% {
-        transform: scaleX(0.03);
-    }
-
-    16% {
-        transform: scaleX(0.22);
-    }
-
-    38% {
-        transform: scaleX(0.46);
-    }
-
-    62% {
-        transform: scaleX(0.72);
-    }
-
-    82% {
-        transform: scaleX(0.9);
-    }
-
-    94% {
-        transform: scaleX(0.97);
-    }
-
-    100% {
-        transform: scaleX(1);
-    }
-}
-
-@keyframes admin-window-enter {
-    from {
-        opacity: 0;
-        transform: translateY(48px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 @keyframes route-preloader {
     0% {
         transform: translateX(-100%);
@@ -240,5 +227,29 @@
 
     100% {
         transform: translateX(100%);
+    }
+}
+
+@keyframes scan-success-content {
+    from {
+        opacity: 0;
+        scale: 0.94;
+    }
+
+    to {
+        opacity: 1;
+        scale: 1;
+    }
+}
+
+@keyframes scan-success-photo {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 }

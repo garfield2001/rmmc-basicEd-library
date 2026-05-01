@@ -40,10 +40,16 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.display_name'),
             'schoolYear' => fn () => SchoolYear::active()->first()?->only(['id', 'name']),
             'auth' => [
-                'user' => $request->user()?->only(['id', 'name', 'email', 'role']),
+                'user' => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                    'role' => $request->user()->role,
+                ] : null,
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
+                'recentVisit' => fn () => $request->session()->get('recentVisit'),
             ],
         ]);
     }

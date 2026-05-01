@@ -15,7 +15,7 @@ class LibraryMemberFactory extends Factory
     public function definition(): array
     {
         return [
-            'rfid_uid' => fake()->unique()->numerify('##########'),
+            'rfid_uid' => $this->uniqueRfidUid(),
             'school_id' => fake()->unique()->bothify('ID-####'),
             'type' => LibraryMember::TYPE_STUDENT,
             'first_name' => fake()->firstName(),
@@ -30,7 +30,7 @@ class LibraryMemberFactory extends Factory
     {
         return $this->state(fn (): array => [
             'type' => LibraryMember::TYPE_STUDENT,
-            'school_id' => fake()->unique()->numerify('STU-####'),
+            'school_id' => $this->uniqueStudentSchoolId(),
         ]);
     }
 
@@ -38,7 +38,7 @@ class LibraryMemberFactory extends Factory
     {
         return $this->state(fn (): array => [
             'type' => LibraryMember::TYPE_EMPLOYEE,
-            'school_id' => fake()->unique()->numerify('EMP-####'),
+            'school_id' => fake()->unique()->numerify('FAKE-EMP-#####'),
         ]);
     }
 
@@ -47,5 +47,25 @@ class LibraryMemberFactory extends Factory
         return $this->state(fn (): array => [
             'is_active' => false,
         ]);
+    }
+
+    private function uniqueRfidUid(): string
+    {
+        do {
+            $rfidUid = (string) random_int(1000000000, 9999999999);
+        } while (LibraryMember::query()->where('rfid_uid', $rfidUid)->exists());
+
+        return $rfidUid;
+    }
+
+    private function uniqueStudentSchoolId(): string
+    {
+        $yearPrefixes = ['19', '20', '21', '22', '23', '24', '25', '26'];
+
+        do {
+            $schoolId = fake()->randomElement($yearPrefixes).str_pad((string) random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
+        } while (LibraryMember::query()->where('school_id', $schoolId)->exists());
+
+        return $schoolId;
     }
 }

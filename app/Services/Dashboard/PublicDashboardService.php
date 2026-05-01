@@ -48,11 +48,9 @@ class PublicDashboardService
                         'schoolId' => $visit->member?->school_id,
                         'name' => $visit->member?->full_name,
                         'type' => $visit->member?->type,
-                        'group' => $visit->member?->group,
                         'yearLevel' => $visit->member?->student?->year_level,
                         'section' => $visit->member?->student?->section,
                         'department' => $visit->member?->employee?->department,
-                        'photo' => $visit->member?->photo,
                         'photoUrl' => $visit->member?->photo ? asset('member-photos/'.$visit->member->photo) : null,
                     ],
                 ]),
@@ -72,7 +70,9 @@ class PublicDashboardService
                     'firstName' => $member->first_name,
                     'lastName' => $member->last_name,
                     'type' => $member->type,
-                    'group' => $member->group,
+                    'detail' => $member->type === LibraryMember::TYPE_EMPLOYEE
+                        ? $member->employee?->department
+                        : collect([$member->student?->year_level, $member->student?->section])->filter()->join(' - '),
                 ]),
         ];
     }

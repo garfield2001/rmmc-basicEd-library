@@ -20,88 +20,59 @@ class StudentSeeder extends LibraryMemberSeeder
     }
 
     /**
-     * Add real school student records here for testing known IDs.
-     *
-     * If rfid_uid is omitted, the seeder creates a random 10-digit RFID.
+     * Add real school student details here.
+     * Shared member data, including RFID, lives in LibraryMemberSeeder.
      * Factory students are added separately after this list.
      *
-     * @return array<int, array<string, string|null>>
+     * @return array<int, array<string, mixed>>
      */
     private function schoolStudents(): array
     {
-        return [
-            [
-                'school_id' => 'STU-1001',
-                'first_name' => 'Mikaela',
-                'middle_name' => null,
-                'last_name' => 'Cruz',
+        return $this->attachManualDetails($this->manualStudentMembers(), [
+            '1900001001' => [
                 'year_level' => 'Kinder',
                 'section' => 'Aguinaldo',
             ],
-            [
-                'school_id' => 'STU-1002',
-                'first_name' => 'Joaquin',
-                'middle_name' => null,
-                'last_name' => 'Santos',
+            '2000001002' => [
                 'year_level' => 'Grade 1',
                 'section' => 'Bonifacio',
             ],
-            [
-                'school_id' => 'STU-1003',
-                'first_name' => 'Althea',
-                'middle_name' => null,
-                'last_name' => 'Reyes',
+            '2100001003' => [
                 'year_level' => 'Grade 4',
                 'section' => 'Del Pilar',
             ],
-            [
-                'school_id' => 'STU-1004',
-                'first_name' => 'Nathaniel',
-                'middle_name' => null,
-                'last_name' => 'Garcia',
+            '2200001004' => [
                 'year_level' => 'Grade 6',
                 'section' => 'Jacinto',
             ],
-            [
-                'school_id' => 'STU-1005',
-                'first_name' => 'Sofia',
-                'middle_name' => null,
-                'last_name' => 'Dela Cruz',
+            '2300001005' => [
                 'year_level' => 'Grade 7',
                 'section' => 'Mabini',
             ],
-            [
-                'school_id' => 'STU-1006',
-                'first_name' => 'Gabriel',
-                'middle_name' => null,
-                'last_name' => 'Ramos',
+            '2400001006' => [
                 'year_level' => 'Grade 10',
                 'section' => 'Rizal',
             ],
-            [
-                'school_id' => 'STU-1007',
-                'first_name' => 'Isabella',
-                'middle_name' => null,
-                'last_name' => 'Aquino',
+            '2500001007' => [
                 'year_level' => 'Grade 12',
                 'section' => 'STEM',
             ],
-            [
-                'school_id' => '2316020010',
-                'first_name' => 'Shyne Audrey',
-                'middle_name' => null,
-                'last_name' => 'Ayunan',
+            '2316020010' => [
                 'year_level' => 'Fourth Year',
                 'section' => 'Block 1',
             ],
-            [
-                'school_id' => '2211600042',
-                'first_name' => 'Brian Angelo',
-                'middle_name' => null,
-                'last_name' => 'Bognot',
+            '2211600042' => [
                 'year_level' => 'Fourth Year',
                 'section' => 'Block 3',
             ],
-        ];
+            '2311600068' => [
+                'year_level' => 'Third Year',
+                'section' => 'Block 2',
+            ],
+            '1811600033' => [
+                'year_level' => 'Fourth Year',
+                'section' => 'Block 1',
+            ],
+        ]);
     }
 }

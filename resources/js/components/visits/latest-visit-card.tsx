@@ -100,13 +100,16 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                         <div className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
                             <DetailItem label="Name" value={visit.member.name ?? 'Unknown member'} />
                             <DetailItem label="ID" value={visit.member.schoolId ?? 'No ID'} />
-                            <DetailItem label={visit.member.type === 'student' ? 'Year and section' : 'Department'} value={academicOrWorkDetail(visit)} />
+                            <DetailItem
+                                label={visit.member.type === 'student' ? 'Year and section' : 'Department'}
+                                value={academicOrWorkDetail(visit)}
+                            />
                         </div>
 
                         <div
                             id={tooltipId}
                             role="tooltip"
-                            className="pointer-events-none absolute z-10 -translate-y-full rounded-md bg-zinc-950 px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-white opacity-0 shadow-sm transition-opacity duration-150 delay-150 before:absolute before:bottom-[-4px] before:left-4 before:size-2 before:rotate-45 before:bg-zinc-950 group-hover:opacity-100 group-focus-visible:opacity-100"
+                            className="pointer-events-none absolute z-10 -translate-y-full rounded-md bg-zinc-950 px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-white opacity-0 shadow-sm transition-opacity delay-150 duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 before:absolute before:bottom-[-4px] before:left-4 before:size-2 before:rotate-45 before:bg-zinc-950"
                             style={{
                                 left: tooltipPosition.x,
                                 top: tooltipPosition.y,
@@ -170,11 +173,14 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
 
                                 <div className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
                                     <DetailItem label="Member type" value={memberTypeLabel(visit)} />
-                                    <DetailItem label="Group" value={visit.member.group} />
-                                    <DetailItem label="Year level" value={visit.member.yearLevel} />
-                                    <DetailItem label="Section" value={visit.member.section} />
-                                    <DetailItem label="Department" value={visit.member.department} />
-                                    <DetailItem label="Photo file" value={visit.member.photo} />
+                                    {visit.member.type === 'employee' ? (
+                                        <DetailItem label="Department" value={visit.member.department} />
+                                    ) : (
+                                        <>
+                                            <DetailItem label="Year level" value={visit.member.yearLevel} />
+                                            <DetailItem label="Section" value={visit.member.section} />
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>

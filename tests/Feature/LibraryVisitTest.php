@@ -27,6 +27,8 @@ class LibraryVisitTest extends TestCase
         ]);
 
         $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('recentVisit');
+        $response->assertSessionMissing('success');
         $this->assertDatabaseHas('library_visits', [
             'library_member_id' => $member->id,
             'school_year_id' => $schoolYear->id,
@@ -134,7 +136,9 @@ class LibraryVisitTest extends TestCase
 
         $this->post('/library-visits', [
             'rfid_uid' => '1000000001',
-        ])->assertSessionHasErrors('rfid_uid');
+        ])->assertSessionHasErrors([
+            'rfid_uid' => 'This ID was already scanned at 8:00 AM. A new visit can be recorded after 9:00 AM because repeat scans are limited to once per hour.',
+        ]);
 
         $this->assertSame(1, LibraryVisit::count());
     }
@@ -159,7 +163,7 @@ class LibraryVisitTest extends TestCase
         $this->assertSame(2, LibraryVisit::count());
     }
 
-    public function test_rfid_scan_is_rejected_before_seven_am(): void
+    public function test_rfid_scan_is_allowed_before_seven_am_for_temporary_twenty_four_hour_access(): void
     {
         $this->travelTo(Carbon::parse('2026-09-01 06:59:00', config('app.timezone')));
 
@@ -168,23 +172,23 @@ class LibraryVisitTest extends TestCase
 
         $this->post('/library-visits', [
             'rfid_uid' => '1000000001',
-        ])->assertSessionHasErrors('rfid_uid');
+        ])->assertSessionHasNoErrors();
 
-        $this->assertSame(0, LibraryVisit::count());
+        $this->assertSame(1, LibraryVisit::count());
     }
 
-    public function test_rfid_scan_is_rejected_from_five_pm(): void
+    public function test_rfid_scan_is_allowed_late_at_night_for_temporary_twenty_four_hour_access(): void
     {
-        $this->travelTo(Carbon::parse('2026-09-01 17:00:00', config('app.timezone')));
+        $this->travelTo(Carbon::parse('2026-09-01 23:30:00', config('app.timezone')));
 
         $this->createActiveSchoolYear();
         $this->createMember();
 
         $this->post('/library-visits', [
             'rfid_uid' => '1000000001',
-        ])->assertSessionHasErrors('rfid_uid');
+        ])->assertSessionHasNoErrors();
 
-        $this->assertSame(0, LibraryVisit::count());
+        $this->assertSame(1, LibraryVisit::count());
     }
 
     private function createActiveSchoolYear(): SchoolYear

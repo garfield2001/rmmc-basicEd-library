@@ -91,14 +91,8 @@ class LibraryVisitService
 
     private function ensureScanWindowIsOpen(Carbon $now): void
     {
-        $opensAt = $now->copy()->setTime(7, 0);
-        $closesAt = $now->copy()->setTime(17, 0);
+        // TODO: Restore the official library operating-hour restriction once the final schedule is confirmed.
 
-        if ($now->lt($opensAt) || $now->gte($closesAt)) {
-            throw ValidationException::withMessages([
-                'rfid_uid' => 'RFID scans are allowed only from 7:00 AM to 5:00 PM.',
-            ]);
-        }
     }
 
     private function ensureMemberCanRevisit(LibraryMember $member, Carbon $now): void
@@ -115,9 +109,12 @@ class LibraryVisitService
             ->copy()
             ->addHour()
             ->timezone(config('app.timezone'));
+        $lastVisitAt = $lastVisit->visited_at
+            ->copy()
+            ->timezone(config('app.timezone'));
 
         throw ValidationException::withMessages([
-            'rfid_uid' => "This RFID was already recorded recently. Please scan again after {$nextAllowedAt->format('g:i A')}.",
+            'rfid_uid' => "This ID was already scanned at {$lastVisitAt->format('g:i A')}. A new visit can be recorded after {$nextAllowedAt->format('g:i A')} because repeat scans are limited to once per hour.",
         ]);
     }
 

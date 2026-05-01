@@ -3,8 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { LatestVisitCard } from '@/components/visits/latest-visit-card';
 import { ScanLookupInput } from '@/components/visits/scan-lookup-input';
+import { ScanSuccessModal } from '@/components/visits/scan-success-modal';
+import { useRfidScanListener } from '@/hooks/use-rfid-scan-listener';
 import { type AdminDashboard, type DashboardVisit, type PublicDashboard, type SharedData } from '@/types';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { BarChart3, BriefcaseBusiness, Clock3, GraduationCap, Library, RadioTower, ScanLine, Search } from 'lucide-react';
 import { type FormEventHandler, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -21,7 +23,7 @@ interface ScanForm {
 type VisitTab = 'student' | 'employee';
 
 export default function Dashboard({ dashboard, publicDashboard }: AdminDashboardProps) {
-    const { errors } = usePage<SharedData>().props;
+    const { flash } = usePage<SharedData>().props;
     const [visitTab, setVisitTab] = useState<VisitTab>('student');
     const [search, setSearch] = useState('');
     const [manilaTime, setManilaTime] = useState(() => new Date());
@@ -33,18 +35,16 @@ export default function Dashboard({ dashboard, publicDashboard }: AdminDashboard
         post: postScan,
         processing: scanning,
         reset: resetScan,
-        errors: scanErrors,
     } = useForm<ScanForm>({
         rfid_uid: '',
     });
-    const scanValidationError = scanErrors.rfid_uid ?? (typeof errors.rfid_uid === 'string' ? errors.rfid_uid : undefined);
     const scanTargetOptions = useMemo(() => {
         return (publicDashboard.scanTargets ?? []).map((target) => ({
             value: target.rfidUid,
             label: target.name,
-            meta: `${target.schoolId} - ${target.type}${target.group ? ` - ${target.group}` : ''}`,
-            idTerms: [target.schoolId, ...target.schoolId.split(/[^a-zA-Z0-9]+/)].filter(Boolean),
-            textTerms: [target.name, target.firstName, target.lastName, target.type, target.group].filter(Boolean),
+            meta: `${target.schoolId} - ${target.type}${target.detail ? ` - ${target.detail}` : ''}`,
+            idTerms: [target.schoolId, ...target.schoolId.split(/[^a-zA-Z0-9]+/)].filter((term): term is string => Boolean(term)),
+            textTerms: [target.name, target.firstName, target.lastName, target.type, target.detail].filter((term): term is string => Boolean(term)),
         }));
     }, [publicDashboard.scanTargets]);
 
@@ -81,7 +81,6 @@ export default function Dashboard({ dashboard, publicDashboard }: AdminDashboard
             const searchable = [
                 visit.member.schoolId,
                 visit.member.name,
-                visit.member.group,
                 visit.member.type,
                 visit.member.yearLevel,
                 visit.member.section,
@@ -119,12 +118,6 @@ export default function Dashboard({ dashboard, publicDashboard }: AdminDashboard
 
         postScan('/library-visits', {
             preserveScroll: true,
-            onSuccess: () => {
-                router.reload({
-                    only: ['dashboard', 'publicDashboard'],
-                    preserveScroll: true,
-                });
-            },
             onFinish: () => {
                 resetScan('rfid_uid');
                 scanInputRef.current?.focus();
@@ -148,71 +141,17 @@ export default function Dashboard({ dashboard, publicDashboard }: AdminDashboard
         return () => window.clearInterval(interval);
     }, []);
 
-    useEffect(() => {
-        let scanBuffer = '';
-        let scanTimer: number | null = null;
-
-        const resetBuffer = () => {
-            scanBuffer = '';
-
-            if (scanTimer) {
-                window.clearTimeout(scanTimer);
-                scanTimer = null;
-            }
-        };
-
-        const listener = (event: KeyboardEvent) => {
-            const target = event.target as HTMLElement | null;
-            const isTypingField = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.tagName === 'SELECT';
-
-            if (isTypingField) {
-                return;
-            }
-
-            if (event.key === 'Enter') {
-                if (scanBuffer.length >= 10) {
-                    router.post(
-                        '/library-visits',
-                        { rfid_uid: scanBuffer },
-                        {
-                            preserveScroll: true,
-                            onSuccess: () => {
-                                router.reload({
-                                    only: ['dashboard', 'publicDashboard'],
-                                    preserveScroll: true,
-                                });
-                            },
-                            onFinish: () => scanInputRef.current?.focus(),
-                        },
-                    );
-                }
-
-                resetBuffer();
-                return;
-            }
-
-            if (event.key.length === 1) {
-                scanBuffer += event.key;
-
-                if (scanTimer) {
-                    window.clearTimeout(scanTimer);
-                }
-
-                scanTimer = window.setTimeout(resetBuffer, 120);
-            }
-        };
-
-        window.addEventListener('keydown', listener);
-
-        return () => {
-            window.removeEventListener('keydown', listener);
-            resetBuffer();
-        };
-    }, []);
+    useRfidScanListener({
+        onFinish: () => {
+            resetScan('rfid_uid');
+            scanInputRef.current?.focus();
+        },
+    });
 
     return (
         <>
             <Head title="Live Visits" />
+            <ScanSuccessModal visit={flash.recentVisit} />
             <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f4f5_42%,#e7e5e4_100%)] text-zinc-950">
                 <AdminShell active="monitor">
                     <div className="space-y-6 px-4 py-6 sm:px-6 lg:py-8">
@@ -257,7 +196,6 @@ export default function Dashboard({ dashboard, publicDashboard }: AdminDashboard
                                         </Button>
                                     </div>
                                 </div>
-                                {scanValidationError && <p className="mt-2 text-sm text-red-600">{scanValidationError}</p>}
                             </form>
                         </section>
 

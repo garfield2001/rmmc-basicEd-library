@@ -10,8 +10,22 @@ class LibraryVisitController extends Controller
 {
     public function store(StoreLibraryVisitRequest $request, LibraryVisitService $libraryVisits): RedirectResponse
     {
-        $visit = $libraryVisits->recordFromRfid($request->validated('rfid_uid'));
+        $visit = $libraryVisits
+            ->recordFromRfid($request->validated('rfid_uid'))
+            ->load(['member.student', 'member.employee']);
 
-        return back()->with('success', "{$visit->member->full_name}'s library visit has been recorded.");
+        return back()->with('recentVisit', [
+            'id' => $visit->id,
+            'visitedAt' => $visit->visited_at?->toIso8601String(),
+            'member' => [
+                'schoolId' => $visit->member?->school_id,
+                'name' => $visit->member?->full_name,
+                'type' => $visit->member?->type,
+                'yearLevel' => $visit->member?->student?->year_level,
+                'section' => $visit->member?->student?->section,
+                'department' => $visit->member?->employee?->department,
+                'photoUrl' => $visit->member?->photo ? asset('member-photos/'.$visit->member->photo) : null,
+            ],
+        ]);
     }
 }

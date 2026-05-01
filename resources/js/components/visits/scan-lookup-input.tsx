@@ -83,6 +83,7 @@ export const ScanLookupInput = forwardRef<HTMLInputElement, ScanLookupInputProps
             <input
                 id={id}
                 ref={ref}
+                data-rfid-scan-input="true"
                 type="text"
                 value={value}
                 onChange={(event) => {

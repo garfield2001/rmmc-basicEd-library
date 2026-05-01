@@ -1,9 +1,9 @@
 import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
-import { CheckCircle2, Loader2, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Loader2, X } from 'lucide-react';
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 
-type ToastKind = 'success' | 'loading';
+type ToastKind = 'success' | 'loading' | 'error';
 const hiddenFlashSuccessMessages = ['Admin session started.'];
 
 interface Toast {
@@ -30,7 +30,8 @@ export function useToast() {
 }
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-    const { flash } = usePage<SharedData>().props;
+    const page = usePage<SharedData>();
+    const { flash } = page.props;
     const [toasts, setToasts] = useState<Toast[]>([]);
 
     const dismiss = useCallback((id: number) => {
@@ -60,7 +61,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             {children}
             <div className="pointer-events-none fixed right-4 bottom-4 z-[70] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-3">
                 {toasts.map((toast) => {
-                    const Icon = toast.kind === 'loading' ? Loader2 : CheckCircle2;
+                    const Icon = toast.kind === 'loading' ? Loader2 : toast.kind === 'error' ? AlertCircle : CheckCircle2;
 
                     return (
                         <div
@@ -68,7 +69,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                             className="toast-enter pointer-events-auto overflow-hidden rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-xl shadow-zinc-950/10 backdrop-blur"
                         >
                             <div className="flex gap-3">
-                                <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-white">
+                                <div
+                                    className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg text-white ${
+                                        toast.kind === 'error' ? 'bg-red-600' : 'bg-zinc-950'
+                                    }`}
+                                >
                                     <Icon className={`size-4 ${toast.kind === 'loading' ? 'animate-spin' : ''}`} />
                                 </div>
                                 <div className="min-w-0 flex-1">

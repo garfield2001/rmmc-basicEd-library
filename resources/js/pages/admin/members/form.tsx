@@ -1,7 +1,7 @@
 import { AdminShell } from '@/components/admin-shell';
 import { type LibraryMemberRow } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { BriefcaseBusiness, FileImage, GraduationCap, RadioTower, Save } from 'lucide-react';
+import { BriefcaseBusiness, GraduationCap, RadioTower, Save } from 'lucide-react';
 import { type FormEventHandler, useEffect, useRef, useState } from 'react';
 
 interface MemberFormProps {
@@ -251,15 +251,13 @@ export default function MemberForm({ member }: MemberFormProps) {
                                         />
                                     </label>
                                     {errors.photo_file && <p className="mt-1 text-xs text-red-600">{errors.photo_file}</p>}
-                                    {member?.photo && (
-                                        <div className="mt-3 flex items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
-                                            <div className="flex size-10 items-center justify-center rounded-lg bg-white text-zinc-500">
-                                                <FileImage className="size-5" />
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="text-sm font-medium">Current photo</p>
-                                                <p className="truncate text-xs text-zinc-500">{member.photo}</p>
-                                            </div>
+                                    {member?.photo_url && (
+                                        <div className="mt-3 inline-flex overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 p-1">
+                                            <img
+                                                src={member.photo_url}
+                                                alt={`${member.name} current photo`}
+                                                className="size-20 rounded-md object-cover"
+                                            />
                                         </div>
                                     )}
                                 </div>
