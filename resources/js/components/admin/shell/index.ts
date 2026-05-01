@@ -1,17 +1,18 @@
+export { AdminNavbar } from './AdminNavbar';
+export { AdminPageHeader } from './AdminPageHeader';
+export { AdminShell } from './AdminShell';
+export { AdminSidebar } from './AdminSidebar';
+export { AdminTopBar } from './AdminTopBar';
+export { RmmcLogoMark } from './RmmcLogoMark';
+
 export {
-    AdminNavbar,
-    AdminPageHeader,
-    AdminShell,
-    AdminSidebar,
-    AdminTopBar,
-    RmmcLogoMark,
     adminThemePreferenceStorageKey,
     navItems,
     rmmcLogoPath,
     sidebarAnimationStorageKey,
     sidebarCollapsedStorageKey,
     themeOptions,
-} from './admin/shell';
+} from './constants';
 
 export type {
     AdminNavItem,
@@ -23,4 +24,4 @@ export type {
     AdminShellProps,
     AdminSidebarProps,
     ThemePreference,
-} from './admin/shell';
+} from './types';

@@ -1,0 +1,17 @@
+import type { ThemePreference } from './types';
+
+export function resolveTheme(preference: ThemePreference): 'light' | 'dark' {
+    if (preference !== 'system') {
+        return preference;
+    }
+
+    if (typeof window === 'undefined') {
+        return 'light';
+    }
+
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+export function resolveStoredThemePreference(value: string | null): ThemePreference {
+    return value === 'light' || value === 'dark' || value === 'system' ? value : 'system';
+}

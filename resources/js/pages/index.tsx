@@ -1,4 +1,3 @@
-import { AdminNavbar, AdminSidebar, sidebarCollapsedStorageKey } from '@/components/admin-shell';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ToastProvider } from '@/components/ui/toaster';
@@ -22,6 +21,9 @@ import {
     Timer,
     UsersRound,
 } from 'lucide-react';
+
+import { sidebarCollapsedStorageKey } from '@/components/admin/shell';
+
 import { type FormEventHandler, useCallback, useEffect, useRef, useState } from 'react';
 
 interface IndexProps {
