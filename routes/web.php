@@ -13,7 +13,7 @@ use Inertia\Inertia;
 
 Route::get(
     '/',
-    fn (Request $request, PublicDashboardService $dashboard) => $request->user()
+    fn(Request $request, PublicDashboardService $dashboard) => $request->user()
         ? redirect()->route('admin.dashboard')
         : Inertia::render('index', [
             'dashboard' => $dashboard->getData(detailed: false),
@@ -22,7 +22,7 @@ Route::get(
 )->name('index');
 
 Route::middleware('guest')->group(function () {
-    Route::get('login', fn () => redirect()->route('index', ['login' => 1]))->name('login');
+    Route::get('login', fn() => redirect()->route('index', ['login' => 1]))->name('login');
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 });
 

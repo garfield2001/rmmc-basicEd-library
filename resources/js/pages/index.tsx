@@ -29,7 +29,7 @@ import { ScanSuccessModal } from '@/components/visits/scan-success-modal';
 import { useRfidScanListener } from '@/hooks/use-rfid-scan-listener';
 import { type SharedData } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { AlertTriangle, BarChart3, ChevronDown, ChevronUp, Clock3, Info, LogIn, RadioTower, ScanLine, ShieldCheck, Timer } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronUp, Clock3, Info, LogIn, RadioTower, ScanLine, ShieldCheck, Timer } from 'lucide-react';
 
 import { sidebarCollapsedStorageKey } from '@/components/admin/shell';
 
@@ -859,57 +859,6 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
                                                 </div>
                                             );
                                         })}
-                                    </section>
-                                )}
-
-                                {adminDashboard && (
-                                    <section className="grid gap-4 xl:grid-cols-[1.3fr_1fr]">
-                                        <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <h2 className="text-lg font-semibold">Visits this week</h2>
-                                                    <p className="mt-1 text-sm text-zinc-500">Daily RFID scans across students and employees.</p>
-                                                </div>
-                                                <BarChart3 className="size-5 text-zinc-400" />
-                                            </div>
-                                            <div className="mt-6 flex h-48 items-end gap-3">
-                                                {adminDashboard.charts.visitsByDay.map((point) => (
-                                                    <div key={point.label} className="flex flex-1 flex-col items-center gap-2">
-                                                        <div className="flex h-36 w-full items-end rounded-lg bg-zinc-50 px-2">
-                                                            <div
-                                                                className="w-full rounded-t-md bg-zinc-950 transition-all"
-                                                                style={{
-                                                                    height: `${Math.max((point.value / maxDailyVisits) * 100, point.value > 0 ? 8 : 0)}%`,
-                                                                }}
-                                                            />
-                                                        </div>
-                                                        <p className="text-xs font-medium text-zinc-500">{point.label}</p>
-                                                        <p className="text-xs text-zinc-400">{point.value}</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-                                            <h2 className="text-lg font-semibold">Visit distribution</h2>
-                                            <p className="mt-1 text-sm text-zinc-500">Student and employee attendance share.</p>
-                                            <div className="mt-6 space-y-4">
-                                                {adminDashboard.charts.visitsByType.map((point) => (
-                                                    <div key={point.label}>
-                                                        <div className="mb-2 flex justify-between text-sm">
-                                                            <span className="font-medium">{point.label}</span>
-                                                            <span className="text-zinc-500">{point.value.toLocaleString()}</span>
-                                                        </div>
-                                                        <div className="h-3 rounded-full bg-zinc-100">
-                                                            <div
-                                                                className="h-3 rounded-full bg-zinc-950"
-                                                                style={{ width: `${Math.round((point.value / totalTypeVisits) * 100)}%` }}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
                                     </section>
                                 )}
                             </div>

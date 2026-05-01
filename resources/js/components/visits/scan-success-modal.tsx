@@ -90,7 +90,7 @@ export function ScanSuccessModal({ visit }: ScanSuccessModalProps) {
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent
                 key={visibleVisit.id}
-                className="scan-success-content min-h-[560px] overflow-hidden border-[#040DBF]/20 bg-[#f6f8ff] p-0 sm:max-w-5xl"
+                className="scan-success-content min-h-140 overflow-hidden border-[#040DBF]/20 bg-[#f6f8ff] p-0 sm:max-w-5xl"
             >
                 <div className="h-3 bg-[linear-gradient(90deg,#040DBF_0%,#030A8C_52%,#010440_100%)]" />
                 <div className="p-6 sm:p-8">
