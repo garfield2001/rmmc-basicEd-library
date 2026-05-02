@@ -23,14 +23,11 @@ class PublicDashboardService
                 'employees' => LibraryMember::active()->where('type', LibraryMember::TYPE_EMPLOYEE)->count(),
                 'visitsToday' => (clone $todayVisitQuery)->count(),
                 'studentVisitsToday' => (clone $todayVisitQuery)
-                    ->whereHas('member', fn (Builder $query) => $query->where('type', LibraryMember::TYPE_STUDENT))
+                    ->whereHas('member', fn(Builder $query) => $query->where('type', LibraryMember::TYPE_STUDENT))
                     ->count(),
                 'employeeVisitsToday' => (clone $todayVisitQuery)
-                    ->whereHas('member', fn (Builder $query) => $query->where('type', LibraryMember::TYPE_EMPLOYEE))
+                    ->whereHas('member', fn(Builder $query) => $query->where('type', LibraryMember::TYPE_EMPLOYEE))
                     ->count(),
-                'visitsThisSchoolYear' => $schoolYear
-                    ? LibraryVisit::where('school_year_id', $schoolYear->id)->count()
-                    : 0,
             ],
         ];
     }

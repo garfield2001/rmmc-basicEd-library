@@ -10,7 +10,7 @@ use Inertia\Response;
 
 class PublicHomeController extends Controller
 {
-    public function __invoke(PublicDashboardService $dashboard): Response|RedirectResponse
+    public function __invoke(PublicDashboardService $dashboard)
     {
         return Inertia::render('index', [
             'dashboard' => $dashboard->getData(),
