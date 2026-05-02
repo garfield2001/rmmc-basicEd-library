@@ -44,9 +44,9 @@ class EmployeeSeeder extends LibraryMemberSeeder
             'OP1-308' => [
                 'department' => 'Management Information Systems',
             ],
-            'OP1164' => [
+            /* 'OP1164' => [
                 'department' => 'Para-Librarian',
-            ],
+            ], */
         ]);
     }
 }

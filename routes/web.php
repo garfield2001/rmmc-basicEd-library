@@ -5,24 +5,14 @@ use App\Http\Controllers\AdminProfileController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\LibraryMemberController;
 use App\Http\Controllers\LibraryVisitController;
+use App\Http\Controllers\PublicHomeController;
 use App\Http\Controllers\ReportController;
-use App\Services\Dashboard\PublicDashboardService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get(
-    '/',
-    fn(Request $request, PublicDashboardService $dashboard) => $request->user()
-        ? redirect()->route('admin.dashboard')
-        : Inertia::render('index', [
-            'dashboard' => $dashboard->getData(detailed: false),
-            'adminDashboard' => null,
-        ])
-)->name('index');
+Route::get('/', PublicHomeController::class)->name('index');
 
 Route::middleware('guest')->group(function () {
-    Route::get('login', fn() => redirect()->route('index', ['login' => 1]))->name('login');
+    Route::get('login', fn () => redirect()->route('index', ['login' => 1]))->name('login');
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 });
 

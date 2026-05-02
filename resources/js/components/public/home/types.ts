@@ -1,8 +1,7 @@
-import type { AdminDashboard, PublicDashboard } from '@/types';
+import type { PublicDashboard } from '@/types';
 
 export interface IndexProps {
     dashboard: PublicDashboard;
-    adminDashboard: AdminDashboard | null;
 }
 
 export interface LoginForm {

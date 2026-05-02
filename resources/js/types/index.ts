@@ -36,12 +36,7 @@ export interface ScanTarget {
 }
 
 export interface PublicDashboard {
-    schoolYear:
-        | (SchoolYearSummary & {
-              minimum_visits?: number;
-              target_visits?: number;
-          })
-        | null;
+    schoolYear: SchoolYearSummary | null;
     metrics: {
         students: number;
         employees: number;
@@ -50,12 +45,15 @@ export interface PublicDashboard {
         employeeVisitsToday: number;
         visitsThisSchoolYear: number;
     };
-    todayVisits: DashboardVisit[];
-    scanTargets: ScanTarget[];
 }
 
 export interface AdminDashboard {
-    schoolYear: PublicDashboard['schoolYear'];
+    schoolYear:
+        | (SchoolYearSummary & {
+              minimum_visits?: number;
+              target_visits?: number;
+          })
+        | null;
     metrics: {
         activeMembers: number;
         inactiveMembers: number;
@@ -71,6 +69,16 @@ export interface AdminDashboard {
         visitsByType: ChartPoint[];
         studentVisitsByYearLevel: ChartPoint[];
     };
+}
+
+export interface AdminVisitMonitor {
+    metrics: {
+        visitsToday: number;
+        studentVisitsToday: number;
+        employeeVisitsToday: number;
+    };
+    todayVisits: DashboardVisit[];
+    scanTargets: ScanTarget[];
 }
 
 export interface ChartPoint {

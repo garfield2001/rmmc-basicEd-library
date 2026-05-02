@@ -2,12 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Models\Employee;
 use App\Models\LibraryMember;
 use App\Models\LibraryVisit;
 use App\Models\SchoolYear;
 use App\Models\User;
-use App\Models\Employee;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class AdminReportTest extends TestCase
@@ -23,7 +24,12 @@ class AdminReportTest extends TestCase
     {
         $this->actingAs(User::factory()->create(['role' => 'admin']))
             ->get('/admin')
-            ->assertOk();
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('admin/dashboard')
+                ->has('dashboard')
+                ->has('visitMonitor')
+                ->missing('publicDashboard'));
     }
 
     public function test_authenticated_user_can_export_visit_report_csv(): void

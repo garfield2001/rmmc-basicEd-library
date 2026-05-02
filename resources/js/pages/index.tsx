@@ -12,11 +12,9 @@ import { PublicRmmcLogo } from '@/components/public/home/PublicRmmcLogo';
 
 import { getRestrictedRescanDetails, getScanErrorSummary } from '@/components/public/home/helpers';
 
-import { getAdministrationStats, getAdministrationStatus, getAdminMetrics, getTodayMetrics } from '@/components/public/home/metrics';
+import { getAdministrationStats, getAdministrationStatus } from '@/components/public/home/metrics';
 
 import { useManilaClock } from '@/components/public/home/use-manila-clock';
-
-import { PublicMetricCard } from '@/components/public/home/PublicMetricCard';
 
 import { AdministrationStatCard } from '@/components/public/home/AdministrationStatCard';
 
@@ -29,15 +27,12 @@ import { ScanSuccessModal } from '@/components/visits/scan-success-modal';
 import { useRfidScanListener } from '@/hooks/use-rfid-scan-listener';
 import { type SharedData } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { AlertTriangle, ChevronDown, ChevronUp, Clock3, Info, LogIn, RadioTower, ScanLine, ShieldCheck, Timer } from 'lucide-react';
-
-import { sidebarCollapsedStorageKey } from '@/components/admin/shell';
+import { AlertTriangle, ChevronDown, ChevronUp, Info, LogIn, RadioTower, ShieldCheck, Timer } from 'lucide-react';
 
 import { type FormEventHandler, useCallback, useEffect, useRef, useState } from 'react';
 
-export default function Index({ dashboard, adminDashboard }: IndexProps) {
-    const { auth, name, errors, flash } = usePage<SharedData>().props;
-    const isAdmin = Boolean(auth.user && adminDashboard);
+export default function Index({ dashboard }: IndexProps) {
+    const { name, errors, flash } = usePage<SharedData>().props;
     const [showLogin, setShowLogin] = useState(false);
     const [showScanError, setShowScanError] = useState(false);
     const [isAdministrationRevealed, setIsAdministrationRevealed] = useState(false);
@@ -50,13 +45,6 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
     });
     const [scanErrorCountdown, setScanErrorCountdown] = useState(scanErrorAutoCloseSeconds);
 
-    const [isAdminSidebarCollapsed, setIsAdminSidebarCollapsed] = useState(() => {
-        if (typeof window === 'undefined') {
-            return false;
-        }
-
-        return window.localStorage.getItem(sidebarCollapsedStorageKey) === 'true';
-    });
     const scanInputRef = useRef<HTMLInputElement | null>(null);
     const administrationSectionRef = useRef<HTMLElement | null>(null);
     const isPublicTransitioningRef = useRef(false);
@@ -113,12 +101,12 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
     }, [showLogin]);
 
     useEffect(() => {
-        if (isAdmin || typeof document === 'undefined') {
+        if (typeof document === 'undefined') {
             return;
         }
 
         delete document.documentElement.dataset.adminTheme;
-    }, [isAdmin]);
+    }, []);
 
     useEffect(() => {
         const searchParams = new URLSearchParams(window.location.search);
@@ -244,10 +232,6 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
     }, []);
 
     useEffect(() => {
-        if (isAdmin) {
-            return;
-        }
-
         if (scannerReturnButtonTimerRef.current) {
             window.clearTimeout(scannerReturnButtonTimerRef.current);
         }
@@ -260,13 +244,9 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
         scannerReturnButtonTimerRef.current = window.setTimeout(() => {
             setShowScannerReturnButton(true);
         }, 760);
-    }, [isAdmin, isAdministrationRevealed]);
+    }, [isAdministrationRevealed]);
 
     useEffect(() => {
-        if (isAdmin) {
-            return;
-        }
-
         let resizeTimer: number | null = null;
 
         const resetPublicPreview = () => {
@@ -298,12 +278,7 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
                 window.clearTimeout(resizeTimer);
             }
         };
-    }, [isAdmin, isAdministrationRevealed]);
-
-    const changeAdminSidebarCollapsed = (collapsed: boolean) => {
-        setIsAdminSidebarCollapsed(collapsed);
-        window.localStorage.setItem(sidebarCollapsedStorageKey, collapsed ? 'true' : 'false');
-    };
+    }, [isAdministrationRevealed]);
 
     const submitLogin: FormEventHandler = (event) => {
         event.preventDefault();
@@ -445,10 +420,6 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
     };
 
     useEffect(() => {
-        if (isAdmin) {
-            return;
-        }
-
         const finishPublicTransition = (delayMs = 850) => {
             if (publicTransitionTimerRef.current) {
                 window.clearTimeout(publicTransitionTimerRef.current);
@@ -598,7 +569,7 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
             window.removeEventListener('touchmove', blockPublicTouchScroll);
             window.removeEventListener('scroll', reconcilePublicScroll);
         };
-    }, [isAdmin, isAdministrationRevealed, showAdministrationScrollHint, showLogin]);
+    }, [isAdministrationRevealed, showAdministrationScrollHint, showLogin]);
 
     useRfidScanListener({
         enabled: !showLogin && !scannerUnavailable,
@@ -621,13 +592,8 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
           : 'Place your ID near the scanner.';
     const isScannerReady = !scannerUnavailable;
 
-    const todayMetrics = getTodayMetrics(dashboard);
-    const adminMetrics = getAdminMetrics(adminDashboard);
     const administrationStats = getAdministrationStats(dashboard);
     const administrationStatus = getAdministrationStatus(dashboard);
-
-    const maxDailyVisits = Math.max(...(adminDashboard?.charts.visitsByDay.map((point) => point.value) ?? [0]), 1);
-    const totalTypeVisits = adminDashboard?.charts.visitsByType.reduce((total, point) => total + point.value, 0) || 1;
 
     return (
         <ToastProvider>
@@ -765,270 +731,168 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
                 </DialogContent>
             </Dialog>
 
-            {isAdmin ? (
-                <main className="page-lift min-h-screen bg-zinc-100 text-zinc-950">
-                    <div
-                        className={`admin-theme-root admin-layout-enter grid min-h-screen transition-[grid-template-columns] duration-300 ${
-                            isAdminSidebarCollapsed ? 'lg:grid-cols-[72px_minmax(0,1fr)]' : 'lg:grid-cols-[280px_minmax(0,1fr)]'
-                        }`}
-                    >
-                        <AdminSidebar
-                            active="monitor"
-                            collapsed={isAdminSidebarCollapsed}
-                            themePreference="system"
-                            onThemePreferenceChange={() => undefined}
-                        />
-
-                        <section className="min-w-0">
-                            <AdminNavbar collapsed={isAdminSidebarCollapsed} onCollapsedChange={changeAdminSidebarCollapsed} />
-
-                            <div className="space-y-6 px-4 py-6 sm:px-6 lg:py-8">
-                                <div className="flex flex-col gap-4 rounded-lg border border-zinc-200 bg-white p-6 shadow-sm lg:flex-row lg:items-end lg:justify-between">
-                                    <div>
-                                        <h1 className="text-3xl font-semibold tracking-normal sm:text-4xl">Library RFID Monitor</h1>
-                                        <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-500">
-                                            Scanner-first monitoring for today&apos;s student and employee library visits.
-                                        </p>
-                                    </div>
-
-                                    <div className="flex items-center gap-2 text-sm text-zinc-500">
-                                        <Clock3 className="size-4" />
-                                        <span>{formattedManilaTime}</span>
-                                    </div>
-                                </div>
-
-                                <form onSubmit={submitScan} className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-                                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex size-11 items-center justify-center rounded-lg bg-zinc-950 text-white">
-                                                <RadioTower className="size-5" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-medium text-zinc-500">RFID scanner</p>
-                                                <h2 className="text-xl font-semibold">Ready to record visits</h2>
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-1 flex-col gap-3 sm:flex-row lg:max-w-2xl">
-                                            <input
-                                                id="admin-rfid-scan"
-                                                ref={scanInputRef}
-                                                data-rfid-scan-input="true"
-                                                value={scanData.rfid_uid}
-                                                onChange={(event) => changeScanData(event.target.value)}
-                                                placeholder="Waiting for RFID scan"
-                                                className="h-12 min-w-0 flex-1 rounded-lg border border-zinc-300 bg-white px-4 text-sm transition outline-none focus:border-zinc-500 focus:ring-4 focus:ring-zinc-100"
-                                                autoComplete="off"
-                                                inputMode="numeric"
-                                                autoFocus
-                                            />
-                                            <Button type="submit" disabled={scannerUnavailable}>
-                                                <ScanLine className="size-4" />
-                                                {scannerUnavailable ? 'Preparing...' : 'Record'}
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </form>
-
-                                <section className="grid gap-4 md:grid-cols-3">
-                                    {todayMetrics.map((metric) => (
-                                        <PublicMetricCard
-                                            key={metric.label}
-                                            label={metric.label}
-                                            value={metric.value}
-                                            detail={metric.detail}
-                                            icon={metric.icon}
-                                        />
-                                    ))}
-                                </section>
-
-                                {adminMetrics && (
-                                    <section className="grid gap-4 md:grid-cols-3">
-                                        {adminMetrics.map((metric) => {
-                                            const Icon = metric.icon;
-
-                                            return (
-                                                <div key={metric.label} className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-                                                    <div className="flex items-center justify-between gap-4">
-                                                        <p className="text-sm font-medium text-zinc-500">{metric.label}</p>
-                                                        <div className="flex size-9 items-center justify-center rounded-lg bg-zinc-100 text-zinc-700">
-                                                            <Icon className="size-4" />
-                                                        </div>
-                                                    </div>
-                                                    <p className="mt-3 text-3xl font-semibold">{metric.value.toLocaleString()}</p>
-                                                    <p className="mt-2 text-sm text-zinc-500">{metric.detail}</p>
-                                                </div>
-                                            );
-                                        })}
-                                    </section>
-                                )}
-                            </div>
-                        </section>
-                    </div>
-                </main>
-            ) : (
-                <main className="page-lift relative min-h-screen bg-[linear-gradient(180deg,#f6f8ff_0%,#ffffff_46%,#eef2ff_100%)] text-[#010440]">
-                    <section
-                        className={`sticky top-0 isolate z-0 flex min-h-screen items-center overflow-hidden px-5 py-8 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] sm:px-8 sm:py-10 ${
-                            isAdministrationRevealed ? 'scale-[0.98] opacity-0' : 'scale-100 opacity-100'
-                        }`}
-                    >
-                        <img
-                            src={rmmcLogoPath}
-                            alt=""
-                            aria-hidden="true"
-                            className="pointer-events-none absolute top-1/2 left-1/2 -z-10 h-[76vmin] max-h-[820px] min-h-[420px] w-auto -translate-x-1/2 -translate-y-1/2 opacity-[0.11] saturate-125"
-                        />
-                        <div className="mx-auto grid w-full max-w-7xl gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(360px,480px)] lg:items-center lg:gap-14">
-                            <div className="min-w-0">
-                                <div className="flex items-center gap-4 sm:gap-5">
-                                    <PublicRmmcLogo />
-                                    <div className="min-w-0">
-                                        <p className="max-w-xl text-lg leading-6 font-semibold text-[#010440] sm:text-2xl sm:leading-8">{name}</p>
-                                        <p className="mt-1 text-sm text-[#030A8C] sm:text-lg">Library attendance station</p>
-                                    </div>
-                                </div>
-
-                                <div className="mt-10 max-w-3xl sm:mt-14">
-                                    <h1 className="text-5xl leading-[0.96] font-semibold tracking-normal text-[#010440] sm:text-7xl lg:text-8xl">
-                                        Scan your library ID
-                                    </h1>
-                                    <p className="mt-6 max-w-2xl text-lg leading-7 text-[#020659] sm:text-2xl sm:leading-9">
-                                        Approved or not, the scan result will appear clearly on this screen after every scan.
-                                    </p>
+            <main className="page-lift relative min-h-screen bg-[linear-gradient(180deg,#f6f8ff_0%,#ffffff_46%,#eef2ff_100%)] text-[#010440]">
+                <section
+                    className={`sticky top-0 isolate z-0 flex min-h-screen items-center overflow-hidden px-5 py-8 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] sm:px-8 sm:py-10 ${
+                        isAdministrationRevealed ? 'scale-[0.98] opacity-0' : 'scale-100 opacity-100'
+                    }`}
+                >
+                    <img
+                        src={rmmcLogoPath}
+                        alt=""
+                        aria-hidden="true"
+                        className="pointer-events-none absolute top-1/2 left-1/2 -z-10 h-[76vmin] max-h-[820px] min-h-[420px] w-auto -translate-x-1/2 -translate-y-1/2 opacity-[0.11] saturate-125"
+                    />
+                    <div className="mx-auto grid w-full max-w-7xl gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(360px,480px)] lg:items-center lg:gap-14">
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-4 sm:gap-5">
+                                <PublicRmmcLogo />
+                                <div className="min-w-0">
+                                    <p className="max-w-xl text-lg leading-6 font-semibold text-[#010440] sm:text-2xl sm:leading-8">{name}</p>
+                                    <p className="mt-1 text-sm text-[#030A8C] sm:text-lg">Library attendance station</p>
                                 </div>
                             </div>
 
-                            <form
-                                onSubmit={submitScan}
-                                className="relative flex min-h-[300px] flex-col items-center justify-center border-y border-[#040DBF]/15 py-8 text-center sm:min-h-[380px] sm:py-10 lg:min-h-[460px]"
-                            >
-                                <input
-                                    id="public-rfid-scan"
-                                    ref={scanInputRef}
-                                    data-rfid-scan-input="true"
-                                    value={scanData.rfid_uid}
-                                    onChange={(event) => changeScanData(event.target.value)}
-                                    className="sr-only"
-                                    autoComplete="off"
-                                    inputMode="numeric"
-                                    autoFocus
-                                    aria-label="RFID scanner input"
-                                />
-
-                                <div
-                                    className={`flex size-32 items-center justify-center rounded-full border bg-white/95 shadow-2xl ring-8 transition-colors duration-300 sm:size-40 ${
-                                        isScannerReady
-                                            ? 'border-[#040DBF]/25 text-[#040DBF] shadow-[#040DBF]/15 ring-[#040DBF]/5'
-                                            : 'border-red-500/30 text-red-600 shadow-red-500/15 ring-red-500/10'
-                                    }`}
-                                >
-                                    <RadioTower className="size-14 sm:size-18" />
-                                </div>
-                                <p className="mt-7 text-3xl font-semibold tracking-normal text-[#010440] sm:mt-8 sm:text-5xl">{scannerStatusText}</p>
-                                <p className="mt-3 max-w-md text-lg leading-7 text-[#020659] sm:mt-4 sm:text-2xl sm:leading-9">
-                                    {scannerInstructionText}
+                            <div className="mt-10 max-w-3xl sm:mt-14">
+                                <h1 className="text-5xl leading-[0.96] font-semibold tracking-normal text-[#010440] sm:text-7xl lg:text-8xl">
+                                    Scan your library ID
+                                </h1>
+                                <p className="mt-6 max-w-2xl text-lg leading-7 text-[#020659] sm:text-2xl sm:leading-9">
+                                    Approved or not, the scan result will appear clearly on this screen after every scan.
                                 </p>
-                                <p className="mt-7 rounded-lg border border-[#030A8C]/15 bg-white/90 px-4 py-2.5 text-base font-medium text-[#010440] shadow-sm shadow-[#010440]/5 sm:mt-8 sm:px-5 sm:py-3 sm:text-xl">
-                                    {formattedManilaTime}
-                                </p>
-                            </form>
+                            </div>
                         </div>
-                    </section>
 
-                    <section
-                        ref={administrationSectionRef}
-                        className="relative z-10 flex min-h-screen items-center border-t border-[#040DBF]/20 bg-[linear-gradient(180deg,#010440_0%,#020659_100%)] px-5 py-8 text-white sm:px-8 sm:py-10"
-                    >
-                        {showAdministrationScrollHint && (
-                            <div
-                                className="pointer-events-none absolute top-8 left-1/2 z-20 flex -translate-x-1/2 items-center justify-center bg-transparent text-white/90 drop-shadow-lg motion-safe:animate-bounce sm:top-10"
-                                aria-hidden="true"
-                            >
-                                <ChevronDown className="size-14 sm:size-16" />
-                            </div>
-                        )}
-
-                        <div
-                            className={`mx-auto w-full max-w-6xl transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                                isAdministrationRevealed ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-85'
-                            }`}
+                        <form
+                            onSubmit={submitScan}
+                            className="relative flex min-h-[300px] flex-col items-center justify-center border-y border-[#040DBF]/15 py-8 text-center sm:min-h-[380px] sm:py-10 lg:min-h-[460px]"
                         >
-                            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
-                                <div className="max-w-3xl">
-                                    <p className="text-sm font-semibold text-blue-200">Staff Area</p>
-                                    <h2 className="mt-2 text-3xl font-semibold tracking-normal text-white sm:text-4xl">Administration and records</h2>
-                                    <p className="mt-3 max-w-2xl text-sm leading-6 text-blue-100 sm:mt-4 sm:text-base sm:leading-7">
-                                        Library staff can sign in here to manage member profiles, verify visit activity, export attendance records,
-                                        and maintain scanner settings.
-                                    </p>
-                                </div>
+                            <input
+                                id="public-rfid-scan"
+                                ref={scanInputRef}
+                                data-rfid-scan-input="true"
+                                value={scanData.rfid_uid}
+                                onChange={(event) => changeScanData(event.target.value)}
+                                className="sr-only"
+                                autoComplete="off"
+                                inputMode="numeric"
+                                autoFocus
+                                aria-label="RFID scanner input"
+                            />
 
-                                <Button
-                                    onClick={() => setShowLogin(true)}
-                                    className="h-12 w-full shrink-0 bg-[#040DBF] px-6 text-white shadow-lg shadow-[#040DBF]/25 hover:bg-white hover:text-[#010440] sm:w-auto"
-                                >
-                                    <LogIn className="size-4" />
-                                    Admin login
-                                </Button>
-                            </div>
-
-                            <div className="mt-8 grid gap-8 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-10">
-                                <div className="divide-y divide-white/15 border-y border-white/15">
-                                    {administrationStats.map((stat) => (
-                                        <AdministrationStatCard
-                                            key={stat.label}
-                                            label={stat.label}
-                                            value={stat.value}
-                                            detail={stat.detail}
-                                            icon={stat.icon}
-                                        />
-                                    ))}
-                                </div>
-
-                                <div className="border-y border-white/15 py-4 sm:py-5">
-                                    <p className="text-sm font-semibold text-blue-200">Current setup</p>
-                                    <div className="mt-5 space-y-5">
-                                        {administrationStatus.map((item) => (
-                                            <AdministrationStatusCard
-                                                key={item.label}
-                                                label={item.label}
-                                                value={item.value}
-                                                detail={item.detail}
-                                                icon={item.icon}
-                                            />
-                                        ))}
-                                    </div>
-                                    <div className="mt-6 border-t border-white/15 pt-5">
-                                        <p className="text-sm leading-6 text-blue-100">
-                                            Administrative tools are kept behind staff login so the scanner station stays focused on visitor flow.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {isAdministrationRevealed && (
-                            <Button
-                                type="button"
-                                onClick={returnToScanner}
-                                aria-label="Show scanner page"
-                                className={`group fixed right-5 bottom-5 z-30 h-14 w-14 gap-0 overflow-hidden rounded-full border border-white/20 bg-[#040DBF] p-0 text-white shadow-2xl shadow-[#010440]/45 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:w-52 hover:animate-none hover:gap-2 hover:bg-[#030A8C] hover:pr-4 hover:pl-2 motion-safe:animate-bounce sm:right-8 sm:bottom-8 ${
-                                    showScannerReturnButton
-                                        ? 'translate-y-0 scale-100 opacity-100'
-                                        : 'pointer-events-none translate-y-5 scale-95 opacity-0'
+                            <div
+                                className={`flex size-32 items-center justify-center rounded-full border bg-white/95 shadow-2xl ring-8 transition-colors duration-300 sm:size-40 ${
+                                    isScannerReady
+                                        ? 'border-[#040DBF]/25 text-[#040DBF] shadow-[#040DBF]/15 ring-[#040DBF]/5'
+                                        : 'border-red-500/30 text-red-600 shadow-red-500/15 ring-red-500/10'
                                 }`}
                             >
-                                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-transparent text-white">
-                                    <ChevronUp className="size-7" />
-                                </span>
-                                <span className="max-w-0 overflow-hidden font-semibold whitespace-nowrap opacity-0 transition-all duration-300 group-hover:max-w-36 group-hover:opacity-100">
-                                    Return to scanner
-                                </span>
+                                <RadioTower className="size-14 sm:size-18" />
+                            </div>
+                            <p className="mt-7 text-3xl font-semibold tracking-normal text-[#010440] sm:mt-8 sm:text-5xl">{scannerStatusText}</p>
+                            <p className="mt-3 max-w-md text-lg leading-7 text-[#020659] sm:mt-4 sm:text-2xl sm:leading-9">
+                                {scannerInstructionText}
+                            </p>
+                            <p className="mt-7 rounded-lg border border-[#030A8C]/15 bg-white/90 px-4 py-2.5 text-base font-medium text-[#010440] shadow-sm shadow-[#010440]/5 sm:mt-8 sm:px-5 sm:py-3 sm:text-xl">
+                                {formattedManilaTime}
+                            </p>
+                        </form>
+                    </div>
+                </section>
+
+                <section
+                    ref={administrationSectionRef}
+                    className="relative z-10 flex min-h-screen items-center border-t border-[#040DBF]/20 bg-[linear-gradient(180deg,#010440_0%,#020659_100%)] px-5 py-8 text-white sm:px-8 sm:py-10"
+                >
+                    {showAdministrationScrollHint && (
+                        <div
+                            className="pointer-events-none absolute top-8 left-1/2 z-20 flex -translate-x-1/2 items-center justify-center bg-transparent text-white/90 drop-shadow-lg motion-safe:animate-bounce sm:top-10"
+                            aria-hidden="true"
+                        >
+                            <ChevronDown className="size-14 sm:size-16" />
+                        </div>
+                    )}
+
+                    <div
+                        className={`mx-auto w-full max-w-6xl transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                            isAdministrationRevealed ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-85'
+                        }`}
+                    >
+                        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
+                            <div className="max-w-3xl">
+                                <p className="text-sm font-semibold text-blue-200">Staff Area</p>
+                                <h2 className="mt-2 text-3xl font-semibold tracking-normal text-white sm:text-4xl">Administration and records</h2>
+                                <p className="mt-3 max-w-2xl text-sm leading-6 text-blue-100 sm:mt-4 sm:text-base sm:leading-7">
+                                    Library staff can sign in here to manage member profiles, verify visit activity, export attendance records, and
+                                    maintain scanner settings.
+                                </p>
+                            </div>
+
+                            <Button
+                                onClick={() => setShowLogin(true)}
+                                className="h-12 w-full shrink-0 bg-[#040DBF] px-6 text-white shadow-lg shadow-[#040DBF]/25 hover:bg-white hover:text-[#010440] sm:w-auto"
+                            >
+                                <LogIn className="size-4" />
+                                Admin login
                             </Button>
-                        )}
-                    </section>
-                </main>
-            )}
+                        </div>
+
+                        <div className="mt-8 grid gap-8 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-10">
+                            <div className="divide-y divide-white/15 border-y border-white/15">
+                                {administrationStats.map((stat) => (
+                                    <AdministrationStatCard
+                                        key={stat.label}
+                                        label={stat.label}
+                                        value={stat.value}
+                                        detail={stat.detail}
+                                        icon={stat.icon}
+                                    />
+                                ))}
+                            </div>
+
+                            <div className="border-y border-white/15 py-4 sm:py-5">
+                                <p className="text-sm font-semibold text-blue-200">Current setup</p>
+                                <div className="mt-5 space-y-5">
+                                    {administrationStatus.map((item) => (
+                                        <AdministrationStatusCard
+                                            key={item.label}
+                                            label={item.label}
+                                            value={item.value}
+                                            detail={item.detail}
+                                            icon={item.icon}
+                                        />
+                                    ))}
+                                </div>
+                                <div className="mt-6 border-t border-white/15 pt-5">
+                                    <p className="text-sm leading-6 text-blue-100">
+                                        Administrative tools are kept behind staff login so the scanner station stays focused on visitor flow.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {isAdministrationRevealed && (
+                        <Button
+                            type="button"
+                            onClick={returnToScanner}
+                            aria-label="Show scanner page"
+                            className={`group fixed right-5 bottom-5 z-30 h-14 w-14 gap-0 overflow-hidden rounded-full border border-white/20 bg-[#040DBF] p-0 text-white shadow-2xl shadow-[#010440]/45 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:w-52 hover:animate-none hover:gap-2 hover:bg-[#030A8C] hover:pr-4 hover:pl-2 motion-safe:animate-bounce sm:right-8 sm:bottom-8 ${
+                                showScannerReturnButton
+                                    ? 'translate-y-0 scale-100 opacity-100'
+                                    : 'pointer-events-none translate-y-5 scale-95 opacity-0'
+                            }`}
+                        >
+                            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-transparent text-white">
+                                <ChevronUp className="size-7" />
+                            </span>
+                            <span className="max-w-0 overflow-hidden font-semibold whitespace-nowrap opacity-0 transition-all duration-300 group-hover:max-w-36 group-hover:opacity-100">
+                                Return to scanner
+                            </span>
+                        </Button>
+                    )}
+                </section>
+            </main>
         </ToastProvider>
     );
 }

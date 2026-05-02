@@ -1,55 +1,5 @@
-import type { AdminDashboard, PublicDashboard } from '@/types';
-import { BarChart3, BriefcaseBusiness, Clock3, GraduationCap, ScanLine, ShieldCheck, UsersRound } from 'lucide-react';
-
-export function getTodayMetrics(dashboard: PublicDashboard) {
-    return [
-        {
-            label: 'Visits today',
-            value: dashboard.metrics.visitsToday,
-            detail: 'RFID scans since midnight',
-            icon: ScanLine,
-        },
-        {
-            label: 'Students',
-            value: dashboard.metrics.studentVisitsToday,
-            detail: 'Student entries logged',
-            icon: GraduationCap,
-        },
-        {
-            label: 'Employees',
-            value: dashboard.metrics.employeeVisitsToday,
-            detail: 'Employee entries logged',
-            icon: BriefcaseBusiness,
-        },
-    ];
-}
-
-export function getAdminMetrics(adminDashboard: AdminDashboard | null) {
-    if (!adminDashboard) {
-        return null;
-    }
-
-    return [
-        {
-            label: 'Active members',
-            value: adminDashboard.metrics.activeMembers,
-            detail: 'Can record RFID visits',
-            icon: UsersRound,
-        },
-        {
-            label: 'Inactive members',
-            value: adminDashboard.metrics.inactiveMembers,
-            detail: 'Retained for records',
-            icon: ShieldCheck,
-        },
-        {
-            label: 'School year visits',
-            value: adminDashboard.metrics.visitsThisSchoolYear,
-            detail: 'Total logs this school year',
-            icon: BarChart3,
-        },
-    ];
-}
+import type { PublicDashboard } from '@/types';
+import { BriefcaseBusiness, Clock3, GraduationCap, ScanLine, ShieldCheck } from 'lucide-react';
 
 export function getAdministrationStats(dashboard: PublicDashboard) {
     return [

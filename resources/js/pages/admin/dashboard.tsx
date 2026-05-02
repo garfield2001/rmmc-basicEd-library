@@ -5,14 +5,14 @@ import { LatestVisitCard } from '@/components/visits/latest-visit-card';
 import { ScanLookupInput } from '@/components/visits/scan-lookup-input';
 import { ScanSuccessModal } from '@/components/visits/scan-success-modal';
 import { useRfidScanListener } from '@/hooks/use-rfid-scan-listener';
-import { type AdminDashboard, type DashboardVisit, type PublicDashboard, type SharedData } from '@/types';
+import { type AdminDashboard, type AdminVisitMonitor, type DashboardVisit, type SharedData } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { BarChart3, BriefcaseBusiness, Clock3, GraduationCap, Library, RadioTower, ScanLine, Search } from 'lucide-react';
 import { type FormEventHandler, useEffect, useMemo, useRef, useState } from 'react';
 
 interface AdminDashboardProps {
     dashboard: AdminDashboard;
-    publicDashboard: PublicDashboard;
+    visitMonitor: AdminVisitMonitor;
 }
 
 interface ScanForm {
@@ -22,13 +22,13 @@ interface ScanForm {
 
 type VisitTab = 'student' | 'employee';
 
-export default function Dashboard({ dashboard, publicDashboard }: AdminDashboardProps) {
+export default function Dashboard({ dashboard, visitMonitor }: AdminDashboardProps) {
     const { flash } = usePage<SharedData>().props;
     const [visitTab, setVisitTab] = useState<VisitTab>('student');
     const [search, setSearch] = useState('');
     const [manilaTime, setManilaTime] = useState(() => new Date());
     const scanInputRef = useRef<HTMLInputElement | null>(null);
-    const lastVisit = publicDashboard.todayVisits[0];
+    const lastVisit = visitMonitor.todayVisits[0];
     const {
         data: scanData,
         setData: setScanData,
@@ -39,45 +39,45 @@ export default function Dashboard({ dashboard, publicDashboard }: AdminDashboard
         rfid_uid: '',
     });
     const scanTargetOptions = useMemo(() => {
-        return (publicDashboard.scanTargets ?? []).map((target) => ({
+        return (visitMonitor.scanTargets ?? []).map((target) => ({
             value: target.rfidUid,
             label: target.name,
             meta: `${target.schoolId} - ${target.type}${target.detail ? ` - ${target.detail}` : ''}`,
             idTerms: [target.schoolId, ...target.schoolId.split(/[^a-zA-Z0-9]+/)].filter((term): term is string => Boolean(term)),
             textTerms: [target.name, target.firstName, target.lastName, target.type, target.detail].filter((term): term is string => Boolean(term)),
         }));
-    }, [publicDashboard.scanTargets]);
+    }, [visitMonitor.scanTargets]);
 
     const todayMetrics = [
         {
             label: 'Visits today',
-            value: publicDashboard.metrics.visitsToday,
+            value: visitMonitor.metrics.visitsToday,
             detail: 'RFID scans since midnight',
             icon: Library,
         },
         {
             label: 'Students',
-            value: publicDashboard.metrics.studentVisitsToday,
+            value: visitMonitor.metrics.studentVisitsToday,
             detail: 'Student entries logged',
             icon: GraduationCap,
         },
         {
             label: 'Employees',
-            value: publicDashboard.metrics.employeeVisitsToday,
+            value: visitMonitor.metrics.employeeVisitsToday,
             detail: 'Employee entries logged',
             icon: BriefcaseBusiness,
         },
     ];
 
     const visitTabs: { label: string; value: VisitTab; count: number; icon: typeof GraduationCap }[] = [
-        { label: 'Students', value: 'student', count: publicDashboard.metrics.studentVisitsToday, icon: GraduationCap },
-        { label: 'Employees', value: 'employee', count: publicDashboard.metrics.employeeVisitsToday, icon: BriefcaseBusiness },
+        { label: 'Students', value: 'student', count: visitMonitor.metrics.studentVisitsToday, icon: GraduationCap },
+        { label: 'Employees', value: 'employee', count: visitMonitor.metrics.employeeVisitsToday, icon: BriefcaseBusiness },
     ];
 
     const filteredVisits = useMemo(() => {
         const normalizedSearch = search.trim().toLowerCase();
 
-        return publicDashboard.todayVisits.filter((visit) => {
+        return visitMonitor.todayVisits.filter((visit) => {
             const searchable = [
                 visit.member.schoolId,
                 visit.member.name,
@@ -92,7 +92,7 @@ export default function Dashboard({ dashboard, publicDashboard }: AdminDashboard
 
             return visit.member.type === visitTab && (!normalizedSearch || searchable.includes(normalizedSearch));
         });
-    }, [publicDashboard.todayVisits, search, visitTab]);
+    }, [visitMonitor.todayVisits, search, visitTab]);
 
     const formatVisitTime = (visit: DashboardVisit) =>
         visit.visitedAt
@@ -306,12 +306,12 @@ export default function Dashboard({ dashboard, publicDashboard }: AdminDashboard
                                             <TableRow>
                                                 <TableCell colSpan={visitTab === 'student' ? 5 : 4} className="px-5 py-14 text-center">
                                                     <p className="font-medium text-zinc-700">
-                                                        {publicDashboard.todayVisits.length > 0
+                                                        {visitMonitor.todayVisits.length > 0
                                                             ? 'No records match the selected filter'
                                                             : 'No RFID visits recorded today'}
                                                     </p>
                                                     <p className="mt-2 text-sm text-zinc-500">
-                                                        {publicDashboard.todayVisits.length > 0
+                                                        {visitMonitor.todayVisits.length > 0
                                                             ? 'Try another filter or search term.'
                                                             : 'Scanned student and employee visits will appear here.'}
                                                     </p>

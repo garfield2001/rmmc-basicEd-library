@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class IndexTest extends TestCase
@@ -14,7 +15,12 @@ class IndexTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertOk();
+        $response
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('index')
+                ->has('dashboard')
+                ->missing('adminDashboard'));
     }
 
     public function test_index_redirects_authenticated_users_to_admin_dashboard(): void

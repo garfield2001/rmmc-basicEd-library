@@ -162,13 +162,13 @@ abstract class LibraryMemberSeeder extends Seeder
                 'middle_name' => null,
                 'last_name' => 'Ayunan',
             ],
-            [
+            /* [
                 'school_id' => 'OP1164',
                 'rfid_uid' => '0111029083',
                 'first_name' => 'Anisia',
                 'middle_name' => null,
                 'last_name' => 'Flores',
-            ],
+            ], */
             /*             [
                 'school_id' => 'OP1-319',
                 'rfid_uid' => '3476642503',
