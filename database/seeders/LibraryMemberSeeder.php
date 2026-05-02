@@ -109,8 +109,9 @@ abstract class LibraryMemberSeeder extends Seeder
                 'school_id' => '1811600033',
                 'rfid_uid' => '1202953041',
                 'first_name' => 'Bernard',
-                'middle_name' => null,
+                'middle_name' => 'R.',
                 'last_name' => 'Villarias',
+                'photo' => '487408466_2842190175960854_2337569948505719080_n.jpg'
             ],
         ];
     }

@@ -85,11 +85,17 @@ class LibraryMember extends Model
 
     protected function fullName(): Attribute
     {
-        return Attribute::get(fn (): string => trim(collect([
-            $this->first_name,
-            $this->middle_name,
-            $this->last_name,
-        ])->filter()->implode(' ')));
+        return Attribute::get(function (): string {
+            $middleInitial = $this->middle_name
+                ? strtoupper(substr(trim($this->middle_name), 0, 1)) . '.'
+                : null;
+
+            return trim(collect([
+                $this->first_name,
+                $middleInitial,
+                $this->last_name,
+            ])->filter()->implode(' '));
+        });
     }
 
     protected function group(): Attribute

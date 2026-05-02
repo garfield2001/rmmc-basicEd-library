@@ -702,9 +702,9 @@ export default function Index({ dashboard, adminDashboard }: IndexProps) {
             <ScanSuccessModal visit={flash.recentVisit} />
 
             <Dialog open={showScanError && Boolean(scanValidationError)} onOpenChange={setShowScanError}>
-                <DialogContent className="min-h-[540px] overflow-hidden p-0 sm:max-w-5xl">
+                <DialogContent className="min-h-135 overflow-hidden p-0 sm:max-w-5xl">
                     <div className={`h-3 ${isRestrictedRescan ? 'bg-[#040DBF]' : 'bg-red-600'}`} />
-                    <div className="flex min-h-[537px] flex-col justify-center p-6 text-center sm:p-10">
+                    <div className="flex min-h-134.25 flex-col justify-center p-6 text-center sm:p-10">
                         <div
                             className={`mx-auto flex size-24 items-center justify-center rounded-xl ${
                                 isRestrictedRescan ? 'bg-[#040DBF]/10 text-[#040DBF]' : 'bg-red-50 text-red-600'
