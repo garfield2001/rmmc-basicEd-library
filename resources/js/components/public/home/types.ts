@@ -1,7 +1,7 @@
-import type { PublicDashboard } from '@/types';
+import type { HomePageData } from '@/types';
 
 export interface IndexProps {
-    dashboard: PublicDashboard;
+    home: HomePageData;
 }
 
 export interface LoginForm {

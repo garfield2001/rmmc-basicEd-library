@@ -35,7 +35,7 @@ export interface ScanTarget {
     detail: string | null;
 }
 
-export interface PublicDashboard {
+export interface HomePageData {
     schoolYear: SchoolYearSummary | null;
     metrics: {
         students: number;

@@ -31,7 +31,7 @@ import { AlertTriangle, ChevronDown, ChevronUp, Info, LogIn, RadioTower, ShieldC
 
 import { type FormEventHandler, useCallback, useEffect, useRef, useState } from 'react';
 
-export default function Index({ dashboard }: IndexProps) {
+export default function Index({ home }: IndexProps) {
     const { name, errors, flash } = usePage<SharedData>().props;
     const [showLogin, setShowLogin] = useState(false);
     const [showScanError, setShowScanError] = useState(false);
@@ -92,7 +92,7 @@ export default function Index({ dashboard }: IndexProps) {
                     preserveScroll: true,
                     preserveState: true,
                     replace: true,
-                    only: ['dashboard'],
+                    only: ['index'],
                 },
             );
         }, 15000);
@@ -592,8 +592,8 @@ export default function Index({ dashboard }: IndexProps) {
           : 'Place your ID near the scanner.';
     const isScannerReady = !scannerUnavailable;
 
-    const administrationStats = getAdministrationStats(dashboard);
-    const administrationStatus = getAdministrationStatus(dashboard);
+    const administrationStats = getAdministrationStats(home);
+    const administrationStatus = getAdministrationStatus(home);
 
     return (
         <ToastProvider>

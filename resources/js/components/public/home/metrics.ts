@@ -1,30 +1,31 @@
-import type { PublicDashboard } from '@/types';
 import { BriefcaseBusiness, Clock3, GraduationCap, ScanLine, ShieldCheck } from 'lucide-react';
 
-export function getAdministrationStats(dashboard: PublicDashboard) {
+import type { HomePageData } from '@/types';
+
+export function getAdministrationStats(home: HomePageData) {
     return [
         {
             label: 'Visits today',
-            value: dashboard.metrics.visitsToday.toLocaleString(),
+            value: home.metrics.visitsToday.toLocaleString(),
             detail: 'Successful RFID visits recorded since midnight.',
             icon: ScanLine,
         },
         {
             label: 'Student visits',
-            value: dashboard.metrics.studentVisitsToday.toLocaleString(),
+            value: home.metrics.studentVisitsToday.toLocaleString(),
             detail: "Student entries included in today's activity.",
             icon: GraduationCap,
         },
         {
             label: 'Employee visits',
-            value: dashboard.metrics.employeeVisitsToday.toLocaleString(),
+            value: home.metrics.employeeVisitsToday.toLocaleString(),
             detail: "Employee entries included in today's activity.",
             icon: BriefcaseBusiness,
         },
     ];
 }
 
-export function getAdministrationStatus(dashboard: PublicDashboard) {
+export function getAdministrationStatus(home: HomePageData) {
     return [
         {
             label: 'Scan window',
@@ -34,7 +35,7 @@ export function getAdministrationStatus(dashboard: PublicDashboard) {
         },
         {
             label: 'School year',
-            value: dashboard.schoolYear?.name ?? 'Not configured',
+            value: home.schoolYear?.name ?? 'Not configured',
             detail: 'Active visit records are attached here.',
             icon: ShieldCheck,
         },
