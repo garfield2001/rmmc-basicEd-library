@@ -92,7 +92,7 @@ export default function Index({ home }: IndexProps) {
                     preserveScroll: true,
                     preserveState: true,
                     replace: true,
-                    only: ['index'],
+                    only: ['home'],
                 },
             );
         }, 15000);

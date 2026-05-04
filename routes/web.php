@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::middleware('guest')->group(function () {
-    Route::get('login', fn() => redirect('/'))->name('login');
+    Route::get('login', fn() => redirect('/'))->name('home');
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 });
 
