@@ -1,7 +1,12 @@
-import { AdminPageHeader, AdminShell } from '@/components/admin/shell';
+import { DeleteMemberDialog } from '@/components/admin/members/delete-member-dialog';
+import { MemberFormModal } from '@/components/admin/members/member-form-modal';
+import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { type LibraryMemberRow, type Paginated } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
+import { AdminLayout } from '@/layouts/admin/admin-layout';
+import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
+import { type LibraryMemberRow } from '@/types/members';
+import { type Paginated } from '@/types/pagination';
+import { Head, router } from '@inertiajs/react';
 import { BriefcaseBusiness, GraduationCap, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { type FormEventHandler, useState } from 'react';
 
@@ -17,6 +22,9 @@ type MemberType = 'student' | 'employee';
 
 export default function MembersIndex({ members, filters }: MembersIndexProps) {
     const [search, setSearch] = useState(filters.search ?? '');
+    const [memberFormOpen, setMemberFormOpen] = useState(false);
+    const [selectedMember, setSelectedMember] = useState<LibraryMemberRow | null>(null);
+    const [memberToDelete, setMemberToDelete] = useState<LibraryMemberRow | null>(null);
     const activeType: MemberType = filters.type === 'employee' ? 'employee' : 'student';
 
     const submit: FormEventHandler = (event) => {
@@ -35,10 +43,14 @@ export default function MembersIndex({ members, filters }: MembersIndexProps) {
         );
     };
 
-    const removeMember = (member: LibraryMemberRow) => {
-        if (window.confirm(`Delete ${member.name}? This will also remove related visit ownership links.`)) {
-            router.delete(`/admin/members/${member.id}`);
-        }
+    const openCreateMember = () => {
+        setSelectedMember(null);
+        setMemberFormOpen(true);
+    };
+
+    const openEditMember = (member: LibraryMemberRow) => {
+        setSelectedMember(member);
+        setMemberFormOpen(true);
     };
 
     const changeType = (type: MemberType) => {
@@ -64,19 +76,16 @@ export default function MembersIndex({ members, filters }: MembersIndexProps) {
         <>
             <Head title="Library Members" />
             <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f4f5_42%,#e7e5e4_100%)] text-zinc-950">
-                <AdminShell active="members">
+                <AdminLayout active="members">
                     <div className="space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
                             title="Library Members"
                             description="Manage RFID identities and library visit profiles for students and employees."
                             actions={
-                                <Link
-                                    href="/admin/members/create"
-                                    className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-zinc-950 px-4 text-sm font-medium text-white hover:bg-zinc-800"
-                                >
+                                <Button type="button" onClick={openCreateMember} className="w-full sm:w-auto">
                                     <Plus className="size-4" />
                                     Add member
-                                </Link>
+                                </Button>
                             }
                         />
 
@@ -115,7 +124,7 @@ export default function MembersIndex({ members, filters }: MembersIndexProps) {
                                     </div>
                                     <button
                                         type="submit"
-                                        className="h-10 rounded-lg bg-zinc-950 px-4 text-sm font-medium text-white hover:bg-zinc-800"
+                                        className="h-10 rounded-lg bg-[#040DBF] px-4 text-sm font-medium text-white hover:bg-zinc-800"
                                     >
                                         Filter
                                     </button>
@@ -185,16 +194,17 @@ export default function MembersIndex({ members, filters }: MembersIndexProps) {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex justify-end gap-2">
-                                                        <Link
-                                                            href={`/admin/members/${member.id}/edit`}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => openEditMember(member)}
                                                             className="inline-flex size-9 items-center justify-center rounded-lg border border-zinc-200 text-zinc-600 hover:bg-zinc-100"
                                                             title="Edit member"
                                                         >
                                                             <Pencil className="size-4" />
-                                                        </Link>
+                                                        </button>
                                                         <button
                                                             type="button"
-                                                            onClick={() => removeMember(member)}
+                                                            onClick={() => setMemberToDelete(member)}
                                                             className="inline-flex size-9 items-center justify-center rounded-lg border border-zinc-200 text-zinc-600 hover:bg-zinc-100"
                                                             title="Delete member"
                                                         >
@@ -218,7 +228,13 @@ export default function MembersIndex({ members, filters }: MembersIndexProps) {
                             </Table>
                         </div>
                     </div>
-                </AdminShell>
+                    <MemberFormModal member={selectedMember} open={memberFormOpen} onOpenChange={setMemberFormOpen} />
+                    <DeleteMemberDialog
+                        member={memberToDelete}
+                        open={Boolean(memberToDelete)}
+                        onOpenChange={(open) => !open && setMemberToDelete(null)}
+                    />
+                </AdminLayout>
             </main>
         </>
     );

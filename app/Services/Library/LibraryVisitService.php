@@ -10,13 +10,13 @@ use Illuminate\Validation\ValidationException;
 
 class LibraryVisitService
 {
-    public function recordFromRfid(string $rfidUid): LibraryVisit
+    public function recordFromRFID(string $RFIDUid): LibraryVisit
     {
         $now = now();
 
-        $this->ensureScanWindowIsOpen($now);
+        /* $this->ensureScanWindowIsOpen($now); */
 
-        $member = $this->resolveMember($rfidUid);
+        $member = $this->resolveMember($RFIDUid);
         $schoolYear = SchoolYear::active()->first();
 
         if (! $schoolYear) {

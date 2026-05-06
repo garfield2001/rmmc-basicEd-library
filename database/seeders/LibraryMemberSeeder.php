@@ -11,23 +11,23 @@ abstract class LibraryMemberSeeder extends Seeder
     /**
      * @var array<int, string>
      */
-    private static array $usedRfids = [];
+    private static array $usedRFIDs = [];
 
     /**
      * @var array<int, string>
      */
     private static array $usedSchoolIds = [];
 
-    public static function resetUsedRfids(): void
+    public static function resetUsedRFIDs(): void
     {
-        self::$usedRfids = [];
+        self::$usedRFIDs = [];
         self::$usedSchoolIds = [];
     }
 
     /**
      * Add manual student library member records here.
      *
-     * Keep rfid_uid fixed when you need to test a known physical card.
+     * Keep the RFID UID fixed when you need to test a known physical card.
      * Student-only details live in StudentSeeder.
      *
      * @return array<int, array<string, mixed>>
@@ -111,7 +111,7 @@ abstract class LibraryMemberSeeder extends Seeder
                 'first_name' => 'Bernard',
                 'middle_name' => 'R.',
                 'last_name' => 'Villarias',
-                'photo' => '487408466_2842190175960854_2337569948505719080_n.jpg'
+                'photo' => '487408466_2842190175960854_2337569948505719080_n.jpg',
             ],
         ];
     }
@@ -119,7 +119,7 @@ abstract class LibraryMemberSeeder extends Seeder
     /**
      * Add manual employee library member records here.
      *
-     * Keep rfid_uid fixed when you need to test a known physical card.
+     * Keep the RFID UID fixed when you need to test a known physical card.
      * Employee-only details live in EmployeeSeeder.
      *
      * @return array<int, array<string, mixed>>
@@ -162,13 +162,13 @@ abstract class LibraryMemberSeeder extends Seeder
                 'middle_name' => null,
                 'last_name' => 'Ayunan',
             ],
-            /* [
+            [
                 'school_id' => 'OP1164',
                 'rfid_uid' => '0111029083',
                 'first_name' => 'Anisia',
                 'middle_name' => null,
                 'last_name' => 'Flores',
-            ], */
+            ],
             /*             [
                 'school_id' => 'OP1-319',
                 'rfid_uid' => '3476642503',
@@ -207,7 +207,7 @@ abstract class LibraryMemberSeeder extends Seeder
         }
 
         return array_map(
-            fn(array $member): array => [
+            fn (array $member): array => [
                 ...$member,
                 ...$normalizedDetailsBySchoolId[(string) $member['school_id']],
             ],
@@ -281,7 +281,7 @@ abstract class LibraryMemberSeeder extends Seeder
         $this->validateMemberData($memberData);
 
         return LibraryMember::create([
-            'rfid_uid' => $this->rfidUid($memberData),
+            'rfid_uid' => $this->resolveRFIDUid($memberData),
             'school_id' => $this->useManualSchoolId($memberData['school_id']),
             'type' => $type,
             'first_name' => $memberData['first_name'],
@@ -317,32 +317,32 @@ abstract class LibraryMemberSeeder extends Seeder
     /**
      * @param  array<string, mixed>  $memberData
      */
-    private function rfidUid(array $memberData): string
+    private function resolveRFIDUid(array $memberData): string
     {
         if (! empty($memberData['rfid_uid'])) {
             if (! is_string($memberData['rfid_uid'])) {
                 throw new InvalidArgumentException('Seeder RFID must be stored as a string.');
             }
 
-            return $this->useManualRfid($memberData['rfid_uid']);
+            return $this->useManualRFID($memberData['rfid_uid']);
         }
 
-        return $this->randomRfid();
+        return $this->randomRFID();
     }
 
-    private function useManualRfid(string $rfidUid): string
+    private function useManualRFID(string $RFIDUid): string
     {
-        if (! preg_match('/^\d{10}$/', $rfidUid)) {
-            throw new InvalidArgumentException("Seeder RFID [{$rfidUid}] must be exactly 10 digits.");
+        if (! preg_match('/^\d{10}$/', $RFIDUid)) {
+            throw new InvalidArgumentException("Seeder RFID [{$RFIDUid}] must be exactly 10 digits.");
         }
 
-        if (in_array($rfidUid, self::$usedRfids, true)) {
-            throw new InvalidArgumentException("Seeder RFID [{$rfidUid}] is already used.");
+        if (in_array($RFIDUid, self::$usedRFIDs, true)) {
+            throw new InvalidArgumentException("Seeder RFID [{$RFIDUid}] is already used.");
         }
 
-        self::$usedRfids[] = $rfidUid;
+        self::$usedRFIDs[] = $RFIDUid;
 
-        return $rfidUid;
+        return $RFIDUid;
     }
 
     private function useManualSchoolId(string $schoolId): string
@@ -356,14 +356,14 @@ abstract class LibraryMemberSeeder extends Seeder
         return $schoolId;
     }
 
-    private function randomRfid(): string
+    private function randomRFID(): string
     {
         do {
-            $rfidUid = (string) random_int(1000000000, 9999999999);
-        } while (in_array($rfidUid, self::$usedRfids, true));
+            $RFIDUid = (string) random_int(1000000000, 9999999999);
+        } while (in_array($RFIDUid, self::$usedRFIDs, true));
 
-        self::$usedRfids[] = $rfidUid;
+        self::$usedRFIDs[] = $RFIDUid;
 
-        return $rfidUid;
+        return $RFIDUid;
     }
 }

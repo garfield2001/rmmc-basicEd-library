@@ -19,7 +19,7 @@ class IndexTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('index')
-                ->has('dashboard')
+                ->has('home')
                 ->missing('adminDashboard'));
     }
 

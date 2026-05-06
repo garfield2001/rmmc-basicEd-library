@@ -15,6 +15,9 @@ This project currently follows a practical layered Laravel architecture.
 - Business workflows belong in `app/Services`.
 - Eloquent models may keep relationship definitions, casts, scopes, and small computed attributes.
 - React pages should receive prepared props and focus on presentation.
+- React layouts belong in `resources/js/layouts`, reusable UI belongs in `resources/js/components`, and page-specific behavior can be extracted into small hooks beside the page's components.
+- Shared TypeScript shapes should live in named files under `resources/js/types` instead of a catch-all `index.ts`.
+- Admin pages should stay purpose-specific: `/admin` is overview, `/admin/live-visits` owns scanner and live visit workflows, `/admin/settings` owns profile and appearance settings.
 
 ## Not Clean Architecture Yet
 

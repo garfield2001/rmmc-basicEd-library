@@ -1,6 +1,7 @@
-import { AdminPageHeader, AdminShell } from '@/components/admin/shell';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { type VisitReport } from '@/types';
+import { AdminLayout } from '@/layouts/admin/admin-layout';
+import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
+import { type VisitReport } from '@/types/reports';
 import { Head, router } from '@inertiajs/react';
 import { type FormEventHandler, useState } from 'react';
 
@@ -36,7 +37,7 @@ export default function Reports({ report }: ReportsProps) {
         <>
             <Head title="Visit Records" />
             <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f4f5_42%,#e7e5e4_100%)] text-zinc-950">
-                <AdminShell active="reports">
+                <AdminLayout active="reports">
                     <div className="space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader title="Visit Records" description="Filter, print, save as PDF, or export library visits for Excel." />
 
@@ -136,7 +137,7 @@ export default function Reports({ report }: ReportsProps) {
                             </Table>
                         </div>
                     </div>
-                </AdminShell>
+                </AdminLayout>
             </main>
         </>
     );

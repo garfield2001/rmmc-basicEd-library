@@ -1,5 +1,6 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { type DashboardVisit } from '@/types';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { VISIT_SCAN_SUCCESS_MODAL_AUTO_CLOSE_SECONDS } from '@/config/timing';
+import { type DashboardVisit } from '@/types/dashboard';
 import { BriefcaseBusiness, CalendarClock, CheckCircle2, GraduationCap, IdCard, Timer, UserRound, type LucideIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -8,7 +9,6 @@ interface ScanSuccessModalProps {
 }
 
 const fallback = '-';
-const autoCloseSeconds = 3;
 
 function formatVisitTime(visitedAt: string | null) {
     return visitedAt
@@ -36,7 +36,7 @@ function DetailItem({ label, value, icon: Icon }: { label: string; value: string
 export function ScanSuccessModal({ visit }: ScanSuccessModalProps) {
     const [visibleVisit, setVisibleVisit] = useState<DashboardVisit | null>(null);
     const [isOpen, setIsOpen] = useState(false);
-    const [closeCountdown, setCloseCountdown] = useState(autoCloseSeconds);
+    const [closeCountdown, setCloseCountdown] = useState(VISIT_SCAN_SUCCESS_MODAL_AUTO_CLOSE_SECONDS);
     const isEmployee = visibleVisit?.member.type === 'employee';
     const TypeIcon = isEmployee ? BriefcaseBusiness : GraduationCap;
     const typeLabel = isEmployee ? 'Employee' : 'Student';
@@ -47,7 +47,7 @@ export function ScanSuccessModal({ visit }: ScanSuccessModalProps) {
         }
 
         setVisibleVisit(visit);
-        setCloseCountdown(autoCloseSeconds);
+        setCloseCountdown(VISIT_SCAN_SUCCESS_MODAL_AUTO_CLOSE_SECONDS);
         setIsOpen(true);
     }, [visibleVisit?.id, visit]);
 
@@ -69,9 +69,9 @@ export function ScanSuccessModal({ visit }: ScanSuccessModalProps) {
             return;
         }
 
-        setCloseCountdown(autoCloseSeconds);
+        setCloseCountdown(VISIT_SCAN_SUCCESS_MODAL_AUTO_CLOSE_SECONDS);
 
-        const closeTimer = window.setTimeout(() => setIsOpen(false), autoCloseSeconds * 1000);
+        const closeTimer = window.setTimeout(() => setIsOpen(false), VISIT_SCAN_SUCCESS_MODAL_AUTO_CLOSE_SECONDS * 1000);
         const countdownTimer = window.setInterval(() => {
             setCloseCountdown((currentCountdown) => Math.max(currentCountdown - 1, 1));
         }, 1000);
@@ -105,6 +105,9 @@ export function ScanSuccessModal({ visit }: ScanSuccessModalProps) {
                             <DialogTitle className="mt-5 text-4xl leading-tight font-semibold tracking-normal text-[#010440] sm:text-5xl">
                                 {visibleVisit.member.name ?? 'Unknown member'}
                             </DialogTitle>
+                            <DialogDescription className="sr-only">
+                                Library visit was recorded successfully and this confirmation closes automatically.
+                            </DialogDescription>
                         </div>
 
                         <div className="rounded-xl border border-[#040DBF]/15 bg-white p-4 text-center shadow-md shadow-[#010440]/10">

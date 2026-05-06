@@ -1,7 +1,7 @@
 import type { LayoutDashboard } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-export type AdminSection = 'monitor' | 'members' | 'reports';
+export type AdminSection = 'dashboard' | 'live-visits' | 'members' | 'reports' | 'settings';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 
@@ -12,7 +12,7 @@ export type AdminNavItem = {
     icon: typeof LayoutDashboard;
 };
 
-export interface AdminShellProps {
+export interface AdminLayoutProps {
     active: AdminSection;
     children: ReactNode;
 }
@@ -20,8 +20,6 @@ export interface AdminShellProps {
 export interface AdminSidebarProps {
     active: AdminSection;
     collapsed: boolean;
-    themePreference: ThemePreference;
-    onThemePreferenceChange: (preference: ThemePreference) => void;
 }
 
 export interface AdminNavbarProps {
@@ -36,13 +34,6 @@ export interface AdminSettingsForm {
     current_password: string;
     password: string;
     password_confirmation: string;
-}
-
-export interface AdminSettingsDialogProps {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    themePreference: ThemePreference;
-    onThemePreferenceChange: (preference: ThemePreference) => void;
 }
 
 export interface AdminPageHeaderProps {

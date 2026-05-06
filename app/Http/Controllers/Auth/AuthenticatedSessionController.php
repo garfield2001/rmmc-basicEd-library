@@ -26,7 +26,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('index')->with('success', 'You have been logged out.');
+        return redirect()->route('home')->with('success', 'You have been logged out.');
     }
 
     public function destroyOnClose(Request $request): HttpResponse

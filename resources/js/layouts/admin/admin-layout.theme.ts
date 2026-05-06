@@ -1,4 +1,4 @@
-import type { ThemePreference } from './types';
+import type { ThemePreference } from './admin-layout.types';
 
 export function resolveTheme(preference: ThemePreference): 'light' | 'dark' {
     if (preference !== 'system') {

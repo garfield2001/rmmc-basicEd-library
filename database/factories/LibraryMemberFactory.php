@@ -15,7 +15,7 @@ class LibraryMemberFactory extends Factory
     public function definition(): array
     {
         return [
-            'rfid_uid' => $this->uniqueRfidUid(),
+            'rfid_uid' => $this->uniqueRFIDUid(),
             'school_id' => fake()->unique()->bothify('ID-####'),
             'type' => LibraryMember::TYPE_STUDENT,
             'first_name' => fake()->firstName(),
@@ -49,13 +49,13 @@ class LibraryMemberFactory extends Factory
         ]);
     }
 
-    private function uniqueRfidUid(): string
+    private function uniqueRFIDUid(): string
     {
         do {
-            $rfidUid = (string) random_int(1000000000, 9999999999);
-        } while (LibraryMember::query()->where('rfid_uid', $rfidUid)->exists());
+            $RFIDUid = (string) random_int(1000000000, 9999999999);
+        } while (LibraryMember::query()->where('rfid_uid', $RFIDUid)->exists());
 
-        return $rfidUid;
+        return $RFIDUid;
     }
 
     private function uniqueStudentSchoolId(): string

@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { type DashboardVisit } from '@/types';
-import { BriefcaseBusiness, Clock3, GraduationCap, IdCard, ScanLine, UserRound } from 'lucide-react';
+import { type DashboardVisit } from '@/types/dashboard';
+import { BriefcaseBusiness, CalendarClock, Clock3, GraduationCap, IdCard, ScanLine, UserRound } from 'lucide-react';
 import { useId, useState } from 'react';
 
 interface LatestVisitCardProps {
@@ -87,7 +87,7 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                     >
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex min-w-0 items-center gap-3">
-                                <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-white">
+                                <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#040DBF] text-white">
                                     <Clock3 className="size-5" />
                                 </div>
                                 <div className="min-w-0">
@@ -136,18 +136,21 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
 
             {visit && (
                 <Dialog open={showDetails} onOpenChange={setShowDetails}>
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="overflow-hidden p-0 sm:max-w-3xl">
+                        <div className="h-2 bg-[linear-gradient(90deg,#040DBF_0%,#030A8C_52%,#010440_100%)]" />
                         <DialogHeader>
-                            <DialogTitle>Latest scanned member</DialogTitle>
-                            <DialogDescription>Complete details for the most recent RFID visit.</DialogDescription>
+                            <div className="px-6 pt-6">
+                                <DialogTitle className="text-2xl text-[#010440]">Latest scanned member</DialogTitle>
+                                <DialogDescription className="mt-1">Complete details for the most recent RFID visit.</DialogDescription>
+                            </div>
                         </DialogHeader>
 
-                        <div className="grid gap-5 sm:grid-cols-[132px_minmax(0,1fr)]">
-                            <div className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100">
+                        <div className="grid gap-6 p-6 sm:grid-cols-[176px_minmax(0,1fr)]">
+                            <div className="overflow-hidden rounded-xl border border-[#040DBF]/15 bg-[#f6f8ff] p-2 shadow-sm">
                                 {visit.member.photoUrl ? (
-                                    <img src={visit.member.photoUrl} alt="" className="aspect-square size-full object-cover" />
+                                    <img src={visit.member.photoUrl} alt="" className="aspect-square size-full rounded-lg object-cover" />
                                 ) : (
-                                    <div className="flex aspect-square items-center justify-center text-zinc-400">
+                                    <div className="flex aspect-square items-center justify-center rounded-lg bg-white text-[#030A8C]/45">
                                         <UserRound className="size-12" />
                                     </div>
                                 )}
@@ -155,24 +158,25 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
 
                             <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-medium text-zinc-600">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full border border-[#040DBF]/15 bg-[#f6f8ff] px-3 py-1 text-xs font-medium text-[#030A8C]">
                                         <TypeIcon className="size-3.5" />
                                         {memberTypeLabel(visit)}
                                     </span>
-                                    <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium text-zinc-600">
-                                        <ScanLine className="size-3.5" />
+                                    <span className="inline-flex items-center gap-1.5 rounded-full border border-[#040DBF]/15 bg-white px-3 py-1 text-xs font-medium text-[#030A8C]">
+                                        <CalendarClock className="size-3.5" />
                                         {formatVisitDateTime(visit)}
                                     </span>
                                 </div>
 
-                                <p className="mt-4 text-2xl font-semibold text-zinc-950">{visit.member.name ?? 'Unknown member'}</p>
-                                <p className="mt-1 flex items-center gap-2 text-sm text-zinc-500">
+                                <p className="mt-5 text-3xl font-semibold tracking-normal text-[#010440]">{visit.member.name ?? 'Unknown member'}</p>
+                                <p className="mt-2 flex items-center gap-2 text-sm text-[#030A8C]">
                                     <IdCard className="size-4" />
                                     {visit.member.schoolId ?? 'No ID'}
                                 </p>
 
                                 <div className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
                                     <DetailItem label="Member type" value={memberTypeLabel(visit)} />
+                                    <DetailItem label="Recorded at" value={formatVisitDateTime(visit)} />
                                     {visit.member.type === 'employee' ? (
                                         <DetailItem label="Department" value={visit.member.department} />
                                     ) : (
@@ -181,6 +185,17 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                                             <DetailItem label="Section" value={visit.member.section} />
                                         </>
                                     )}
+                                </div>
+
+                                <div className="mt-5 rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff] p-4 text-sm text-[#020659]">
+                                    <div className="flex items-center gap-2 font-medium text-[#010440]">
+                                        <ScanLine className="size-4 text-[#040DBF]" />
+                                        Visit record
+                                    </div>
+                                    <p className="mt-2 leading-6">
+                                        This detail view is read-only. Edit member profile information from Library Members when a name, photo, or
+                                        department needs correction.
+                                    </p>
                                 </div>
                             </div>
                         </div>

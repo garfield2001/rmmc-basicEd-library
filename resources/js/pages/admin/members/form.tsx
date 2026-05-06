@@ -1,5 +1,5 @@
-import { AdminShell } from '@/components/admin/shell';
-import { type LibraryMemberRow } from '@/types';
+import { AdminLayout } from '@/layouts/admin/admin-layout';
+import { type LibraryMemberRow } from '@/types/members';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { BriefcaseBusiness, GraduationCap, RadioTower, Save } from 'lucide-react';
 import { type FormEventHandler, useEffect, useRef, useState } from 'react';
@@ -133,7 +133,7 @@ export default function MemberForm({ member }: MemberFormProps) {
         <>
             <Head title={isEditing ? 'Edit Member' : 'Add Member'} />
             <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f4f5_42%,#e7e5e4_100%)] text-zinc-950">
-                <AdminShell active="members">
+                <AdminLayout active="members">
                     <header className="border-b border-zinc-200 bg-white px-6 py-4">
                         <h1 className="text-2xl font-semibold">{isEditing ? 'Edit Member' : 'Add Student or Employee'}</h1>
                         <p className="mt-1 text-sm text-zinc-500">Scan the RFID card, then complete the member profile.</p>
@@ -337,7 +337,7 @@ export default function MemberForm({ member }: MemberFormProps) {
                             </button>
                         </div>
                     </form>
-                </AdminShell>
+                </AdminLayout>
             </main>
         </>
     );

@@ -11,7 +11,7 @@ class LibraryVisitController extends Controller
     public function store(StoreLibraryVisitRequest $request, LibraryVisitService $libraryVisits): RedirectResponse
     {
         $visit = $libraryVisits
-            ->recordFromRfid($request->validated('rfid_uid'))
+            ->recordFromRFID($request->validated('rfid_uid'))
             ->load(['member.student', 'member.employee']);
 
         return back()->with('recentVisit', [

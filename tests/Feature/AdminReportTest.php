@@ -17,7 +17,7 @@ class AdminReportTest extends TestCase
 
     public function test_admin_dashboard_requires_login(): void
     {
-        $this->get('/admin')->assertRedirect('/login');
+        $this->get('/admin')->assertRedirect('/');
     }
 
     public function test_authenticated_user_can_view_admin_dashboard(): void
@@ -28,8 +28,28 @@ class AdminReportTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('admin/dashboard')
                 ->has('dashboard')
-                ->has('visitMonitor')
+                ->missing('visitMonitor')
                 ->missing('publicDashboard'));
+    }
+
+    public function test_authenticated_user_can_view_live_visits(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => 'admin']))
+            ->get('/admin/live-visits')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('admin/live-visits')
+                ->has('visitMonitor')
+                ->missing('dashboard'));
+    }
+
+    public function test_authenticated_user_can_view_settings(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => 'admin']))
+            ->get('/admin/settings')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('admin/settings'));
     }
 
     public function test_authenticated_user_can_export_visit_report_csv(): void

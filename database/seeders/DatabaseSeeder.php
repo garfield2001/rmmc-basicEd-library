@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
             Schema::enableForeignKeyConstraints();
         }
 
-        LibraryMemberSeeder::resetUsedRfids();
+        LibraryMemberSeeder::resetUsedRFIDs();
 
         User::create([
             'name' => 'RMMC Library Admin',

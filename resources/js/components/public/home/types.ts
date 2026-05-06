@@ -1,4 +1,4 @@
-import type { HomePageData } from '@/types';
+import type { HomePageData } from '@/types/home';
 
 export interface IndexProps {
     home: HomePageData;

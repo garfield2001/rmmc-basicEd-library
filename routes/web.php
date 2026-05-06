@@ -2,24 +2,26 @@
 
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminProfileController;
+use App\Http\Controllers\AdminSettingsController;
+use App\Http\Controllers\AdminVisitMonitorController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LibraryMemberController;
 use App\Http\Controllers\LibraryVisitController;
-use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::middleware('guest')->group(function () {
-    Route::get('login', fn() => redirect('/'))->name('home');
+    Route::get('login', fn () => redirect('/?login=1'))->name('login');
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 });
 
 Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
-    //Might not be needed
+    // Might not be needed
     Route::post('session/close', [AuthenticatedSessionController::class, 'destroyOnClose'])->name('session.close');
 });
 
@@ -27,9 +29,11 @@ Route::post('library-visits', [LibraryVisitController::class, 'store'])->name('l
 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('admin', AdminDashboardController::class)->name('admin.dashboard');
+    Route::get('admin/live-visits', AdminVisitMonitorController::class)->name('admin.live-visits');
+    Route::get('admin/settings', AdminSettingsController::class)->name('admin.settings');
     Route::patch('admin/profile', [AdminProfileController::class, 'update'])->name('admin.profile.update');
 
-    //Might not be needed
+    // Might not be needed
     Route::resource('admin/members', LibraryMemberController::class)->except('show')->names('admin.members');
 
     Route::get('admin/reports', [ReportController::class, 'index'])->name('admin.reports');

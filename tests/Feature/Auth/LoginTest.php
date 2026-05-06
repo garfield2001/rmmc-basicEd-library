@@ -47,4 +47,16 @@ class LoginTest extends TestCase
 
         $this->assertGuest();
     }
+
+    public function test_user_can_log_out(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'admin',
+        ]);
+
+        $response = $this->actingAs($user)->post('/logout');
+
+        $this->assertGuest();
+        $response->assertRedirect('/');
+    }
 }

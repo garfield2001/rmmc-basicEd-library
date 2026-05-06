@@ -32,7 +32,6 @@ class AdminVisitMonitorService
                 ])
                 ->whereDate('visited_at', $today)
                 ->latest('visited_at')
-                ->limit(30)
                 ->get()
                 ->map(fn (LibraryVisit $visit): array => $this->visitData($visit)),
             'scanTargets' => LibraryMember::active()
@@ -68,7 +67,7 @@ class AdminVisitMonitorService
     {
         return [
             'id' => $member->id,
-            'rfidUid' => $member->rfid_uid,
+            'RFIDUid' => $member->rfid_uid,
             'schoolId' => $member->school_id,
             'name' => $member->full_name,
             'firstName' => $member->first_name,

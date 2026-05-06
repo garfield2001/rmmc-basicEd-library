@@ -1,6 +1,6 @@
 import { BriefcaseBusiness, Clock3, GraduationCap, ScanLine, ShieldCheck } from 'lucide-react';
 
-import type { HomePageData } from '@/types';
+import type { HomePageData } from '@/types/home';
 
 export function getAdministrationStats(home: HomePageData) {
     return [

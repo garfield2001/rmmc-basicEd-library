@@ -1,7 +1,7 @@
 import { router } from '@inertiajs/react';
 import { useEffect } from 'react';
 
-interface UseRfidScanListenerOptions {
+interface UseRFIDScanListenerOptions {
     enabled?: boolean;
     minLength?: number;
     scanTimeoutMs?: number;
@@ -47,14 +47,14 @@ const restoreEditable = (snapshot: EditableSnapshot | null) => {
     snapshot.element.dispatchEvent(new Event('input', { bubbles: true }));
 };
 
-export function useRfidScanListener({
+export function useRFIDScanListener({
     enabled = true,
     minLength = 10,
     scanTimeoutMs = 120,
     onScanStart,
     onError,
     onFinish,
-}: UseRfidScanListenerOptions) {
+}: UseRFIDScanListenerOptions) {
     useEffect(() => {
         if (!enabled) {
             return;

@@ -1,4 +1,4 @@
-import { type SharedData } from '@/types';
+import { type SharedData } from '@/types/shared';
 import { usePage } from '@inertiajs/react';
 import { AlertCircle, CheckCircle2, Loader2, X } from 'lucide-react';
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react';

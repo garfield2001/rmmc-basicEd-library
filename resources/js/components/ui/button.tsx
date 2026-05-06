@@ -5,14 +5,15 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-    'inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
+    'inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-[#040DBF] focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
     {
         variants: {
             variant: {
-                default: 'bg-zinc-950 text-white hover:bg-zinc-800',
-                secondary: 'bg-zinc-100 text-zinc-950 hover:bg-zinc-200',
-                outline: 'border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100',
-                ghost: 'text-zinc-700 hover:bg-zinc-100',
+                default: 'bg-[#040DBF] text-white hover:bg-[#030A8C]',
+                secondary: 'bg-[#f6f8ff] text-[#020659] hover:bg-[#040DBF]/10 hover:text-[#030A8C]',
+                outline: 'border border-[#040DBF]/15 bg-white text-[#020659] hover:border-[#040DBF]/30 hover:bg-[#f6f8ff] hover:text-[#030A8C]',
+                ghost: 'text-[#020659] hover:bg-[#040DBF]/5 hover:text-[#030A8C]',
+                danger: 'bg-red-600 text-white hover:bg-red-700',
             },
             size: {
                 default: 'h-10 px-4 py-2',

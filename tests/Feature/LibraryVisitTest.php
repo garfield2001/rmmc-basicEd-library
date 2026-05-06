@@ -14,7 +14,7 @@ class LibraryVisitTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_authenticated_user_can_record_visit_from_rfid(): void
+    public function test_authenticated_user_can_record_visit_from_card(): void
     {
         $this->travelTo(Carbon::parse('2026-09-01 08:00:00', config('app.timezone')));
 
@@ -35,7 +35,7 @@ class LibraryVisitTest extends TestCase
         ]);
     }
 
-    public function test_guest_can_record_visit_from_rfid(): void
+    public function test_guest_can_record_visit_from_card(): void
     {
         $this->travelTo(Carbon::parse('2026-09-01 08:00:00', config('app.timezone')));
 
@@ -163,7 +163,7 @@ class LibraryVisitTest extends TestCase
         $this->assertSame(2, LibraryVisit::count());
     }
 
-    public function test_rfid_scan_is_allowed_before_seven_am_for_temporary_twenty_four_hour_access(): void
+    public function test_scan_is_allowed_before_seven_am_for_temporary_twenty_four_hour_access(): void
     {
         $this->travelTo(Carbon::parse('2026-09-01 06:59:00', config('app.timezone')));
 
@@ -177,7 +177,7 @@ class LibraryVisitTest extends TestCase
         $this->assertSame(1, LibraryVisit::count());
     }
 
-    public function test_rfid_scan_is_allowed_late_at_night_for_temporary_twenty_four_hour_access(): void
+    public function test_scan_is_allowed_late_at_night_for_temporary_twenty_four_hour_access(): void
     {
         $this->travelTo(Carbon::parse('2026-09-01 23:30:00', config('app.timezone')));
 
