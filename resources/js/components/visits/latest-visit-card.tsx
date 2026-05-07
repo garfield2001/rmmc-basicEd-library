@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { IconBadge } from '@/components/ui/icon-badge';
 import { type DashboardVisit } from '@/types/dashboard';
 import { BriefcaseBusiness, CalendarClock, Clock3, GraduationCap, IdCard, ScanLine, UserRound } from 'lucide-react';
 import { useId, useState } from 'react';
@@ -54,8 +55,8 @@ function academicOrWorkDetail(visit: DashboardVisit) {
 function DetailItem({ label, value }: { label: string; value: string | null | undefined }) {
     return (
         <div>
-            <p className="text-zinc-500">{label}</p>
-            <p className="mt-1 font-medium text-zinc-950">{value || fallback}</p>
+            <p className="text-[#020659]/70">{label}</p>
+            <p className="mt-1 font-medium text-[#010440]">{value || fallback}</p>
         </div>
     );
 }
@@ -87,9 +88,7 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                     >
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex min-w-0 items-center gap-3">
-                                <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#040DBF] text-white">
-                                    <Clock3 className="size-5" />
-                                </div>
+                                <IconBadge icon={Clock3} className="size-11 bg-[#040DBF] text-white" />
                                 <div className="min-w-0">
                                     <p className="text-sm font-medium text-zinc-500">Latest scan</p>
                                     <p className="mt-1 text-2xl font-semibold">{formatVisitTime(visit)}</p>
@@ -121,9 +120,7 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                 ) : (
                     <div className="rounded-xl border border-zinc-200 bg-white/90 p-5 shadow-sm">
                         <div className="flex items-center gap-3">
-                            <div className="flex size-11 items-center justify-center rounded-lg bg-zinc-950 text-white">
-                                <Clock3 className="size-5" />
-                            </div>
+                            <IconBadge icon={Clock3} className="size-11 bg-[#040DBF] text-white" />
                             <div>
                                 <p className="text-sm font-medium text-zinc-500">Latest scan</p>
                                 <p className="mt-1 text-2xl font-semibold">No scans yet</p>
@@ -189,7 +186,7 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
 
                                 <div className="mt-5 rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff] p-4 text-sm text-[#020659]">
                                     <div className="flex items-center gap-2 font-medium text-[#010440]">
-                                        <ScanLine className="size-4 text-[#040DBF]" />
+                                        <IconBadge icon={ScanLine} className="size-8" iconClassName="size-4" />
                                         Visit record
                                     </div>
                                     <p className="mt-2 leading-6">

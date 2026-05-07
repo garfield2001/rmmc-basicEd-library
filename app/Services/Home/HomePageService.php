@@ -18,7 +18,8 @@ class HomePageService
         $today = Carbon::today();
 
         $todayVisits = LibraryVisit::query()
-            ->whereDate('visited_at', $today);
+            ->whereDate('visited_at', $today)
+            ->when($schoolYear, fn (Builder $query) => $query->where('school_year_id', $schoolYear->id), fn (Builder $query) => $query->whereRaw('1 = 0'));
 
         return [
             'schoolYear' => $schoolYear?->only(['id', 'name']),
@@ -26,6 +27,7 @@ class HomePageService
             'metrics' => [
                 'students' => LibraryMember::active()
                     ->where('type', LibraryMember::TYPE_STUDENT)
+                    ->visitEligibleForSchoolYear($schoolYear?->id)
                     ->count(),
 
                 'employees' => LibraryMember::active()

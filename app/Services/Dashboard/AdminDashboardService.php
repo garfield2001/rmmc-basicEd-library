@@ -18,31 +18,35 @@ class AdminDashboardService
         return [
             'schoolYear' => $schoolYear?->only(['id', 'name', 'minimum_visits', 'target_visits']),
             'metrics' => [
-                'activeMembers' => LibraryMember::active()->count(),
-                'inactiveMembers' => LibraryMember::where('is_active', false)->count(),
-                'visitsToday' => LibraryVisit::whereDate('visited_at', $today)->count(),
-                'visitsThisSchoolYear' => $schoolYear ? LibraryVisit::where('school_year_id', $schoolYear->id)->count() : 0,
+                'activeMembers' => LibraryMember::active()->visitEligibleForSchoolYear($schoolYear?->id)->count(),
+                'enrolledStudents' => $schoolYear ? $schoolYear->studentEnrollments()->count() : 0,
+                'visitsToday' => LibraryVisit::query()
+                    ->whereDate('visited_at', $today)
+                    ->when($schoolYear, fn ($query) => $query->where('school_year_id', $schoolYear->id), fn ($query) => $query->whereRaw('1 = 0'))
+                    ->count(),
+                'employeeMembers' => LibraryMember::where('type', LibraryMember::TYPE_EMPLOYEE)->count(),
             ],
             'memberBreakdown' => [
                 'students' => LibraryMember::where('type', LibraryMember::TYPE_STUDENT)->count(),
                 'employees' => LibraryMember::where('type', LibraryMember::TYPE_EMPLOYEE)->count(),
             ],
             'charts' => [
-                'visitsByDay' => $this->visitsByDay(),
+                'visitsByDay' => $this->visitsByDay($schoolYear?->id),
                 'visitsByType' => [
-                    ['label' => 'Students', 'value' => LibraryVisit::whereHas('member', fn ($query) => $query->where('type', LibraryMember::TYPE_STUDENT))->count()],
-                    ['label' => 'Employees', 'value' => LibraryVisit::whereHas('member', fn ($query) => $query->where('type', LibraryMember::TYPE_EMPLOYEE))->count()],
+                    ['label' => 'Students', 'value' => $this->visitCountByType($schoolYear?->id, LibraryMember::TYPE_STUDENT)],
+                    ['label' => 'Employees', 'value' => $this->visitCountByType($schoolYear?->id, LibraryMember::TYPE_EMPLOYEE)],
                 ],
-                'studentVisitsByYearLevel' => $this->studentVisitsByYearLevel(),
+                'studentVisitsByYearLevel' => $this->studentVisitsByYearLevel($schoolYear?->id),
             ],
         ];
     }
 
-    private function visitsByDay(): array
+    private function visitsByDay(?int $schoolYearId): array
     {
         $start = now()->subDays(6)->startOfDay();
         $visits = LibraryVisit::query()
             ->where('visited_at', '>=', $start)
+            ->when($schoolYearId, fn ($query) => $query->where('school_year_id', $schoolYearId), fn ($query) => $query->whereRaw('1 = 0'))
             ->get()
             ->groupBy(fn (LibraryVisit $visit): string => $visit->visited_at->toDateString());
 
@@ -59,16 +63,32 @@ class AdminDashboardService
             ->all();
     }
 
-    private function studentVisitsByYearLevel(): array
+    private function visitCountByType(?int $schoolYearId, string $type): int
+    {
+        return LibraryVisit::query()
+            ->when($schoolYearId, fn ($query) => $query->where('school_year_id', $schoolYearId), fn ($query) => $query->whereRaw('1 = 0'))
+            ->whereHas('member', fn ($query) => $query->where('type', $type))
+            ->count();
+    }
+
+    private function studentVisitsByYearLevel(?int $schoolYearId): array
     {
         /** @var Collection<int, LibraryVisit> $visits */
         $visits = LibraryVisit::query()
-            ->with('member.student')
+            ->with([
+                'member.studentEnrollments',
+            ])
+            ->when($schoolYearId, fn ($query) => $query->where('school_year_id', $schoolYearId), fn ($query) => $query->whereRaw('1 = 0'))
             ->whereHas('member', fn ($query) => $query->where('type', LibraryMember::TYPE_STUDENT))
             ->get();
 
         return $visits
-            ->groupBy(fn (LibraryVisit $visit): string => $visit->member?->student?->year_level ?? 'Unassigned')
+            ->groupBy(function (LibraryVisit $visit): string {
+                $enrollment = $visit->member?->studentEnrollments
+                    ?->firstWhere('school_year_id', $visit->school_year_id);
+
+                return $enrollment?->year_level ?? 'Unassigned';
+            })
             ->map(fn (Collection $group, string $label): array => [
                 'label' => $label,
                 'value' => $group->count(),

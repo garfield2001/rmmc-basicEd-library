@@ -16,7 +16,6 @@ class LibraryVisitService
 
         /* $this->ensureScanWindowIsOpen($now); */
 
-        $member = $this->resolveMember($RFIDUid);
         $schoolYear = SchoolYear::active()->first();
 
         if (! $schoolYear) {
@@ -25,7 +24,8 @@ class LibraryVisitService
             ]);
         }
 
-        $this->ensureMemberCanRevisit($member, $now);
+        $member = $this->resolveMember($RFIDUid, $schoolYear->id);
+        $this->ensureMemberCanRevisit($member, $schoolYear->id, $now);
 
         return LibraryVisit::create([
             'library_member_id' => $member->id,
@@ -34,11 +34,12 @@ class LibraryVisitService
         ])->load(['member', 'schoolYear']);
     }
 
-    private function resolveMember(string $lookup): LibraryMember
+    private function resolveMember(string $lookup, int $schoolYearId): LibraryMember
     {
         $normalizedLookup = $this->normalizeLookup($lookup);
 
         $members = LibraryMember::active()
+            ->visitEligibleForSchoolYear($schoolYearId)
             ->get()
             ->filter(function (LibraryMember $member) use ($normalizedLookup): bool {
                 $values = [
@@ -57,6 +58,7 @@ class LibraryVisitService
 
         if ($members->isEmpty()) {
             $members = LibraryMember::active()
+                ->visitEligibleForSchoolYear($schoolYearId)
                 ->get()
                 ->filter(function (LibraryMember $member) use ($normalizedLookup): bool {
                     $values = [
@@ -85,7 +87,7 @@ class LibraryVisitService
         }
 
         throw ValidationException::withMessages([
-            'rfid_uid' => 'No active member matches that RFID, name, or school ID.',
+            'rfid_uid' => 'No active member enrolled or eligible for the active school year matches that RFID, name, or school ID.',
         ]);
     }
 
@@ -95,9 +97,10 @@ class LibraryVisitService
 
     }
 
-    private function ensureMemberCanRevisit(LibraryMember $member, Carbon $now): void
+    private function ensureMemberCanRevisit(LibraryMember $member, int $schoolYearId, Carbon $now): void
     {
         $lastVisit = $member->visits()
+            ->where('school_year_id', $schoolYearId)
             ->latest('visited_at')
             ->first();
 

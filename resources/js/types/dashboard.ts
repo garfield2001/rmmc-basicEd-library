@@ -39,9 +39,9 @@ export interface AdminDashboard {
         | null;
     metrics: {
         activeMembers: number;
-        inactiveMembers: number;
+        enrolledStudents: number;
         visitsToday: number;
-        visitsThisSchoolYear: number;
+        employeeMembers: number;
     };
     memberBreakdown: {
         students: number;

@@ -1,46 +1,79 @@
 import { DeleteMemberDialog } from '@/components/admin/members/delete-member-dialog';
 import { MemberFormModal } from '@/components/admin/members/member-form-modal';
+import { MembersFilterBar } from '@/components/admin/members/members-filter-bar';
+import { MembersTable } from '@/components/admin/members/members-table';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
 import { type LibraryMemberRow } from '@/types/members';
 import { type Paginated } from '@/types/pagination';
 import { Head, router } from '@inertiajs/react';
-import { BriefcaseBusiness, GraduationCap, Pencil, Plus, Search, Trash2 } from 'lucide-react';
-import { type FormEventHandler, useState } from 'react';
+import { Plus } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface MembersIndexProps {
     members: Paginated<LibraryMemberRow>;
     filters: {
         search: string;
         type: 'student' | 'employee';
+        year_level: string;
+        section: string;
+    };
+    filterOptions: {
+        yearLevels: string[];
+        sectionsByYearLevel: Record<string, string[]>;
     };
 }
 
 type MemberType = 'student' | 'employee';
 
-export default function MembersIndex({ members, filters }: MembersIndexProps) {
+export default function MembersIndex({ members, filters, filterOptions }: MembersIndexProps) {
     const [search, setSearch] = useState(filters.search ?? '');
+    const [yearLevel, setYearLevel] = useState(filters.year_level ?? '');
+    const [section, setSection] = useState(filters.section ?? '');
     const [memberFormOpen, setMemberFormOpen] = useState(false);
     const [selectedMember, setSelectedMember] = useState<LibraryMemberRow | null>(null);
     const [memberToDelete, setMemberToDelete] = useState<LibraryMemberRow | null>(null);
     const activeType: MemberType = filters.type === 'employee' ? 'employee' : 'student';
+    const availableSections = useMemo(() => {
+        return yearLevel ? (filterOptions.sectionsByYearLevel[yearLevel] ?? []) : [];
+    }, [filterOptions.sectionsByYearLevel, yearLevel]);
 
-    const submit: FormEventHandler = (event) => {
-        event.preventDefault();
-
+    const requestMembers = useCallback((type: MemberType, nextSearch: string, nextYearLevel: string, nextSection: string) => {
         router.get(
             '/admin/members',
             {
-                search: search || undefined,
-                type: activeType,
+                search: nextSearch || undefined,
+                type,
+                year_level: type === 'student' ? nextYearLevel || undefined : undefined,
+                section: type === 'student' && nextYearLevel ? nextSection || undefined : undefined,
             },
-            {
-                preserveState: true,
-                replace: true,
-            },
+            { preserveState: true, replace: true },
         );
+    }, []);
+
+    useEffect(() => {
+        const normalizedSection = yearLevel ? section : '';
+        const matchesFilters =
+            filters.search === search &&
+            filters.year_level === yearLevel &&
+            filters.section === normalizedSection &&
+            filters.type === activeType;
+
+        if (matchesFilters) {
+            return;
+        }
+
+        const filterTimer = window.setTimeout(() => {
+            requestMembers(activeType, search, yearLevel, normalizedSection);
+        }, 300);
+
+        return () => window.clearTimeout(filterTimer);
+    }, [activeType, filters.search, filters.section, filters.type, filters.year_level, requestMembers, search, section, yearLevel]);
+
+    const changeYearLevel = (value: string) => {
+        setYearLevel(value);
+        setSection('');
     };
 
     const openCreateMember = () => {
@@ -53,24 +86,11 @@ export default function MembersIndex({ members, filters }: MembersIndexProps) {
         setMemberFormOpen(true);
     };
 
-    const changeType = (type: MemberType) => {
-        router.get(
-            '/admin/members',
-            {
-                search: search || undefined,
-                type,
-            },
-            {
-                preserveState: true,
-                replace: true,
-            },
-        );
+    const visitPage = (url: string | null | undefined) => {
+        if (url) {
+            router.visit(url, { preserveScroll: true, preserveState: true });
+        }
     };
-
-    const tabs: { label: string; value: MemberType; icon: typeof GraduationCap }[] = [
-        { label: 'Students', value: 'student', icon: GraduationCap },
-        { label: 'Employees', value: 'employee', icon: BriefcaseBusiness },
-    ];
 
     return (
         <>
@@ -80,7 +100,7 @@ export default function MembersIndex({ members, filters }: MembersIndexProps) {
                     <div className="space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
                             title="Library Members"
-                            description="Manage RFID identities and library visit profiles for students and employees."
+                            description="Manage RFID identities and active school-year details for students and employees."
                             actions={
                                 <Button type="button" onClick={openCreateMember} className="w-full sm:w-auto">
                                     <Plus className="size-4" />
@@ -89,146 +109,35 @@ export default function MembersIndex({ members, filters }: MembersIndexProps) {
                             }
                         />
 
-                        <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-                            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                                <div className="grid grid-cols-2 gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-1">
-                                    {tabs.map((tab) => {
-                                        const Icon = tab.icon;
-                                        const isActive = activeType === tab.value;
+                        <MembersFilterBar
+                            activeType={activeType}
+                            search={search}
+                            yearLevel={yearLevel}
+                            section={section}
+                            yearLevels={filterOptions.yearLevels}
+                            sections={availableSections}
+                            onSearchChange={setSearch}
+                            onYearLevelChange={changeYearLevel}
+                            onSectionChange={setSection}
+                            onTypeChange={(type) => requestMembers(type, search, yearLevel, section)}
+                        />
 
-                                        return (
-                                            <button
-                                                key={tab.value}
-                                                type="button"
-                                                onClick={() => changeType(tab.value)}
-                                                className={`flex h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-medium transition ${
-                                                    isActive ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'
-                                                }`}
-                                            >
-                                                <Icon className="size-4" />
-                                                {tab.label}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-
-                                <form onSubmit={submit} className="flex flex-1 flex-col gap-3 sm:flex-row lg:max-w-xl">
-                                    <div className="relative flex-1">
-                                        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
-                                        <input
-                                            value={search}
-                                            onChange={(event) => setSearch(event.target.value)}
-                                            placeholder={`Search ${activeType === 'student' ? 'students' : 'employees'}`}
-                                            className="h-10 w-full rounded-lg border border-zinc-300 pr-3 pl-9 text-sm outline-none focus:border-zinc-500 focus:ring-4 focus:ring-zinc-100"
-                                        />
-                                    </div>
-                                    <button
-                                        type="submit"
-                                        className="h-10 rounded-lg bg-[#040DBF] px-4 text-sm font-medium text-white hover:bg-zinc-800"
-                                    >
-                                        Filter
-                                    </button>
-                                </form>
-                            </div>
-                        </section>
-
-                        <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm">
-                            <Table className={activeType === 'student' ? 'min-w-225' : 'min-w-200'}>
-                                <TableHeader className="bg-zinc-50">
-                                    <TableRow>
-                                        <TableHead>{activeType === 'student' ? 'Student' : 'Employee'}</TableHead>
-                                        <TableHead>School ID</TableHead>
-                                        <TableHead>RFID</TableHead>
-                                        {activeType === 'student' ? (
-                                            <>
-                                                <TableHead>Year level</TableHead>
-                                                <TableHead>Section</TableHead>
-                                            </>
-                                        ) : (
-                                            <TableHead>Department</TableHead>
-                                        )}
-                                        <TableHead>Status</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {members.data.length > 0 ? (
-                                        members.data.map((member) => (
-                                            <TableRow key={member.id}>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-100 text-xs font-semibold text-zinc-500">
-                                                            {member.photo_url ? (
-                                                                <img src={member.photo_url} alt="" className="size-full object-cover" />
-                                                            ) : (
-                                                                member.name
-                                                                    .split(' ')
-                                                                    .map((part) => part[0])
-                                                                    .join('')
-                                                                    .slice(0, 2)
-                                                            )}
-                                                        </div>
-                                                        <div className="min-w-0">
-                                                            <p className="font-medium">{member.name}</p>
-                                                        </div>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="font-medium">{member.school_id}</TableCell>
-                                                <TableCell className="text-zinc-500">{member.rfid_uid}</TableCell>
-                                                {activeType === 'student' ? (
-                                                    <>
-                                                        <TableCell className="text-zinc-500">{member.student?.year_level || '-'}</TableCell>
-                                                        <TableCell className="text-zinc-500">{member.student?.section || '-'}</TableCell>
-                                                    </>
-                                                ) : (
-                                                    <TableCell className="text-zinc-500">{member.employee?.department || '-'}</TableCell>
-                                                )}
-                                                <TableCell>
-                                                    <span
-                                                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                                                            member.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-500'
-                                                        }`}
-                                                    >
-                                                        {member.is_active ? 'Active' : 'Inactive'}
-                                                    </span>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex justify-end gap-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => openEditMember(member)}
-                                                            className="inline-flex size-9 items-center justify-center rounded-lg border border-zinc-200 text-zinc-600 hover:bg-zinc-100"
-                                                            title="Edit member"
-                                                        >
-                                                            <Pencil className="size-4" />
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setMemberToDelete(member)}
-                                                            className="inline-flex size-9 items-center justify-center rounded-lg border border-zinc-200 text-zinc-600 hover:bg-zinc-100"
-                                                            title="Delete member"
-                                                        >
-                                                            <Trash2 className="size-4" />
-                                                        </button>
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell
-                                                colSpan={activeType === 'student' ? 7 : 6}
-                                                className="px-5 py-14 text-center text-sm text-zinc-500"
-                                            >
-                                                No {activeType === 'student' ? 'students' : 'employees'} found.
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
+                        <MembersTable
+                            members={members}
+                            activeType={activeType}
+                            onEdit={openEditMember}
+                            onDelete={setMemberToDelete}
+                            onPrevious={() => visitPage(members.prev_page_url ?? members.links.find((link) => link.label.includes('Previous'))?.url)}
+                            onNext={() => visitPage(members.next_page_url ?? members.links.find((link) => link.label.includes('Next'))?.url)}
+                        />
                     </div>
-                    <MemberFormModal member={selectedMember} open={memberFormOpen} onOpenChange={setMemberFormOpen} />
+
+                    <MemberFormModal
+                        member={selectedMember}
+                        open={memberFormOpen}
+                        sectionsByYearLevel={filterOptions.sectionsByYearLevel}
+                        onOpenChange={setMemberFormOpen}
+                    />
                     <DeleteMemberDialog
                         member={memberToDelete}
                         open={Boolean(memberToDelete)}

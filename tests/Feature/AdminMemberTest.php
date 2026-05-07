@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\LibraryMember;
+use App\Models\SchoolYear;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -29,6 +30,7 @@ class AdminMemberTest extends TestCase
         });
 
         $admin = User::factory()->create(['role' => 'admin']);
+        $schoolYear = SchoolYear::factory()->active()->create();
 
         $response = $this->actingAs($admin)->post('/admin/members', [
             'rfid_uid' => '1000000101',
@@ -48,7 +50,8 @@ class AdminMemberTest extends TestCase
         $this->assertSame(LibraryMember::TYPE_STUDENT, $member->type);
         $this->assertNotNull($member->photo);
         $this->assertStringEndsWith('.jpg', $member->photo);
-        $this->assertDatabaseHas('students', [
+        $this->assertDatabaseHas('student_enrollments', [
+            'school_year_id' => $schoolYear->id,
             'year_level' => 'Grade 10',
             'section' => 'Faraday',
         ]);

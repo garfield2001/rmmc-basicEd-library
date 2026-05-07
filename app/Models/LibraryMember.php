@@ -46,7 +46,12 @@ class LibraryMember extends Model
 
     public function student(): HasOne
     {
-        return $this->hasOne(Student::class);
+        return $this->hasOne(StudentEnrollment::class);
+    }
+
+    public function studentEnrollments(): HasMany
+    {
+        return $this->hasMany(StudentEnrollment::class);
     }
 
     public function employee(): HasOne
@@ -57,6 +62,23 @@ class LibraryMember extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeVisitEligibleForSchoolYear(Builder $query, ?int $schoolYearId): Builder
+    {
+        if (! $schoolYearId) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where(function (Builder $query) use ($schoolYearId): void {
+            $query
+                ->where('type', self::TYPE_EMPLOYEE)
+                ->orWhere(function (Builder $query) use ($schoolYearId): void {
+                    $query
+                        ->where('type', self::TYPE_STUDENT)
+                        ->whereHas('studentEnrollments', fn (Builder $query) => $query->forSchoolYear($schoolYearId));
+                });
+        });
     }
 
     public function scopeOfType(Builder $query, ?string $type): Builder

@@ -1,8 +1,8 @@
+import { ADMIN_ROUTE_PRELOADER_MINIMUM_MS } from '@/config/timing';
 import { type SharedData } from '@/types/shared';
 import { usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
-const ADMIN_PRELOADER_MINIMUM_MS = 3000;
 const LOGIN_SUCCESS_MESSAGE = 'Admin session started.';
 
 export function AdminRoutePreloader() {
@@ -17,7 +17,14 @@ export function AdminRoutePreloader() {
         }
 
         setVisible(true);
-        const hideTimer = window.setTimeout(() => setVisible(false), ADMIN_PRELOADER_MINIMUM_MS);
+
+        if (ADMIN_ROUTE_PRELOADER_MINIMUM_MS <= 0) {
+            const animationFrame = window.requestAnimationFrame(() => setVisible(false));
+
+            return () => window.cancelAnimationFrame(animationFrame);
+        }
+
+        const hideTimer = window.setTimeout(() => setVisible(false), ADMIN_ROUTE_PRELOADER_MINIMUM_MS);
 
         return () => {
             window.clearTimeout(hideTimer);

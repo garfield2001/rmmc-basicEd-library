@@ -4,6 +4,7 @@ namespace App\Services\Dashboard;
 
 use App\Models\LibraryMember;
 use App\Models\LibraryVisit;
+use App\Models\SchoolYear;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
@@ -12,7 +13,10 @@ class AdminVisitMonitorService
     public function getData(): array
     {
         $today = Carbon::today();
-        $todayVisitQuery = LibraryVisit::whereDate('visited_at', $today);
+        $activeSchoolYearId = SchoolYear::active()->value('id');
+        $todayVisitQuery = LibraryVisit::query()
+            ->whereDate('visited_at', $today)
+            ->when($activeSchoolYearId, fn (Builder $query) => $query->where('school_year_id', $activeSchoolYearId), fn (Builder $query) => $query->whereRaw('1 = 0'));
 
         return [
             'metrics' => [
@@ -27,16 +31,34 @@ class AdminVisitMonitorService
             'todayVisits' => LibraryVisit::query()
                 ->with([
                     'member:id,school_id,type,first_name,middle_name,last_name,photo',
-                    'member.student:id,library_member_id,year_level,section',
+                    'member.student' => fn ($query) => $query
+                        ->select(
+                            'student_enrollments.id',
+                            'student_enrollments.library_member_id',
+                            'student_enrollments.school_year_id',
+                            'student_enrollments.year_level',
+                            'student_enrollments.section',
+                        )
+                        ->forSchoolYear($activeSchoolYearId),
                     'member.employee:id,library_member_id,department',
                 ])
                 ->whereDate('visited_at', $today)
+                ->when($activeSchoolYearId, fn (Builder $query) => $query->where('school_year_id', $activeSchoolYearId), fn (Builder $query) => $query->whereRaw('1 = 0'))
                 ->latest('visited_at')
                 ->get()
                 ->map(fn (LibraryVisit $visit): array => $this->visitData($visit)),
             'scanTargets' => LibraryMember::active()
+                ->visitEligibleForSchoolYear($activeSchoolYearId)
                 ->with([
-                    'student:id,library_member_id,year_level,section',
+                    'student' => fn ($query) => $query
+                        ->select(
+                            'student_enrollments.id',
+                            'student_enrollments.library_member_id',
+                            'student_enrollments.school_year_id',
+                            'student_enrollments.year_level',
+                            'student_enrollments.section',
+                        )
+                        ->forSchoolYear($activeSchoolYearId),
                     'employee:id,library_member_id,department',
                 ])
                 ->orderBy('last_name')

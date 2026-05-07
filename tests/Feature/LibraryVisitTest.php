@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\LibraryMember;
 use App\Models\LibraryVisit;
 use App\Models\SchoolYear;
+use App\Models\StudentEnrollment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -106,13 +107,14 @@ class LibraryVisitTest extends TestCase
 
         $this->createActiveSchoolYear();
         $this->createMember();
-        LibraryMember::create([
+        $otherMember = LibraryMember::create([
             'rfid_uid' => '1000000002',
             'school_id' => 'STU-002',
             'type' => LibraryMember::TYPE_STUDENT,
             'first_name' => 'Ana',
             'last_name' => 'Santos',
         ]);
+        $this->enrollMemberForActiveSchoolYear($otherMember);
 
         $this->post('/library-visits', [
             'rfid_uid' => 'Santos',
@@ -163,6 +165,42 @@ class LibraryVisitTest extends TestCase
         $this->assertSame(2, LibraryVisit::count());
     }
 
+    public function test_student_without_active_school_year_enrollment_cannot_scan(): void
+    {
+        $this->travelTo(Carbon::parse('2026-09-01 08:00:00', config('app.timezone')));
+
+        $oldSchoolYear = SchoolYear::create([
+            'name' => '2025-2026',
+            'starts_at' => '2025-06-01',
+            'ends_at' => '2026-03-31',
+            'minimum_visits' => 3,
+            'target_visits' => 4,
+            'is_active' => false,
+        ]);
+        $this->createActiveSchoolYear();
+        $member = LibraryMember::create([
+            'rfid_uid' => '1000000001',
+            'school_id' => 'STU-001',
+            'type' => LibraryMember::TYPE_STUDENT,
+            'first_name' => 'Maria',
+            'last_name' => 'Santos',
+        ]);
+
+        StudentEnrollment::create([
+            'library_member_id' => $member->id,
+            'school_year_id' => $oldSchoolYear->id,
+            'year_level' => 'Grade 1',
+            'section' => 'Rizal',
+            'status' => 'enrolled',
+        ]);
+
+        $this->post('/library-visits', [
+            'rfid_uid' => '1000000001',
+        ])->assertSessionHasErrors('rfid_uid');
+
+        $this->assertSame(0, LibraryVisit::count());
+    }
+
     public function test_scan_is_allowed_before_seven_am_for_temporary_twenty_four_hour_access(): void
     {
         $this->travelTo(Carbon::parse('2026-09-01 06:59:00', config('app.timezone')));
@@ -205,12 +243,29 @@ class LibraryVisitTest extends TestCase
 
     private function createMember(): LibraryMember
     {
-        return LibraryMember::create([
+        $member = LibraryMember::create([
             'rfid_uid' => '1000000001',
             'school_id' => 'STU-001',
             'type' => LibraryMember::TYPE_STUDENT,
             'first_name' => 'Maria',
             'last_name' => 'Santos',
+        ]);
+
+        $this->enrollMemberForActiveSchoolYear($member);
+
+        return $member;
+    }
+
+    private function enrollMemberForActiveSchoolYear(LibraryMember $member): void
+    {
+        $schoolYear = SchoolYear::active()->firstOrFail();
+
+        StudentEnrollment::create([
+            'library_member_id' => $member->id,
+            'school_year_id' => $schoolYear->id,
+            'year_level' => 'Grade 1',
+            'section' => 'Rizal',
+            'status' => 'enrolled',
         ]);
     }
 }

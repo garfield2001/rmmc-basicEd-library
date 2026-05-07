@@ -2,83 +2,18 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { type LibraryMemberRow } from '@/types/members';
 import { useForm } from '@inertiajs/react';
-import { BriefcaseBusiness, GraduationCap, ImagePlus } from 'lucide-react';
 import { type FormEventHandler, useEffect, useRef, useState } from 'react';
+import { DetailsSection, IdentitySection, ProfileSection } from './member-form-sections';
+import { initialMemberData, isStepComplete, memberFormSteps, type MemberFormData } from './member-form-state';
 
 interface MemberFormModalProps {
     member: LibraryMemberRow | null;
     open: boolean;
+    sectionsByYearLevel: Record<string, string[]>;
     onOpenChange: (open: boolean) => void;
 }
 
-type MemberFormData = {
-    _method: string;
-    rfid_uid: string;
-    school_id: string;
-    type: 'student' | 'employee';
-    first_name: string;
-    middle_name: string;
-    last_name: string;
-    photo_file: File | null;
-    is_active: boolean;
-    year_level: string;
-    section: string;
-    department: string;
-};
-
-const steps = [
-    {
-        title: 'Identity',
-        description: 'RFID card, school ID, and member type.',
-    },
-    {
-        title: 'Profile',
-        description: 'Name and basic member information.',
-    },
-    {
-        title: 'Details',
-        description: 'Student or employee details and account status.',
-    },
-];
-
-function initialMemberData(member: LibraryMemberRow | null): MemberFormData {
-    return {
-        _method: member ? 'put' : 'post',
-        rfid_uid: member?.rfid_uid ?? '',
-        school_id: member?.school_id ?? '',
-        type: member?.type ?? 'student',
-        first_name: member?.first_name ?? '',
-        middle_name: member?.middle_name ?? '',
-        last_name: member?.last_name ?? '',
-        photo_file: null,
-        is_active: member?.is_active ?? true,
-        year_level: member?.student?.year_level ?? '',
-        section: member?.student?.section ?? '',
-        department: member?.employee?.department ?? '',
-    };
-}
-
-function fieldError(error?: string) {
-    return error ? <p className="mt-1 text-xs font-medium text-red-600">{error}</p> : null;
-}
-
-function isStepComplete(step: number, data: MemberFormData): boolean {
-    if (step === 0) {
-        return data.rfid_uid.trim().length > 0 && data.school_id.trim().length > 0;
-    }
-
-    if (step === 1) {
-        return data.first_name.trim().length > 0 && data.last_name.trim().length > 0;
-    }
-
-    if (data.type === 'student') {
-        return data.year_level.trim().length > 0 && data.section.trim().length > 0;
-    }
-
-    return data.department.trim().length > 0;
-}
-
-export function MemberFormModal({ member, open, onOpenChange }: MemberFormModalProps) {
+export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChange }: MemberFormModalProps) {
     const isEditing = Boolean(member);
     const [step, setStep] = useState(0);
     const scanBuffer = useRef('');
@@ -169,7 +104,7 @@ export function MemberFormModal({ member, open, onOpenChange }: MemberFormModalP
     const submit: FormEventHandler = (event) => {
         event.preventDefault();
 
-        if (!isEditing && step < steps.length - 1) {
+        if (!isEditing && step < memberFormSteps.length - 1) {
             if (!currentStepComplete) {
                 return;
             }
@@ -178,7 +113,7 @@ export function MemberFormModal({ member, open, onOpenChange }: MemberFormModalP
             return;
         }
 
-        if (!isEditing && !steps.every((_, index) => isStepComplete(index, data))) {
+        if (!isEditing && !memberFormSteps.every((_, index) => isStepComplete(index, data))) {
             return;
         }
 
@@ -218,188 +153,47 @@ export function MemberFormModal({ member, open, onOpenChange }: MemberFormModalP
                     <div className="border-y border-[#040DBF]/10 py-4">
                         <div className="flex items-center justify-between gap-3 text-xs font-semibold tracking-[0.16em] text-[#030A8C] uppercase">
                             <span>
-                                Step {step + 1} of {steps.length}
+                                Step {step + 1} of {memberFormSteps.length}
                             </span>
-                            <span>{steps[step].title}</span>
+                            <span>{memberFormSteps[step].title}</span>
                         </div>
                         <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#040DBF]/10">
                             <div
                                 className="h-full rounded-full bg-[#040DBF] transition-[width] duration-300"
-                                style={{ width: `${((step + 1) / steps.length) * 100}%` }}
+                                style={{ width: `${((step + 1) / memberFormSteps.length) * 100}%` }}
                             />
                         </div>
-                        <p className="mt-3 text-sm leading-6 text-[#020659]">{steps[step].description}</p>
+                        <p className="mt-3 text-sm leading-6 text-[#020659]">{memberFormSteps[step].description}</p>
                     </div>
                 )}
 
                 <form onSubmit={submit} className="space-y-5">
                     {(isEditing || step === 0) && (
-                        <section className={sectionClass}>
-                            {isEditing && <h3 className="mb-4 text-sm font-semibold text-[#010440]">Identity</h3>}
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <label className="text-sm font-medium text-[#010440]">
-                                    RFID UID
-                                    <input
-                                        data-rfid-input="true"
-                                        value={data.rfid_uid}
-                                        onChange={(event) => setData('rfid_uid', event.target.value)}
-                                        onKeyDown={(event) => {
-                                            if (event.key === 'Enter') {
-                                                event.preventDefault();
-                                            }
-                                        }}
-                                        placeholder="Scan or enter RFID"
-                                        className={inputClass}
-                                        autoComplete="off"
-                                        autoFocus={!isEditing}
-                                    />
-                                    {fieldError(errors.rfid_uid)}
-                                </label>
-                                <label className="text-sm font-medium text-[#010440]">
-                                    School ID
-                                    <input
-                                        value={data.school_id}
-                                        onChange={(event) => setData('school_id', event.target.value)}
-                                        className={inputClass}
-                                    />
-                                    {fieldError(errors.school_id)}
-                                </label>
-                            </div>
-
-                            <div className="mt-4 text-sm font-medium text-[#010440]">
-                                Member type
-                                <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => changeMemberType('student')}
-                                        className={`flex h-11 items-center justify-center gap-2 rounded-lg border text-sm font-semibold transition ${
-                                            data.type === 'student'
-                                                ? 'border-[#040DBF] bg-[#040DBF] text-white'
-                                                : 'border-[#040DBF]/15 bg-white text-[#020659] hover:bg-[#f6f8ff]'
-                                        }`}
-                                    >
-                                        <GraduationCap className="size-4" />
-                                        Student
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => changeMemberType('employee')}
-                                        className={`flex h-11 items-center justify-center gap-2 rounded-lg border text-sm font-semibold transition ${
-                                            data.type === 'employee'
-                                                ? 'border-[#040DBF] bg-[#040DBF] text-white'
-                                                : 'border-[#040DBF]/15 bg-white text-[#020659] hover:bg-[#f6f8ff]'
-                                        }`}
-                                    >
-                                        <BriefcaseBusiness className="size-4" />
-                                        Employee
-                                    </button>
-                                </div>
-                                {fieldError(errors.type)}
-                            </div>
-                        </section>
+                        <IdentitySection
+                            data={data}
+                            errors={errors}
+                            setData={setData}
+                            inputClass={inputClass}
+                            sectionClass={sectionClass}
+                            isEditing={isEditing}
+                            onTypeChange={changeMemberType}
+                        />
                     )}
 
                     {(isEditing || step === 1) && (
-                        <section className={sectionClass}>
-                            {isEditing && <h3 className="mb-4 text-sm font-semibold text-[#010440]">Profile</h3>}
-                            <div className="grid gap-4 md:grid-cols-3">
-                                <label className="text-sm font-medium text-[#010440]">
-                                    First name
-                                    <input
-                                        value={data.first_name}
-                                        onChange={(event) => setData('first_name', event.target.value)}
-                                        className={inputClass}
-                                    />
-                                    {fieldError(errors.first_name)}
-                                </label>
-                                <label className="text-sm font-medium text-[#010440]">
-                                    Middle name
-                                    <input
-                                        value={data.middle_name}
-                                        onChange={(event) => setData('middle_name', event.target.value)}
-                                        className={inputClass}
-                                    />
-                                    {fieldError(errors.middle_name)}
-                                </label>
-                                <label className="text-sm font-medium text-[#010440]">
-                                    Last name
-                                    <input
-                                        value={data.last_name}
-                                        onChange={(event) => setData('last_name', event.target.value)}
-                                        className={inputClass}
-                                    />
-                                    {fieldError(errors.last_name)}
-                                </label>
-                            </div>
-                        </section>
+                        <ProfileSection data={data} errors={errors} setData={setData} inputClass={inputClass} sectionClass={sectionClass} />
                     )}
 
                     {(isEditing || step === 2) && (
-                        <section className={sectionClass}>
-                            {isEditing && <h3 className="mb-4 text-sm font-semibold text-[#010440]">Details</h3>}
-                            <div className="grid gap-4 md:grid-cols-2">
-                                {data.type === 'student' ? (
-                                    <>
-                                        <label className="text-sm font-medium text-[#010440]">
-                                            Year level
-                                            <input
-                                                value={data.year_level}
-                                                onChange={(event) => setData('year_level', event.target.value)}
-                                                className={inputClass}
-                                            />
-                                            {fieldError(errors.year_level)}
-                                        </label>
-                                        <label className="text-sm font-medium text-[#010440]">
-                                            Section
-                                            <input
-                                                value={data.section}
-                                                onChange={(event) => setData('section', event.target.value)}
-                                                className={inputClass}
-                                            />
-                                            {fieldError(errors.section)}
-                                        </label>
-                                    </>
-                                ) : (
-                                    <label className="text-sm font-medium text-[#010440]">
-                                        Department
-                                        <input
-                                            value={data.department}
-                                            onChange={(event) => setData('department', event.target.value)}
-                                            className={inputClass}
-                                        />
-                                        {fieldError(errors.department)}
-                                    </label>
-                                )}
-
-                                <label className="text-sm font-medium text-[#010440]">
-                                    Photo upload
-                                    <span className="mt-2 flex h-10 items-center gap-2 rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm text-[#020659]">
-                                        <ImagePlus className="size-4" />
-                                        <span className="truncate">
-                                            {data.photo_file?.name ?? (member?.photo_url ? 'Keep current photo' : 'Choose photo')}
-                                        </span>
-                                    </span>
-                                    <input
-                                        type="file"
-                                        accept="image/png,image/jpeg,image/webp"
-                                        onChange={(event) => setData('photo_file', event.target.files?.[0] ?? null)}
-                                        className="sr-only"
-                                    />
-                                    {fieldError(errors.photo_file)}
-                                </label>
-                            </div>
-
-                            <label className="mt-4 flex items-center gap-2 text-sm font-medium text-[#010440]">
-                                <input
-                                    type="checkbox"
-                                    checked={data.is_active}
-                                    onChange={(event) => setData('is_active', event.target.checked)}
-                                    className="size-4 rounded border-[#040DBF]/20"
-                                />
-                                Active member
-                            </label>
-                            {fieldError(errors.is_active)}
-                        </section>
+                        <DetailsSection
+                            data={data}
+                            errors={errors}
+                            setData={setData}
+                            inputClass={inputClass}
+                            sectionClass={sectionClass}
+                            member={member}
+                            sectionOptions={data.year_level ? (sectionsByYearLevel[data.year_level] ?? []) : []}
+                        />
                     )}
 
                     {!isEditing && !currentStepComplete && (
@@ -420,7 +214,7 @@ export function MemberFormModal({ member, open, onOpenChange }: MemberFormModalP
                                 ? processing
                                     ? 'Saving...'
                                     : 'Save changes'
-                                : step === steps.length - 1
+                                : step === memberFormSteps.length - 1
                                   ? processing
                                       ? 'Saving...'
                                       : 'Create member'

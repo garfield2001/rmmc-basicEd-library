@@ -12,9 +12,14 @@ export interface VisitReportRow {
 
 export interface VisitReport {
     filters: {
+        school_year_id: number | null;
         start_date: string;
         end_date: string;
         member_type: string | null;
+        member_status: string | null;
+        year_level: string | null;
+        section: string | null;
+        department: string | null;
     };
     summary: {
         total: number;
@@ -22,4 +27,16 @@ export interface VisitReport {
         employees: number;
     };
     rows: VisitReportRow[];
+}
+
+export interface VisitReportOptions {
+    schoolYears: {
+        id: number;
+        name: string;
+        is_active: boolean;
+    }[];
+    yearLevels: string[];
+    sectionsByYearLevel: Record<string, string[]>;
+    sectionsBySchoolYear: Record<string, Record<string, string[]>>;
+    departments: string[];
 }

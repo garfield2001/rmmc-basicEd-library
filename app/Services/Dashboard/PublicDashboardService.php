@@ -14,12 +14,17 @@ class PublicDashboardService
     {
         $schoolYear = SchoolYear::active()->first();
         $today = Carbon::today();
-        $todayVisitQuery = LibraryVisit::whereDate('visited_at', $today);
+        $todayVisitQuery = LibraryVisit::query()
+            ->whereDate('visited_at', $today)
+            ->when($schoolYear, fn (Builder $query) => $query->where('school_year_id', $schoolYear->id), fn (Builder $query) => $query->whereRaw('1 = 0'));
 
         return [
             'schoolYear' => $schoolYear?->only(['id', 'name']),
             'metrics' => [
-                'students' => LibraryMember::active()->where('type', LibraryMember::TYPE_STUDENT)->count(),
+                'students' => LibraryMember::active()
+                    ->where('type', LibraryMember::TYPE_STUDENT)
+                    ->visitEligibleForSchoolYear($schoolYear?->id)
+                    ->count(),
                 'employees' => LibraryMember::active()->where('type', LibraryMember::TYPE_EMPLOYEE)->count(),
                 'visitsToday' => (clone $todayVisitQuery)->count(),
                 'studentVisitsToday' => (clone $todayVisitQuery)

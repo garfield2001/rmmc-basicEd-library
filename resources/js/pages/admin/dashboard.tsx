@@ -1,18 +1,12 @@
+import { IconBadge } from '@/components/ui/icon-badge';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
 import { type AdminDashboard, type ChartPoint } from '@/types/dashboard';
 import { Head, Link } from '@inertiajs/react';
-import { Activity, BriefcaseBusiness, CalendarDays, GraduationCap, LibraryBig, RadioTower, UsersRound } from 'lucide-react';
+import { Activity, BriefcaseBusiness, GraduationCap, RadioTower, UserCheck, UsersRound } from 'lucide-react';
 
 interface DashboardProps {
     dashboard: AdminDashboard;
-}
-
-function metricTone(index: number) {
-    return (
-        ['bg-[#040DBF] text-white', 'bg-[#010440] text-white', 'bg-[#f6f8ff] text-[#040DBF]', 'bg-emerald-50 text-emerald-700'][index] ??
-        'bg-[#f6f8ff] text-[#040DBF]'
-    );
 }
 
 function ChartList({ title, points }: { title: string; points: ChartPoint[] }) {
@@ -56,16 +50,16 @@ export default function Dashboard({ dashboard }: DashboardProps) {
             icon: Activity,
         },
         {
-            label: 'School year visits',
-            value: dashboard.metrics.visitsThisSchoolYear,
+            label: 'Enrolled students',
+            value: dashboard.metrics.enrolledStudents,
             detail: dashboard.schoolYear?.name ?? 'No active school year',
-            icon: CalendarDays,
+            icon: UserCheck,
         },
         {
-            label: 'Inactive members',
-            value: dashboard.metrics.inactiveMembers,
-            detail: 'Excluded from scan matching',
-            icon: LibraryBig,
+            label: 'Employee members',
+            value: dashboard.metrics.employeeMembers,
+            detail: 'Faculty and staff profiles',
+            icon: BriefcaseBusiness,
         },
     ];
 
@@ -90,7 +84,7 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                         />
 
                         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                            {overviewMetrics.map((metric, index) => {
+                            {overviewMetrics.map((metric) => {
                                 const Icon = metric.icon;
 
                                 return (
@@ -102,9 +96,7 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                                                     {metric.value.toLocaleString()}
                                                 </p>
                                             </div>
-                                            <div className={`flex size-10 items-center justify-center rounded-lg ${metricTone(index)}`}>
-                                                <Icon className="size-5" />
-                                            </div>
+                                            <IconBadge icon={Icon} />
                                         </div>
                                         <p className="mt-3 text-sm text-[#020659]/70">{metric.detail}</p>
                                     </div>

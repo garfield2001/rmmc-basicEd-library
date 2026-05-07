@@ -12,9 +12,14 @@ export interface LibraryMemberRow {
     is_active: boolean;
     group: string | null;
     student: {
+        school_year_id: number;
+        school_year_section_id: number | null;
         year_level: string;
-        section: string;
+        section: string | null;
+        status: 'enrolled' | 'pending' | 'retained' | 'not_enrolled' | 'stopped' | 'transferred' | 'graduated';
     } | null;
+    source_student?: LibraryMemberRow['student'];
+    target_student?: LibraryMemberRow['student'];
     employee: {
         department: string;
     } | null;

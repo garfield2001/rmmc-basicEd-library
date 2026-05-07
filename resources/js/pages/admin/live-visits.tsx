@@ -102,15 +102,15 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
                             onSubmit={submitScan}
                         />
 
+                        <LatestVisitCard
+                            visit={lastVisit ?? null}
+                            emptyMessage="Scanned students and employees will appear in the live table below."
+                        />
+
                         <LiveVisitMetrics
                             visitsToday={visitMonitor.metrics.visitsToday}
                             studentVisitsToday={visitMonitor.metrics.studentVisitsToday}
                             employeeVisitsToday={visitMonitor.metrics.employeeVisitsToday}
-                        />
-
-                        <LatestVisitCard
-                            visit={lastVisit ?? null}
-                            emptyMessage="Scanned students and employees will appear in the live table below."
                         />
 
                         <LiveVisitsTable

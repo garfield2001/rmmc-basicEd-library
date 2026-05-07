@@ -36,6 +36,16 @@ class SchoolYear extends Model
         return $this->hasMany(LibraryVisit::class);
     }
 
+    public function studentEnrollments(): HasMany
+    {
+        return $this->hasMany(StudentEnrollment::class);
+    }
+
+    public function sections(): HasMany
+    {
+        return $this->hasMany(SchoolYearSection::class);
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);

@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\LibraryMember;
+use App\Models\SchoolYear;
+use App\Models\SchoolYearSection;
 use Illuminate\Database\Seeder;
 use InvalidArgumentException;
 
@@ -224,10 +226,19 @@ abstract class LibraryMemberSeeder extends Seeder
         $this->validateStudentSchoolId($student['school_id']);
 
         $member = $this->createMember($student, LibraryMember::TYPE_STUDENT);
-
-        $member->student()->create([
+        $schoolYear = SchoolYear::active()->firstOrFail();
+        $section = SchoolYearSection::query()->firstOrCreate([
+            'school_year_id' => $schoolYear->id,
             'year_level' => $student['year_level'],
-            'section' => $student['section'],
+            'name' => $student['section'],
+        ]);
+
+        $member->studentEnrollments()->create([
+            'school_year_id' => $schoolYear->id,
+            'school_year_section_id' => $section->id,
+            'year_level' => $student['year_level'],
+            'section' => $section->name,
+            'status' => 'enrolled',
         ]);
 
         return $member;

@@ -28,8 +28,11 @@ class LibraryMemberResource extends JsonResource
             'is_active' => $this->is_active,
             'group' => $this->group,
             'student' => $this->whenLoaded('student', fn (): ?array => $this->student ? [
+                'school_year_id' => $this->student->school_year_id,
+                'school_year_section_id' => $this->student->school_year_section_id,
                 'year_level' => $this->student->year_level,
                 'section' => $this->student->section,
+                'status' => $this->student->status,
             ] : null),
             'employee' => $this->whenLoaded('employee', fn (): ?array => $this->employee ? [
                 'department' => $this->employee->department,

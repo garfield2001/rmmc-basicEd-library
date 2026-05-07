@@ -1,4 +1,4 @@
-import { Activity, FileText, LayoutDashboard, Monitor, Moon, Settings, Sun, UsersRound } from 'lucide-react';
+import { Activity, FileText, GraduationCap, LayoutDashboard, Monitor, Moon, Settings, Sun, UsersRound } from 'lucide-react';
 import type { AdminNavItem, ThemePreference } from './admin-layout.types';
 
 export const sidebarAnimationStorageKey = 'rmmc-admin-sidebar-entered-v1';
@@ -29,8 +29,14 @@ export const navItems: AdminNavItem[] = [
         icon: UsersRound,
     },
     {
+        key: 'student-enrollments',
+        label: 'Student Placement',
+        href: '/admin/student-enrollments',
+        icon: GraduationCap,
+    },
+    {
         key: 'reports',
-        label: 'Visit Records',
+        label: 'Reports',
         href: '/admin/reports',
         icon: FileText,
     },

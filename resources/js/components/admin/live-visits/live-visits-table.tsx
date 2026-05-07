@@ -1,6 +1,7 @@
+import { PaginationControls } from '@/components/ui/pagination-controls';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { DashboardVisit } from '@/types/dashboard';
-import { BarChart3, BriefcaseBusiness, ChevronLeft, ChevronRight, GraduationCap, Search } from 'lucide-react';
+import { BarChart3, BriefcaseBusiness, GraduationCap, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 type VisitTab = 'student' | 'employee';
@@ -11,7 +12,7 @@ interface LiveVisitsTableProps {
     employeeCount: number;
 }
 
-const visitsPerPage = 10;
+const visitsPerPage = 5;
 
 function formatVisitTime(visit: DashboardVisit) {
     return visit.visitedAt
@@ -158,35 +159,15 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                 </Table>
             </div>
 
-            <div className="flex flex-col gap-3 border-t border-[#040DBF]/10 px-5 py-4 text-sm text-[#020659]/70 sm:flex-row sm:items-center sm:justify-between">
-                <span>
-                    Showing {visibleVisits.length === 0 ? 0 : (currentPage - 1) * visitsPerPage + 1}-
-                    {Math.min(currentPage * visitsPerPage, filteredVisits.length)} of {filteredVisits.length}
-                </span>
-                <div className="flex items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                        disabled={currentPage === 1}
-                        className="inline-flex h-9 items-center gap-1 rounded-lg border border-[#040DBF]/15 bg-white px-3 font-medium text-[#020659] disabled:cursor-not-allowed disabled:opacity-45"
-                    >
-                        <ChevronLeft className="size-4" />
-                        Previous
-                    </button>
-                    <span className="px-2 font-medium text-[#010440]">
-                        {currentPage} / {totalPages}
-                    </span>
-                    <button
-                        type="button"
-                        onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                        disabled={currentPage === totalPages}
-                        className="inline-flex h-9 items-center gap-1 rounded-lg border border-[#040DBF]/15 bg-white px-3 font-medium text-[#020659] disabled:cursor-not-allowed disabled:opacity-45"
-                    >
-                        Next
-                        <ChevronRight className="size-4" />
-                    </button>
-                </div>
-            </div>
+            <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                from={(currentPage - 1) * visitsPerPage + 1}
+                to={Math.min(currentPage * visitsPerPage, filteredVisits.length)}
+                total={filteredVisits.length}
+                onPrevious={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                onNext={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+            />
         </section>
     );
 }

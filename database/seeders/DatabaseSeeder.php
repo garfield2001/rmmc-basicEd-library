@@ -6,7 +6,8 @@ use App\Models\Employee;
 use App\Models\LibraryMember;
 use App\Models\LibraryVisit;
 use App\Models\SchoolYear;
-use App\Models\Student;
+use App\Models\SchoolYearSection;
+use App\Models\StudentEnrollment;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
@@ -19,7 +20,8 @@ class DatabaseSeeder extends Seeder
             Schema::disableForeignKeyConstraints();
 
             LibraryVisit::truncate();
-            Student::truncate();
+            StudentEnrollment::truncate();
+            SchoolYearSection::truncate();
             Employee::truncate();
             LibraryMember::truncate();
             SchoolYear::truncate();

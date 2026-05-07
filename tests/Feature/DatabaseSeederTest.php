@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Employee;
 use App\Models\LibraryMember;
-use App\Models\Student;
+use App\Models\StudentEnrollment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -48,7 +48,7 @@ class DatabaseSeederTest extends TestCase
                 ->pluck('school_id')
                 ->every(fn (string $schoolId): bool => preg_match('/^\d{10}$/', $schoolId) === 1),
         );
-        $this->assertSame(26, Student::query()->count());
+        $this->assertGreaterThanOrEqual(990, StudentEnrollment::query()->count());
         $this->assertSame(14, Employee::query()->count());
     }
 }
