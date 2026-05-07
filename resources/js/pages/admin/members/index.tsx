@@ -55,10 +55,7 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
     useEffect(() => {
         const normalizedSection = yearLevel ? section : '';
         const matchesFilters =
-            filters.search === search &&
-            filters.year_level === yearLevel &&
-            filters.section === normalizedSection &&
-            filters.type === activeType;
+            filters.search === search && filters.year_level === yearLevel && filters.section === normalizedSection && filters.type === activeType;
 
         if (matchesFilters) {
             return;
@@ -97,7 +94,7 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
             <Head title="Library Members" />
             <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f4f5_42%,#e7e5e4_100%)] text-zinc-950">
                 <AdminLayout active="members">
-                    <div className="space-y-6 px-4 py-6 sm:px-6 lg:py-8">
+                    <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
                             title="Library Members"
                             description="Manage RFID identities and active school-year details for students and employees."

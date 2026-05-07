@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Schema;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,5 +24,7 @@ class AppServiceProvider extends ServiceProvider
         Vite::usePreloadTagAttributes(function (string $src, string $url): array|false {
             return str_ends_with(parse_url($url, PHP_URL_PATH) ?: $url, '.css') ? false : [];
         });
+
+        Schema::defaultStringLength(120);
     }
 }

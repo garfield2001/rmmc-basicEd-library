@@ -40,6 +40,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Might not be needed
     Route::resource('admin/members', LibraryMemberController::class)->except('show')->names('admin.members');
     Route::get('admin/student-enrollments', [StudentEnrollmentController::class, 'index'])->name('admin.student-enrollments.index');
+    Route::post('admin/student-enrollments/preview-roster', [StudentEnrollmentController::class, 'previewRoster'])->name('admin.student-enrollments.preview-roster');
     Route::patch('admin/student-enrollments/bulk-assign', [StudentEnrollmentController::class, 'bulkAssign'])->name('admin.student-enrollments.bulk-assign');
 
     Route::get('admin/reports', [ReportController::class, 'index'])->name('admin.reports');

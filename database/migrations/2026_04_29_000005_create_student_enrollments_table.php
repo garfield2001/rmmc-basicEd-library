@@ -10,11 +10,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('student_enrollments', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
+
             $table->id();
             $table->foreignId('library_member_id')->constrained()->cascadeOnDelete();
             $table->foreignId('school_year_id')->constrained()->cascadeOnDelete();
-            $table->string('year_level')->index();
-            $table->string('section')->nullable()->index();
+            $table->string('year_level', 50)->index();
+            $table->string('section', 50)->nullable()->index();
             $table->timestamps();
 
             $table->unique(['library_member_id', 'school_year_id']);

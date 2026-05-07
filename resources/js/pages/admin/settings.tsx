@@ -19,7 +19,7 @@ export default function Settings({ schoolYears, schoolYearStats }: SettingsProps
             <Head title="Settings" />
             <main className="min-h-screen">
                 <AdminLayout active="settings">
-                    <div className="space-y-6 px-4 py-6 sm:px-6 lg:py-8">
+                    <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader title="Settings" description="Manage admin access, appearance, and school-year enrollment setup." />
                         <SchoolYearSettings schoolYears={schoolYears} stats={schoolYearStats} />
                         <ProfileSettingsForm />

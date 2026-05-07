@@ -43,7 +43,8 @@ export function EnrollmentTable({
     const from = students.meta?.from ?? students.from ?? 0;
     const to = students.meta?.to ?? students.to ?? 0;
     const total = students.meta?.total ?? students.total ?? students.data.length;
-    const allVisibleSelected = allMatchingSelected || (students.data.length > 0 && students.data.every((student) => selectedIds.includes(student.id)));
+    const allVisibleSelected =
+        allMatchingSelected || (students.data.length > 0 && students.data.every((student) => selectedIds.includes(student.id)));
 
     const toggleAllVisible = () => {
         if (allMatchingSelected) {
@@ -108,45 +109,84 @@ export function EnrollmentTable({
                 </div>
             )}
             <div className="overflow-x-auto">
-                <Table className="min-w-[980px]">
+                <Table className="min-w-[1080px]">
                     <TableHeader className="bg-[#f6f8ff]">
                         <TableRow>
                             <TableHead>
-                                <input type="checkbox" checked={allVisibleSelected} onChange={toggleAllVisible} className="size-4 rounded border-[#040DBF]/20" />
+                                <input
+                                    type="checkbox"
+                                    checked={allVisibleSelected}
+                                    onChange={toggleAllVisible}
+                                    className="size-4 rounded border-[#040DBF]/20"
+                                />
                             </TableHead>
                             <SortableHead label="Student" sortKey="name" activeSort={sort} direction={direction} onSortChange={onSortChange} />
                             <SortableHead label="School ID" sortKey="school_id" activeSort={sort} direction={direction} onSortChange={onSortChange} />
-                            <SortableHead label="Old year" sortKey="source_year_level" activeSort={sort} direction={direction} onSortChange={onSortChange} />
-                            <SortableHead label="Old section" sortKey="source_section" activeSort={sort} direction={direction} onSortChange={onSortChange} />
-                            <SortableHead label="New year" sortKey="target_year_level" activeSort={sort} direction={direction} onSortChange={onSortChange} />
-                            <SortableHead label="New section" sortKey="target_section" activeSort={sort} direction={direction} onSortChange={onSortChange} />
+                            <SortableHead
+                                label="Old year"
+                                sortKey="source_year_level"
+                                activeSort={sort}
+                                direction={direction}
+                                onSortChange={onSortChange}
+                            />
+                            <SortableHead
+                                label="Old section"
+                                sortKey="source_section"
+                                activeSort={sort}
+                                direction={direction}
+                                onSortChange={onSortChange}
+                            />
+                            <SortableHead
+                                label="New year"
+                                sortKey="target_year_level"
+                                activeSort={sort}
+                                direction={direction}
+                                onSortChange={onSortChange}
+                            />
+                            <SortableHead
+                                label="New section"
+                                sortKey="target_section"
+                                activeSort={sort}
+                                direction={direction}
+                                onSortChange={onSortChange}
+                            />
+                            <TableHead>Placement status</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {students.data.map((student) => (
-                            <TableRow key={student.id}>
-                                <TableCell>
-                                    <input
-                                        type="checkbox"
-                                        checked={allMatchingSelected || selectedIds.includes(student.id)}
-                                        onChange={() => toggleStudent(student.id)}
-                                        className="size-4 rounded border-[#040DBF]/20"
-                                    />
-                                </TableCell>
-                                <TableCell>
-                                    <p className="font-medium text-[#010440]">{student.name}</p>
-                                    <p className="text-xs text-[#020659]/70">{student.rfid_uid}</p>
-                                </TableCell>
-                                <TableCell className="font-medium">{student.school_id}</TableCell>
-                                <TableCell className="text-[#020659]/70">{student.source_student?.year_level ?? '-'}</TableCell>
-                                <TableCell className="text-[#020659]/70">{student.source_student?.section ?? '-'}</TableCell>
-                                <TableCell className="text-[#020659]/70">{student.target_student?.year_level ?? '-'}</TableCell>
-                                <TableCell className="text-[#020659]/70">{student.target_student?.section ?? '-'}</TableCell>
-                            </TableRow>
-                        ))}
+                        {students.data.map((student) => {
+                            const status = placementStatus(student);
+
+                            return (
+                                <TableRow key={student.id}>
+                                    <TableCell>
+                                        <input
+                                            type="checkbox"
+                                            checked={allMatchingSelected || selectedIds.includes(student.id)}
+                                            onChange={() => toggleStudent(student.id)}
+                                            className="size-4 rounded border-[#040DBF]/20"
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <p className="font-medium text-[#010440]">{student.name}</p>
+                                        <p className="text-xs text-[#020659]/70">{student.rfid_uid}</p>
+                                    </TableCell>
+                                    <TableCell className="font-medium">{student.school_id}</TableCell>
+                                    <TableCell className="text-[#020659]/70">{student.source_student?.year_level ?? '-'}</TableCell>
+                                    <TableCell className="text-[#020659]/70">{student.source_student?.section ?? '-'}</TableCell>
+                                    <TableCell className="text-[#020659]/70">{student.target_student?.year_level ?? '-'}</TableCell>
+                                    <TableCell className="text-[#020659]/70">{student.target_student?.section ?? '-'}</TableCell>
+                                    <TableCell>
+                                        <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${status.className}`}>
+                                            {status.label}
+                                        </span>
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
                         {students.data.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={7} className="px-5 py-14 text-center text-sm text-[#020659]/70">
+                                <TableCell colSpan={8} className="px-5 py-14 text-center text-sm text-[#020659]/70">
                                     {emptyMessage}
                                 </TableCell>
                             </TableRow>
@@ -168,6 +208,34 @@ export function EnrollmentTable({
             />
         </section>
     );
+}
+
+function placementStatus(student: LibraryMemberRow) {
+    if (student.target_student) {
+        return {
+            label: 'Placed',
+            className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+        };
+    }
+
+    if (student.source_student?.year_level === 'Grade 6') {
+        return {
+            label: 'Transition review',
+            className: 'border-amber-200 bg-amber-50 text-amber-700',
+        };
+    }
+
+    if (student.source_student?.year_level === 'Grade 10') {
+        return {
+            label: 'Completed',
+            className: 'border-zinc-200 bg-zinc-50 text-zinc-600',
+        };
+    }
+
+    return {
+        label: 'Unplaced',
+        className: 'border-blue-200 bg-blue-50 text-blue-700',
+    };
 }
 
 function SortableHead({

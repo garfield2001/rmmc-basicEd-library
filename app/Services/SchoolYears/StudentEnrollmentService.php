@@ -6,12 +6,107 @@ use App\Models\LibraryMember;
 use App\Models\StudentEnrollment;
 use App\Support\Academics\AcademicLevels;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class StudentEnrollmentService
 {
     public function __construct(private readonly SchoolYearSectionService $sections) {}
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return array<string, mixed>
+     */
+    public function previewRosterPlacement(int $schoolYearId, string $studentIds, string $yearLevel, ?string $sectionName, array $filters = []): array
+    {
+        $tokens = $this->parseSchoolIds($studentIds);
+        $duplicateIds = $tokens
+            ->duplicates()
+            ->unique()
+            ->values();
+        $uniqueIds = $tokens
+            ->unique()
+            ->values();
+        $sourceSchoolYearId = isset($filters['source_school_year_id']) ? (int) $filters['source_school_year_id'] : null;
+
+        if ($uniqueIds->isEmpty()) {
+            return [
+                'inputCount' => 0,
+                'uniqueCount' => 0,
+                'matchedCount' => 0,
+                'assignableCount' => 0,
+                'targetYearLevel' => $yearLevel,
+                'targetSection' => trim((string) $sectionName) ?: null,
+                'memberIds' => [],
+                'matchedStudents' => [],
+                'notFoundIds' => [],
+                'duplicateIds' => [],
+                'alreadyPlaced' => [],
+                'inactiveStudents' => [],
+                'demotionStudents' => [],
+            ];
+        }
+
+        $students = LibraryMember::query()
+            ->where('type', LibraryMember::TYPE_STUDENT)
+            ->whereIn('school_id', $uniqueIds->all())
+            ->with(['studentEnrollments' => fn ($query) => $query->whereIn('school_year_id', array_filter([$sourceSchoolYearId, $schoolYearId]))])
+            ->get()
+            ->sortBy(fn (LibraryMember $member): int => $uniqueIds->search($member->school_id))
+            ->values();
+        $foundIds = $students->pluck('school_id');
+        $notFoundIds = $uniqueIds->diff($foundIds)->values();
+        $alreadyPlaced = [];
+        $inactiveStudents = [];
+        $demotionStudents = [];
+        $matchedStudents = $students->map(function (LibraryMember $member) use ($schoolYearId, $sourceSchoolYearId, $yearLevel, &$alreadyPlaced, &$inactiveStudents, &$demotionStudents): array {
+            $source = $sourceSchoolYearId ? $member->studentEnrollments->firstWhere('school_year_id', $sourceSchoolYearId) : null;
+            $target = $member->studentEnrollments->firstWhere('school_year_id', $schoolYearId);
+            $row = [
+                'id' => $member->id,
+                'schoolId' => $member->school_id,
+                'name' => $member->full_name,
+                'isActive' => $member->is_active,
+                'sourceYearLevel' => $source?->year_level,
+                'sourceSection' => $source?->section,
+                'targetYearLevel' => $target?->year_level,
+                'targetSection' => $target?->section,
+                'alreadyPlaced' => (bool) $target,
+                'isDemotion' => AcademicLevels::isDemotion($source?->year_level, $yearLevel),
+            ];
+
+            if ($row['alreadyPlaced']) {
+                $alreadyPlaced[] = $row;
+            }
+
+            if (! $member->is_active) {
+                $inactiveStudents[] = $row;
+            }
+
+            if ($row['isDemotion']) {
+                $demotionStudents[] = $row;
+            }
+
+            return $row;
+        })->values();
+
+        return [
+            'inputCount' => $tokens->count(),
+            'uniqueCount' => $uniqueIds->count(),
+            'matchedCount' => $matchedStudents->count(),
+            'assignableCount' => $demotionStudents === [] ? $matchedStudents->count() : 0,
+            'targetYearLevel' => $yearLevel,
+            'targetSection' => trim((string) $sectionName) ?: null,
+            'memberIds' => $demotionStudents === [] ? $students->pluck('id')->values()->all() : [],
+            'matchedStudents' => $matchedStudents->all(),
+            'notFoundIds' => $notFoundIds->all(),
+            'duplicateIds' => $duplicateIds->all(),
+            'alreadyPlaced' => $alreadyPlaced,
+            'inactiveStudents' => $inactiveStudents,
+            'demotionStudents' => $demotionStudents,
+        ];
+    }
 
     /**
      * @param  array<int, int>  $memberIds
@@ -49,7 +144,7 @@ class StudentEnrollmentService
     /**
      * @param  array<int, int>  $memberIds
      * @param  array<string, mixed>  $filters
-     * @return \Illuminate\Support\Collection<int, int>
+     * @return Collection<int, int>
      */
     private function studentIdsForAction(int $schoolYearId, array $memberIds, bool $selectAll, array $filters)
     {
@@ -100,5 +195,16 @@ class StudentEnrollmentService
                 'year_level' => 'Target year level cannot be lower than the selected student source year level.',
             ]);
         }
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    private function parseSchoolIds(string $studentIds)
+    {
+        return collect(preg_split('/[\s,;]+/', $studentIds) ?: [])
+            ->map(fn (string $value): string => trim($value))
+            ->filter()
+            ->values();
     }
 }

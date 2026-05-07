@@ -181,6 +181,86 @@ class StudentEnrollmentPlacementTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_preview_pasted_student_ids_before_placement(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $sourceSchoolYear = SchoolYear::factory()->create(['name' => '2025-2026']);
+        $targetSchoolYear = SchoolYear::factory()->active()->create(['name' => '2026-2027']);
+        $student = LibraryMember::factory()->student()->create(['school_id' => '2609010001', 'is_active' => true]);
+        $alreadyPlaced = LibraryMember::factory()->student()->create(['school_id' => '2609010002', 'is_active' => false]);
+
+        StudentEnrollment::factory()->create([
+            'library_member_id' => $student->id,
+            'school_year_id' => $sourceSchoolYear->id,
+            'year_level' => 'Grade 1',
+            'section' => 'Rizal',
+            'status' => 'enrolled',
+        ]);
+        StudentEnrollment::factory()->create([
+            'library_member_id' => $alreadyPlaced->id,
+            'school_year_id' => $sourceSchoolYear->id,
+            'year_level' => 'Grade 1',
+            'section' => 'Rizal',
+            'status' => 'enrolled',
+        ]);
+        StudentEnrollment::factory()->create([
+            'library_member_id' => $alreadyPlaced->id,
+            'school_year_id' => $targetSchoolYear->id,
+            'year_level' => 'Grade 2',
+            'section' => 'Mabini',
+            'status' => 'pending',
+        ]);
+
+        $this->actingAs($admin)->postJson('/admin/student-enrollments/preview-roster', [
+            'school_year_id' => $targetSchoolYear->id,
+            'student_ids' => "2609010001\n2609010002\n2609010002\nUNKNOWN",
+            'year_level' => 'Grade 2',
+            'section' => 'Sampaguita',
+            'filters' => [
+                'source_school_year_id' => $sourceSchoolYear->id,
+                'source_year_level' => 'Grade 1',
+            ],
+        ])
+            ->assertOk()
+            ->assertJsonPath('preview.inputCount', 4)
+            ->assertJsonPath('preview.uniqueCount', 3)
+            ->assertJsonPath('preview.matchedCount', 2)
+            ->assertJsonPath('preview.notFoundIds.0', 'UNKNOWN')
+            ->assertJsonPath('preview.duplicateIds.0', '2609010002')
+            ->assertJsonPath('preview.alreadyPlaced.0.schoolId', '2609010002')
+            ->assertJsonPath('preview.inactiveStudents.0.schoolId', '2609010002');
+    }
+
+    public function test_pasted_student_id_preview_blocks_demotions(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $sourceSchoolYear = SchoolYear::factory()->create(['name' => '2025-2026']);
+        $targetSchoolYear = SchoolYear::factory()->active()->create(['name' => '2026-2027']);
+        $student = LibraryMember::factory()->student()->create(['school_id' => '2609010003']);
+
+        StudentEnrollment::factory()->create([
+            'library_member_id' => $student->id,
+            'school_year_id' => $sourceSchoolYear->id,
+            'year_level' => 'Grade 3',
+            'section' => 'Rizal',
+            'status' => 'enrolled',
+        ]);
+
+        $this->actingAs($admin)->postJson('/admin/student-enrollments/preview-roster', [
+            'school_year_id' => $targetSchoolYear->id,
+            'student_ids' => '2609010003',
+            'year_level' => 'Grade 2',
+            'section' => '',
+            'filters' => [
+                'source_school_year_id' => $sourceSchoolYear->id,
+            ],
+        ])
+            ->assertOk()
+            ->assertJsonPath('preview.assignableCount', 0)
+            ->assertJsonPath('preview.memberIds', [])
+            ->assertJsonPath('preview.demotionStudents.0.schoolId', '2609010003');
+    }
+
     public function test_student_placement_table_is_empty_when_source_and_target_are_the_same_school_year(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

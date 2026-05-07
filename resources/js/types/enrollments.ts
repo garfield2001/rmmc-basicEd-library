@@ -9,6 +9,35 @@ export interface SchoolYearOption {
     is_active: boolean;
 }
 
+export interface RosterPreviewStudent {
+    id: number;
+    schoolId: string;
+    name: string;
+    isActive: boolean;
+    sourceYearLevel: string | null;
+    sourceSection: string | null;
+    targetYearLevel: string | null;
+    targetSection: string | null;
+    alreadyPlaced: boolean;
+    isDemotion: boolean;
+}
+
+export interface RosterPlacementPreview {
+    inputCount: number;
+    uniqueCount: number;
+    matchedCount: number;
+    assignableCount: number;
+    targetYearLevel: string;
+    targetSection: string | null;
+    memberIds: number[];
+    matchedStudents: RosterPreviewStudent[];
+    notFoundIds: string[];
+    duplicateIds: string[];
+    alreadyPlaced: RosterPreviewStudent[];
+    inactiveStudents: RosterPreviewStudent[];
+    demotionStudents: RosterPreviewStudent[];
+}
+
 export interface StudentEnrollmentPageProps {
     students: Paginated<LibraryMemberRow>;
     schoolYears: SchoolYearOption[];

@@ -1,0 +1,26 @@
+{
+    "sourceFile": "app/Providers/AppServiceProvider.php",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 2,
+            "patches": [
+                {
+                    "date": 1778126614055,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1778126623569,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -23,6 +23,8 @@\n     {\n         Vite::usePreloadTagAttributes(function (string $src, string $url): array|false {\n             return str_ends_with(parse_url($url, PHP_URL_PATH) ?: $url, '.css') ? false : [];\n         });\n+\n+        Schema::defaultStringLength(191);\n     }\n }\n"
+                },
+                {
+                    "date": 1778127099455,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -24,7 +24,7 @@\n         Vite::usePreloadTagAttributes(function (string $src, string $url): array|false {\n             return str_ends_with(parse_url($url, PHP_URL_PATH) ?: $url, '.css') ? false : [];\n         });\n \n-        Schema::defaultStringLength(191);\n+        Schema::defaultStringLength(120);\n     }\n }\n"
+                }
+            ],
+            "date": 1778126614055,
+            "name": "Commit-0",
+            "content": "<?php\n\nnamespace App\\Providers;\n\nuse Illuminate\\Support\\Facades\\Vite;\nuse Illuminate\\Support\\ServiceProvider;\nuse Illuminate\\Support\\Facades\\Schema;\n\nclass AppServiceProvider extends ServiceProvider\n{\n    /**\n     * Register any application services.\n     */\n    public function register(): void\n    {\n        //\n    }\n\n    /**\n     * Bootstrap any application services.\n     */\n    public function boot(): void\n    {\n        Vite::usePreloadTagAttributes(function (string $src, string $url): array|false {\n            return str_ends_with(parse_url($url, PHP_URL_PATH) ?: $url, '.css') ? false : [];\n        });\n    }\n}\n"
+        }
+    ]
+}

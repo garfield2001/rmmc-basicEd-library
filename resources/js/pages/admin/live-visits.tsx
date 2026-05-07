@@ -80,7 +80,7 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
             <Head title="Live Visits" />
             <main className="min-h-screen">
                 <AdminLayout active="live-visits">
-                    <div className="space-y-6 px-4 py-6 sm:px-6 lg:py-8">
+                    <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
                             title="Live Visits"
                             description="RFID visit recording, today's scanned members, and live student or employee attendance flow."

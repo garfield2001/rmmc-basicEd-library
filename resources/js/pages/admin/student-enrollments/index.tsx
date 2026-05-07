@@ -5,6 +5,7 @@ import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
 import type { StudentEnrollmentPageProps } from '@/types/enrollments';
 import { Head, router } from '@inertiajs/react';
+import { ClipboardList, FileCheck2, ListChecks } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 export default function StudentEnrollments({ students, schoolYears, filters, options }: StudentEnrollmentPageProps) {
@@ -24,6 +25,7 @@ export default function StudentEnrollments({ students, schoolYears, filters, opt
     const sourceSections = useMemo(() => {
         return localFilters.sourceYearLevel ? (options.sourceSectionsByYearLevel[localFilters.sourceYearLevel] ?? []) : [];
     }, [localFilters.sourceYearLevel, options.sourceSectionsByYearLevel]);
+    const placementYearLevels = useMemo(() => options.yearLevels.filter((yearLevel) => yearLevel !== 'Kindergarten'), [options.yearLevels]);
     const hasDistinctSchoolYears = localFilters.sourceSchoolYearId !== localFilters.targetSchoolYearId;
     useEffect(() => {
         const matches =
@@ -82,15 +84,51 @@ export default function StudentEnrollments({ students, schoolYears, filters, opt
             <Head title="Student Placement" />
             <main className="min-h-screen">
                 <AdminLayout active="student-enrollments">
-                    <div className="space-y-6 px-4 py-6 sm:px-6 lg:py-8">
+                    <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
                             title="Student Placement"
-                            description="Use the previous school year as a source list, then place students into the new school year."
+                            description="Review source enrollment, confirm who continues, then place only the students who should be tracked in the target school year."
                         />
+
+                        <section className="grid gap-4 md:grid-cols-3">
+                            {[
+                                {
+                                    title: 'Choose source and target',
+                                    detail: 'Keep old records intact while preparing the next enrollment list.',
+                                    icon: ClipboardList,
+                                },
+                                {
+                                    title: 'Confirm continuing students',
+                                    detail: 'Use selection or paste official IDs instead of blindly promoting everyone.',
+                                    icon: ListChecks,
+                                },
+                                {
+                                    title: 'Preview before saving',
+                                    detail: 'Catch missing IDs, duplicates, inactive students, and existing placements.',
+                                    icon: FileCheck2,
+                                },
+                            ].map((item) => {
+                                const Icon = item.icon;
+
+                                return (
+                                    <div key={item.title} className="admin-surface rounded-lg border border-[#040DBF]/10 bg-white/95 p-5 shadow-sm">
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#040DBF]/10 text-[#040DBF]">
+                                                <Icon className="size-5" />
+                                            </div>
+                                            <div>
+                                                <h2 className="font-semibold text-[#010440]">{item.title}</h2>
+                                                <p className="mt-1 text-sm leading-6 text-[#020659]/70">{item.detail}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </section>
 
                         <EnrollmentFilters
                             schoolYears={schoolYears}
-                            yearLevels={options.yearLevels}
+                            yearLevels={placementYearLevels}
                             sourceSections={sourceSections}
                             filters={localFilters}
                             onChange={setLocalFilters}
@@ -101,7 +139,7 @@ export default function StudentEnrollments({ students, schoolYears, filters, opt
                             allMatchingSelected={allMatchingSelected}
                             schoolYearId={localFilters.targetSchoolYearId}
                             filters={localFilters}
-                            yearLevels={options.yearLevels}
+                            yearLevels={placementYearLevels}
                             sectionsByYearLevel={options.targetSectionsByYearLevel}
                             hasDistinctSchoolYears={hasDistinctSchoolYears}
                         />

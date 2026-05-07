@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\BulkAssignStudentEnrollmentRequest;
+use App\Http\Requests\PreviewStudentRosterPlacementRequest;
 use App\Models\LibraryMember;
 use App\Models\SchoolYear;
 use App\Models\SchoolYearSection;
@@ -10,6 +11,7 @@ use App\Models\StudentEnrollment;
 use App\Services\SchoolYears\StudentEnrollmentService;
 use App\Support\Academics\AcademicLevels;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -102,6 +104,19 @@ class StudentEnrollmentController extends Controller
         return back()->with('success', "{$count} student enrollment records were updated.");
     }
 
+    public function previewRoster(PreviewStudentRosterPlacementRequest $request, StudentEnrollmentService $enrollments): JsonResponse
+    {
+        return response()->json([
+            'preview' => $enrollments->previewRosterPlacement(
+                (int) $request->validated('school_year_id'),
+                $request->validated('student_ids'),
+                $request->validated('year_level'),
+                $request->validated('section') ?? null,
+                $request->validated('filters') ?? [],
+            ),
+        ]);
+    }
+
     private function schoolYearOptions(): array
     {
         return SchoolYear::query()
@@ -188,5 +203,4 @@ class StudentEnrollmentController extends Controller
             'status' => $enrollment->status,
         ];
     }
-
 }

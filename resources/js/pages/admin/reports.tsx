@@ -63,8 +63,11 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
             <Head title="Reports" />
             <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f4f5_42%,#e7e5e4_100%)] text-zinc-950">
                 <AdminLayout active="reports">
-                    <div className="space-y-6 px-4 py-6 sm:px-6 lg:py-8">
-                        <AdminPageHeader title="Reports" description="Generate visit reports by school year, date range, member group, department, year level, or section." />
+                    <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
+                        <AdminPageHeader
+                            title="Reports"
+                            description="Generate visit reports by school year, date range, member group, department, year level, or section."
+                        />
 
                         <form onSubmit={submit} className="grid gap-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm md:grid-cols-4">
                             <label className="text-sm font-medium">
@@ -77,7 +80,8 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                     <option value="">All school years</option>
                                     {reportOptions.schoolYears.map((schoolYear) => (
                                         <option key={schoolYear.id} value={schoolYear.id}>
-                                            {schoolYear.name}{schoolYear.is_active ? ' (active)' : ''}
+                                            {schoolYear.name}
+                                            {schoolYear.is_active ? ' (active)' : ''}
                                         </option>
                                     ))}
                                 </select>

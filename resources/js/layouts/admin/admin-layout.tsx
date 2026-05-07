@@ -28,9 +28,9 @@ export function AdminLayout({ active, children }: AdminLayoutProps) {
         <ToastProvider>
             <AdminRoutePreloader />
             <div
-                className={`admin-theme-root grid min-h-screen bg-[#f5f7ff] text-[#010440] transition-[grid-template-columns] duration-300 ${
+                className={`admin-theme-root admin-readable grid min-h-screen bg-[#f5f7ff] text-[#010440] transition-[grid-template-columns] duration-300 ${
                     isSidebarCollapsed ? 'lg:grid-cols-[72px_minmax(0,1fr)]' : 'lg:grid-cols-[280px_minmax(0,1fr)]'
-                }`}
+                } ${isSidebarCollapsed ? 'admin-sidebar-collapsed' : ''}`}
             >
                 <AdminSidebar active={active} collapsed={isSidebarCollapsed} />
 

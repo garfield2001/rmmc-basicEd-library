@@ -134,12 +134,14 @@ export default function MemberForm({ member }: MemberFormProps) {
             <Head title={isEditing ? 'Edit Member' : 'Add Member'} />
             <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f4f5_42%,#e7e5e4_100%)] text-zinc-950">
                 <AdminLayout active="members">
-                    <header className="border-b border-zinc-200 bg-white px-6 py-4">
-                        <h1 className="text-2xl font-semibold">{isEditing ? 'Edit Member' : 'Add Student or Employee'}</h1>
-                        <p className="mt-1 text-sm text-zinc-500">Scan the RFID card, then complete the member profile.</p>
+                    <header className="admin-surface border-b border-zinc-200 bg-white">
+                        <div className="admin-content-shell mx-auto w-full px-4 py-5 sm:px-6">
+                            <h1 className="admin-page-title font-semibold">{isEditing ? 'Edit Member' : 'Add Student or Employee'}</h1>
+                            <p className="admin-page-description mt-1 text-zinc-500">Scan the RFID card, then complete the member profile.</p>
+                        </div>
                     </header>
 
-                    <form onSubmit={submit} className="space-y-6 p-6">
+                    <form onSubmit={submit} className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
                             <div className="flex items-center gap-3">
                                 <div className="flex size-10 items-center justify-center rounded-lg bg-zinc-950 text-white">

@@ -68,7 +68,7 @@ export default function Dashboard({ dashboard }: DashboardProps) {
             <Head title="Dashboard" />
             <main className="min-h-screen">
                 <AdminLayout active="dashboard">
-                    <div className="space-y-6 px-4 py-6 sm:px-6 lg:py-8">
+                    <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
                             title="Dashboard"
                             description="Overview of member coverage, visit activity, and school-year attendance trends."

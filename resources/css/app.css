@@ -25,6 +25,118 @@
 }
 
 @layer components {
+    .public-display-shell {
+        width: min(100%, 112rem);
+    }
+
+    .public-display-title {
+        font-size: clamp(3.5rem, 8vw, 9.5rem);
+        line-height: 0.94;
+    }
+
+    .public-display-copy {
+        font-size: clamp(1.125rem, 1.8vw, 2.25rem);
+        line-height: 1.35;
+    }
+
+    .public-display-school {
+        font-size: clamp(1.125rem, 1.7vw, 2.125rem);
+        line-height: 1.2;
+    }
+
+    .public-display-label {
+        font-size: clamp(1rem, 1.25vw, 1.5rem);
+        line-height: 1.35;
+    }
+
+    .public-scanner-panel {
+        min-height: clamp(22rem, 48vh, 42rem);
+    }
+
+    .public-scanner-icon {
+        width: clamp(8rem, 12vw, 14rem);
+        height: clamp(8rem, 12vw, 14rem);
+    }
+
+    .public-scanner-icon svg {
+        width: clamp(3.5rem, 5vw, 6.5rem);
+        height: clamp(3.5rem, 5vw, 6.5rem);
+    }
+
+    .public-scanner-status {
+        font-size: clamp(2rem, 4vw, 5.5rem);
+        line-height: 1;
+    }
+
+    .public-scanner-time {
+        font-size: clamp(1rem, 1.4vw, 1.875rem);
+        line-height: 1.25;
+    }
+
+    .public-admin-shell {
+        width: min(100%, 104rem);
+    }
+
+    .public-admin-title {
+        font-size: clamp(2rem, 3vw, 4.75rem);
+        line-height: 1.05;
+    }
+
+    .public-admin-copy {
+        font-size: clamp(1rem, 1.15vw, 1.375rem);
+        line-height: 1.55;
+    }
+
+    .admin-content-shell {
+        max-width: 118rem;
+    }
+
+    .admin-page-title {
+        font-size: clamp(1.875rem, 1.35vw + 1.35rem, 2.75rem);
+        line-height: 1.12;
+    }
+
+    .admin-page-description {
+        font-size: clamp(0.875rem, 0.35vw + 0.78rem, 1.125rem);
+        line-height: 1.65;
+    }
+
+    @media (min-width: 1536px) {
+        .admin-theme-root.admin-readable {
+            grid-template-columns: 304px minmax(0, 1fr);
+        }
+
+        .admin-theme-root.admin-readable.admin-sidebar-collapsed {
+            grid-template-columns: 84px minmax(0, 1fr);
+        }
+
+        .admin-readable .admin-content-shell {
+            padding: clamp(2rem, 2vw, 3.25rem);
+        }
+
+        .admin-readable .admin-surface {
+            border-radius: 0.75rem;
+        }
+
+        .admin-readable :is(input, select, textarea) {
+            min-height: 2.875rem;
+            font-size: 1rem;
+        }
+
+        .admin-readable table {
+            font-size: clamp(0.95rem, 0.34vw + 0.82rem, 1.125rem);
+        }
+
+        .admin-readable th {
+            height: 3.25rem;
+        }
+
+        .admin-readable td {
+            padding-top: 1.125rem;
+            padding-bottom: 1.125rem;
+        }
+    }
+
     .dialog-overlay {
         /*  */
         animation-duration: 180ms;

@@ -1,0 +1,22 @@
+{
+    "sourceFile": "database/migrations/2026_04_29_000005_create_student_enrollments_table.php",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1778126866842,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1778126881874,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -14,9 +14,9 @@\n \n             $table->id();\n             $table->foreignId('library_member_id')->constrained()->cascadeOnDelete();\n             $table->foreignId('school_year_id')->constrained()->cascadeOnDelete();\n-            $table->string('year_level')->index();\n+            $table->string('year_level', 50)->index();\n             $table->string('section')->nullable()->index();\n             $table->timestamps();\n \n             $table->unique(['library_member_id', 'school_year_id']);\n"
+                }
+            ],
+            "date": 1778126866842,
+            "name": "Commit-0",
+            "content": "<?php\n\nuse Illuminate\\Database\\Migrations\\Migration;\nuse Illuminate\\Database\\Schema\\Blueprint;\nuse Illuminate\\Support\\Facades\\DB;\nuse Illuminate\\Support\\Facades\\Schema;\n\nreturn new class extends Migration\n{\n    public function up(): void\n    {\n        Schema::create('student_enrollments', function (Blueprint $table) {\n\n        \n            $table->id();\n            $table->foreignId('library_member_id')->constrained()->cascadeOnDelete();\n            $table->foreignId('school_year_id')->constrained()->cascadeOnDelete();\n            $table->string('year_level')->index();\n            $table->string('section')->nullable()->index();\n            $table->timestamps();\n\n            $table->unique(['library_member_id', 'school_year_id']);\n            $table->index(['school_year_id', 'year_level', 'section']);\n        });\n\n        if (Schema::hasTable('students')) {\n            $activeSchoolYearId = DB::table('school_years')->where('is_active', true)->value('id');\n\n            if ($activeSchoolYearId) {\n                DB::table('students')\n                    ->orderBy('id')\n                    ->get()\n                    ->each(function (object $student) use ($activeSchoolYearId): void {\n                        DB::table('student_enrollments')->insertOrIgnore([\n                            'library_member_id' => $student->library_member_id,\n                            'school_year_id' => $activeSchoolYearId,\n                            'year_level' => $student->year_level,\n                            'section' => $student->section,\n                            'created_at' => $student->created_at,\n                            'updated_at' => $student->updated_at,\n                        ]);\n                    });\n            }\n        }\n    }\n\n    public function down(): void\n    {\n        Schema::dropIfExists('student_enrollments');\n    }\n};\n"
+        }
+    ]
+}
