@@ -1,5 +1,6 @@
 export const studentYearLevels = [
-    'Kindergarten',
+    'Kindergarten 1',
+    'Kindergarten 2',
     'Grade 1',
     'Grade 2',
     'Grade 3',

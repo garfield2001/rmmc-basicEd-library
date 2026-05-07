@@ -17,7 +17,6 @@ class StudentEnrollment extends Model
         'school_year_section_id',
         'year_level',
         'section',
-        'status',
     ];
 
     public function member(): BelongsTo

@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { DateInput, formatDisplayDate } from '@/components/ui/date-input';
 import { IconBadge } from '@/components/ui/icon-badge';
 import type { SchoolYearRow } from '@/types/school-year';
 import { router, useForm } from '@inertiajs/react';
@@ -54,7 +55,9 @@ export function SchoolYearSettings({ schoolYears, stats }: SchoolYearSettingsPro
                     <IconBadge icon={CalendarClock} />
                     <div>
                         <h2 className="text-lg font-semibold tracking-normal text-[#010440]">School years</h2>
-                        <p className="text-sm text-[#020659]/70">Create school years here, then use Student Placement to prepare yearly placement.</p>
+                        <p className="text-sm text-[#020659]/70">
+                            Create a school year to automatically promote existing students with blank sections.
+                        </p>
                     </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
@@ -65,13 +68,18 @@ export function SchoolYearSettings({ schoolYears, stats }: SchoolYearSettingsPro
 
             <form onSubmit={submit} className="mt-6 grid gap-4 rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff] p-4 md:grid-cols-2 xl:grid-cols-6">
                 <Field label="Name" error={errors.name} className="lg:col-span-2">
-                    <input value={data.name} onChange={(event) => setData('name', event.target.value)} placeholder="2027-2028" className={inputClass} />
+                    <input
+                        value={data.name}
+                        onChange={(event) => setData('name', event.target.value)}
+                        placeholder="2027-2028"
+                        className={inputClass}
+                    />
                 </Field>
                 <Field label="Start" error={errors.starts_at}>
-                    <input type="date" value={data.starts_at} onChange={(event) => setData('starts_at', event.target.value)} className={inputClass} />
+                    <DateInput value={data.starts_at} onChange={(value) => setData('starts_at', value)} className="mt-2" />
                 </Field>
                 <Field label="End" error={errors.ends_at}>
-                    <input type="date" value={data.ends_at} onChange={(event) => setData('ends_at', event.target.value)} className={inputClass} />
+                    <DateInput value={data.ends_at} onChange={(value) => setData('ends_at', value)} className="mt-2" />
                 </Field>
                 <Field label="Minimum" error={errors.minimum_visits}>
                     <input
@@ -110,7 +118,10 @@ export function SchoolYearSettings({ schoolYears, stats }: SchoolYearSettingsPro
 
             <div className="mt-5 overflow-hidden rounded-lg border border-[#040DBF]/10">
                 {schoolYears.map((schoolYear) => (
-                    <div key={schoolYear.id} className="flex flex-col gap-3 border-b border-[#040DBF]/10 p-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
+                    <div
+                        key={schoolYear.id}
+                        className="flex flex-col gap-3 border-b border-[#040DBF]/10 p-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
+                    >
                         <div>
                             <div className="flex flex-wrap items-center gap-2">
                                 <p className="font-semibold text-[#010440]">{schoolYear.name}</p>
@@ -122,7 +133,8 @@ export function SchoolYearSettings({ schoolYears, stats }: SchoolYearSettingsPro
                                 )}
                             </div>
                             <p className="mt-1 text-sm text-[#020659]/70">
-                                {schoolYear.starts_at} to {schoolYear.ends_at} - {schoolYear.student_enrollments_count} student enrollments
+                                {formatDisplayDate(schoolYear.starts_at)} to {formatDisplayDate(schoolYear.ends_at)} -{' '}
+                                {schoolYear.student_enrollments_count} student records
                             </p>
                         </div>
                         {!schoolYear.is_active && (

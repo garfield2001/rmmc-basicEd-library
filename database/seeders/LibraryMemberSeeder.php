@@ -238,7 +238,6 @@ abstract class LibraryMemberSeeder extends Seeder
             'school_year_section_id' => $section->id,
             'year_level' => $student['year_level'],
             'section' => $section->name,
-            'status' => 'enrolled',
         ]);
 
         return $member;

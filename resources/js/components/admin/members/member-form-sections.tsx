@@ -1,3 +1,4 @@
+import { SelectInput } from '@/components/ui/select-input';
 import { studentYearLevels } from '@/constants/academic';
 import type { LibraryMemberRow } from '@/types/members';
 import { BriefcaseBusiness, GraduationCap, ImagePlus } from 'lucide-react';
@@ -51,7 +52,12 @@ export function IdentitySection({ data, errors, setData, inputClass, sectionClas
                 Member type
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
                     <TypeButton active={data.type === 'student'} icon={GraduationCap} label="Student" onClick={() => onTypeChange('student')} />
-                    <TypeButton active={data.type === 'employee'} icon={BriefcaseBusiness} label="Employee" onClick={() => onTypeChange('employee')} />
+                    <TypeButton
+                        active={data.type === 'employee'}
+                        icon={BriefcaseBusiness}
+                        label="Employee"
+                        onClick={() => onTypeChange('employee')}
+                    />
                 </div>
                 {fieldError(errors.type)}
             </div>
@@ -85,14 +91,18 @@ export function DetailsSection({ data, errors, setData, inputClass, sectionClass
                     <>
                         <label className="text-sm font-medium text-[#010440]">
                             Year level
-                            <select value={data.year_level} onChange={(event) => setData('year_level', event.target.value)} className={inputClass}>
+                            <SelectInput
+                                value={data.year_level}
+                                onChange={(event) => setData('year_level', event.target.value)}
+                                className={inputClass}
+                            >
                                 <option value="">Choose year level</option>
                                 {studentYearLevels.map((level) => (
                                     <option key={level} value={level}>
                                         {level}
                                     </option>
                                 ))}
-                            </select>
+                            </SelectInput>
                             {fieldError(errors.year_level)}
                         </label>
                         <label className="text-sm font-medium text-[#010440]">
@@ -102,7 +112,7 @@ export function DetailsSection({ data, errors, setData, inputClass, sectionClass
                                 value={data.section}
                                 onChange={(event) => setData('section', event.target.value)}
                                 className={inputClass}
-                                placeholder="Choose or type a new section"
+                                placeholder="Section optional"
                             />
                             <datalist id="member-section-options">
                                 {sectionOptions.map((section) => (
@@ -137,7 +147,12 @@ export function DetailsSection({ data, errors, setData, inputClass, sectionClass
             </div>
 
             <label className="mt-4 flex items-center gap-2 text-sm font-medium text-[#010440]">
-                <input type="checkbox" checked={data.is_active} onChange={(event) => setData('is_active', event.target.checked)} className="size-4 rounded border-[#040DBF]/20" />
+                <input
+                    type="checkbox"
+                    checked={data.is_active}
+                    onChange={(event) => setData('is_active', event.target.checked)}
+                    className="size-4 rounded border-[#040DBF]/20"
+                />
                 Active member
             </label>
             {fieldError(errors.is_active)}

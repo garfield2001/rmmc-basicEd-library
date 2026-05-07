@@ -16,11 +16,26 @@ export interface LibraryMemberRow {
         school_year_section_id: number | null;
         year_level: string;
         section: string | null;
-        status: 'enrolled' | 'pending' | 'retained' | 'not_enrolled' | 'stopped' | 'transferred' | 'graduated';
     } | null;
-    source_student?: LibraryMemberRow['student'];
-    target_student?: LibraryMemberRow['student'];
     employee: {
         department: string;
     } | null;
+}
+
+export interface StudentAssignmentPreview {
+    inputCount: number;
+    uniqueCount: number;
+    matchedCount: number;
+    yearLevel: string;
+    section: string | null;
+    memberIds: number[];
+    matchedStudents: {
+        id: number;
+        schoolId: string;
+        name: string;
+        currentYearLevel: string | null;
+        currentSection: string | null;
+    }[];
+    notFoundIds: string[];
+    duplicateIds: string[];
 }

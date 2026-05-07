@@ -1,3 +1,4 @@
+import { SelectInput } from '@/components/ui/select-input';
 import { BriefcaseBusiness, GraduationCap, Search } from 'lucide-react';
 
 type MemberType = 'student' | 'employee';
@@ -99,11 +100,11 @@ function FilterSelect({
     onChange: (value: string) => void;
 }) {
     return (
-        <select
+        <SelectInput
             value={value}
             onChange={(event) => onChange(event.target.value)}
             disabled={disabled}
-            className="h-10 rounded-lg border border-zinc-300 bg-white px-3 text-sm text-zinc-700 outline-none focus:border-zinc-500 focus:ring-4 focus:ring-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="border-zinc-300 text-zinc-700 focus:border-zinc-500 focus:ring-zinc-100"
         >
             <option value="">{placeholder}</option>
             {options.map((option) => (
@@ -111,6 +112,6 @@ function FilterSelect({
                     {option}
                 </option>
             ))}
-        </select>
+        </SelectInput>
     );
 }

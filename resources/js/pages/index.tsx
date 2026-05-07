@@ -76,6 +76,12 @@ export default function Index({ home }: IndexProps) {
     }, []);
 
     useEffect(() => {
+        document.documentElement.classList.add('public-scrollbar-hidden');
+
+        return () => document.documentElement.classList.remove('public-scrollbar-hidden');
+    }, []);
+
+    useEffect(() => {
         const searchParams = new URLSearchParams(window.location.search);
 
         if (searchParams.get('login') !== '1') {
@@ -141,6 +147,8 @@ export default function Index({ home }: IndexProps) {
                     inputRef={scanner.inputRef}
                     isAdministrationRevealed={administration.isAdministrationRevealed}
                     isScannerReady={scanner.isReady}
+                    isScannerPreparing={scanner.isPreparing}
+                    isScannerSubmitting={scanner.isSubmitting}
                     statusText={scannerStatusText}
                     instructionText={scannerInstructionText}
                     formattedManilaTime={formattedManilaTime}

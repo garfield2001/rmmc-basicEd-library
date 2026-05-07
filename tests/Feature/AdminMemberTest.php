@@ -38,7 +38,7 @@ class AdminMemberTest extends TestCase
             'type' => LibraryMember::TYPE_STUDENT,
             'first_name' => 'Maria',
             'last_name' => 'Santos',
-            'photo_file' => UploadedFile::fake()->image('maria.jpg'),
+            'photo_file' => $this->fakeJpegUpload(),
             'is_active' => true,
             'year_level' => 'Grade 10',
             'section' => 'Faraday',
@@ -86,5 +86,14 @@ class AdminMemberTest extends TestCase
         $user = User::factory()->create(['role' => 'librarian']);
 
         $this->actingAs($user)->get('/admin/members')->assertForbidden();
+    }
+
+    private function fakeJpegUpload(): UploadedFile
+    {
+        $path = tempnam(sys_get_temp_dir(), 'member-photo');
+
+        file_put_contents($path, base64_decode('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAGAf//EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAQUCf//EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQMBAT8BP//EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQIBAT8BP//Z'));
+
+        return new UploadedFile($path, 'maria.jpg', 'image/jpeg', null, true);
     }
 }

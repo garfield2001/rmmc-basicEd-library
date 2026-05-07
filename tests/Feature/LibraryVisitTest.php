@@ -191,7 +191,6 @@ class LibraryVisitTest extends TestCase
             'school_year_id' => $oldSchoolYear->id,
             'year_level' => 'Grade 1',
             'section' => 'Rizal',
-            'status' => 'enrolled',
         ]);
 
         $this->post('/library-visits', [
@@ -265,7 +264,6 @@ class LibraryVisitTest extends TestCase
             'school_year_id' => $schoolYear->id,
             'year_level' => 'Grade 1',
             'section' => 'Rizal',
-            'status' => 'enrolled',
         ]);
     }
 }

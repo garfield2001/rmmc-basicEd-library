@@ -1,4 +1,6 @@
+import { DateInput } from '@/components/ui/date-input';
 import { PaginationControls } from '@/components/ui/pagination-controls';
+import { SelectInput } from '@/components/ui/select-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
@@ -72,10 +74,10 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                         <form onSubmit={submit} className="grid gap-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm md:grid-cols-4">
                             <label className="text-sm font-medium">
                                 School year
-                                <select
+                                <SelectInput
                                     value={schoolYearId}
                                     onChange={(event) => setSchoolYearId(event.target.value)}
-                                    className="mt-2 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+                                    className="mt-2 border-zinc-300 text-zinc-950 focus:border-zinc-500 focus:ring-zinc-100"
                                 >
                                     <option value="">All school years</option>
                                     {reportOptions.schoolYears.map((schoolYear) => (
@@ -84,59 +86,57 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                             {schoolYear.is_active ? ' (active)' : ''}
                                         </option>
                                     ))}
-                                </select>
+                                </SelectInput>
                             </label>
                             <label className="text-sm font-medium">
                                 Start date
-                                <input
-                                    type="date"
+                                <DateInput
                                     value={startDate}
-                                    onChange={(event) => setStartDate(event.target.value)}
-                                    className="mt-2 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+                                    onChange={setStartDate}
+                                    className="mt-2 border-zinc-300 text-zinc-950 focus:border-zinc-500 focus:ring-zinc-100"
                                 />
                             </label>
                             <label className="text-sm font-medium">
                                 End date
-                                <input
-                                    type="date"
+                                <DateInput
                                     value={endDate}
-                                    onChange={(event) => setEndDate(event.target.value)}
-                                    className="mt-2 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+                                    onChange={setEndDate}
+                                    className="mt-2 border-zinc-300 text-zinc-950 focus:border-zinc-500 focus:ring-zinc-100"
                                 />
                             </label>
                             <label className="text-sm font-medium">
                                 Type
-                                <select
+                                <SelectInput
                                     value={memberType}
                                     onChange={(event) => setMemberType(event.target.value)}
-                                    className="mt-2 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+                                    className="mt-2 border-zinc-300 text-zinc-950 focus:border-zinc-500 focus:ring-zinc-100"
                                 >
                                     <option value="">All</option>
                                     <option value="student">Students</option>
                                     <option value="employee">Employees</option>
-                                </select>
+                                </SelectInput>
                             </label>
                             <label className="text-sm font-medium">
                                 Member status
-                                <select
+                                <SelectInput
                                     value={memberStatus}
                                     onChange={(event) => setMemberStatus(event.target.value)}
-                                    className="mt-2 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+                                    className="mt-2 border-zinc-300 text-zinc-950 focus:border-zinc-500 focus:ring-zinc-100"
                                 >
                                     <option value="">All statuses</option>
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
-                                </select>
+                                </SelectInput>
                             </label>
                             <label className="text-sm font-medium">
                                 Year level
-                                <select
+                                <SelectInput
                                     value={yearLevel}
                                     onChange={(event) => {
                                         setYearLevel(event.target.value);
                                         setSection('');
                                     }}
-                                    className="mt-2 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+                                    className="mt-2 border-zinc-300 text-zinc-950 focus:border-zinc-500 focus:ring-zinc-100"
                                 >
                                     <option value="">All year levels</option>
                                     {reportOptions.yearLevels.map((level) => (
@@ -144,15 +144,15 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                             {level}
                                         </option>
                                     ))}
-                                </select>
+                                </SelectInput>
                             </label>
                             <label className="text-sm font-medium">
                                 Section
-                                <select
+                                <SelectInput
                                     value={section}
                                     onChange={(event) => setSection(event.target.value)}
                                     disabled={!yearLevel}
-                                    className="mt-2 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="mt-2 border-zinc-300 text-zinc-950 focus:border-zinc-500 focus:ring-zinc-100"
                                 >
                                     <option value="">{yearLevel ? 'All sections' : 'Choose year level first'}</option>
                                     {availableSections.map((option) => (
@@ -160,14 +160,14 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                             {option}
                                         </option>
                                     ))}
-                                </select>
+                                </SelectInput>
                             </label>
                             <label className="text-sm font-medium">
                                 Department
-                                <select
+                                <SelectInput
                                     value={department}
                                     onChange={(event) => setDepartment(event.target.value)}
-                                    className="mt-2 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+                                    className="mt-2 border-zinc-300 text-zinc-950 focus:border-zinc-500 focus:ring-zinc-100"
                                 >
                                     <option value="">All departments</option>
                                     {reportOptions.departments.map((option) => (
@@ -175,7 +175,7 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                             {option}
                                         </option>
                                     ))}
-                                </select>
+                                </SelectInput>
                             </label>
                             <div className="flex items-end gap-2 md:col-span-2">
                                 <button type="submit" className="rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800">

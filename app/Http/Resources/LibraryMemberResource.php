@@ -32,7 +32,6 @@ class LibraryMemberResource extends JsonResource
                 'school_year_section_id' => $this->student->school_year_section_id,
                 'year_level' => $this->student->year_level,
                 'section' => $this->student->section,
-                'status' => $this->student->status,
             ] : null),
             'employee' => $this->whenLoaded('employee', fn (): ?array => $this->employee ? [
                 'department' => $this->employee->department,

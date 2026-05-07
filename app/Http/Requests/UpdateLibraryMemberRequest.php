@@ -27,7 +27,7 @@ class UpdateLibraryMemberRequest extends FormRequest
             'photo_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'is_active' => ['boolean'],
             'year_level' => ['required_if:type,student', 'nullable', 'string', 'max:255'],
-            'section' => ['required_if:type,student', 'nullable', 'string', 'max:255'],
+            'section' => ['nullable', 'string', 'max:255'],
             'department' => ['required_if:type,employee', 'nullable', 'string', 'max:255'],
         ];
     }

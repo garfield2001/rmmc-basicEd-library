@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\SchoolYear;
 use App\Models\SchoolYearSection;
+use App\Support\Academics\AcademicLevels;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +18,7 @@ class SchoolYearSectionFactory extends Factory
     {
         return [
             'school_year_id' => SchoolYear::factory(),
-            'year_level' => fake()->randomElement(['Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4']),
+            'year_level' => fake()->randomElement(AcademicLevels::options()),
             'name' => fake()->randomElement(['Aguinaldo', 'Bonifacio', 'Del Pilar', 'Jacinto']),
         ];
     }

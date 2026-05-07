@@ -25,7 +25,6 @@ return new class extends Migration
                 ->after('school_year_id')
                 ->constrained('school_year_sections')
                 ->nullOnDelete();
-            $table->string('status')->default('enrolled')->after('section')->index();
         });
 
         DB::table('student_enrollments')
@@ -59,7 +58,6 @@ return new class extends Migration
     {
         Schema::table('student_enrollments', function (Blueprint $table) {
             $table->dropConstrainedForeignId('school_year_section_id');
-            $table->dropColumn('status');
         });
 
         Schema::dropIfExists('school_year_sections');

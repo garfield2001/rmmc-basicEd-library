@@ -10,7 +10,6 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LibraryMemberController;
 use App\Http\Controllers\LibraryVisitController;
 use App\Http\Controllers\ReportController;
-use App\Http\Controllers\StudentEnrollmentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -22,8 +21,6 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
-
-    // Might not be needed
     Route::post('session/close', [AuthenticatedSessionController::class, 'destroyOnClose'])->name('session.close');
 });
 
@@ -37,11 +34,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('admin/school-years', [AdminSchoolYearController::class, 'store'])->name('admin.school-years.store');
     Route::patch('admin/school-years/{schoolYear}/activate', [AdminSchoolYearController::class, 'activate'])->name('admin.school-years.activate');
 
-    // Might not be needed
+    Route::post('admin/members/preview-student-assignment', [LibraryMemberController::class, 'previewStudentAssignment'])->name('admin.members.preview-student-assignment');
+    Route::patch('admin/members/bulk-assign-students', [LibraryMemberController::class, 'bulkAssignStudents'])->name('admin.members.bulk-assign-students');
     Route::resource('admin/members', LibraryMemberController::class)->except('show')->names('admin.members');
-    Route::get('admin/student-enrollments', [StudentEnrollmentController::class, 'index'])->name('admin.student-enrollments.index');
-    Route::post('admin/student-enrollments/preview-roster', [StudentEnrollmentController::class, 'previewRoster'])->name('admin.student-enrollments.preview-roster');
-    Route::patch('admin/student-enrollments/bulk-assign', [StudentEnrollmentController::class, 'bulkAssign'])->name('admin.student-enrollments.bulk-assign');
 
     Route::get('admin/reports', [ReportController::class, 'index'])->name('admin.reports');
     Route::get('admin/reports/visits.csv', [ReportController::class, 'exportCsv'])->name('admin.reports.visits.csv');

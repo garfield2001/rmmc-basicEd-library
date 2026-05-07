@@ -32,7 +32,7 @@ class StudentSeeder extends LibraryMemberSeeder
     {
         return $this->attachManualDetails($this->manualStudentMembers(), [
             '1900001001' => [
-                'year_level' => 'Kindergarten',
+                'year_level' => 'Kindergarten 1',
                 'section' => 'Aguinaldo',
             ],
             '2000001002' => [

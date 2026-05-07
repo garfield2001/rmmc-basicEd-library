@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { type LibraryMemberRow } from '@/types/members';
 import { useForm } from '@inertiajs/react';
-import { type FormEventHandler, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type FormEventHandler } from 'react';
 import { DetailsSection, IdentitySection, ProfileSection } from './member-form-sections';
 import { initialMemberData, isStepComplete, memberFormSteps, type MemberFormData } from './member-form-state';
 

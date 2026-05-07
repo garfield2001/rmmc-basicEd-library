@@ -15,7 +15,7 @@ class AdminSchoolYearController extends Controller
 
         return redirect()
             ->route('admin.settings')
-            ->with('success', "School year {$schoolYear->name} has been created. Students can now be placed from the enrollment workspace.");
+            ->with('success', "School year {$schoolYear->name} has been created. Existing students were promoted with blank sections.");
     }
 
     public function activate(SchoolYear $schoolYear, SchoolYearService $schoolYears): RedirectResponse
@@ -24,6 +24,6 @@ class AdminSchoolYearController extends Controller
 
         return redirect()
             ->route('admin.settings')
-            ->with('success', "School year {$schoolYear->name} is now active.");
+            ->with('success', "School year {$schoolYear->name} is now active. Existing students were promoted with blank sections when needed.");
     }
 }

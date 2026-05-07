@@ -57,7 +57,7 @@ export function isStepComplete(step: number, data: MemberFormData): boolean {
     }
 
     if (data.type === 'student') {
-        return data.year_level.trim().length > 0 && data.section.trim().length > 0;
+        return data.year_level.trim().length > 0;
     }
 
     return data.department.trim().length > 0;

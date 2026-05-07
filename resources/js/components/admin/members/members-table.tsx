@@ -9,25 +9,78 @@ type MemberType = 'student' | 'employee';
 interface MembersTableProps {
     members: Paginated<LibraryMemberRow>;
     activeType: MemberType;
+    selectedIds?: number[];
+    rowsPerPage: number;
+    onSelectedIdsChange?: (ids: number[]) => void;
+    onRowsPerPageChange: (rows: number) => void;
     onEdit: (member: LibraryMemberRow) => void;
     onDelete: (member: LibraryMemberRow) => void;
     onPrevious: () => void;
     onNext: () => void;
 }
 
-export function MembersTable({ members, activeType, onEdit, onDelete, onPrevious, onNext }: MembersTableProps) {
+export function MembersTable({
+    members,
+    activeType,
+    selectedIds = [],
+    rowsPerPage,
+    onSelectedIdsChange,
+    onRowsPerPageChange,
+    onEdit,
+    onDelete,
+    onPrevious,
+    onNext,
+}: MembersTableProps) {
     const currentPage = members.meta?.current_page ?? members.current_page ?? 1;
     const totalPages = members.meta?.last_page ?? members.last_page ?? 1;
     const from = members.meta?.from ?? members.from ?? 0;
     const to = members.meta?.to ?? members.to ?? 0;
     const total = members.meta?.total ?? members.total ?? members.data.length;
+    const selectable = activeType === 'student' && Boolean(onSelectedIdsChange);
+    const allVisibleSelected = selectable && members.data.length > 0 && members.data.every((member) => selectedIds.includes(member.id));
+
+    const toggleAllVisible = () => {
+        if (!onSelectedIdsChange) {
+            return;
+        }
+
+        if (allVisibleSelected) {
+            onSelectedIdsChange(selectedIds.filter((id) => !members.data.some((member) => member.id === id)));
+            return;
+        }
+
+        onSelectedIdsChange([...new Set([...selectedIds, ...members.data.map((member) => member.id)])]);
+    };
+
+    const toggleMember = (memberId: number) => {
+        if (!onSelectedIdsChange) {
+            return;
+        }
+
+        onSelectedIdsChange(selectedIds.includes(memberId) ? selectedIds.filter((id) => id !== memberId) : [...selectedIds, memberId]);
+    };
 
     return (
         <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+            {selectable && selectedIds.length > 0 && (
+                <div className="border-b border-zinc-200 bg-zinc-50 px-5 py-3 text-sm font-medium text-zinc-600">
+                    {selectedIds.length.toLocaleString()} student {selectedIds.length === 1 ? 'row' : 'rows'} selected.
+                </div>
+            )}
             <div className="overflow-x-auto">
                 <Table className={activeType === 'student' ? 'min-w-225' : 'min-w-200'}>
                     <TableHeader className="bg-zinc-50">
                         <TableRow>
+                            {selectable && (
+                                <TableHead>
+                                    <input
+                                        type="checkbox"
+                                        checked={allVisibleSelected}
+                                        onChange={toggleAllVisible}
+                                        className="size-4 rounded border-zinc-300"
+                                    />
+                                </TableHead>
+                            )}
                             <TableHead>{activeType === 'student' ? 'Student' : 'Employee'}</TableHead>
                             <TableHead>School ID</TableHead>
                             <TableHead>RFID</TableHead>
@@ -47,6 +100,16 @@ export function MembersTable({ members, activeType, onEdit, onDelete, onPrevious
                         {members.data.length > 0 ? (
                             members.data.map((member) => (
                                 <TableRow key={member.id}>
+                                    {selectable && (
+                                        <TableCell>
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedIds.includes(member.id)}
+                                                onChange={() => toggleMember(member.id)}
+                                                className="size-4 rounded border-zinc-300"
+                                            />
+                                        </TableCell>
+                                    )}
                                     <TableCell>
                                         <MemberIdentity member={member} />
                                     </TableCell>
@@ -61,7 +124,9 @@ export function MembersTable({ members, activeType, onEdit, onDelete, onPrevious
                                         <TableCell className="text-zinc-500">{member.employee?.department || '-'}</TableCell>
                                     )}
                                     <TableCell>
-                                        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${member.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-500'}`}>
+                                        <span
+                                            className={`rounded-full px-2.5 py-1 text-xs font-medium ${member.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-500'}`}
+                                        >
                                             {member.is_active ? 'Active' : 'Inactive'}
                                         </span>
                                     </TableCell>
@@ -75,7 +140,10 @@ export function MembersTable({ members, activeType, onEdit, onDelete, onPrevious
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={activeType === 'student' ? 7 : 6} className="px-5 py-14 text-center text-sm text-zinc-500">
+                                <TableCell
+                                    colSpan={activeType === 'student' ? (selectable ? 8 : 7) : 6}
+                                    className="px-5 py-14 text-center text-sm text-zinc-500"
+                                >
                                     No {activeType === 'student' ? 'students' : 'employees'} found.
                                 </TableCell>
                             </TableRow>
@@ -83,7 +151,18 @@ export function MembersTable({ members, activeType, onEdit, onDelete, onPrevious
                     </TableBody>
                 </Table>
             </div>
-            <PaginationControls currentPage={currentPage} totalPages={totalPages} from={from ?? 0} to={to ?? 0} total={total} onPrevious={onPrevious} onNext={onNext} />
+            <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                from={from ?? 0}
+                to={to ?? 0}
+                total={total}
+                rowsPerPage={rowsPerPage}
+                rowsPerPageOptions={[10, 30, 50, 100]}
+                onRowsPerPageChange={onRowsPerPageChange}
+                onPrevious={onPrevious}
+                onNext={onNext}
+            />
         </div>
     );
 }

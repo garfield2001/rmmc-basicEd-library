@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { SelectInput } from './select-input';
 
 interface PaginationControlsProps {
     currentPage: number;
@@ -26,23 +27,25 @@ export function PaginationControls({
     onRowsPerPageChange,
 }: PaginationControlsProps) {
     return (
-        <div className="flex flex-col gap-3 border-t border-[#040DBF]/10 px-5 py-4 text-sm text-[#020659]/70 sm:flex-row sm:items-center sm:justify-between">
-            <span>
+        <div className="flex flex-row flex-wrap items-center justify-between gap-3 border-t border-[#040DBF]/10 px-5 py-4 text-sm text-[#020659]/70">
+            <span className="shrink-0">
                 Showing {total === 0 ? 0 : from}-{to} of {total}
             </span>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex shrink-0 flex-nowrap items-center gap-2 overflow-x-auto">
                 {rowsPerPage && onRowsPerPageChange && (
-                    <select
-                        value={rowsPerPage}
-                        onChange={(event) => onRowsPerPageChange(Number(event.target.value))}
-                        className="h-9 rounded-lg border border-[#040DBF]/15 bg-white px-2 text-sm font-medium text-[#020659] outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10"
-                    >
-                        {rowsPerPageOptions.map((rows) => (
-                            <option key={rows} value={rows}>
-                                {rows} rows
-                            </option>
-                        ))}
-                    </select>
+                    <div className="w-28 shrink-0">
+                        <SelectInput
+                            value={rowsPerPage}
+                            onChange={(event) => onRowsPerPageChange(Number(event.target.value))}
+                            className="h-9 py-1 pr-8 pl-2 font-medium text-[#020659]"
+                        >
+                            {rowsPerPageOptions.map((rows) => (
+                                <option key={rows} value={rows}>
+                                    {rows} rows
+                                </option>
+                            ))}
+                        </SelectInput>
+                    </div>
                 )}
                 <button
                     type="button"

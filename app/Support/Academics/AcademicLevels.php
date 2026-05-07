@@ -10,7 +10,8 @@ class AcademicLevels
     public static function options(): array
     {
         return [
-            'Kindergarten',
+            'Kindergarten 1',
+            'Kindergarten 2',
             'Grade 1',
             'Grade 2',
             'Grade 3',
@@ -37,5 +38,16 @@ class AcademicLevels
         $targetRank = self::rank($targetYearLevel);
 
         return $sourceRank !== null && $targetRank !== null && $targetRank < $sourceRank;
+    }
+
+    public static function nextAfter(?string $yearLevel): ?string
+    {
+        $rank = self::rank($yearLevel);
+
+        if ($rank === null) {
+            return null;
+        }
+
+        return self::options()[$rank + 1] ?? null;
     }
 }

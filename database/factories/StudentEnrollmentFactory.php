@@ -6,6 +6,7 @@ use App\Models\LibraryMember;
 use App\Models\SchoolYear;
 use App\Models\SchoolYearSection;
 use App\Models\StudentEnrollment;
+use App\Support\Academics\AcademicLevels;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,19 +19,7 @@ class StudentEnrollmentFactory extends Factory
     public function definition(): array
     {
         $schoolYearId = SchoolYear::query()->active()->value('id') ?? SchoolYear::factory()->active()->create()->id;
-        $yearLevel = fake()->randomElement([
-            'Kindergarten',
-            'Grade 1',
-            'Grade 2',
-            'Grade 3',
-            'Grade 4',
-            'Grade 5',
-            'Grade 6',
-            'Grade 7',
-            'Grade 8',
-            'Grade 9',
-            'Grade 10',
-        ]);
+        $yearLevel = fake()->randomElement(AcademicLevels::options());
         $sectionName = fake()->randomElement(['Aguinaldo', 'Bonifacio', 'Del Pilar', 'Jacinto', 'Mabini', 'Rizal']);
 
         return [
@@ -43,7 +32,6 @@ class StudentEnrollmentFactory extends Factory
             ])->id,
             'year_level' => $yearLevel,
             'section' => $sectionName,
-            'status' => 'enrolled',
         ];
     }
 }

@@ -10,6 +10,8 @@ interface ScannerSectionProps {
     inputRef: RefObject<HTMLInputElement | null>;
     isAdministrationRevealed: boolean;
     isScannerReady: boolean;
+    isScannerPreparing: boolean;
+    isScannerSubmitting: boolean;
     statusText: string;
     instructionText: string;
     formattedManilaTime: string;
@@ -23,6 +25,8 @@ export function ScannerSection({
     inputRef,
     isAdministrationRevealed,
     isScannerReady,
+    isScannerPreparing,
+    isScannerSubmitting,
     statusText,
     instructionText,
     formattedManilaTime,
@@ -79,8 +83,12 @@ export function ScannerSection({
                     <div
                         className={`public-scanner-icon flex items-center justify-center rounded-full border bg-white/95 shadow-2xl ring-8 transition-colors duration-300 ${
                             isScannerReady
-                                ? 'border-[#040DBF]/25 text-[#040DBF] shadow-[#040DBF]/15 ring-[#040DBF]/5'
-                                : 'border-red-500/30 text-red-600 shadow-red-500/15 ring-red-500/10'
+                                ? 'public-scanner-icon-ready border-[#040DBF]/25 text-[#040DBF] shadow-[#040DBF]/15 ring-[#040DBF]/5'
+                                : isScannerSubmitting
+                                  ? 'public-scanner-icon-recording border-[#030A8C]/30 text-[#030A8C] shadow-[#030A8C]/15 ring-[#030A8C]/10'
+                                  : isScannerPreparing
+                                    ? 'public-scanner-icon-preparing border-amber-500/35 text-amber-600 shadow-amber-500/15 ring-amber-500/10'
+                                    : 'public-scanner-icon-preparing border-red-500/30 text-red-600 shadow-red-500/15 ring-red-500/10'
                         }`}
                     >
                         <RadioTower />
