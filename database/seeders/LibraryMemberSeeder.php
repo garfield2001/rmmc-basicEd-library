@@ -243,6 +243,16 @@ abstract class LibraryMemberSeeder extends Seeder
         return $member;
     }
 
+    /**
+     * @param  array<int, array<string, mixed>>  $students
+     */
+    protected function createStudentMembers(array $students): void
+    {
+        foreach ($students as $student) {
+            $this->createStudentMember($student);
+        }
+    }
+
     private function validateStudentSchoolId(mixed $schoolId): void
     {
         if (! is_string($schoolId) || ! preg_match('/^\d{10}$/', $schoolId)) {
@@ -264,6 +274,16 @@ abstract class LibraryMemberSeeder extends Seeder
         ]);
 
         return $member;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $employees
+     */
+    protected function createEmployeeMembers(array $employees): void
+    {
+        foreach ($employees as $employee) {
+            $this->createEmployeeMember($employee);
+        }
     }
 
     /**

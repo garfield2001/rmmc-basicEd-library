@@ -5,15 +5,16 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-    'inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-[#040DBF] focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
+    'inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg text-sm font-medium whitespace-nowrap transition-[background-color,border-color,color,box-shadow] focus-visible:ring-2 focus-visible:ring-[#040DBF] focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
     {
         variants: {
             variant: {
-                default: 'bg-[#040DBF] text-white hover:bg-[#030A8C]',
-                secondary: 'bg-[#f6f8ff] text-[#020659] hover:bg-[#040DBF]/10 hover:text-[#030A8C]',
-                outline: 'border border-[#040DBF]/15 bg-white text-[#020659] hover:border-[#040DBF]/30 hover:bg-[#f6f8ff] hover:text-[#030A8C]',
+                default: 'bg-[#040DBF] text-white shadow-sm shadow-[#040DBF]/20 hover:bg-[#030A8C] hover:shadow-md hover:shadow-[#040DBF]/25',
+                secondary: 'bg-[#f6f8ff] text-[#020659] hover:bg-[#edf1ff] hover:text-[#030A8C] hover:shadow-sm',
+                outline:
+                    'border border-[#040DBF]/15 bg-white text-[#020659] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm',
                 ghost: 'text-[#020659] hover:bg-[#040DBF]/5 hover:text-[#030A8C]',
-                danger: 'bg-red-600 text-white hover:bg-red-700',
+                danger: 'bg-red-600 text-white shadow-sm shadow-red-600/20 hover:bg-red-700 hover:shadow-md hover:shadow-red-600/25',
             },
             size: {
                 default: 'h-10 px-4 py-2',

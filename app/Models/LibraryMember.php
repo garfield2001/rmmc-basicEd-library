@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LibraryMember extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     public const TYPE_STUDENT = 'student';
 
@@ -109,7 +111,7 @@ class LibraryMember extends Model
     {
         return Attribute::get(function (): string {
             $middleInitial = $this->middle_name
-                ? strtoupper(substr(trim($this->middle_name), 0, 1)) . '.'
+                ? strtoupper(substr(trim($this->middle_name), 0, 1)).'.'
                 : null;
 
             return trim(collect([

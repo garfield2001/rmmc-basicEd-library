@@ -38,7 +38,13 @@ class HandleInertiaRequests extends Middleware
     {
         return array_merge(parent::share($request), [
             'name' => config('app.display_name'),
-            'schoolYear' => fn () => SchoolYear::active()->first()?->only(['id', 'name']),
+            'schoolYear' => fn () => $this->schoolYearRow(SchoolYear::active()->withCount('studentEnrollments')->first()),
+            'schoolYears' => fn () => SchoolYear::query()
+                ->withCount('studentEnrollments')
+                ->orderByDesc('starts_at')
+                ->get()
+                ->map(fn (SchoolYear $schoolYear): array => $this->schoolYearRow($schoolYear))
+                ->values(),
             'auth' => [
                 'user' => $request->user() ? [
                     'id' => $request->user()->id,
@@ -52,5 +58,23 @@ class HandleInertiaRequests extends Middleware
                 'recentVisit' => fn () => $request->session()->get('recentVisit'),
             ],
         ]);
+    }
+
+    private function schoolYearRow(?SchoolYear $schoolYear): ?array
+    {
+        if (! $schoolYear) {
+            return null;
+        }
+
+        return [
+            'id' => $schoolYear->id,
+            'name' => $schoolYear->name,
+            'starts_at' => $schoolYear->starts_at?->toDateString(),
+            'ends_at' => $schoolYear->ends_at?->toDateString(),
+            'minimum_visits' => $schoolYear->minimum_visits,
+            'target_visits' => $schoolYear->target_visits,
+            'is_active' => $schoolYear->is_active,
+            'student_enrollments_count' => $schoolYear->student_enrollments_count,
+        ];
     }
 }

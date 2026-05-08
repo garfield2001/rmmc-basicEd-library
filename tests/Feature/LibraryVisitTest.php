@@ -200,6 +200,83 @@ class LibraryVisitTest extends TestCase
         $this->assertSame(0, LibraryVisit::count());
     }
 
+    public function test_student_carried_forward_to_new_school_year_can_scan_and_history_stays_separate(): void
+    {
+        $this->travelTo(Carbon::parse('2027-06-15 09:00:00', config('app.timezone')));
+
+        $oldSchoolYear = SchoolYear::create([
+            'name' => '2026-2027',
+            'starts_at' => '2026-06-01',
+            'ends_at' => '2027-03-31',
+            'minimum_visits' => 3,
+            'target_visits' => 4,
+            'is_active' => false,
+        ]);
+        $newSchoolYear = SchoolYear::create([
+            'name' => '2027-2028',
+            'starts_at' => '2027-06-01',
+            'ends_at' => '2028-03-31',
+            'minimum_visits' => 3,
+            'target_visits' => 4,
+            'is_active' => true,
+        ]);
+        $member = LibraryMember::create([
+            'rfid_uid' => '1000000001',
+            'school_id' => 'STU-001',
+            'type' => LibraryMember::TYPE_STUDENT,
+            'first_name' => 'Juan',
+            'last_name' => 'Santos',
+        ]);
+
+        StudentEnrollment::create([
+            'library_member_id' => $member->id,
+            'school_year_id' => $oldSchoolYear->id,
+            'year_level' => 'Grade 10',
+            'section' => 'Rizal',
+        ]);
+        StudentEnrollment::create([
+            'library_member_id' => $member->id,
+            'school_year_id' => $newSchoolYear->id,
+            'year_level' => 'Grade 10',
+            'section' => null,
+        ]);
+        LibraryVisit::create([
+            'library_member_id' => $member->id,
+            'school_year_id' => $oldSchoolYear->id,
+            'visited_at' => Carbon::parse('2026-09-01 08:00:00', config('app.timezone')),
+        ]);
+
+        $this->post('/library-visits', [
+            'rfid_uid' => '1000000001',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('library_visits', [
+            'library_member_id' => $member->id,
+            'school_year_id' => $oldSchoolYear->id,
+        ]);
+        $this->assertDatabaseHas('library_visits', [
+            'library_member_id' => $member->id,
+            'school_year_id' => $newSchoolYear->id,
+        ]);
+    }
+
+    public function test_soft_deleted_member_keeps_historical_visits(): void
+    {
+        $schoolYear = $this->createActiveSchoolYear();
+        $member = $this->createMember();
+        $visit = LibraryVisit::create([
+            'library_member_id' => $member->id,
+            'school_year_id' => $schoolYear->id,
+            'visited_at' => now(),
+        ]);
+
+        $member->delete();
+
+        $this->assertSoftDeleted('library_members', ['id' => $member->id]);
+        $this->assertDatabaseHas('library_visits', ['id' => $visit->id]);
+        $this->assertSame($member->id, $visit->fresh()->member?->id);
+    }
+
     public function test_scan_is_allowed_before_seven_am_for_temporary_twenty_four_hour_access(): void
     {
         $this->travelTo(Carbon::parse('2026-09-01 06:59:00', config('app.timezone')));

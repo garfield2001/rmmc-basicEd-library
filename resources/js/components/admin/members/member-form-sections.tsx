@@ -28,7 +28,7 @@ export function IdentitySection({ data, errors, setData, inputClass, sectionClas
             {isEditing && <h3 className="mb-4 text-sm font-semibold text-[#010440]">Identity</h3>}
             <div className="grid gap-4 md:grid-cols-2">
                 <label className="text-sm font-medium text-[#010440]">
-                    RFID UID
+                    RFID Unique ID
                     <input
                         data-rfid-input="true"
                         value={data.rfid_uid}

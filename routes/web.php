@@ -28,14 +28,22 @@ Route::post('library-visits', [LibraryVisitController::class, 'store'])->name('l
 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('admin', AdminDashboardController::class)->name('admin.dashboard');
+    Route::get('admin/live-visits/scan-targets', [AdminVisitMonitorController::class, 'scanTargets'])->name('admin.live-visits.scan-targets');
     Route::get('admin/live-visits', AdminVisitMonitorController::class)->name('admin.live-visits');
     Route::get('admin/settings', AdminSettingsController::class)->name('admin.settings');
     Route::patch('admin/profile', [AdminProfileController::class, 'update'])->name('admin.profile.update');
     Route::post('admin/school-years', [AdminSchoolYearController::class, 'store'])->name('admin.school-years.store');
+    Route::patch('admin/school-years/{schoolYear}', [AdminSchoolYearController::class, 'update'])->name('admin.school-years.update');
     Route::patch('admin/school-years/{schoolYear}/activate', [AdminSchoolYearController::class, 'activate'])->name('admin.school-years.activate');
 
     Route::post('admin/members/preview-student-assignment', [LibraryMemberController::class, 'previewStudentAssignment'])->name('admin.members.preview-student-assignment');
     Route::patch('admin/members/bulk-assign-students', [LibraryMemberController::class, 'bulkAssignStudents'])->name('admin.members.bulk-assign-students');
+    Route::delete('admin/members/bulk', [LibraryMemberController::class, 'bulkDestroy'])->name('admin.members.bulk-destroy');
+    Route::post('admin/members/copy-columns', [LibraryMemberController::class, 'copyColumns'])->name('admin.members.copy-columns');
+    Route::get('admin/members/archive', [LibraryMemberController::class, 'archive'])->name('admin.members.archive');
+    Route::get('admin/members/archive/export', [LibraryMemberController::class, 'exportArchived'])->name('admin.members.archive.export');
+    Route::patch('admin/members/archive/{member}/restore', [LibraryMemberController::class, 'restoreArchived'])->name('admin.members.archive.restore');
+    Route::delete('admin/members/archive/{member}', [LibraryMemberController::class, 'permanentlyDeleteArchived'])->name('admin.members.archive.destroy');
     Route::resource('admin/members', LibraryMemberController::class)->except('show')->names('admin.members');
 
     Route::get('admin/reports', [ReportController::class, 'index'])->name('admin.reports');

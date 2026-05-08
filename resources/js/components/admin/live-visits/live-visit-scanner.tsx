@@ -8,12 +8,13 @@ interface LiveVisitScannerProps {
     options: ScanLookupOption[];
     inputRef: RefObject<HTMLInputElement | null>;
     processing: boolean;
+    loadingOptions?: boolean;
     error?: string;
     onChange: (value: string) => void;
     onSubmit: FormEventHandler;
 }
 
-export function LiveVisitScanner({ value, options, inputRef, processing, error, onChange, onSubmit }: LiveVisitScannerProps) {
+export function LiveVisitScanner({ value, options, inputRef, processing, loadingOptions = false, error, onChange, onSubmit }: LiveVisitScannerProps) {
     return (
         <section className="grid gap-4">
             <form onSubmit={onSubmit} className="admin-surface rounded-lg border border-[#040DBF]/10 bg-white/95 p-5 shadow-sm">
@@ -34,6 +35,7 @@ export function LiveVisitScanner({ value, options, inputRef, processing, error, 
                             ref={inputRef}
                             value={value}
                             options={options}
+                            loading={loadingOptions}
                             onChange={onChange}
                             placeholder="Scan card or type name / school ID"
                             className="w-full"

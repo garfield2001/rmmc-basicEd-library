@@ -1,6 +1,8 @@
 import { ToastProvider } from '@/components/ui/toaster';
-import { useState } from 'react';
+import { router } from '@inertiajs/react';
+import { useEffect, useRef, useState } from 'react';
 
+import { AdminContentLoadingSkeleton, type AdminLoadingTarget } from './admin-content-loading-skeleton';
 import { sidebarCollapsedStorageKey } from './admin-layout.constants';
 import type { AdminLayoutProps } from './admin-layout.types';
 import { AdminNavbar } from './admin-navbar';
@@ -8,7 +10,12 @@ import { AdminRoutePreloader } from './admin-route-preloader';
 import { AdminSidebar } from './admin-sidebar';
 import { useAdminThemePreference } from './use-admin-theme-preference';
 
+const pageLoadingDelayMs = 500;
+
 export function AdminLayout({ active, children }: AdminLayoutProps) {
+    const [isPageLoading, setIsPageLoading] = useState(false);
+    const [loadingTarget, setLoadingTarget] = useState<AdminLoadingTarget>(() => loadingTargetFromPath(activePathFromSection(active)));
+    const pageLoadingTimer = useRef<number | null>(null);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
         if (typeof window === 'undefined') {
             return false;
@@ -18,6 +25,39 @@ export function AdminLayout({ active, children }: AdminLayoutProps) {
     });
 
     useAdminThemePreference();
+
+    useEffect(() => {
+        const clearPageLoadingTimer = () => {
+            if (pageLoadingTimer.current !== null) {
+                window.clearTimeout(pageLoadingTimer.current);
+                pageLoadingTimer.current = null;
+            }
+        };
+
+        const removeStartListener = router.on('start', (event) => {
+            const visit = event.detail.visit;
+
+            if (visit.prefetch || visit.preserveState === true) {
+                return;
+            }
+
+            clearPageLoadingTimer();
+            setLoadingTarget(loadingTargetFromPath(visit.url.pathname));
+            pageLoadingTimer.current = window.setTimeout(() => {
+                setIsPageLoading(true);
+            }, pageLoadingDelayMs);
+        });
+        const removeFinishListener = router.on('finish', () => {
+            clearPageLoadingTimer();
+            setIsPageLoading(false);
+        });
+
+        return () => {
+            removeStartListener();
+            removeFinishListener();
+            clearPageLoadingTimer();
+        };
+    }, []);
 
     const changeSidebarCollapsed = (collapsed: boolean) => {
         setIsSidebarCollapsed(collapsed);
@@ -36,9 +76,57 @@ export function AdminLayout({ active, children }: AdminLayoutProps) {
 
                 <section className="min-w-0 space-y-6">
                     <AdminNavbar collapsed={isSidebarCollapsed} onCollapsedChange={changeSidebarCollapsed} />
-                    {children}
+                    {isPageLoading ? <AdminContentLoadingSkeleton target={loadingTarget} /> : children}
                 </section>
             </div>
         </ToastProvider>
     );
+}
+
+function loadingTargetFromPath(pathname: string): AdminLoadingTarget {
+    if (pathname === '/admin' || pathname === '/admin/') {
+        return 'dashboard';
+    }
+
+    if (pathname.startsWith('/admin/live-visits')) {
+        return 'live-visits';
+    }
+
+    if (pathname === '/admin/members/create' || /^\/admin\/members\/[^/]+\/edit$/.test(pathname)) {
+        return 'members-form';
+    }
+
+    if (pathname.startsWith('/admin/members')) {
+        return 'members-index';
+    }
+
+    if (pathname.startsWith('/admin/reports')) {
+        return 'reports';
+    }
+
+    if (pathname.startsWith('/admin/settings')) {
+        return 'settings';
+    }
+
+    return 'dashboard';
+}
+
+function activePathFromSection(active: AdminLayoutProps['active']) {
+    if (active === 'dashboard') {
+        return '/admin';
+    }
+
+    if (active === 'live-visits') {
+        return '/admin/live-visits';
+    }
+
+    if (active === 'members') {
+        return '/admin/members';
+    }
+
+    if (active === 'archive') {
+        return '/admin/members/archive';
+    }
+
+    return `/admin/${active}`;
 }

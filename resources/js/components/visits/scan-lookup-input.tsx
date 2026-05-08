@@ -18,10 +18,11 @@ interface ScanLookupInputProps {
     onChange: (value: string) => void;
     className?: string;
     autoFocus?: boolean;
+    loading?: boolean;
 }
 
 export const ScanLookupInput = forwardRef<HTMLInputElement, ScanLookupInputProps>(function ScanLookupInput(
-    { id, value, options, placeholder, onChange, className, autoFocus = false },
+    { id, value, options, placeholder, onChange, className, autoFocus = false, loading = false },
     ref,
 ) {
     const [isFocused, setIsFocused] = useState(false);
@@ -41,7 +42,7 @@ export const ScanLookupInput = forwardRef<HTMLInputElement, ScanLookupInputProps
             })
             .slice(0, 8);
     }, [normalizedValue, options]);
-    const shouldShowOptions = isFocused && filteredOptions.length > 0;
+    const shouldShowOptions = isFocused && (filteredOptions.length > 0 || loading);
 
     const selectOption = (option: ScanLookupOption) => {
         onChange(option.value);
@@ -119,23 +120,27 @@ export const ScanLookupInput = forwardRef<HTMLInputElement, ScanLookupInputProps
 
             {shouldShowOptions && (
                 <div className="absolute top-full right-0 left-0 z-50 mt-2 max-h-72 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg">
-                    {filteredOptions.map((option, index) => (
-                        <button
-                            key={`${option.value}-${option.label}`}
-                            type="button"
-                            onMouseDown={(event) => {
-                                event.preventDefault();
-                                selectOption(option);
-                            }}
-                            className={cn(
-                                'flex w-full cursor-pointer flex-col px-3 py-2 text-left text-sm transition',
-                                activeIndex === index ? 'bg-zinc-100 text-zinc-950' : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950',
-                            )}
-                        >
-                            <span className="font-medium">{option.label}</span>
-                            <span className="mt-0.5 truncate text-xs text-zinc-500">{option.meta}</span>
-                        </button>
-                    ))}
+                    {loading ? (
+                        <div className="px-3 py-3 text-sm text-zinc-500">Searching members...</div>
+                    ) : (
+                        filteredOptions.map((option, index) => (
+                            <button
+                                key={`${option.value}-${option.label}`}
+                                type="button"
+                                onMouseDown={(event) => {
+                                    event.preventDefault();
+                                    selectOption(option);
+                                }}
+                                className={cn(
+                                    'flex w-full cursor-pointer flex-col px-3 py-2 text-left text-sm transition',
+                                    activeIndex === index ? 'bg-zinc-100 text-zinc-950' : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950',
+                                )}
+                            >
+                                <span className="font-medium">{option.label}</span>
+                                <span className="mt-0.5 truncate text-xs text-zinc-500">{option.meta}</span>
+                            </button>
+                        ))
+                    )}
                 </div>
             )}
         </div>

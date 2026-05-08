@@ -4,6 +4,7 @@ import { MemberFormModal } from '@/components/admin/members/member-form-modal';
 import { MembersFilterBar } from '@/components/admin/members/members-filter-bar';
 import { MembersTable } from '@/components/admin/members/members-table';
 import { Button } from '@/components/ui/button';
+import type { RowsPerPageOption } from '@/components/ui/pagination-controls';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
 import { type LibraryMemberRow } from '@/types/members';
@@ -19,7 +20,9 @@ interface MembersIndexProps {
         type: 'student' | 'employee';
         year_level: string;
         section: string;
-        per_page: number;
+        sort: string;
+        direction: 'asc' | 'desc';
+        per_page: RowsPerPageOption;
     };
     filterOptions: {
         yearLevels: string[];
@@ -33,10 +36,12 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
     const [search, setSearch] = useState(filters.search ?? '');
     const [yearLevel, setYearLevel] = useState(filters.year_level ?? '');
     const [section, setSection] = useState(filters.section ?? '');
-    const [perPage, setPerPage] = useState(filters.per_page ?? 10);
+    const [sort, setSort] = useState(filters.sort ?? 'created_at');
+    const [direction, setDirection] = useState<'asc' | 'desc'>(filters.direction === 'asc' ? 'asc' : 'desc');
+    const [perPage, setPerPage] = useState<RowsPerPageOption>(filters.per_page ?? 5);
+    const [tableLoading, setTableLoading] = useState(false);
     const [memberFormOpen, setMemberFormOpen] = useState(false);
     const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [selectedMember, setSelectedMember] = useState<LibraryMemberRow | null>(null);
     const [memberToDelete, setMemberToDelete] = useState<LibraryMemberRow | null>(null);
     const activeType: MemberType = filters.type === 'employee' ? 'employee' : 'student';
@@ -44,19 +49,38 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
         return yearLevel ? (filterOptions.sectionsByYearLevel[yearLevel] ?? []) : [];
     }, [filterOptions.sectionsByYearLevel, yearLevel]);
 
-    const requestMembers = useCallback((type: MemberType, nextSearch: string, nextYearLevel: string, nextSection: string, nextPerPage: number) => {
-        router.get(
-            '/admin/members',
-            {
-                search: nextSearch || undefined,
-                type,
-                year_level: type === 'student' ? nextYearLevel || undefined : undefined,
-                section: type === 'student' && nextYearLevel ? nextSection || undefined : undefined,
-                per_page: nextPerPage,
-            },
-            { preserveState: true, replace: true },
-        );
-    }, []);
+    const requestMembers = useCallback(
+        (
+            type: MemberType,
+            nextSearch: string,
+            nextYearLevel: string,
+            nextSection: string,
+            nextPerPage: RowsPerPageOption,
+            nextSort = sort,
+            nextDirection = direction,
+        ) => {
+            setTableLoading(true);
+            router.get(
+                '/admin/members',
+                {
+                    search: nextSearch || undefined,
+                    type,
+                    year_level: type === 'student' ? nextYearLevel || undefined : undefined,
+                    section: type === 'student' && nextYearLevel ? nextSection || undefined : undefined,
+                    sort: nextSort === 'created_at' ? undefined : nextSort,
+                    direction: nextSort === 'created_at' && nextDirection === 'desc' ? undefined : nextDirection,
+                    per_page: nextPerPage,
+                },
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                    replace: true,
+                    onFinish: () => setTableLoading(false),
+                },
+            );
+        },
+        [direction, sort],
+    );
 
     useEffect(() => {
         const normalizedSection = yearLevel ? section : '';
@@ -65,6 +89,8 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
             filters.year_level === yearLevel &&
             filters.section === normalizedSection &&
             filters.type === activeType &&
+            filters.sort === sort &&
+            filters.direction === direction &&
             filters.per_page === perPage;
 
         if (matchesFilters) {
@@ -81,12 +107,16 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
         filters.per_page,
         filters.search,
         filters.section,
+        filters.sort,
         filters.type,
         filters.year_level,
+        filters.direction,
         perPage,
         requestMembers,
         search,
         section,
+        sort,
+        direction,
         yearLevel,
     ]);
 
@@ -94,10 +124,6 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
         setYearLevel(value);
         setSection('');
     };
-
-    useEffect(() => {
-        setSelectedIds([]);
-    }, [activeType, filters.search, filters.year_level, filters.section, filters.per_page]);
 
     const openCreateMember = () => {
         setSelectedMember(null);
@@ -109,9 +135,43 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
         setMemberFormOpen(true);
     };
 
+    const changeSort = (column: string) => {
+        const nextDirection = sort === column && direction === 'asc' ? 'desc' : 'asc';
+
+        setSort(column);
+        setDirection(nextDirection);
+        requestMembers(activeType, search, yearLevel, section, perPage, column, nextDirection);
+    };
+
+    const sortForType = (type: MemberType) => {
+        if (type === 'student' && sort === 'department') {
+            return 'created_at';
+        }
+
+        if (type === 'employee' && ['year_level', 'section'].includes(sort)) {
+            return 'created_at';
+        }
+
+        return sort;
+    };
+
+    const changeType = (type: MemberType) => {
+        const nextSort = sortForType(type);
+        const nextDirection = nextSort === 'created_at' ? 'desc' : direction;
+
+        setSort(nextSort);
+        setDirection(nextDirection);
+        requestMembers(type, search, yearLevel, section, perPage, nextSort, nextDirection);
+    };
+
     const visitPage = (url: string | null | undefined) => {
         if (url) {
-            router.visit(url, { preserveScroll: true, preserveState: true });
+            setTableLoading(true);
+            router.visit(url, {
+                preserveScroll: true,
+                preserveState: true,
+                onFinish: () => setTableLoading(false),
+            });
         }
     };
 
@@ -126,12 +186,23 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
                             description="Manage RFID identities and active school-year details for students and employees."
                             actions={
                                 <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-                                    {activeType === 'student' && (
+                                    {activeType === 'student' ? (
                                         <Button
                                             type="button"
                                             variant="outline"
                                             onClick={() => setAssignmentModalOpen(true)}
                                             className="w-full sm:w-auto"
+                                        >
+                                            <ClipboardList className="size-4" />
+                                            Assign students
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            aria-hidden="true"
+                                            tabIndex={-1}
+                                            className="invisible w-full sm:w-auto"
                                         >
                                             <ClipboardList className="size-4" />
                                             Assign students
@@ -155,27 +226,34 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
                             onSearchChange={setSearch}
                             onYearLevelChange={changeYearLevel}
                             onSectionChange={setSection}
-                            onTypeChange={(type) => requestMembers(type, search, yearLevel, section, perPage)}
+                            onTypeChange={changeType}
                         />
 
                         {activeType === 'student' && (
                             <BulkStudentAssignmentPanel
                                 open={assignmentModalOpen}
-                                selectedIds={selectedIds}
-                                yearLevels={filterOptions.yearLevels}
-                                sectionsByYearLevel={filterOptions.sectionsByYearLevel}
                                 onOpenChange={setAssignmentModalOpen}
-                                onAssigned={() => setSelectedIds([])}
+                                onAssigned={() => setAssignmentModalOpen(false)}
                             />
                         )}
 
                         <MembersTable
                             members={members}
                             activeType={activeType}
-                            selectedIds={selectedIds}
                             rowsPerPage={perPage}
-                            onSelectedIdsChange={activeType === 'student' ? setSelectedIds : undefined}
+                            sort={sort}
+                            direction={direction}
+                            isLoading={tableLoading}
+                            copyFilters={{
+                                search: filters.search ?? '',
+                                type: activeType,
+                                year_level: filters.year_level ?? '',
+                                section: filters.year_level ? (filters.section ?? '') : '',
+                                sort: filters.sort ?? 'created_at',
+                                direction: filters.direction ?? 'desc',
+                            }}
                             onRowsPerPageChange={setPerPage}
+                            onSortChange={changeSort}
                             onEdit={openEditMember}
                             onDelete={setMemberToDelete}
                             onPrevious={() => visitPage(members.prev_page_url ?? members.links.find((link) => link.label.includes('Previous'))?.url)}

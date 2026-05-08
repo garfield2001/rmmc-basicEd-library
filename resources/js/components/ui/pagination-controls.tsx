@@ -1,17 +1,19 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { SelectInput } from './select-input';
 
+export type RowsPerPageOption = number | 'all';
+
 interface PaginationControlsProps {
     currentPage: number;
     totalPages: number;
     from: number;
     to: number;
     total: number;
-    rowsPerPage?: number;
-    rowsPerPageOptions?: number[];
+    rowsPerPage?: RowsPerPageOption;
+    rowsPerPageOptions?: RowsPerPageOption[];
     onPrevious: () => void;
     onNext: () => void;
-    onRowsPerPageChange?: (rows: number) => void;
+    onRowsPerPageChange?: (rows: RowsPerPageOption) => void;
 }
 
 export function PaginationControls({
@@ -21,7 +23,7 @@ export function PaginationControls({
     to,
     total,
     rowsPerPage,
-    rowsPerPageOptions = [10, 30, 50, 100],
+    rowsPerPageOptions = [5, 10, 30, 50, 100],
     onPrevious,
     onNext,
     onRowsPerPageChange,
@@ -36,12 +38,12 @@ export function PaginationControls({
                     <div className="w-28 shrink-0">
                         <SelectInput
                             value={rowsPerPage}
-                            onChange={(event) => onRowsPerPageChange(Number(event.target.value))}
+                            onChange={(event) => onRowsPerPageChange(event.target.value === 'all' ? 'all' : Number(event.target.value))}
                             className="h-9 py-1 pr-8 pl-2 font-medium text-[#020659]"
                         >
                             {rowsPerPageOptions.map((rows) => (
                                 <option key={rows} value={rows}>
-                                    {rows} rows
+                                    {rows === 'all' ? 'See all' : `${rows} rows`}
                                 </option>
                             ))}
                         </SelectInput>
@@ -51,7 +53,7 @@ export function PaginationControls({
                     type="button"
                     onClick={onPrevious}
                     disabled={currentPage === 1}
-                    className="inline-flex h-9 items-center gap-1 rounded-lg border border-[#040DBF]/15 bg-white px-3 font-medium text-[#020659] disabled:cursor-not-allowed disabled:opacity-45"
+                    className="inline-flex h-9 items-center gap-1 rounded-lg border border-[#040DBF]/15 bg-white px-3 font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-[#040DBF]/15 disabled:hover:bg-white disabled:hover:text-[#020659] disabled:hover:shadow-none"
                 >
                     <ChevronLeft className="size-4" />
                     Previous
@@ -63,7 +65,7 @@ export function PaginationControls({
                     type="button"
                     onClick={onNext}
                     disabled={currentPage === totalPages}
-                    className="inline-flex h-9 items-center gap-1 rounded-lg border border-[#040DBF]/15 bg-white px-3 font-medium text-[#020659] disabled:cursor-not-allowed disabled:opacity-45"
+                    className="inline-flex h-9 items-center gap-1 rounded-lg border border-[#040DBF]/15 bg-white px-3 font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-[#040DBF]/15 disabled:hover:bg-white disabled:hover:text-[#020659] disabled:hover:shadow-none"
                 >
                     Next
                     <ChevronRight className="size-4" />

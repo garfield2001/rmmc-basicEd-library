@@ -1,15 +1,11 @@
-import { Button } from '@/components/ui/button';
 import { type SharedData } from '@/types/shared';
-import { router, usePage } from '@inertiajs/react';
-import { LogOut, Menu } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
+import { Menu } from 'lucide-react';
 import type { AdminNavbarProps } from './admin-layout.types';
+import { SchoolYearNavbarControl } from './school-year-navbar-control';
 
 export function AdminNavbar({ collapsed, onCollapsedChange }: AdminNavbarProps) {
-    const { name, schoolYear } = usePage<SharedData>().props;
-
-    const logout = () => {
-        router.post('/logout');
-    };
+    const { name } = usePage<SharedData>().props;
 
     return (
         <header className="admin-surface sticky top-0 z-40 flex flex-col gap-4 border-b border-[#040DBF]/10 bg-white/90 px-4 py-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6">
@@ -17,7 +13,7 @@ export function AdminNavbar({ collapsed, onCollapsedChange }: AdminNavbarProps) 
                 <button
                     type="button"
                     onClick={() => onCollapsedChange(!collapsed)}
-                    className="flex size-11 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 shadow-sm transition-colors duration-200 hover:bg-zinc-100 hover:text-zinc-950"
+                    className="flex size-11 items-center justify-center rounded-lg border border-[#040DBF]/15 bg-white text-[#020659] shadow-sm transition-[background-color,border-color,color,box-shadow] duration-200 hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-md hover:shadow-[#040DBF]/10"
                     title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                     aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                     aria-expanded={!collapsed}
@@ -32,19 +28,7 @@ export function AdminNavbar({ collapsed, onCollapsedChange }: AdminNavbarProps) 
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-                {schoolYear && (
-                    <span className="admin-school-year-badge inline-flex h-9 items-center overflow-hidden rounded-full border border-[#040DBF]/10 bg-white text-xs shadow-sm">
-                        <span className="admin-school-year-label border-r border-[#040DBF]/10 bg-[#f6f8ff] px-3 font-medium text-[#030A8C]">
-                            School year
-                        </span>
-                        <span className="admin-school-year-value px-3 font-semibold text-[#010440]">{schoolYear.name}</span>
-                    </span>
-                )}
-
-                <Button type="button" variant="outline" onClick={logout}>
-                    <LogOut className="size-4" />
-                    Log out
-                </Button>
+                <SchoolYearNavbarControl />
             </div>
         </header>
     );

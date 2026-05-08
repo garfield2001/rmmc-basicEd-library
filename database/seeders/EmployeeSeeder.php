@@ -6,17 +6,17 @@ use App\Models\Employee;
 
 class EmployeeSeeder extends LibraryMemberSeeder
 {
-    private const FAKE_EMPLOYEE_COUNT = 8;
-
     public function run(): void
     {
-        foreach ($this->schoolEmployees() as $employee) {
-            $this->createEmployeeMember($employee);
-        }
+        $this->createEmployeeMembers($this->schoolEmployees());
 
-        Employee::factory()
-            ->count(self::FAKE_EMPLOYEE_COUNT)
-            ->create();
+        foreach ($this->fakeEmployeeDepartmentPlan() as $department => $employeeCount) {
+            Employee::factory()
+                ->count($employeeCount)
+                ->create([
+                    'department' => $department,
+                ]);
+        }
     }
 
     /**
@@ -30,23 +30,47 @@ class EmployeeSeeder extends LibraryMemberSeeder
     {
         return $this->attachManualDetails($this->manualEmployeeMembers(), [
             'EMP-2001' => [
-                'department' => 'Faculty',
+                'department' => 'Basic Education Faculty',
             ],
             'EMP-2002' => [
-                'department' => 'Library',
+                'department' => 'College of Engineering Faculty',
             ],
             'EMP-2003' => [
-                'department' => 'Registrar',
+                'department' => 'College of Medical Technology Faculty',
             ],
             'EMP-2004' => [
-                'department' => 'Guidance',
+                'department' => 'College of Nursing Faculty',
             ],
             'OP1-308' => [
-                'department' => 'Management Information Systems',
+                'department' => 'College of Information Technology Faculty',
             ],
             'OP1164' => [
-                'department' => 'Para-Librarian',
+                'department' => 'College of Computer Science Faculty',
             ],
         ]);
+    }
+
+    /**
+     * Fake employees are grouped by teaching department so every seeded
+     * employee represents teaching personnel.
+     *
+     * @return array<string, int>
+     */
+    private function fakeEmployeeDepartmentPlan(): array
+    {
+        return [
+            'Basic Education Faculty' => 10,
+            'Senior High School Faculty' => 5,
+            'College of Engineering Faculty' => 5,
+            'College of Medical Technology Faculty' => 5,
+            'College of Nursing Faculty' => 4,
+            'College of Information Technology Faculty' => 4,
+            'College of Computer Science Faculty' => 3,
+            'College of Teacher Education Faculty' => 3,
+            'College of Business Administration Faculty' => 3,
+            'College of Hospitality Management Faculty' => 2,
+            'Mathematics Faculty' => 2,
+            'Science Faculty' => 2,
+        ];
     }
 }

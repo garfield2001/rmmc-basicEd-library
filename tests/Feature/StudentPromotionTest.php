@@ -83,9 +83,41 @@ class StudentPromotionTest extends TestCase
             'section' => null,
             'school_year_section_id' => null,
         ]);
-        $this->assertDatabaseMissing('student_enrollments', [
+        $this->assertDatabaseHas('student_enrollments', [
             'library_member_id' => $gradeTen->id,
             'school_year_id' => $targetSchoolYear->id,
+            'year_level' => 'Grade 10',
+            'section' => null,
+            'school_year_section_id' => null,
+        ]);
+    }
+
+    public function test_admin_can_update_school_year_details_from_shared_navbar_workflow(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $schoolYear = SchoolYear::factory()->active()->create([
+            'name' => '2026-2027',
+            'starts_at' => '2026-06-01',
+            'ends_at' => '2027-03-31',
+            'minimum_visits' => 3,
+            'target_visits' => 4,
+        ]);
+
+        $this->actingAs($admin)->patch("/admin/school-years/{$schoolYear->id}", [
+            'name' => '2026-2027 Updated',
+            'starts_at' => '2026-06-15',
+            'ends_at' => '2027-04-15',
+            'minimum_visits' => 4,
+            'target_visits' => 6,
+            'make_active' => true,
+        ])->assertSessionHas('success');
+
+        $this->assertDatabaseHas('school_years', [
+            'id' => $schoolYear->id,
+            'name' => '2026-2027 Updated',
+            'minimum_visits' => 4,
+            'target_visits' => 6,
+            'is_active' => true,
         ]);
     }
 }

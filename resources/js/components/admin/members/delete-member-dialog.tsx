@@ -44,8 +44,8 @@ export function DeleteMemberDialog({ member, open, onOpenChange }: DeleteMemberD
                     </div>
                     <DialogTitle className="text-2xl text-[#010440]">Delete member?</DialogTitle>
                     <DialogDescription>
-                        This will remove {member?.name ?? 'this member'} and their related library visit ownership links. This action cannot be
-                        undone.
+                        This will move {member?.name ?? 'this member'} to Archived Members. Their visit history stays available, and the member can
+                        be restored later.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -54,7 +54,7 @@ export function DeleteMemberDialog({ member, open, onOpenChange }: DeleteMemberD
                         Cancel
                     </Button>
                     <Button type="button" variant="danger" onClick={deleteMember} disabled={processing}>
-                        {processing ? 'Deleting...' : 'Delete member'}
+                        {processing ? 'Archiving...' : 'Archive member'}
                     </Button>
                 </DialogFooter>
             </DialogContent>

@@ -29,4 +29,12 @@ class StoreLibraryMemberRequest extends FormRequest
             'department' => ['required_if:type,employee', 'nullable', 'string', 'max:255'],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'rfid_uid.unique' => 'This RFID Unique ID is already assigned to another library member.',
+            'school_id.unique' => 'This School ID is already assigned to another library member.',
+        ];
+    }
 }

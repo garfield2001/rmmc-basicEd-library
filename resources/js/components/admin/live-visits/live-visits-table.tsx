@@ -1,8 +1,11 @@
-import { PaginationControls } from '@/components/ui/pagination-controls';
+import { MemberAvatar } from '@/components/ui/member-avatar';
+import { PaginationControls, type RowsPerPageOption } from '@/components/ui/pagination-controls';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { VirtualTableSpacerRow } from '@/components/ui/virtual-table-spacer-row';
+import { useViewportHeight, useWindowVirtualRows } from '@/hooks/use-window-virtual-rows';
 import type { DashboardVisit } from '@/types/dashboard';
 import { BarChart3, BriefcaseBusiness, GraduationCap, Search } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type VisitTab = 'student' | 'employee';
 
@@ -12,7 +15,9 @@ interface LiveVisitsTableProps {
     employeeCount: number;
 }
 
-const visitsPerPage = 5;
+const defaultVisitsPerPage = 5;
+const virtualRowHeight = 73;
+const virtualOverscan = 8;
 
 function formatVisitTime(visit: DashboardVisit) {
     return visit.visitedAt
@@ -27,6 +32,8 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
     const [visitTab, setVisitTab] = useState<VisitTab>('student');
     const [search, setSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState<RowsPerPageOption>(defaultVisitsPerPage);
+    const tableBodyRef = useRef<HTMLTableSectionElement | null>(null);
     const visitTabs: { label: string; value: VisitTab; count: number; icon: typeof GraduationCap }[] = [
         { label: 'Students', value: 'student', count: studentCount, icon: GraduationCap },
         { label: 'Employees', value: 'employee', count: employeeCount, icon: BriefcaseBusiness },
@@ -50,12 +57,31 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
             return visit.member.type === visitTab && (!normalizedSearch || searchable.includes(normalizedSearch));
         });
     }, [search, visitTab, visits]);
-    const totalPages = Math.max(1, Math.ceil(filteredVisits.length / visitsPerPage));
-    const visibleVisits = filteredVisits.slice((currentPage - 1) * visitsPerPage, currentPage * visitsPerPage);
+    const viewportHeight = useViewportHeight();
+    const onePageRowCapacity = Math.max(1, Math.floor(viewportHeight / virtualRowHeight));
+    const totalPages = rowsPerPage === 'all' ? 1 : Math.max(1, Math.ceil(filteredVisits.length / rowsPerPage));
+    const pagedVisits = rowsPerPage === 'all' ? filteredVisits : filteredVisits.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+    const usesVirtualRows = rowsPerPage === 'all' && pagedVisits.length > onePageRowCapacity;
+    const virtualRows = useWindowVirtualRows({
+        enabled: usesVirtualRows,
+        itemCount: pagedVisits.length,
+        rowHeight: virtualRowHeight,
+        overscan: virtualOverscan,
+        containerRef: tableBodyRef,
+    });
+    const visibleVisits = usesVirtualRows ? pagedVisits.slice(virtualRows.startIndex, virtualRows.endIndex) : pagedVisits;
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [search, visitTab]);
+    }, [search, visitTab, rowsPerPage]);
+
+    useEffect(() => {
+        const newestVisitType = visits[0]?.member.type;
+
+        if (newestVisitType === 'student' || newestVisitType === 'employee') {
+            setVisitTab(newestVisitType);
+        }
+    }, [visits]);
 
     useEffect(() => {
         setCurrentPage((page) => Math.min(page, totalPages));
@@ -124,23 +150,33 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                             )}
                         </TableRow>
                     </TableHeader>
-                    <TableBody>
+                    <TableBody ref={tableBodyRef}>
                         {visibleVisits.length > 0 ? (
-                            visibleVisits.map((visit) => (
-                                <TableRow key={visit.id}>
-                                    <TableCell className="text-[#030A8C]">{formatVisitTime(visit)}</TableCell>
-                                    <TableCell className="font-medium">{visit.member.schoolId}</TableCell>
-                                    <TableCell>{visit.member.name}</TableCell>
-                                    {visitTab === 'student' ? (
-                                        <>
-                                            <TableCell className="text-[#020659]/70">{visit.member.yearLevel || '-'}</TableCell>
-                                            <TableCell className="text-[#020659]/70">{visit.member.section || '-'}</TableCell>
-                                        </>
-                                    ) : (
-                                        <TableCell className="text-[#020659]/70">{visit.member.department || '-'}</TableCell>
-                                    )}
-                                </TableRow>
-                            ))
+                            <>
+                                {usesVirtualRows && virtualRows.paddingTop > 0 && (
+                                    <VirtualTableSpacerRow height={virtualRows.paddingTop} colSpan={visitTab === 'student' ? 5 : 4} />
+                                )}
+                                {visibleVisits.map((visit) => (
+                                    <TableRow key={visit.id}>
+                                        <TableCell className="text-[#030A8C]">{formatVisitTime(visit)}</TableCell>
+                                        <TableCell className="font-medium">{visit.member.schoolId}</TableCell>
+                                        <TableCell>
+                                            <VisitMemberCell visit={visit} />
+                                        </TableCell>
+                                        {visitTab === 'student' ? (
+                                            <>
+                                                <TableCell className="text-[#020659]/70">{visit.member.yearLevel || '-'}</TableCell>
+                                                <TableCell className="text-[#020659]/70">{visit.member.section || '-'}</TableCell>
+                                            </>
+                                        ) : (
+                                            <TableCell className="text-[#020659]/70">{visit.member.department || '-'}</TableCell>
+                                        )}
+                                    </TableRow>
+                                ))}
+                                {usesVirtualRows && virtualRows.paddingBottom > 0 && (
+                                    <VirtualTableSpacerRow height={virtualRows.paddingBottom} colSpan={visitTab === 'student' ? 5 : 4} />
+                                )}
+                            </>
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={visitTab === 'student' ? 5 : 4} className="px-5 py-14 text-center">
@@ -162,12 +198,28 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
             <PaginationControls
                 currentPage={currentPage}
                 totalPages={totalPages}
-                from={(currentPage - 1) * visitsPerPage + 1}
-                to={Math.min(currentPage * visitsPerPage, filteredVisits.length)}
+                from={filteredVisits.length === 0 ? 0 : rowsPerPage === 'all' ? 1 : (currentPage - 1) * rowsPerPage + 1}
+                to={rowsPerPage === 'all' ? filteredVisits.length : Math.min(currentPage * rowsPerPage, filteredVisits.length)}
                 total={filteredVisits.length}
+                rowsPerPage={rowsPerPage}
+                rowsPerPageOptions={[5, 10, 30, 50, 100, 'all']}
+                onRowsPerPageChange={setRowsPerPage}
                 onPrevious={() => setCurrentPage((page) => Math.max(1, page - 1))}
                 onNext={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
             />
         </section>
+    );
+}
+
+function VisitMemberCell({ visit }: { visit: DashboardVisit }) {
+    return (
+        <div className="flex items-center gap-3">
+            <MemberAvatar
+                name={visit.member.name}
+                src={visit.member.photoUrl}
+                className="live-visit-avatar bg-[#eef2ff] text-[#030A8C]/70 ring-1 ring-[#040DBF]/10"
+            />
+            <span>{visit.member.name}</span>
+        </div>
     );
 }

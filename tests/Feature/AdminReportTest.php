@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\LibraryMember;
 use App\Models\LibraryVisit;
 use App\Models\SchoolYear;
+use App\Models\StudentEnrollment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -40,7 +41,32 @@ class AdminReportTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('admin/live-visits')
                 ->has('visitMonitor')
+                ->where('visitMonitor.scanTargets', [])
                 ->missing('dashboard'));
+    }
+
+    public function test_admin_can_search_limited_live_visit_scan_targets(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $schoolYear = SchoolYear::factory()->active()->create();
+
+        LibraryMember::factory()
+            ->student()
+            ->count(12)
+            ->create(['last_name' => 'Santos'])
+            ->each(function (LibraryMember $member) use ($schoolYear): void {
+                StudentEnrollment::factory()->create([
+                    'library_member_id' => $member->id,
+                    'school_year_id' => $schoolYear->id,
+                    'year_level' => 'Grade 5',
+                    'section' => 'Rizal',
+                ]);
+            });
+
+        $this->actingAs($admin)->getJson('/admin/live-visits/scan-targets?search=Santos')
+            ->assertOk()
+            ->assertJsonCount(8, 'targets')
+            ->assertJsonPath('targets.0.type', LibraryMember::TYPE_STUDENT);
     }
 
     public function test_authenticated_user_can_view_settings(): void

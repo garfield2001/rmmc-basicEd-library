@@ -6,19 +6,10 @@ use App\Support\Academics\AcademicLevels;
 
 class StudentSeeder extends LibraryMemberSeeder
 {
-    private const STUDENTS_PER_SECTION = 30;
-
-    private const SECTIONS_PER_YEAR_LEVEL = 3;
-
     public function run(): void
     {
-        foreach ($this->schoolStudents() as $student) {
-            $this->createStudentMember($student);
-        }
-
-        foreach ($this->generatedStudents() as $student) {
-            $this->createStudentMember($student);
-        }
+        $this->createStudentMembers($this->schoolStudents());
+        $this->createStudentMembers($this->generatedStudents());
     }
 
     /**
@@ -79,18 +70,79 @@ class StudentSeeder extends LibraryMemberSeeder
     }
 
     /**
+     * This plan keeps the fake population close to the client description:
+     * - Kinder to Grade 4 have one section each.
+     * - Grades 5 to 10 have two or three sections each.
+     * - Every fake section stays near 30 students and does not exceed 35.
+     *
+     * @return array<string, array<string, int>>
+     */
+    private function enrollmentPlan(): array
+    {
+        return [
+            'Kindergarten 1' => [
+                'Aguinaldo' => 29,
+            ],
+            'Kindergarten 2' => [
+                'Bonifacio' => 30,
+            ],
+            'Grade 1' => [
+                'Bonifacio' => 29,
+            ],
+            'Grade 2' => [
+                'Bonifacio' => 30,
+            ],
+            'Grade 3' => [
+                'Mabini' => 28,
+            ],
+            'Grade 4' => [
+                'Del Pilar' => 31,
+            ],
+            'Grade 5' => [
+                'Aguinaldo' => 29,
+                'Bonifacio' => 31,
+            ],
+            'Grade 6' => [
+                'Jacinto' => 28,
+                'Bonifacio' => 30,
+                'Mabini' => 32,
+            ],
+            'Grade 7' => [
+                'Bonifacio' => 30,
+                'Mabini' => 32,
+            ],
+            'Grade 8' => [
+                'Aguinaldo' => 29,
+                'Bonifacio' => 31,
+                'Mabini' => 33,
+            ],
+            'Grade 9' => [
+                'Mabini' => 30,
+                'Rizal' => 32,
+            ],
+            'Grade 10' => [
+                'Aguinaldo' => 28,
+                'Mabini' => 30,
+                'Rizal' => 33,
+            ],
+        ];
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     private function generatedStudents(): array
     {
-        $sections = ['Aguinaldo', 'Bonifacio', 'Mabini'];
         $students = [];
 
-        foreach (AcademicLevels::options() as $yearIndex => $yearLevel) {
-            foreach (array_slice($sections, 0, self::SECTIONS_PER_YEAR_LEVEL) as $sectionIndex => $section) {
-                foreach (range(1, self::STUDENTS_PER_SECTION) as $studentIndex) {
+        foreach ($this->enrollmentPlan() as $yearLevel => $sections) {
+            $yearIndex = AcademicLevels::rank($yearLevel);
+            $sectionNumber = 1;
+
+            foreach ($sections as $section => $studentCount) {
+                foreach (range(1, $studentCount) as $studentIndex) {
                     $students[] = [
-                        'school_id' => sprintf('26%02d%02d%04d', $yearIndex, $sectionIndex + 1, $studentIndex),
+                        'school_id' => $this->fakeStudentSchoolId($yearIndex, $sectionNumber, $studentIndex),
                         'first_name' => fake()->firstName(),
                         'middle_name' => fake()->optional(0.25)->lastName(),
                         'last_name' => fake()->lastName(),
@@ -98,9 +150,16 @@ class StudentSeeder extends LibraryMemberSeeder
                         'section' => $section,
                     ];
                 }
+
+                $sectionNumber++;
             }
         }
 
         return $students;
+    }
+
+    private function fakeStudentSchoolId(int $yearIndex, int $sectionNumber, int $studentIndex): string
+    {
+        return sprintf('26%02d%02d%04d', $yearIndex, $sectionNumber, $studentIndex);
     }
 }

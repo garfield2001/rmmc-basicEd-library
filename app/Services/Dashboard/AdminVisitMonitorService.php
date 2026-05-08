@@ -47,25 +47,57 @@ class AdminVisitMonitorService
                 ->latest('visited_at')
                 ->get()
                 ->map(fn (LibraryVisit $visit): array => $this->visitData($visit)),
-            'scanTargets' => LibraryMember::active()
-                ->visitEligibleForSchoolYear($activeSchoolYearId)
-                ->with([
-                    'student' => fn ($query) => $query
-                        ->select(
-                            'student_enrollments.id',
-                            'student_enrollments.library_member_id',
-                            'student_enrollments.school_year_id',
-                            'student_enrollments.year_level',
-                            'student_enrollments.section',
-                        )
-                        ->forSchoolYear($activeSchoolYearId),
-                    'employee:id,library_member_id,department',
-                ])
-                ->orderBy('last_name')
-                ->orderBy('first_name')
-                ->get()
-                ->map(fn (LibraryMember $member): array => $this->scanTargetData($member)),
+            'scanTargets' => [],
         ];
+    }
+
+    public function searchScanTargets(string $search, int $limit = 8): array
+    {
+        $search = trim($search);
+
+        if ($search === '') {
+            return [];
+        }
+
+        $activeSchoolYearId = SchoolYear::active()->value('id');
+
+        return LibraryMember::active()
+            ->visitEligibleForSchoolYear($activeSchoolYearId)
+            ->with([
+                'student' => fn ($query) => $query
+                    ->select(
+                        'student_enrollments.id',
+                        'student_enrollments.library_member_id',
+                        'student_enrollments.school_year_id',
+                        'student_enrollments.year_level',
+                        'student_enrollments.section',
+                    )
+                    ->forSchoolYear($activeSchoolYearId),
+                'employee:id,library_member_id,department',
+            ])
+            ->where(function (Builder $query) use ($activeSchoolYearId, $search): void {
+                $query
+                    ->where('school_id', 'like', "{$search}%")
+                    ->orWhere('rfid_uid', 'like', "{$search}%")
+                    ->orWhere('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhereHas('studentEnrollments', function (Builder $query) use ($activeSchoolYearId, $search): void {
+                        $query
+                            ->forSchoolYear($activeSchoolYearId)
+                            ->where(function (Builder $query) use ($search): void {
+                                $query
+                                    ->where('year_level', 'like', "%{$search}%")
+                                    ->orWhere('section', 'like', "%{$search}%");
+                            });
+                    })
+                    ->orWhereHas('employee', fn (Builder $query) => $query->where('department', 'like', "%{$search}%"));
+            })
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->limit($limit)
+            ->get()
+            ->map(fn (LibraryMember $member): array => $this->scanTargetData($member))
+            ->all();
     }
 
     private function visitData(LibraryVisit $visit): array

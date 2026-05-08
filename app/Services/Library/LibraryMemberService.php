@@ -5,6 +5,7 @@ namespace App\Services\Library;
 use App\Models\LibraryMember;
 use App\Models\SchoolYear;
 use App\Services\SchoolYears\SchoolYearSectionService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -52,20 +53,54 @@ class LibraryMemberService
     public function delete(LibraryMember $member): void
     {
         DB::transaction(function () use ($member): void {
-            $photo = $member->photo;
             $member->delete();
+        });
+    }
+
+    /**
+     * @param  array<int, int>  $memberIds
+     */
+    public function bulkArchive(array $memberIds): int
+    {
+        return DB::transaction(fn (): int => LibraryMember::query()
+            ->whereIn('id', $memberIds)
+            ->delete());
+    }
+
+    public function archiveMatching(Builder $query): int
+    {
+        return DB::transaction(fn (): int => $query->delete());
+    }
+
+    public function restoreArchived(int $memberId): LibraryMember
+    {
+        return DB::transaction(function () use ($memberId): LibraryMember {
+            $member = LibraryMember::onlyTrashed()->findOrFail($memberId);
+            $member->restore();
+
+            return $member;
+        });
+    }
+
+    public function permanentlyDeleteArchived(int $memberId): void
+    {
+        DB::transaction(function () use ($memberId): void {
+            $member = LibraryMember::onlyTrashed()->findOrFail($memberId);
+            $photo = $member->photo;
+
+            $member->forceDelete();
             $this->deletePhoto($photo);
         });
     }
 
-    public function previewStudentAssignment(string $studentIds, string $yearLevel, ?string $sectionName): array
+    public function previewStudentAssignment(string $studentIds, ?string $sectionName): array
     {
         $tokens = $this->parseSchoolIds($studentIds);
         $duplicateIds = $tokens->duplicates()->unique()->values();
         $uniqueIds = $tokens->unique()->values();
 
         if ($uniqueIds->isEmpty()) {
-            return $this->emptyAssignmentPreview($yearLevel, $sectionName);
+            return $this->emptyAssignmentPreview($sectionName);
         }
 
         $schoolYear = $this->activeSchoolYearOrFail();
@@ -76,42 +111,53 @@ class LibraryMemberService
             ->get()
             ->sortBy(fn (LibraryMember $member): int => $uniqueIds->search($member->school_id))
             ->values();
+        $incompleteDetailIds = $students
+            ->filter(fn (LibraryMember $member): bool => ! $this->hasCompleteActiveStudentDetails($member, $schoolYear->id))
+            ->pluck('school_id')
+            ->values();
+        $assignableStudents = $students
+            ->filter(fn (LibraryMember $member): bool => $this->hasActiveYearLevel($member, $schoolYear->id))
+            ->values();
 
         return [
             'inputCount' => $tokens->count(),
             'uniqueCount' => $uniqueIds->count(),
             'matchedCount' => $students->count(),
-            'yearLevel' => $yearLevel,
-            'section' => trim((string) $sectionName) ?: null,
-            'memberIds' => $students->pluck('id')->values()->all(),
+            'targetSection' => trim((string) $sectionName) ?: null,
+            'memberIds' => $assignableStudents->pluck('id')->values()->all(),
             'matchedStudents' => $students->map(fn (LibraryMember $member): array => $this->assignmentPreviewRow($member, $schoolYear->id))->all(),
             'notFoundIds' => $uniqueIds->diff($students->pluck('school_id'))->values()->all(),
             'duplicateIds' => $duplicateIds->all(),
+            'incompleteDetailIds' => $incompleteDetailIds->all(),
         ];
     }
 
     /**
      * @param  array<int, int>  $memberIds
      */
-    public function assignStudents(array $memberIds, string $yearLevel, ?string $sectionName): int
+    public function assignStudents(array $memberIds, ?string $sectionName): int
     {
         $schoolYear = $this->activeSchoolYearOrFail();
         $sectionName = trim((string) $sectionName);
-        $section = $sectionName !== ''
-            ? $this->sections->findOrCreate($schoolYear->id, $yearLevel, $sectionName)
-            : null;
 
-        return DB::transaction(function () use ($schoolYear, $memberIds, $yearLevel, $section): int {
-            $studentIds = LibraryMember::query()
+        return DB::transaction(function () use ($schoolYear, $memberIds, $sectionName): int {
+            $students = LibraryMember::query()
                 ->whereKey($memberIds)
                 ->where('type', LibraryMember::TYPE_STUDENT)
-                ->pluck('id');
+                ->with(['studentEnrollments' => fn ($query) => $query->forSchoolYear($schoolYear->id)])
+                ->get()
+                ->filter(fn (LibraryMember $member): bool => $this->hasActiveYearLevel($member, $schoolYear->id));
 
-            $studentIds->each(function (int $memberId) use ($schoolYear, $yearLevel, $section): void {
-                $this->assignStudentDetails($memberId, $schoolYear->id, $yearLevel, $section?->id, $section?->name);
+            $students->each(function (LibraryMember $member) use ($schoolYear, $sectionName): void {
+                $enrollment = $member->studentEnrollments->firstWhere('school_year_id', $schoolYear->id);
+                $section = $sectionName !== ''
+                    ? $this->sections->findOrCreate($schoolYear->id, $enrollment->year_level, $sectionName)
+                    : null;
+
+                $this->assignStudentDetails($member->id, $schoolYear->id, $enrollment->year_level, $section?->id, $section?->name);
             });
 
-            return $studentIds->count();
+            return $students->count();
         });
     }
 
@@ -223,18 +269,32 @@ class LibraryMemberService
         ];
     }
 
-    private function emptyAssignmentPreview(string $yearLevel, ?string $sectionName): array
+    private function hasCompleteActiveStudentDetails(LibraryMember $member, int $schoolYearId): bool
+    {
+        $enrollment = $member->studentEnrollments->firstWhere('school_year_id', $schoolYearId);
+
+        return filled($enrollment?->year_level) && filled($enrollment?->section);
+    }
+
+    private function hasActiveYearLevel(LibraryMember $member, int $schoolYearId): bool
+    {
+        $enrollment = $member->studentEnrollments->firstWhere('school_year_id', $schoolYearId);
+
+        return filled($enrollment?->year_level);
+    }
+
+    private function emptyAssignmentPreview(?string $sectionName): array
     {
         return [
             'inputCount' => 0,
             'uniqueCount' => 0,
             'matchedCount' => 0,
-            'yearLevel' => $yearLevel,
-            'section' => trim((string) $sectionName) ?: null,
+            'targetSection' => trim((string) $sectionName) ?: null,
             'memberIds' => [],
             'matchedStudents' => [],
             'notFoundIds' => [],
             'duplicateIds' => [],
+            'incompleteDetailIds' => [],
         ];
     }
 }

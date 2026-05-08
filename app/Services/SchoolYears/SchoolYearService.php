@@ -53,6 +53,35 @@ class SchoolYearService
         });
     }
 
+    public function update(SchoolYear $schoolYear, array $data): SchoolYear
+    {
+        return DB::transaction(function () use ($schoolYear, $data): SchoolYear {
+            $makeActive = (bool) ($data['make_active'] ?? false);
+            $previousActiveSchoolYear = $makeActive
+                ? SchoolYear::active()->whereKeyNot($schoolYear->id)->first()
+                : null;
+
+            if ($makeActive) {
+                SchoolYear::query()->whereKeyNot($schoolYear->id)->update(['is_active' => false]);
+            }
+
+            $schoolYear->update([
+                'name' => $data['name'],
+                'starts_at' => $data['starts_at'],
+                'ends_at' => $data['ends_at'],
+                'minimum_visits' => $data['minimum_visits'],
+                'target_visits' => $data['target_visits'],
+                'is_active' => $makeActive ? true : $schoolYear->is_active,
+            ]);
+
+            if ($previousActiveSchoolYear) {
+                $this->promoteStudents($previousActiveSchoolYear, $schoolYear);
+            }
+
+            return $schoolYear->refresh();
+        });
+    }
+
     private function promoteStudents(SchoolYear $fromSchoolYear, SchoolYear $toSchoolYear): int
     {
         $promoted = 0;
@@ -67,11 +96,7 @@ class SchoolYearService
                     return;
                 }
 
-                $nextYearLevel = AcademicLevels::nextAfter($enrollment->year_level);
-
-                if (! $nextYearLevel) {
-                    return;
-                }
+                $nextYearLevel = AcademicLevels::nextAfter($enrollment->year_level) ?? $enrollment->year_level;
 
                 $promotedEnrollment = StudentEnrollment::query()->firstOrCreate(
                     [

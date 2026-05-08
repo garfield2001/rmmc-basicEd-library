@@ -1,10 +1,11 @@
 import type { AuthUser } from './auth';
 import type { DashboardVisit } from './dashboard';
-import type { SchoolYearSummary } from './school-year';
+import type { SchoolYearRow } from './school-year';
 
 export interface SharedData {
     name: string;
-    schoolYear: SchoolYearSummary | null;
+    schoolYear: SchoolYearRow | null;
+    schoolYears: SchoolYearRow[];
     auth: {
         user: AuthUser | null;
     };

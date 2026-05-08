@@ -1,14 +1,17 @@
 import { type SharedData } from '@/types/shared';
-import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { ArchiveRestore, ChevronDown, LogOut, Settings } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 import { navItems, sidebarAnimationStorageKey } from './admin-layout.constants';
 import type { AdminSidebarProps } from './admin-layout.types';
 import { AdminLogoMark } from './admin-logo-mark';
 
 export function AdminSidebar({ active, collapsed }: AdminSidebarProps) {
-    const { auth } = usePage<SharedData>().props;
+    const page = usePage<SharedData>();
+    const { auth } = page.props;
     const user = auth.user;
+    const currentUrl = page.url;
     const sidebarMotion = 'duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]';
     const sidebarColumns = collapsed ? 'grid-cols-[40px_minmax(0,1fr)] lg:grid-cols-[40px_0px]' : 'grid-cols-[40px_minmax(0,1fr)]';
     const sidebarRowWidth = collapsed ? 'w-full lg:w-10' : 'w-full';
@@ -29,6 +32,53 @@ export function AdminSidebar({ active, collapsed }: AdminSidebarProps) {
 
         return true;
     });
+    const [adminMenuOpen, setAdminMenuOpen] = useState(false);
+    const adminMenuRef = useRef<HTMLDivElement | null>(null);
+    const adminTools = [
+        {
+            label: 'Settings',
+            href: '/admin/settings',
+            icon: Settings,
+            active: active === 'settings',
+        },
+        {
+            label: 'Archive',
+            href: '/admin/members/archive',
+            icon: ArchiveRestore,
+            active: currentUrl.startsWith('/admin/members/archive'),
+        },
+    ];
+
+    const logout = () => {
+        setAdminMenuOpen(false);
+        router.post('/logout');
+    };
+
+    useEffect(() => {
+        if (!adminMenuOpen) {
+            return;
+        }
+
+        const closeMenu = (event: PointerEvent) => {
+            if (!adminMenuRef.current?.contains(event.target as Node)) {
+                setAdminMenuOpen(false);
+            }
+        };
+
+        const closeOnEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setAdminMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('pointerdown', closeMenu);
+        document.addEventListener('keydown', closeOnEscape);
+
+        return () => {
+            document.removeEventListener('pointerdown', closeMenu);
+            document.removeEventListener('keydown', closeOnEscape);
+        };
+    }, [adminMenuOpen]);
 
     return (
         <aside
@@ -72,11 +122,68 @@ export function AdminSidebar({ active, collapsed }: AdminSidebarProps) {
                 })}
             </nav>
 
-            <div
-                className={`${collapsed ? 'mt-4 border-t border-[#040DBF]/10 pt-4 lg:hidden' : 'mt-4 border-t border-[#040DBF]/10 pt-4'} text-xs leading-5 text-[#030A8C]`}
-            >
-                <p className="truncate font-medium text-[#010440]">{user?.name}</p>
-                <p className="truncate capitalize">{user?.role}</p>
+            <div ref={adminMenuRef} className="relative mt-4 border-t border-[#040DBF]/10 pt-4">
+                <button
+                    type="button"
+                    onClick={() => setAdminMenuOpen((open) => !open)}
+                    className={`flex h-11 ${sidebarRowWidth} items-center overflow-hidden rounded-lg border border-transparent text-left text-[#020659] transition-[width,background-color,border-color,color,box-shadow] ${sidebarMotion} hover:border-[#040DBF]/15 hover:bg-[#040DBF]/5 hover:text-[#040DBF]`}
+                    title={collapsed ? `${user?.name ?? 'Admin'} menu` : undefined}
+                    aria-expanded={adminMenuOpen}
+                    aria-haspopup="menu"
+                >
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#f6f8ff] text-sm font-semibold text-[#030A8C]">
+                        {(user?.name ?? 'A').trim().charAt(0).toUpperCase()}
+                    </span>
+                    <span className={`${sidebarLabel} flex min-w-0 flex-1 items-center justify-between pl-3`}>
+                        <span className="min-w-0 leading-5">
+                            <span className="block truncate text-xs font-semibold text-[#010440]">{user?.name}</span>
+                            <span className="block truncate text-xs capitalize text-[#030A8C]">{user?.role}</span>
+                        </span>
+                        <ChevronDown
+                            className={`ml-2 size-4 shrink-0 transition-transform duration-200 ${adminMenuOpen ? 'rotate-180' : ''}`}
+                            aria-hidden="true"
+                        />
+                    </span>
+                </button>
+
+                {adminMenuOpen && (
+                    <div
+                        className={`absolute bottom-full left-0 mb-2 rounded-lg border border-[#040DBF]/10 bg-white p-1 shadow-lg shadow-[#040DBF]/10 ${
+                            collapsed ? 'w-56' : 'w-full'
+                        }`}
+                        role="menu"
+                    >
+                        {adminTools.map((tool) => {
+                            const Icon = tool.icon;
+
+                            return (
+                                <Link
+                                    key={tool.href}
+                                    href={tool.href}
+                                    onClick={() => setAdminMenuOpen(false)}
+                                    className={`flex h-10 items-center gap-2 rounded-md border px-3 text-sm font-medium transition-[background-color,border-color,color,box-shadow] ${
+                                        tool.active
+                                            ? 'border-[#040DBF] bg-[#040DBF] text-white shadow-sm shadow-[#040DBF]/20 hover:bg-[#030A8C]'
+                                            : 'border-transparent text-[#020659] hover:border-[#040DBF]/15 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm'
+                                    }`}
+                                    role="menuitem"
+                                >
+                                    <Icon className="size-4 shrink-0" aria-hidden="true" />
+                                    <span className="truncate">{tool.label}</span>
+                                </Link>
+                            );
+                        })}
+                        <button
+                            type="button"
+                            onClick={logout}
+                            className="flex h-10 w-full items-center gap-2 rounded-md border border-transparent px-3 text-left text-sm font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/15 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm"
+                            role="menuitem"
+                        >
+                            <LogOut className="size-4 shrink-0" aria-hidden="true" />
+                            <span className="truncate">Log out</span>
+                        </button>
+                    </div>
+                )}
             </div>
         </aside>
     );

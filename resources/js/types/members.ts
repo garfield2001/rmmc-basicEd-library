@@ -10,6 +10,7 @@ export interface LibraryMemberRow {
     photo: string | null;
     photo_url: string | null;
     is_active: boolean;
+    deleted_at: string | null;
     group: string | null;
     student: {
         school_year_id: number;
@@ -26,8 +27,7 @@ export interface StudentAssignmentPreview {
     inputCount: number;
     uniqueCount: number;
     matchedCount: number;
-    yearLevel: string;
-    section: string | null;
+    targetSection: string | null;
     memberIds: number[];
     matchedStudents: {
         id: number;
@@ -38,4 +38,5 @@ export interface StudentAssignmentPreview {
     }[];
     notFoundIds: string[];
     duplicateIds: string[];
+    incompleteDetailIds: string[];
 }

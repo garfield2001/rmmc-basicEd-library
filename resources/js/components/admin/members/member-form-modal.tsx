@@ -141,11 +141,20 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
 
     return (
         <Dialog open={open} onOpenChange={close}>
-            <DialogContent className={`max-h-[calc(100vh-2rem)] overflow-y-auto ${isEditing ? 'sm:max-w-4xl' : 'sm:max-w-3xl'}`}>
+            <DialogContent
+                onOpenAutoFocus={(event) => {
+                    if (isEditing) {
+                        event.preventDefault();
+                    }
+                }}
+                className={`max-h-[calc(100vh-2rem)] overflow-y-auto ${isEditing ? 'sm:max-w-4xl' : 'sm:max-w-3xl'}`}
+            >
                 <DialogHeader>
                     <DialogTitle className="text-2xl text-[#010440]">{isEditing ? 'Edit member' : 'Add member'}</DialogTitle>
                     <DialogDescription>
-                        {isEditing ? 'Update all library member details in one form.' : 'Create a member profile one clear step at a time.'}
+                        {isEditing
+                            ? "Review or update this member's library profile and active details."
+                            : 'Create a member profile one clear step at a time.'}
                     </DialogDescription>
                 </DialogHeader>
 

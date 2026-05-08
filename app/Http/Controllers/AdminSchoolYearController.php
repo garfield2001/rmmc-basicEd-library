@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSchoolYearRequest;
+use App\Http\Requests\UpdateSchoolYearRequest;
 use App\Models\SchoolYear;
 use App\Services\SchoolYears\SchoolYearService;
 use Illuminate\Http\RedirectResponse;
@@ -13,17 +14,20 @@ class AdminSchoolYearController extends Controller
     {
         $schoolYear = $schoolYears->create($request->validated());
 
-        return redirect()
-            ->route('admin.settings')
-            ->with('success', "School year {$schoolYear->name} has been created. Existing students were promoted with blank sections.");
+        return back()->with('success', "School year {$schoolYear->name} has been created. Existing students were promoted with blank sections.");
     }
 
     public function activate(SchoolYear $schoolYear, SchoolYearService $schoolYears): RedirectResponse
     {
         $schoolYears->activate($schoolYear);
 
-        return redirect()
-            ->route('admin.settings')
-            ->with('success', "School year {$schoolYear->name} is now active. Existing students were promoted with blank sections when needed.");
+        return back()->with('success', "School year {$schoolYear->name} is now active. Existing students were promoted with blank sections when needed.");
+    }
+
+    public function update(UpdateSchoolYearRequest $request, SchoolYear $schoolYear, SchoolYearService $schoolYears): RedirectResponse
+    {
+        $schoolYear = $schoolYears->update($schoolYear, $request->validated());
+
+        return back()->with('success', "School year {$schoolYear->name} has been updated.");
     }
 }

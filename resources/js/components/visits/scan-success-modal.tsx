@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FallbackImage } from '@/components/ui/fallback-image';
 import { VISIT_SCAN_SUCCESS_MODAL_AUTO_CLOSE_SECONDS } from '@/config/timing';
 import { type DashboardVisit } from '@/types/dashboard';
 import { BriefcaseBusiness, CalendarClock, CheckCircle2, GraduationCap, IdCard, Timer, UserRound, type LucideIcon } from 'lucide-react';
@@ -120,19 +121,7 @@ export function ScanSuccessModal({ visit }: ScanSuccessModalProps) {
                     </DialogHeader>
 
                     <div className="mt-8 grid gap-8 sm:grid-cols-[300px_minmax(0,1fr)]">
-                        <div className="scan-success-photo overflow-hidden rounded-xl border border-[#040DBF]/15 bg-white p-2 shadow-lg shadow-[#010440]/10">
-                            {visibleVisit.member.photoUrl ? (
-                                <img
-                                    src={visibleVisit.member.photoUrl}
-                                    alt={`${visibleVisit.member.name ?? typeLabel} photo`}
-                                    className="aspect-square size-full rounded-lg object-cover"
-                                />
-                            ) : (
-                                <div className="flex aspect-square items-center justify-center rounded-lg bg-[#eef2ff] text-[#030A8C]/50">
-                                    <UserRound className="size-20" />
-                                </div>
-                            )}
-                        </div>
+                        <ScanMemberPhoto visit={visibleVisit} />
 
                         <div className="min-w-0">
                             <div className="grid gap-4 sm:grid-cols-2">
@@ -153,5 +142,21 @@ export function ScanSuccessModal({ visit }: ScanSuccessModalProps) {
                 </div>
             </DialogContent>
         </Dialog>
+    );
+}
+
+function ScanMemberPhoto({ visit }: { visit: DashboardVisit }) {
+    return (
+        <div className="scan-success-photo overflow-hidden rounded-xl border border-[#040DBF]/15 bg-white p-2 shadow-lg shadow-[#010440]/10">
+            <FallbackImage
+                src={visit.member.photoUrl}
+                className="aspect-square size-full rounded-lg object-cover"
+                fallback={
+                    <div className="flex aspect-square items-center justify-center rounded-lg bg-[#eef2ff] text-[#030A8C]/50">
+                        <UserRound className="size-20" />
+                    </div>
+                }
+            />
+        </div>
     );
 }

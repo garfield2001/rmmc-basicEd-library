@@ -48,7 +48,59 @@ class DatabaseSeederTest extends TestCase
                 ->pluck('school_id')
                 ->every(fn (string $schoolId): bool => preg_match('/^\d{10}$/', $schoolId) === 1),
         );
-        $this->assertGreaterThanOrEqual(990, StudentEnrollment::query()->count());
-        $this->assertSame(14, Employee::query()->count());
+        $this->assertGreaterThanOrEqual(600, StudentEnrollment::query()->count());
+        $this->assertGreaterThanOrEqual(50, Employee::query()->count());
+
+        $teachingDepartments = [
+            'Basic Education Faculty',
+            'Senior High School Faculty',
+            'College of Engineering Faculty',
+            'College of Medical Technology Faculty',
+            'College of Nursing Faculty',
+            'College of Information Technology Faculty',
+            'College of Computer Science Faculty',
+            'College of Teacher Education Faculty',
+            'College of Business Administration Faculty',
+            'College of Hospitality Management Faculty',
+            'Mathematics Faculty',
+            'Science Faculty',
+        ];
+
+        $this->assertTrue(
+            Employee::query()
+                ->pluck('department')
+                ->every(fn (string $department): bool => in_array($department, $teachingDepartments, true)),
+        );
+
+        $studentEnrollments = StudentEnrollment::query();
+
+        foreach (['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4'] as $yearLevel) {
+            $this->assertSame(
+                1,
+                (clone $studentEnrollments)
+                    ->where('year_level', $yearLevel)
+                    ->distinct('section')
+                    ->count('section'),
+            );
+        }
+
+        foreach (['Grade 5', 'Grade 6'] as $yearLevel) {
+            $sectionCount = (clone $studentEnrollments)
+                ->where('year_level', $yearLevel)
+                ->distinct('section')
+                ->count('section');
+
+            $this->assertGreaterThanOrEqual(2, $sectionCount);
+            $this->assertLessThanOrEqual(3, $sectionCount);
+        }
+
+        (clone $studentEnrollments)
+            ->selectRaw('year_level, section, count(*) as student_count')
+            ->groupBy('year_level', 'section')
+            ->get()
+            ->each(function ($section): void {
+                $this->assertGreaterThanOrEqual(25, $section->student_count);
+                $this->assertLessThanOrEqual(35, $section->student_count);
+            });
     }
 }

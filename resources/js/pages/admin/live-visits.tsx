@@ -6,7 +6,8 @@ import { LatestVisitCard } from '@/components/visits/latest-visit-card';
 import { useRFIDScanListener } from '@/hooks/use-rfid-scan-listener';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
-import { type AdminVisitMonitor } from '@/types/dashboard';
+import { csrfFetch } from '@/lib/http';
+import { type AdminVisitMonitor, type ScanTarget } from '@/types/dashboard';
 import { Head, useForm } from '@inertiajs/react';
 import { Clock3 } from 'lucide-react';
 import { type FormEventHandler, useEffect, useMemo, useRef, useState } from 'react';
@@ -23,6 +24,8 @@ interface ScanForm {
 export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
     const scanInputRef = useRef<HTMLInputElement | null>(null);
     const [scanError, setScanError] = useState<string | undefined>();
+    const [scanTargets, setScanTargets] = useState<ScanTarget[]>(visitMonitor.scanTargets ?? []);
+    const [loadingScanTargets, setLoadingScanTargets] = useState(false);
     const lastVisit = visitMonitor.todayVisits[0];
     const { formattedManilaTime } = useManilaClock();
     const {
@@ -35,14 +38,14 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
         rfid_uid: '',
     });
     const scanTargetOptions = useMemo(() => {
-        return (visitMonitor.scanTargets ?? []).map((target) => ({
+        return scanTargets.map((target) => ({
             value: target.RFIDUid,
             label: target.name,
             meta: `${target.schoolId} - ${target.type}${target.detail ? ` - ${target.detail}` : ''}`,
-            idTerms: [target.schoolId, ...target.schoolId.split(/[^a-zA-Z0-9]+/)].filter((term): term is string => Boolean(term)),
+            idTerms: [target.RFIDUid, target.schoolId, ...target.schoolId.split(/[^a-zA-Z0-9]+/)].filter((term): term is string => Boolean(term)),
             textTerms: [target.name, target.firstName, target.lastName, target.type, target.detail].filter((term): term is string => Boolean(term)),
         }));
-    }, [visitMonitor.scanTargets]);
+    }, [scanTargets]);
 
     const submitScan: FormEventHandler = (event) => {
         event.preventDefault();
@@ -63,6 +66,45 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
     useEffect(() => {
         scanInputRef.current?.focus();
     }, []);
+
+    useEffect(() => {
+        const search = scanData.rfid_uid.trim();
+
+        if (search.length < 1) {
+            setScanTargets([]);
+            setLoadingScanTargets(false);
+            return;
+        }
+
+        const controller = new AbortController();
+        const timer = window.setTimeout(async () => {
+            setLoadingScanTargets(true);
+
+            try {
+                const response = await csrfFetch(`/admin/live-visits/scan-targets?search=${encodeURIComponent(search)}`, {
+                    signal: controller.signal,
+                });
+                const payload = await response.json().catch(() => null);
+
+                if (response.ok) {
+                    setScanTargets(payload?.targets ?? []);
+                }
+            } catch (error) {
+                if (!(error instanceof DOMException && error.name === 'AbortError')) {
+                    setScanTargets([]);
+                }
+            } finally {
+                if (!controller.signal.aborted) {
+                    setLoadingScanTargets(false);
+                }
+            }
+        }, 180);
+
+        return () => {
+            controller.abort();
+            window.clearTimeout(timer);
+        };
+    }, [scanData.rfid_uid]);
 
     useRFIDScanListener({
         onScanStart: () => setScanError(undefined),
@@ -97,6 +139,7 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
                             options={scanTargetOptions}
                             inputRef={scanInputRef}
                             processing={scanning}
+                            loadingOptions={loadingScanTargets}
                             error={scanError}
                             onChange={(value) => setScanData('rfid_uid', value)}
                             onSubmit={submitScan}

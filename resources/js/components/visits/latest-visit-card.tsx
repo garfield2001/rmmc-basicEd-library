@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FallbackImage } from '@/components/ui/fallback-image';
 import { IconBadge } from '@/components/ui/icon-badge';
 import { type DashboardVisit } from '@/types/dashboard';
 import { BriefcaseBusiness, CalendarClock, Clock3, GraduationCap, IdCard, ScanLine, UserRound } from 'lucide-react';
@@ -143,15 +144,7 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                         </DialogHeader>
 
                         <div className="grid gap-6 p-6 sm:grid-cols-[176px_minmax(0,1fr)]">
-                            <div className="overflow-hidden rounded-xl border border-[#040DBF]/15 bg-[#f6f8ff] p-2 shadow-sm">
-                                {visit.member.photoUrl ? (
-                                    <img src={visit.member.photoUrl} alt="" className="aspect-square size-full rounded-lg object-cover" />
-                                ) : (
-                                    <div className="flex aspect-square items-center justify-center rounded-lg bg-white text-[#030A8C]/45">
-                                        <UserRound className="size-12" />
-                                    </div>
-                                )}
-                            </div>
+                            <VisitPhoto visit={visit} />
 
                             <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
@@ -200,5 +193,21 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                 </Dialog>
             )}
         </>
+    );
+}
+
+function VisitPhoto({ visit }: { visit: DashboardVisit }) {
+    return (
+        <div className="overflow-hidden rounded-xl border border-[#040DBF]/15 bg-[#f6f8ff] p-2 shadow-sm">
+            <FallbackImage
+                src={visit.member.photoUrl}
+                className="aspect-square size-full rounded-lg object-cover"
+                fallback={
+                    <div className="flex aspect-square items-center justify-center rounded-lg bg-white text-[#030A8C]/45">
+                        <UserRound className="size-12" />
+                    </div>
+                }
+            />
+        </div>
     );
 }

@@ -155,7 +155,7 @@ export default function MemberForm({ member }: MemberFormProps) {
 
                             <div className="mt-5 grid gap-4 md:grid-cols-3">
                                 <label className="text-sm font-medium">
-                                    RFID UID
+                                    RFID Unique ID
                                     <input
                                         data-rfid-input="true"
                                         value={data.rfid_uid}

@@ -13,15 +13,21 @@ class LibraryMemberBulkAssignmentTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_can_preview_and_bulk_assign_student_year_level_and_section_from_members(): void
+    public function test_admin_can_preview_student_details_and_bulk_assign_section_from_members(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        SchoolYear::factory()->active()->create();
+        $schoolYear = SchoolYear::factory()->active()->create();
         $student = LibraryMember::factory()->student()->create(['school_id' => '2609010003']);
+
+        StudentEnrollment::factory()->create([
+            'library_member_id' => $student->id,
+            'school_year_id' => $schoolYear->id,
+            'year_level' => 'Grade 2',
+            'section' => 'Old Section',
+        ]);
 
         $this->actingAs($admin)->postJson('/admin/members/preview-student-assignment', [
             'student_ids' => "2609010003\nUNKNOWN\n2609010003",
-            'year_level' => 'Grade 2',
             'section' => 'Sampaguita',
         ])
             ->assertOk()
@@ -30,11 +36,13 @@ class LibraryMemberBulkAssignmentTest extends TestCase
             ->assertJsonPath('preview.matchedCount', 1)
             ->assertJsonPath('preview.notFoundIds.0', 'UNKNOWN')
             ->assertJsonPath('preview.duplicateIds.0', '2609010003')
-            ->assertJsonPath('preview.memberIds.0', $student->id);
+            ->assertJsonPath('preview.memberIds.0', $student->id)
+            ->assertJsonPath('preview.targetSection', 'Sampaguita')
+            ->assertJsonPath('preview.matchedStudents.0.currentYearLevel', 'Grade 2')
+            ->assertJsonPath('preview.matchedStudents.0.currentSection', 'Old Section');
 
         $this->actingAs($admin)->patch('/admin/members/bulk-assign-students', [
             'member_ids' => [$student->id],
-            'year_level' => 'Grade 2',
             'section' => 'Sampaguita',
         ])->assertSessionHas('success');
 
