@@ -25,10 +25,7 @@ export default function Index({ home }: IndexProps) {
         processing: loginProcessing,
         reset: resetLogin,
         errors: loginErrors,
-    } = useForm<LoginForm>({
-        email: '',
-        password: '',
-    });
+    } = useForm<LoginForm>({ email: '', password: '' });
     const loginValidationErrors = {
         email: loginErrors.email ?? (typeof errors.email === 'string' ? errors.email : undefined),
         password: loginErrors.password ?? (typeof errors.password === 'string' ? errors.password : undefined),

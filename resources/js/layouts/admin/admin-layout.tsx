@@ -24,7 +24,7 @@ export function AdminLayout({ active, children }: AdminLayoutProps) {
         return window.localStorage.getItem(sidebarCollapsedStorageKey) === 'true';
     });
 
-    useAdminThemePreference();
+    const { resolvedTheme, setThemePreference } = useAdminThemePreference();
 
     useEffect(() => {
         const clearPageLoadingTimer = () => {
@@ -75,7 +75,12 @@ export function AdminLayout({ active, children }: AdminLayoutProps) {
                 <AdminSidebar active={active} collapsed={isSidebarCollapsed} />
 
                 <section className="min-w-0 space-y-6">
-                    <AdminNavbar collapsed={isSidebarCollapsed} onCollapsedChange={changeSidebarCollapsed} />
+                    <AdminNavbar
+                        collapsed={isSidebarCollapsed}
+                        resolvedTheme={resolvedTheme}
+                        onCollapsedChange={changeSidebarCollapsed}
+                        onThemeToggle={() => setThemePreference(resolvedTheme === 'dark' ? 'light' : 'dark')}
+                    />
                     {isPageLoading ? <AdminContentLoadingSkeleton target={loadingTarget} /> : children}
                 </section>
             </div>

@@ -1,6 +1,6 @@
-import { MemberAvatar } from '@/components/ui/member-avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { MemberAvatar } from '@/components/ui/member-avatar';
 import { PaginationControls, type RowsPerPageOption } from '@/components/ui/pagination-controls';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { VirtualTableSpacerRow } from '@/components/ui/virtual-table-spacer-row';
@@ -8,8 +8,8 @@ import { useViewportHeight, useWindowVirtualRows } from '@/hooks/use-window-virt
 import { csrfFetch } from '@/lib/http';
 import type { LibraryMemberRow } from '@/types/members';
 import type { Paginated } from '@/types/pagination';
-import { AlertTriangle, ArrowDown, ArrowUp, Check, ChevronsUpDown, ClipboardCopy, Columns3, Pencil, Trash2 } from 'lucide-react';
 import { router } from '@inertiajs/react';
+import { AlertTriangle, ArrowDown, ArrowUp, Check, ChevronsUpDown, ClipboardCopy, Columns3, Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 type MemberType = 'student' | 'employee';
@@ -229,6 +229,7 @@ export function MembersTable({
     };
 
     const archiveSelectedMembers = () => {
+        setBulkArchiveOpen(false);
         setBulkArchiving(true);
         router.delete('/admin/members/bulk', {
             data: {
@@ -244,7 +245,6 @@ export function MembersTable({
             onSuccess: () => {
                 setSelectedMemberIds([]);
                 setSelectedAllMatching(false);
-                setBulkArchiveOpen(false);
             },
         });
     };
@@ -329,104 +329,104 @@ export function MembersTable({
                     )}
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                <div ref={copyMenuRef} className="relative w-full sm:w-auto">
-                    <button
-                        type="button"
-                        onClick={() => setCopyMenuOpen((open) => !open)}
-                        className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm sm:w-auto"
-                    >
-                        <ClipboardCopy className="size-4" />
-                        Copy
-                    </button>
-                    {copyMenuOpen && (
-                        <div className="absolute right-0 z-20 mt-2 w-72 rounded-lg border border-zinc-200 bg-white p-2 shadow-lg">
-                            <div className="flex gap-2 border-b border-zinc-100 pb-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setCopyColumns(columns.map((column) => column.key))}
-                                    className="flex-1 rounded-md border border-[#040DBF]/15 px-3 py-2 text-xs font-semibold text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm"
-                                >
-                                    Select all
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setCopyColumns([])}
-                                    className="flex-1 rounded-md border border-[#040DBF]/15 px-3 py-2 text-xs font-semibold text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm"
-                                >
-                                    Clear
-                                </button>
-                            </div>
-                            <div className="py-1">
-                                {columns.map((column) => (
-                                    <label
-                                        key={column.key}
-                                        className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
+                    <div ref={copyMenuRef} className="relative w-full sm:w-auto">
+                        <button
+                            type="button"
+                            onClick={() => setCopyMenuOpen((open) => !open)}
+                            className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm sm:w-auto"
+                        >
+                            <ClipboardCopy className="size-4" />
+                            Copy
+                        </button>
+                        {copyMenuOpen && (
+                            <div className="absolute right-0 z-20 mt-2 w-72 rounded-lg border border-zinc-200 bg-white p-2 shadow-lg">
+                                <div className="flex gap-2 border-b border-zinc-100 pb-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setCopyColumns(columns.map((column) => column.key))}
+                                        className="flex-1 rounded-md border border-[#040DBF]/15 px-3 py-2 text-xs font-semibold text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm"
                                     >
-                                        <input
-                                            type="checkbox"
-                                            checked={copyColumns.includes(column.key)}
-                                            onChange={() => toggleCopyColumn(column.key)}
-                                            className="size-4 rounded border-zinc-300"
-                                        />
-                                        {column.label}
-                                    </label>
-                                ))}
+                                        Select all
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setCopyColumns([])}
+                                        className="flex-1 rounded-md border border-[#040DBF]/15 px-3 py-2 text-xs font-semibold text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm"
+                                    >
+                                        Clear
+                                    </button>
+                                </div>
+                                <div className="py-1">
+                                    {columns.map((column) => (
+                                        <label
+                                            key={column.key}
+                                            className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={copyColumns.includes(column.key)}
+                                                onChange={() => toggleCopyColumn(column.key)}
+                                                className="size-4 rounded border-zinc-300"
+                                            />
+                                            {column.label}
+                                        </label>
+                                    ))}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={copySelectedColumns}
+                                    disabled={isCopying || copyColumns.length === 0}
+                                    className="flex w-full items-center justify-center gap-2 rounded-md bg-zinc-950 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-45"
+                                >
+                                    {isCopying ? 'Copying...' : 'Copy selected columns'}
+                                    {!isCopying && <Check className="size-4" />}
+                                </button>
+                                {copyStatus && <p className="mt-2 text-xs font-medium text-zinc-500">{copyStatus}</p>}
                             </div>
-                            <button
-                                type="button"
-                                onClick={copySelectedColumns}
-                                disabled={isCopying || copyColumns.length === 0}
-                                className="flex w-full items-center justify-center gap-2 rounded-md bg-zinc-950 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-45"
-                            >
-                                {isCopying ? 'Copying...' : 'Copy selected columns'}
-                                {!isCopying && <Check className="size-4" />}
-                            </button>
-                            {copyStatus && <p className="mt-2 text-xs font-medium text-zinc-500">{copyStatus}</p>}
-                        </div>
-                    )}
-                </div>
-                <div ref={columnMenuRef} className="relative w-full sm:w-auto">
-                    <button
-                        type="button"
-                        onClick={() => setColumnMenuOpen((open) => !open)}
-                        className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm sm:w-auto"
-                    >
-                        <Columns3 className="size-4" />
-                        Columns
-                    </button>
-                    {columnMenuOpen && (
-                        <div className="absolute right-0 z-20 mt-2 w-64 rounded-lg border border-zinc-200 bg-white p-2 shadow-lg">
-                            <button
-                                type="button"
-                                onClick={() => setHiddenColumns([])}
-                                disabled={allColumnsVisible}
-                                className="mb-1 flex w-full items-center justify-center rounded-md border border-[#040DBF]/15 px-3 py-2 text-sm font-semibold text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm disabled:opacity-45 disabled:hover:border-[#040DBF]/15 disabled:hover:bg-transparent disabled:hover:text-[#020659] disabled:hover:shadow-none"
-                            >
-                                Select all columns
-                            </button>
-                            {columns.map((column) => {
-                                const checked = isVisible(column.key);
-                                const isLastVisible = checked && visibleColumns.length === 1;
+                        )}
+                    </div>
+                    <div ref={columnMenuRef} className="relative w-full sm:w-auto">
+                        <button
+                            type="button"
+                            onClick={() => setColumnMenuOpen((open) => !open)}
+                            className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm sm:w-auto"
+                        >
+                            <Columns3 className="size-4" />
+                            Columns
+                        </button>
+                        {columnMenuOpen && (
+                            <div className="absolute right-0 z-20 mt-2 w-64 rounded-lg border border-zinc-200 bg-white p-2 shadow-lg">
+                                <button
+                                    type="button"
+                                    onClick={() => setHiddenColumns([])}
+                                    disabled={allColumnsVisible}
+                                    className="mb-1 flex w-full items-center justify-center rounded-md border border-[#040DBF]/15 px-3 py-2 text-sm font-semibold text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm disabled:opacity-45 disabled:hover:border-[#040DBF]/15 disabled:hover:bg-transparent disabled:hover:text-[#020659] disabled:hover:shadow-none"
+                                >
+                                    Select all columns
+                                </button>
+                                {columns.map((column) => {
+                                    const checked = isVisible(column.key);
+                                    const isLastVisible = checked && visibleColumns.length === 1;
 
-                                return (
-                                    <label
-                                        key={column.key}
-                                        className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={checked}
-                                            disabled={isLastVisible}
-                                            onChange={() => toggleColumn(column.key)}
-                                            className="size-4 rounded border-zinc-300"
-                                        />
-                                        {column.label}
-                                    </label>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
+                                    return (
+                                        <label
+                                            key={column.key}
+                                            className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={checked}
+                                                disabled={isLastVisible}
+                                                onChange={() => toggleColumn(column.key)}
+                                                className="size-4 rounded border-zinc-300"
+                                            />
+                                            {column.label}
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
             <div className="overflow-x-auto">
@@ -756,8 +756,8 @@ function BulkArchiveMembersDialog({
                     </div>
                     <DialogTitle className="text-2xl text-[#010440]">Archive selected members?</DialogTitle>
                     <DialogDescription>
-                        This will move {count} selected {count === 1 ? 'member' : 'members'} to Archive. Their visit history stays available, and
-                        they can be restored later.
+                        This will move {count} selected {count === 1 ? 'member' : 'members'} to Archive. Their visit history stays available, and they
+                        can be restored later.
                     </DialogDescription>
                 </DialogHeader>
 

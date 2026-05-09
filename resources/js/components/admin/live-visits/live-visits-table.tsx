@@ -109,7 +109,7 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                             className="h-10 w-full rounded-lg border border-[#040DBF]/15 bg-white pr-3 pl-9 text-sm transition outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 sm:w-72"
                         />
                     </div>
-                    <div className="flex rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff] p-1">
+                    <div className="admin-segmented-tabs">
                         {visitTabs.map((tab) => {
                             const Icon = tab.icon;
                             const isActive = visitTab === tab.value;
@@ -119,13 +119,11 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                                     key={tab.value}
                                     type="button"
                                     onClick={() => setVisitTab(tab.value)}
-                                    className={`flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium transition ${
-                                        isActive ? 'bg-white text-[#010440] shadow-sm' : 'text-[#030A8C] hover:text-[#010440]'
-                                    }`}
+                                    className={`admin-segmented-tab h-8 px-3 text-xs ${isActive ? 'admin-segmented-tab-active' : ''}`}
                                 >
                                     <Icon className="size-3.5" />
                                     {tab.label}
-                                    <span className="text-[#030A8C]/60">{tab.count}</span>
+                                    <span className={isActive ? 'text-white/75' : 'text-[#030A8C]/60'}>{tab.count}</span>
                                 </button>
                             );
                         })}

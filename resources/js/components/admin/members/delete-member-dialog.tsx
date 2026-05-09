@@ -19,11 +19,13 @@ export function DeleteMemberDialog({ member, open, onOpenChange }: DeleteMemberD
             return;
         }
 
+        const memberId = member.id;
+
+        onOpenChange(false);
         setProcessing(true);
-        router.delete(`/admin/members/${member.id}`, {
+        router.delete(`/admin/members/${memberId}`, {
             preserveScroll: true,
             onFinish: () => setProcessing(false),
-            onSuccess: () => onOpenChange(false),
         });
     };
 
@@ -44,8 +46,8 @@ export function DeleteMemberDialog({ member, open, onOpenChange }: DeleteMemberD
                     </div>
                     <DialogTitle className="text-2xl text-[#010440]">Delete member?</DialogTitle>
                     <DialogDescription>
-                        This will move {member?.name ?? 'this member'} to Archived Members. Their visit history stays available, and the member can
-                        be restored later.
+                        This will move {member?.name ?? 'this member'} to Archived Members. Their visit history stays available, and the member can be
+                        restored later.
                     </DialogDescription>
                 </DialogHeader>
 

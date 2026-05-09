@@ -4,7 +4,28 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
+let openDialogCount = 0;
+
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) {
+    React.useEffect(() => {
+        if (!props.open) {
+            return;
+        }
+
+        openDialogCount += 1;
+        document.documentElement.classList.add('modal-scroll-locked');
+        document.body.classList.add('modal-scroll-locked');
+
+        return () => {
+            openDialogCount = Math.max(0, openDialogCount - 1);
+
+            if (openDialogCount === 0) {
+                document.documentElement.classList.remove('modal-scroll-locked');
+                document.body.classList.remove('modal-scroll-locked');
+            }
+        };
+    }, [props.open]);
+
     return <DialogPrimitive.Root {...props} />;
 }
 

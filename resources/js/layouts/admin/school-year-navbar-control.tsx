@@ -5,9 +5,9 @@ import type { SchoolYearRow } from '@/types/school-year';
 import type { SharedData } from '@/types/shared';
 import { router, useForm, usePage } from '@inertiajs/react';
 import { CalendarClock, CheckCircle2, Pencil, Plus, Save } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
 import type React from 'react';
 import type { FormEventHandler } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface SchoolYearForm {
     [key: string]: string | number | boolean;
@@ -46,7 +46,7 @@ export function SchoolYearNavbarControl() {
                     <span className="admin-school-year-value px-3 font-semibold text-[#010440]">{schoolYear?.name ?? 'Not configured'}</span>
                 </button>
 
-                <div className="pointer-events-none absolute right-0 top-full z-50 w-80 pt-2 opacity-0 transition group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+                <div className="pointer-events-none absolute top-full right-0 z-50 w-80 pt-2 opacity-0 transition group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100">
                     <div className="rounded-lg border border-[#040DBF]/10 bg-white p-4 text-sm shadow-xl shadow-[#040DBF]/10">
                         <div className="flex items-start gap-3">
                             <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#f6f8ff] text-[#040DBF]">
@@ -55,15 +55,16 @@ export function SchoolYearNavbarControl() {
                             <div className="min-w-0">
                                 <p className="font-semibold text-[#010440]">{schoolYear?.name ?? 'No active school year'}</p>
                                 <p className="mt-1 text-xs leading-5 text-[#020659]/70">
-                                    {schoolYear ? `${formatDisplayDate(schoolYear.starts_at)} to ${formatDisplayDate(schoolYear.ends_at)}` : 'Add a school year before logging student visits.'}
+                                    {schoolYear
+                                        ? `${formatDisplayDate(schoolYear.starts_at)} to ${formatDisplayDate(schoolYear.ends_at)}`
+                                        : 'Add a school year before logging student visits.'}
                                 </p>
                             </div>
                         </div>
                         {schoolYear && (
-                            <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                                 <MiniStat label="Minimum" value={schoolYear.minimum_visits} />
                                 <MiniStat label="Target" value={schoolYear.target_visits} />
-                                <MiniStat label="Students" value={schoolYear.student_enrollments_count} />
                             </div>
                         )}
                         <Button type="button" size="sm" className="mt-4 w-full" onClick={() => setDetailsOpen(true)}>
@@ -234,7 +235,7 @@ function SchoolYearDetailsDialog({
                         </DialogFooter>
                     </form>
 
-                    <div className="space-y-3">
+                    <div className="max-h-[min(31rem,calc(100vh-13rem))] space-y-3 overflow-y-auto pr-1">
                         {schoolYears.length > 0 ? (
                             schoolYears.map((schoolYear) => (
                                 <div key={schoolYear.id} className="rounded-lg border border-[#040DBF]/10 bg-white p-4 shadow-sm">
@@ -253,17 +254,28 @@ function SchoolYearDetailsDialog({
                                                 {formatDisplayDate(schoolYear.starts_at)} to {formatDisplayDate(schoolYear.ends_at)}
                                             </p>
                                         </div>
-                                        <Button type="button" variant="ghost" size="icon" onClick={() => beginEdit(schoolYear)} title="Edit school year">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => beginEdit(schoolYear)}
+                                            title="Edit school year"
+                                        >
                                             <Pencil className="size-4" />
                                         </Button>
                                     </div>
-                                    <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                                         <MiniStat label="Minimum" value={schoolYear.minimum_visits} />
                                         <MiniStat label="Target" value={schoolYear.target_visits} />
-                                        <MiniStat label="Students" value={schoolYear.student_enrollments_count} />
                                     </div>
                                     {!schoolYear.is_active && (
-                                        <Button type="button" variant="outline" size="sm" className="mt-3 w-full" onClick={() => activate(schoolYear)}>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="mt-3 w-full"
+                                            onClick={() => activate(schoolYear)}
+                                        >
                                             Make active
                                         </Button>
                                     )}
@@ -284,17 +296,7 @@ function SchoolYearDetailsDialog({
 const inputClass =
     'mt-2 h-10 w-full rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm text-[#010440] outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10';
 
-function Field({
-    label,
-    error,
-    className,
-    children,
-}: {
-    label: string;
-    error?: string;
-    className?: string;
-    children: React.ReactNode;
-}) {
+function Field({ label, error, className, children }: { label: string; error?: string; className?: string; children: React.ReactNode }) {
     return (
         <label className={`text-sm font-medium text-[#010440] ${className ?? ''}`}>
             {label}

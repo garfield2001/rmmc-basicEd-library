@@ -121,10 +121,13 @@ export function BulkStudentAssignmentPanel({ open, onOpenChange, onAssigned }: B
                         preview={preview}
                         onConfirm={() => {
                             if (preview?.memberIds.length) {
+                                const memberIds = preview.memberIds;
+
+                                onOpenChange(false);
                                 router.patch(
                                     '/admin/members/bulk-assign-students',
                                     {
-                                        member_ids: preview.memberIds,
+                                        member_ids: memberIds,
                                         section,
                                     },
                                     {
@@ -132,7 +135,6 @@ export function BulkStudentAssignmentPanel({ open, onOpenChange, onAssigned }: B
                                         onSuccess: () => {
                                             setPreview(null);
                                             setStudentIds('');
-                                            onOpenChange(false);
                                             onAssigned();
                                         },
                                     },
@@ -211,10 +213,10 @@ function PreviewList({ students }: { students: StudentAssignmentPreview['matched
     }
 
     return (
-        <div className="mt-3 min-h-0 flex-1 overflow-hidden rounded-lg border border-zinc-200 bg-white">
+        <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white">
             <p className="border-b border-zinc-200 px-3 py-2 text-sm font-semibold text-zinc-950">Matched students</p>
-            <div className="divide-y divide-zinc-200">
-                {students.slice(0, 5).map((student) => {
+            <div className="min-h-0 flex-1 divide-y divide-zinc-200 overflow-y-auto">
+                {students.map((student) => {
                     const hasCompleteDetails = Boolean(student.currentYearLevel && student.currentSection);
 
                     return (
@@ -236,9 +238,6 @@ function PreviewList({ students }: { students: StudentAssignmentPreview['matched
                     );
                 })}
             </div>
-            {students.length > 5 && (
-                <p className="border-t border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-500">+{students.length - 5} more matched students</p>
-            )}
         </div>
     );
 }

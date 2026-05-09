@@ -1,8 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { IconBadge } from '@/components/ui/icon-badge';
-import { themeOptions } from '@/layouts/admin/admin-layout.constants';
 import type { AdminSettingsForm } from '@/layouts/admin/admin-layout.types';
-import { useAdminThemePreference } from '@/layouts/admin/use-admin-theme-preference';
 import type { SharedData } from '@/types/shared';
 import { useForm, usePage } from '@inertiajs/react';
 import { Save, UserRound } from 'lucide-react';
@@ -11,7 +9,6 @@ import type { FormEventHandler } from 'react';
 export function ProfileSettingsForm() {
     const { auth } = usePage<SharedData>().props;
     const user = auth.user;
-    const { themePreference, setThemePreference } = useAdminThemePreference();
     const { data, setData, patch, processing, errors, reset } = useForm<AdminSettingsForm>({
         name: user?.name ?? '',
         email: user?.email ?? '',
@@ -61,35 +58,6 @@ export function ProfileSettingsForm() {
                         />
                         {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email}</p>}
                     </label>
-                </section>
-
-                <section>
-                    <p className="text-sm font-medium text-[#010440]">Appearance</p>
-                    <div className="mt-2 grid gap-2 sm:grid-cols-3">
-                        {themeOptions.map((option) => {
-                            const Icon = option.icon;
-                            const isSelected = themePreference === option.value;
-
-                            return (
-                                <button
-                                    key={option.value}
-                                    type="button"
-                                    onClick={() => setThemePreference(option.value)}
-                                    className={`rounded-lg border p-4 text-left transition ${
-                                        isSelected
-                                            ? 'border-[#040DBF] bg-[#040DBF] text-white shadow-sm shadow-[#040DBF]/25'
-                                            : 'border-[#040DBF]/10 bg-white text-[#020659] hover:border-[#040DBF]/30 hover:bg-[#f6f8ff]'
-                                    }`}
-                                >
-                                    <Icon className="size-4" />
-                                    <span className="mt-3 block text-sm font-semibold">{option.label}</span>
-                                    <span className={`mt-1 block text-xs ${isSelected ? 'text-blue-100' : 'text-[#030A8C]'}`}>
-                                        {option.description}
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
                 </section>
 
                 <PasswordFields data={data} errors={errors} setData={setData} />

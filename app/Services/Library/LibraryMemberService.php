@@ -93,6 +93,27 @@ class LibraryMemberService
         });
     }
 
+    /**
+     * @param  array<int, int>  $memberIds
+     */
+    public function permanentlyDeleteArchivedMany(array $memberIds): int
+    {
+        return DB::transaction(function () use ($memberIds): int {
+            $members = LibraryMember::onlyTrashed()
+                ->whereIn('id', $memberIds)
+                ->get();
+
+            $members->each(function (LibraryMember $member): void {
+                $photo = $member->photo;
+
+                $member->forceDelete();
+                $this->deletePhoto($photo);
+            });
+
+            return $members->count();
+        });
+    }
+
     public function previewStudentAssignment(string $studentIds, ?string $sectionName): array
     {
         $tokens = $this->parseSchoolIds($studentIds);

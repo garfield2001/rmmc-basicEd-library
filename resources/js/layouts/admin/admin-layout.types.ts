@@ -24,7 +24,9 @@ export interface AdminSidebarProps {
 
 export interface AdminNavbarProps {
     collapsed: boolean;
+    resolvedTheme: 'light' | 'dark';
     onCollapsedChange: (collapsed: boolean) => void;
+    onThemeToggle: () => void;
 }
 
 export interface AdminSettingsForm {

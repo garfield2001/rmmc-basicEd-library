@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PaginationControls } from '@/components/ui/pagination-controls';
+import { SelectInput } from '@/components/ui/select-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
@@ -8,23 +9,39 @@ import { type LibraryMemberRow } from '@/types/members';
 import { type Paginated } from '@/types/pagination';
 import { Head, router } from '@inertiajs/react';
 import { AlertTriangle, ArchiveRestore, BriefcaseBusiness, Download, GraduationCap, RotateCcw, Search, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 interface MembersArchiveProps {
     members: Paginated<LibraryMemberRow>;
     filters: {
         search: string;
         type: 'student' | 'employee';
+        year_level: string;
+        section: string;
+        department: string;
+        status: string;
+    };
+    filterOptions: {
+        yearLevels: string[];
+        sectionsByYearLevel: Record<string, string[]>;
+        departments: string[];
     };
 }
 
 type MemberType = 'student' | 'employee';
 
-export default function MembersArchive({ members, filters }: MembersArchiveProps) {
+export default function MembersArchive({ members, filters, filterOptions }: MembersArchiveProps) {
     const [search, setSearch] = useState(filters.search ?? '');
+    const [yearLevel, setYearLevel] = useState(filters.year_level ?? '');
+    const [section, setSection] = useState(filters.section ?? '');
+    const [department, setDepartment] = useState(filters.department ?? '');
+    const [status, setStatus] = useState(filters.status ?? '');
     const [tableLoading, setTableLoading] = useState(false);
     const [memberToRestore, setMemberToRestore] = useState<LibraryMemberRow | null>(null);
     const [memberToDelete, setMemberToDelete] = useState<LibraryMemberRow | null>(null);
+    const [exportDialogOpen, setExportDialogOpen] = useState(false);
+    const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
+    const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [processingAction, setProcessingAction] = useState<'restore' | 'delete' | null>(null);
     const activeType = filters.type === 'employee' ? 'employee' : 'student';
     const currentPage = members.meta?.current_page ?? members.current_page ?? 1;
@@ -32,7 +49,10 @@ export default function MembersArchive({ members, filters }: MembersArchiveProps
     const from = members.meta?.from ?? members.from ?? 0;
     const to = members.meta?.to ?? members.to ?? 0;
     const total = members.meta?.total ?? members.total ?? members.data.length;
-    const exportUrl = `/admin/members/archive/export?type=${activeType}${filters.search ? `&search=${encodeURIComponent(filters.search)}` : ''}`;
+    const availableSections = useMemo(() => {
+        return yearLevel ? (filterOptions.sectionsByYearLevel[yearLevel] ?? []) : [];
+    }, [filterOptions.sectionsByYearLevel, yearLevel]);
+    const selectedCount = selectedMemberIds.length;
     const tabs = [
         { label: 'Students', value: 'student' as const, icon: GraduationCap },
         { label: 'Employees', value: 'employee' as const, icon: BriefcaseBusiness },
@@ -46,39 +66,94 @@ export default function MembersArchive({ members, filters }: MembersArchiveProps
         setTableLoading(false);
     };
 
-    const visitArchive = (type: MemberType, nextSearch = search) => {
+    const archiveQuery = (type: MemberType, deleteAfterExport = false) => ({
+        type,
+        search: search || undefined,
+        year_level: type === 'student' ? yearLevel || undefined : undefined,
+        section: type === 'student' && yearLevel ? section || undefined : undefined,
+        department: type === 'employee' ? department || undefined : undefined,
+        status: status || undefined,
+        delete_after_export: deleteAfterExport ? 1 : undefined,
+    });
+
+    const exportUrl = (deleteAfterExport = false) => {
+        const params = new URLSearchParams();
+        Object.entries(archiveQuery(activeType, deleteAfterExport)).forEach(([key, value]) => {
+            if (value !== undefined) {
+                params.set(key, String(value));
+            }
+        });
+
+        return `/admin/members/archive/export?${params.toString()}`;
+    };
+
+    const visitArchive = (type: MemberType) => {
         startTableLoading();
-        router.get(
-            '/admin/members/archive',
-            {
-                type,
-                search: nextSearch || undefined,
-            },
+        setSelectedMemberIds([]);
+        router.get('/admin/members/archive', archiveQuery(type), {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true,
+            onFinish: stopTableLoading,
+        });
+    };
+
+    const changeYearLevel = (value: string) => {
+        setYearLevel(value);
+        setSection('');
+    };
+
+    const restoreMember = (member: LibraryMemberRow) => {
+        const memberId = member.id;
+
+        setMemberToRestore(null);
+        setProcessingAction('restore');
+        router.patch(
+            `/admin/members/archive/${memberId}/restore`,
+            {},
             {
                 preserveScroll: true,
-                preserveState: true,
-                replace: true,
-                onFinish: stopTableLoading,
+                onFinish: () => setProcessingAction(null),
             },
         );
     };
 
-    const restoreMember = (member: LibraryMemberRow) => {
-        setProcessingAction('restore');
-        router.patch(`/admin/members/archive/${member.id}/restore`, {}, {
+    const permanentlyDeleteMember = (member: LibraryMemberRow) => {
+        const memberId = member.id;
+
+        setMemberToDelete(null);
+        setProcessingAction('delete');
+        router.delete(`/admin/members/archive/${memberId}`, {
             preserveScroll: true,
             onFinish: () => setProcessingAction(null),
-            onSuccess: () => setMemberToRestore(null),
         });
     };
 
-    const permanentlyDeleteMember = (member: LibraryMemberRow) => {
+    const permanentlyDeleteSelectedMembers = () => {
+        setBulkDeleteOpen(false);
         setProcessingAction('delete');
-        router.delete(`/admin/members/archive/${member.id}`, {
+        router.delete('/admin/members/archive/bulk', {
+            data: {
+                member_ids: selectedMemberIds,
+                type: activeType,
+            },
             preserveScroll: true,
             onFinish: () => setProcessingAction(null),
-            onSuccess: () => setMemberToDelete(null),
+            onSuccess: () => setSelectedMemberIds([]),
         });
+    };
+
+    const toggleMemberSelection = (memberId: number) => {
+        setSelectedMemberIds((current) => (current.includes(memberId) ? current.filter((id) => id !== memberId) : [...current, memberId]));
+    };
+
+    const togglePageSelection = () => {
+        const pageIds = members.data.map((member) => member.id);
+        const allSelected = pageIds.length > 0 && pageIds.every((id) => selectedMemberIds.includes(id));
+
+        setSelectedMemberIds((current) =>
+            allSelected ? current.filter((id) => !pageIds.includes(id)) : Array.from(new Set([...current, ...pageIds])),
+        );
     };
 
     const visitPage = (url: string | null | undefined) => {
@@ -103,19 +178,17 @@ export default function MembersArchive({ members, filters }: MembersArchiveProps
                             description="Restore deleted library members or export archived records before permanent deletion."
                             actions={
                                 <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-                                    <Button asChild variant="outline" className="w-full sm:w-auto">
-                                        <a href={exportUrl}>
-                                            <Download className="size-4" />
-                                            Export Excel
-                                        </a>
+                                    <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => setExportDialogOpen(true)}>
+                                        <Download className="size-4" />
+                                        Export Excel
                                     </Button>
                                 </div>
                             }
                         />
 
-                        <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
+                        <section className="admin-surface rounded-xl border border-[#040DBF]/10 bg-white p-4 shadow-sm">
                             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                                <div className="grid grid-cols-2 gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-1">
+                                <div className="admin-segmented-tabs">
                                     {tabs.map((tab) => {
                                         const Icon = tab.icon;
                                         const isActive = activeType === tab.value;
@@ -125,9 +198,7 @@ export default function MembersArchive({ members, filters }: MembersArchiveProps
                                                 key={tab.value}
                                                 type="button"
                                                 onClick={() => visitArchive(tab.value)}
-                                                className={`flex h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-medium transition ${
-                                                    isActive ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'
-                                                }`}
+                                                className={`admin-segmented-tab ${isActive ? 'admin-segmented-tab-active' : ''}`}
                                             >
                                                 <Icon className="size-4" />
                                                 {tab.label}
@@ -139,26 +210,84 @@ export default function MembersArchive({ members, filters }: MembersArchiveProps
                                 <form
                                     onSubmit={(event) => {
                                         event.preventDefault();
-                                        visitArchive(activeType, search);
+                                        visitArchive(activeType);
                                     }}
-                                    className="relative flex-1 lg:max-w-xl"
+                                    className="grid flex-1 gap-3 lg:max-w-4xl lg:grid-cols-[minmax(0,1fr)_9rem] xl:grid-cols-[minmax(0,1fr)_12rem_12rem_10rem_9rem]"
                                 >
-                                    <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
-                                    <input
-                                        value={search}
-                                        onChange={(event) => setSearch(event.target.value)}
-                                        placeholder="Search archived members"
-                                        className="h-10 w-full rounded-lg border border-zinc-300 pr-3 pl-9 text-sm outline-none focus:border-zinc-500 focus:ring-4 focus:ring-zinc-100"
+                                    <div className="relative">
+                                        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#030A8C]/50" />
+                                        <input
+                                            value={search}
+                                            onChange={(event) => setSearch(event.target.value)}
+                                            placeholder="Search archived members"
+                                            className="h-10 w-full rounded-lg border border-[#040DBF]/15 bg-white pr-3 pl-9 text-sm text-[#010440] outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10"
+                                        />
+                                    </div>
+                                    {activeType === 'student' ? (
+                                        <>
+                                            <FilterSelect
+                                                value={yearLevel}
+                                                options={filterOptions.yearLevels}
+                                                placeholder="All year levels"
+                                                onChange={changeYearLevel}
+                                            />
+                                            <FilterSelect
+                                                value={section}
+                                                options={availableSections}
+                                                placeholder={yearLevel ? 'All sections' : 'Choose year'}
+                                                disabled={!yearLevel}
+                                                onChange={setSection}
+                                            />
+                                        </>
+                                    ) : (
+                                        <FilterSelect
+                                            value={department}
+                                            options={filterOptions.departments}
+                                            placeholder="All departments"
+                                            onChange={setDepartment}
+                                        />
+                                    )}
+                                    <FilterSelect
+                                        value={status}
+                                        options={['active', 'inactive']}
+                                        labels={{ active: 'Active', inactive: 'Inactive' }}
+                                        placeholder="All statuses"
+                                        onChange={setStatus}
                                     />
+                                    <Button type="submit">Apply</Button>
                                 </form>
                             </div>
                         </section>
 
                         <section className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+                            {selectedCount > 0 && (
+                                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#040DBF]/10 bg-[#f6f8ff] px-5 py-3">
+                                    <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#020659] shadow-sm">
+                                        {selectedCount.toLocaleString()} selected
+                                    </span>
+                                    <Button type="button" variant="danger" size="sm" onClick={() => setBulkDeleteOpen(true)}>
+                                        <Trash2 className="size-4" />
+                                        Delete selected permanently
+                                    </Button>
+                                </div>
+                            )}
                             <div className="overflow-x-auto">
                                 <Table className="min-w-[920px]">
                                     <TableHeader className="bg-zinc-50">
                                         <TableRow>
+                                            <TableHead className="w-12">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={
+                                                        members.data.length > 0 &&
+                                                        members.data.every((member) => selectedMemberIds.includes(member.id))
+                                                    }
+                                                    disabled={tableLoading || members.data.length === 0}
+                                                    onChange={togglePageSelection}
+                                                    className="size-4 rounded border-zinc-300"
+                                                    aria-label="Select archived members on this page"
+                                                />
+                                            </TableHead>
                                             <TableHead>Archived at</TableHead>
                                             <TableHead>School ID</TableHead>
                                             <TableHead>Name</TableHead>
@@ -173,6 +302,15 @@ export default function MembersArchive({ members, filters }: MembersArchiveProps
                                         ) : members.data.length > 0 ? (
                                             members.data.map((member) => (
                                                 <TableRow key={member.id}>
+                                                    <TableCell>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedMemberIds.includes(member.id)}
+                                                            onChange={() => toggleMemberSelection(member.id)}
+                                                            className="size-4 rounded border-zinc-300"
+                                                            aria-label={`Select ${member.name}`}
+                                                        />
+                                                    </TableCell>
                                                     <TableCell className="text-zinc-500">{formatDate(member.deleted_at)}</TableCell>
                                                     <TableCell className="font-medium">{member.school_id}</TableCell>
                                                     <TableCell>{member.name}</TableCell>
@@ -209,7 +347,7 @@ export default function MembersArchive({ members, filters }: MembersArchiveProps
                                             ))
                                         ) : (
                                             <TableRow>
-                                                <TableCell colSpan={6} className="px-5 py-14 text-center text-sm text-zinc-500">
+                                                <TableCell colSpan={7} className="px-5 py-14 text-center text-sm text-zinc-500">
                                                     <ArchiveRestore className="mx-auto mb-3 size-8 text-zinc-400" />
                                                     No archived {activeType === 'student' ? 'students' : 'employees'} found.
                                                 </TableCell>
@@ -237,16 +375,31 @@ export default function MembersArchive({ members, filters }: MembersArchiveProps
                         action="restore"
                         processing={processingAction === 'restore'}
                         open={Boolean(memberToRestore)}
-                        onOpenChange={(open) => !open && !processingAction && setMemberToRestore(null)}
-                        onConfirm={restoreMember}
+                        onOpenChange={(open) => !open && setMemberToRestore(null)}
+                        onConfirm={(member) => member && restoreMember(member)}
+                    />
+                    <ArchiveActionDialog
+                        member={null}
+                        count={selectedCount}
+                        action="bulk-delete"
+                        processing={processingAction === 'delete'}
+                        open={bulkDeleteOpen}
+                        onOpenChange={(open) => !open && setBulkDeleteOpen(false)}
+                        onConfirm={permanentlyDeleteSelectedMembers}
+                    />
+                    <ExportArchiveDialog
+                        open={exportDialogOpen}
+                        onOpenChange={setExportDialogOpen}
+                        exportOnlyUrl={exportUrl(false)}
+                        exportAndDeleteUrl={exportUrl(true)}
                     />
                     <ArchiveActionDialog
                         member={memberToDelete}
                         action="delete"
                         processing={processingAction === 'delete'}
                         open={Boolean(memberToDelete)}
-                        onOpenChange={(open) => !open && !processingAction && setMemberToDelete(null)}
-                        onConfirm={permanentlyDeleteMember}
+                        onOpenChange={(open) => !open && setMemberToDelete(null)}
+                        onConfirm={(member) => member && permanentlyDeleteMember(member)}
                     />
                 </AdminLayout>
             </main>
@@ -259,6 +412,9 @@ function ArchiveLoadingRows() {
         <>
             {Array.from({ length: 6 }).map((_, rowIndex) => (
                 <TableRow key={rowIndex} className="hover:bg-transparent">
+                    <TableCell>
+                        <SkeletonBlock className="size-4 rounded" />
+                    </TableCell>
                     <TableCell>
                         <SkeletonBlock className="h-3.5 w-32 rounded-full" />
                     </TableCell>
@@ -293,8 +449,87 @@ function SkeletonBlock({ className }: { className: string }) {
     return <div className={`animate-pulse bg-zinc-200/80 ${className}`} />;
 }
 
+function FilterSelect({
+    value,
+    options,
+    labels = {},
+    placeholder,
+    disabled = false,
+    onChange,
+}: {
+    value: string;
+    options: string[];
+    labels?: Record<string, string>;
+    placeholder: string;
+    disabled?: boolean;
+    onChange: (value: string) => void;
+}) {
+    return (
+        <SelectInput
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            disabled={disabled}
+            className="border-[#040DBF]/15 text-[#020659] focus:border-[#040DBF] focus:ring-[#040DBF]/10"
+        >
+            <option value="">{placeholder}</option>
+            {options.map((option) => (
+                <option key={option} value={option}>
+                    {labels[option] ?? option}
+                </option>
+            ))}
+        </SelectInput>
+    );
+}
+
+function ExportArchiveDialog({
+    open,
+    onOpenChange,
+    exportOnlyUrl,
+    exportAndDeleteUrl,
+}: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    exportOnlyUrl: string;
+    exportAndDeleteUrl: string;
+}) {
+    const exportArchive = (url: string) => {
+        onOpenChange(false);
+        window.location.href = url;
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                    <div className="mb-2 flex size-11 items-center justify-center rounded-lg bg-[#f6f8ff] text-[#030A8C]">
+                        <Download className="size-5" />
+                    </div>
+                    <DialogTitle className="text-2xl text-[#010440]">Export archived members?</DialogTitle>
+                    <DialogDescription>
+                        Export the currently filtered archived members. You can keep the exported records archived, or permanently delete those
+                        exported records after the file is prepared.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                        Cancel
+                    </Button>
+                    <Button type="button" variant="secondary" onClick={() => exportArchive(exportOnlyUrl)}>
+                        Export only
+                    </Button>
+                    <Button type="button" variant="danger" onClick={() => exportArchive(exportAndDeleteUrl)}>
+                        Export and delete
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 function ArchiveActionDialog({
     member,
+    count = 0,
     action,
     processing,
     open,
@@ -302,20 +537,33 @@ function ArchiveActionDialog({
     onConfirm,
 }: {
     member: LibraryMemberRow | null;
-    action: 'restore' | 'delete';
+    count?: number;
+    action: 'restore' | 'delete' | 'bulk-delete';
     processing: boolean;
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onConfirm: (member: LibraryMemberRow) => void;
+    onConfirm: (member: LibraryMemberRow | null) => void;
 }) {
-    const isDelete = action === 'delete';
+    const isDelete = action === 'delete' || action === 'bulk-delete';
     const Icon = isDelete ? AlertTriangle : RotateCcw;
 
     const confirm = () => {
+        if (action === 'bulk-delete') {
+            onConfirm(null);
+            return;
+        }
+
         if (member) {
             onConfirm(member);
         }
     };
+    const title = action === 'bulk-delete' ? 'Permanently delete selected?' : isDelete ? 'Permanently delete member?' : 'Restore member?';
+    const description =
+        action === 'bulk-delete'
+            ? `This will permanently delete ${count} selected archived ${count === 1 ? 'member' : 'members'} from the app. Export first if you need an offline copy.`
+            : isDelete
+              ? `This will permanently delete ${member?.name ?? 'this member'} and their archived records from the app. Export the archive first if you need an offline copy.`
+              : `This will restore ${member?.name ?? 'this member'} to Active Members so they can be managed and scanned again when eligible.`;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -328,12 +576,8 @@ function ArchiveActionDialog({
                     >
                         <Icon className="size-5" />
                     </div>
-                    <DialogTitle className="text-2xl text-[#010440]">{isDelete ? 'Permanently delete member?' : 'Restore member?'}</DialogTitle>
-                    <DialogDescription>
-                        {isDelete
-                            ? `This will permanently delete ${member?.name ?? 'this member'} and their archived records from the app. Export the archive first if you need an offline copy.`
-                            : `This will restore ${member?.name ?? 'this member'} to Active Members so they can be managed and scanned again when eligible.`}
-                    </DialogDescription>
+                    <DialogTitle className="text-2xl text-[#010440]">{title}</DialogTitle>
+                    <DialogDescription>{description}</DialogDescription>
                 </DialogHeader>
 
                 <DialogFooter>

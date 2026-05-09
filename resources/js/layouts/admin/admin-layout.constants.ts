@@ -1,5 +1,5 @@
-import { Activity, FileText, LayoutDashboard, Monitor, Moon, Sun, UsersRound } from 'lucide-react';
-import type { AdminNavItem, ThemePreference } from './admin-layout.types';
+import { Activity, FileText, LayoutDashboard, UsersRound } from 'lucide-react';
+import type { AdminNavItem } from './admin-layout.types';
 
 export const sidebarAnimationStorageKey = 'rmmc-admin-sidebar-entered-v1';
 
@@ -33,31 +33,5 @@ export const navItems: AdminNavItem[] = [
         label: 'Reports',
         href: '/admin/reports',
         icon: FileText,
-    },
-];
-
-export const themeOptions: {
-    value: ThemePreference;
-    label: string;
-    description: string;
-    icon: typeof Monitor;
-}[] = [
-    {
-        value: 'system',
-        label: 'System',
-        description: 'Follow this device',
-        icon: Monitor,
-    },
-    {
-        value: 'light',
-        label: 'Light',
-        description: 'Bright admin UI',
-        icon: Sun,
-    },
-    {
-        value: 'dark',
-        label: 'Dark',
-        description: 'Dim admin UI',
-        icon: Moon,
     },
 ];

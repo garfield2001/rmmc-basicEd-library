@@ -138,9 +138,7 @@ class LibraryVisitTest extends TestCase
 
         $this->post('/library-visits', [
             'rfid_uid' => '1000000001',
-        ])->assertSessionHasErrors([
-            'rfid_uid' => 'This ID was already scanned at 8:00 AM. A new visit can be recorded after 9:00 AM because repeat scans are limited to once per hour.',
-        ]);
+        ])->assertSessionHasErrors('rfid_uid');
 
         $this->assertSame(1, LibraryVisit::count());
     }
@@ -163,6 +161,33 @@ class LibraryVisitTest extends TestCase
         ])->assertSessionHasNoErrors();
 
         $this->assertSame(2, LibraryVisit::count());
+    }
+
+    public function test_admin_configured_repeat_scan_interval_is_enforced(): void
+    {
+        $this->travelTo(Carbon::parse('2026-09-01 10:00:00', config('app.timezone')));
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        $schoolYear = $this->createActiveSchoolYear();
+        $member = $this->createMember();
+
+        $this->actingAs($admin)->patch('/admin/scan-settings', [
+            'repeat_scan_interval_hours' => 2,
+            'scan_starts_at' => '08:00',
+            'scan_ends_at' => '17:00',
+        ])->assertSessionHasNoErrors();
+
+        LibraryVisit::create([
+            'library_member_id' => $member->id,
+            'school_year_id' => $schoolYear->id,
+            'visited_at' => now()->subMinutes(90),
+        ]);
+
+        $this->post('/library-visits', [
+            'rfid_uid' => '1000000001',
+        ])->assertSessionHasErrors('rfid_uid');
+
+        $this->assertSame(1, LibraryVisit::count());
     }
 
     public function test_student_without_active_school_year_enrollment_cannot_scan(): void
@@ -277,7 +302,7 @@ class LibraryVisitTest extends TestCase
         $this->assertSame($member->id, $visit->fresh()->member?->id);
     }
 
-    public function test_scan_is_allowed_before_seven_am_for_temporary_twenty_four_hour_access(): void
+    public function test_scan_before_window_is_rejected(): void
     {
         $this->travelTo(Carbon::parse('2026-09-01 06:59:00', config('app.timezone')));
 
@@ -286,12 +311,12 @@ class LibraryVisitTest extends TestCase
 
         $this->post('/library-visits', [
             'rfid_uid' => '1000000001',
-        ])->assertSessionHasNoErrors();
+        ])->assertSessionHasErrors('rfid_uid');
 
-        $this->assertSame(1, LibraryVisit::count());
+        $this->assertSame(0, LibraryVisit::count());
     }
 
-    public function test_scan_is_allowed_late_at_night_for_temporary_twenty_four_hour_access(): void
+    public function test_scan_after_window_is_rejected(): void
     {
         $this->travelTo(Carbon::parse('2026-09-01 23:30:00', config('app.timezone')));
 
@@ -300,9 +325,9 @@ class LibraryVisitTest extends TestCase
 
         $this->post('/library-visits', [
             'rfid_uid' => '1000000001',
-        ])->assertSessionHasNoErrors();
+        ])->assertSessionHasErrors('rfid_uid');
 
-        $this->assertSame(1, LibraryVisit::count());
+        $this->assertSame(0, LibraryVisit::count());
     }
 
     private function createActiveSchoolYear(): SchoolYear

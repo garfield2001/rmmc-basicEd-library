@@ -75,7 +75,10 @@ class AdminReportTest extends TestCase
             ->get('/admin/settings')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('admin/settings'));
+                ->component('admin/settings')
+                ->where('scanSettings.repeat_scan_interval_hours', 1)
+                ->where('scanSettings.scan_starts_at', '08:00')
+                ->where('scanSettings.scan_ends_at', '17:00'));
     }
 
     public function test_authenticated_user_can_export_visit_report_csv(): void

@@ -18,10 +18,11 @@ export function useAdminThemePreference() {
         window.localStorage.setItem(adminThemePreferenceStorageKey, preference);
     };
 
-    useAdminTheme(themePreference);
+    const resolvedTheme = useAdminTheme(themePreference);
 
     return {
         themePreference,
+        resolvedTheme,
         setThemePreference,
     };
 }

@@ -56,7 +56,11 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
             onError: (errors) => {
                 setScanError(typeof errors.rfid_uid === 'string' ? errors.rfid_uid : 'Unable to record this visit.');
             },
+            onSuccess: () => {
+                setScanTargets([]);
+            },
             onFinish: () => {
+                setScanData('rfid_uid', '');
                 resetScan('rfid_uid');
                 scanInputRef.current?.focus();
             },
@@ -112,6 +116,8 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
             setScanError(typeof errors.rfid_uid === 'string' ? errors.rfid_uid : 'Unable to record this visit.');
         },
         onFinish: () => {
+            setScanData('rfid_uid', '');
+            setScanTargets([]);
             resetScan('rfid_uid');
             scanInputRef.current?.focus();
         },

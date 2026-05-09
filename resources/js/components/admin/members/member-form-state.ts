@@ -62,3 +62,23 @@ export function isStepComplete(step: number, data: MemberFormData): boolean {
 
     return data.department.trim().length > 0;
 }
+
+export function firstStepWithErrors(errors: Partial<Record<keyof MemberFormData, string>>): number | null {
+    if (errors.rfid_uid || errors.school_id || errors.type) {
+        return 0;
+    }
+
+    if (errors.first_name || errors.middle_name || errors.last_name || errors.photo_file) {
+        return 1;
+    }
+
+    if (errors.year_level || errors.section || errors.department || errors.is_active) {
+        return 2;
+    }
+
+    return null;
+}
+
+export function stepHasErrors(step: number, errors: Partial<Record<keyof MemberFormData, string>>): boolean {
+    return firstStepWithErrors(errors) === step;
+}

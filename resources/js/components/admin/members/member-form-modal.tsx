@@ -4,7 +4,7 @@ import { type LibraryMemberRow } from '@/types/members';
 import { useForm } from '@inertiajs/react';
 import { useEffect, useRef, useState, type FormEventHandler } from 'react';
 import { DetailsSection, IdentitySection, ProfileSection } from './member-form-sections';
-import { initialMemberData, isStepComplete, memberFormSteps, type MemberFormData } from './member-form-state';
+import { firstStepWithErrors, initialMemberData, isStepComplete, memberFormSteps, stepHasErrors, type MemberFormData } from './member-form-state';
 
 interface MemberFormModalProps {
     member: LibraryMemberRow | null;
@@ -16,6 +16,7 @@ interface MemberFormModalProps {
 export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChange }: MemberFormModalProps) {
     const isEditing = Boolean(member);
     const [step, setStep] = useState(0);
+    const [attemptedStep, setAttemptedStep] = useState<number | null>(null);
     const scanBuffer = useRef('');
     const scanTimer = useRef<number | null>(null);
     const { data, setData, post, processing, errors, clearErrors, reset } = useForm<MemberFormData>(initialMemberData(member));
@@ -23,6 +24,7 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
         'mt-2 h-10 w-full rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm text-[#010440] outline-none transition focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10';
     const sectionClass = isEditing ? 'rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff] p-4' : 'space-y-4';
     const currentStepComplete = isStepComplete(step, data);
+    const currentStepHasErrors = stepHasErrors(step, errors);
 
     useEffect(() => {
         if (!open) {
@@ -30,6 +32,7 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
         }
 
         setStep(0);
+        setAttemptedStep(null);
         clearErrors();
         reset();
         setData(initialMemberData(member));
@@ -99,31 +102,58 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
                       section: '',
                   }),
         });
+        clearErrors('type', 'department', 'year_level', 'section');
+    };
+
+    const updateData = (field: keyof MemberFormData, value: MemberFormData[keyof MemberFormData]) => {
+        setData(field, value);
+        clearErrors(field);
     };
 
     const submit: FormEventHandler = (event) => {
         event.preventDefault();
 
         if (!isEditing && step < memberFormSteps.length - 1) {
+            setAttemptedStep(step);
+
             if (!currentStepComplete) {
                 return;
             }
 
+            if (currentStepHasErrors) {
+                return;
+            }
+
+            setAttemptedStep(null);
             setStep((current) => current + 1);
             return;
         }
 
         if (!isEditing && !memberFormSteps.every((_, index) => isStepComplete(index, data))) {
+            setAttemptedStep(step);
             return;
         }
 
         const options = {
             forceFormData: true,
             preserveScroll: true,
-            onSuccess: () => onOpenChange(false),
+            onSuccess: () => {
+                if (!member) {
+                    onOpenChange(false);
+                }
+            },
+            onError: (formErrors) => {
+                const errorStep = firstStepWithErrors(formErrors as Partial<Record<keyof MemberFormData, string>>);
+
+                if (errorStep !== null) {
+                    setStep(errorStep);
+                    setAttemptedStep(errorStep);
+                }
+            },
         };
 
         if (member) {
+            onOpenChange(false);
             post(`/admin/members/${member.id}`, options);
             return;
         }
@@ -181,7 +211,7 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
                         <IdentitySection
                             data={data}
                             errors={errors}
-                            setData={setData}
+                            setData={updateData}
                             inputClass={inputClass}
                             sectionClass={sectionClass}
                             isEditing={isEditing}
@@ -190,14 +220,14 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
                     )}
 
                     {(isEditing || step === 1) && (
-                        <ProfileSection data={data} errors={errors} setData={setData} inputClass={inputClass} sectionClass={sectionClass} />
+                        <ProfileSection data={data} errors={errors} setData={updateData} inputClass={inputClass} sectionClass={sectionClass} />
                     )}
 
                     {(isEditing || step === 2) && (
                         <DetailsSection
                             data={data}
                             errors={errors}
-                            setData={setData}
+                            setData={updateData}
                             inputClass={inputClass}
                             sectionClass={sectionClass}
                             member={member}
@@ -205,8 +235,12 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
                         />
                     )}
 
-                    {!isEditing && !currentStepComplete && (
-                        <p className="text-sm font-medium text-[#030A8C]">Complete the required fields in this step to continue.</p>
+                    {!isEditing && attemptedStep === step && (!currentStepComplete || currentStepHasErrors) && (
+                        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
+                            {currentStepHasErrors
+                                ? 'Resolve the highlighted errors in this step before continuing.'
+                                : 'Complete the required fields in this step before continuing.'}
+                        </p>
                     )}
 
                     <DialogFooter>

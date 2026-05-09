@@ -1,11 +1,12 @@
 import { type SharedData } from '@/types/shared';
 import { usePage } from '@inertiajs/react';
-import { Menu } from 'lucide-react';
+import { Menu, Moon, Sun } from 'lucide-react';
 import type { AdminNavbarProps } from './admin-layout.types';
 import { SchoolYearNavbarControl } from './school-year-navbar-control';
 
-export function AdminNavbar({ collapsed, onCollapsedChange }: AdminNavbarProps) {
+export function AdminNavbar({ collapsed, resolvedTheme, onCollapsedChange, onThemeToggle }: AdminNavbarProps) {
     const { name } = usePage<SharedData>().props;
+    const ThemeIcon = resolvedTheme === 'dark' ? Sun : Moon;
 
     return (
         <header className="admin-surface sticky top-0 z-40 flex flex-col gap-4 border-b border-[#040DBF]/10 bg-white/90 px-4 py-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6">
@@ -28,6 +29,15 @@ export function AdminNavbar({ collapsed, onCollapsedChange }: AdminNavbarProps) 
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+                <button
+                    type="button"
+                    onClick={onThemeToggle}
+                    className="flex size-9 items-center justify-center rounded-full border border-[#040DBF]/10 bg-white text-[#020659] shadow-sm transition hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#030A8C] hover:shadow-md hover:shadow-[#040DBF]/10"
+                    title={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                    aria-label={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                >
+                    <ThemeIcon className="size-4" aria-hidden="true" />
+                </button>
                 <SchoolYearNavbarControl />
             </div>
         </header>

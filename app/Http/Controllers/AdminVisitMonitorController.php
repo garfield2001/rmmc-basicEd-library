@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ScanTargetSearchRequest;
 use App\Services\Dashboard\AdminVisitMonitorService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,10 +17,10 @@ class AdminVisitMonitorController extends Controller
         ]);
     }
 
-    public function scanTargets(Request $request, AdminVisitMonitorService $visitMonitor): JsonResponse
+    public function scanTargets(ScanTargetSearchRequest $request, AdminVisitMonitorService $visitMonitor): JsonResponse
     {
         return response()->json([
-            'targets' => $visitMonitor->searchScanTargets($request->string('search')->toString()),
+            'targets' => $visitMonitor->searchScanTargets((string) ($request->validated('search') ?? '')),
         ]);
     }
 }

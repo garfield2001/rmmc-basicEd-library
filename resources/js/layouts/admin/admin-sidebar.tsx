@@ -137,7 +137,7 @@ export function AdminSidebar({ active, collapsed }: AdminSidebarProps) {
                     <span className={`${sidebarLabel} flex min-w-0 flex-1 items-center justify-between pl-3`}>
                         <span className="min-w-0 leading-5">
                             <span className="block truncate text-xs font-semibold text-[#010440]">{user?.name}</span>
-                            <span className="block truncate text-xs capitalize text-[#030A8C]">{user?.role}</span>
+                            <span className="block truncate text-xs text-[#030A8C] capitalize">{user?.role}</span>
                         </span>
                         <ChevronDown
                             className={`ml-2 size-4 shrink-0 transition-transform duration-200 ${adminMenuOpen ? 'rotate-180' : ''}`}
@@ -149,7 +149,7 @@ export function AdminSidebar({ active, collapsed }: AdminSidebarProps) {
                 {adminMenuOpen && (
                     <div
                         className={`absolute bottom-full left-0 mb-2 rounded-lg border border-[#040DBF]/10 bg-white p-1 shadow-lg shadow-[#040DBF]/10 ${
-                            collapsed ? 'w-56' : 'w-full'
+                            collapsed ? 'w-full lg:w-12' : 'w-full'
                         }`}
                         role="menu"
                     >
@@ -165,22 +165,26 @@ export function AdminSidebar({ active, collapsed }: AdminSidebarProps) {
                                         tool.active
                                             ? 'border-[#040DBF] bg-[#040DBF] text-white shadow-sm shadow-[#040DBF]/20 hover:bg-[#030A8C]'
                                             : 'border-transparent text-[#020659] hover:border-[#040DBF]/15 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm'
-                                    }`}
+                                    } ${collapsed ? 'lg:size-10 lg:justify-center lg:px-0' : ''}`}
                                     role="menuitem"
+                                    title={collapsed ? tool.label : undefined}
                                 >
                                     <Icon className="size-4 shrink-0" aria-hidden="true" />
-                                    <span className="truncate">{tool.label}</span>
+                                    <span className={`truncate ${collapsed ? 'lg:hidden' : ''}`}>{tool.label}</span>
                                 </Link>
                             );
                         })}
                         <button
                             type="button"
                             onClick={logout}
-                            className="flex h-10 w-full items-center gap-2 rounded-md border border-transparent px-3 text-left text-sm font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/15 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm"
+                            className={`flex h-10 w-full items-center gap-2 rounded-md border border-transparent px-3 text-left text-sm font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/15 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm ${
+                                collapsed ? 'lg:size-10 lg:justify-center lg:px-0' : ''
+                            }`}
                             role="menuitem"
+                            title={collapsed ? 'Log out' : undefined}
                         >
                             <LogOut className="size-4 shrink-0" aria-hidden="true" />
-                            <span className="truncate">Log out</span>
+                            <span className={`truncate ${collapsed ? 'lg:hidden' : ''}`}>Log out</span>
                         </button>
                     </div>
                 )}

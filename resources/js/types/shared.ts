@@ -11,6 +11,7 @@ export interface SharedData {
     };
     flash: {
         success?: string;
+        error?: string;
         recentVisit?: DashboardVisit | null;
     };
     [key: string]: unknown;

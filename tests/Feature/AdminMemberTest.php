@@ -243,6 +243,38 @@ class AdminMemberTest extends TestCase
         $this->assertDatabaseMissing('library_members', ['id' => $member->id]);
     }
 
+    public function test_admin_can_bulk_delete_and_export_delete_archived_members(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $schoolYear = SchoolYear::factory()->active()->create();
+        $members = LibraryMember::factory()->student()->count(3)->create();
+
+        $members->each(function (LibraryMember $member) use ($schoolYear): void {
+            StudentEnrollment::factory()->create([
+                'library_member_id' => $member->id,
+                'school_year_id' => $schoolYear->id,
+                'year_level' => 'Grade 5',
+                'section' => 'Rizal',
+            ]);
+            $member->delete();
+        });
+
+        $this->actingAs($admin)->delete('/admin/members/archive/bulk', [
+            'member_ids' => $members->take(2)->pluck('id')->all(),
+            'type' => LibraryMember::TYPE_STUDENT,
+        ])->assertRedirect('/admin/members/archive?type=student');
+
+        $this->assertDatabaseMissing('library_members', ['id' => $members[0]->id]);
+        $this->assertDatabaseMissing('library_members', ['id' => $members[1]->id]);
+        $this->assertSoftDeleted('library_members', ['id' => $members[2]->id]);
+
+        $this->actingAs($admin)->get('/admin/members/archive/export?type=student&delete_after_export=1')
+            ->assertOk()
+            ->assertHeader('Content-Type', 'application/vnd.ms-excel');
+
+        $this->assertDatabaseMissing('library_members', ['id' => $members[2]->id]);
+    }
+
     public function test_admin_can_bulk_archive_members(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

@@ -3,28 +3,29 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\BulkAssignLibraryMemberStudentsRequest;
+use App\Http\Requests\BulkDestroyArchivedLibraryMembersRequest;
 use App\Http\Requests\BulkDestroyLibraryMembersRequest;
+use App\Http\Requests\CopyLibraryMemberColumnsRequest;
 use App\Http\Requests\PreviewLibraryMemberStudentsRequest;
 use App\Http\Requests\StoreLibraryMemberRequest;
 use App\Http\Requests\UpdateLibraryMemberRequest;
 use App\Http\Resources\LibraryMemberResource;
 use App\Models\LibraryMember;
 use App\Models\SchoolYear;
-use App\Models\SchoolYearSection;
 use App\Services\Library\LibraryMemberService;
 use App\Services\Library\LibraryMemberTableService;
+use App\Services\SchoolYears\SchoolYearSectionService;
 use App\Support\Academics\AcademicLevels;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class LibraryMemberController extends Controller
 {
-    public function index(Request $request, LibraryMemberTableService $memberTable): Response
+    public function index(Request $request, LibraryMemberTableService $memberTable, SchoolYearSectionService $sections): Response
     {
         $type = $memberTable->typeOption($request->string('type')->toString());
         $search = $request->string('search')->toString();
@@ -61,20 +62,24 @@ class LibraryMemberController extends Controller
             ],
             'filterOptions' => [
                 'yearLevels' => $this->yearLevelOptions(),
-                'sectionsByYearLevel' => $this->sectionsByYearLevel($activeSchoolYearId),
+                'sectionsByYearLevel' => $sections->groupedByYearLevel($activeSchoolYearId),
             ],
         ]);
     }
 
-    public function archive(Request $request): Response
+    public function archive(Request $request, LibraryMemberTableService $memberTable, SchoolYearSectionService $sections): Response
     {
-        $type = in_array($request->string('type')->toString(), [LibraryMember::TYPE_STUDENT, LibraryMember::TYPE_EMPLOYEE], true)
-            ? $request->string('type')->toString()
-            : LibraryMember::TYPE_STUDENT;
+        $type = $memberTable->typeOption($request->string('type')->toString());
         $search = $request->string('search')->toString();
+        $yearLevel = $request->string('year_level')->toString();
+        $section = $request->string('section')->toString();
+        $department = $request->string('department')->toString();
+        $status = in_array($request->string('status')->toString(), ['active', 'inactive'], true)
+            ? $request->string('status')->toString()
+            : '';
         $activeSchoolYearId = SchoolYear::active()->value('id');
 
-        $members = $this->archivedMembersQuery($type, $search, $activeSchoolYearId)
+        $members = $this->archivedMembersQuery($type, $search, $activeSchoolYearId, $yearLevel, $section, $department, $status)
             ->orderByDesc('deleted_at')
             ->paginate(10)
             ->withQueryString()
@@ -85,6 +90,22 @@ class LibraryMemberController extends Controller
             'filters' => [
                 'search' => $search,
                 'type' => $type,
+                'year_level' => $yearLevel,
+                'section' => $section,
+                'department' => $department,
+                'status' => $status,
+            ],
+            'filterOptions' => [
+                'yearLevels' => $this->yearLevelOptions(),
+                'sectionsByYearLevel' => $sections->groupedByYearLevel($activeSchoolYearId),
+                'departments' => LibraryMember::onlyTrashed()
+                    ->where('type', LibraryMember::TYPE_EMPLOYEE)
+                    ->join('employees', 'employees.library_member_id', '=', 'library_members.id')
+                    ->distinct()
+                    ->orderBy('employees.department')
+                    ->pluck('employees.department')
+                    ->filter()
+                    ->values(),
             ],
         ]);
     }
@@ -123,27 +144,13 @@ class LibraryMemberController extends Controller
         return back()->with('success', "{$count} student records were updated.");
     }
 
-    public function copyColumns(Request $request, LibraryMemberTableService $memberTable): JsonResponse
+    public function copyColumns(CopyLibraryMemberColumnsRequest $request, LibraryMemberTableService $memberTable): JsonResponse
     {
-        $validated = $request->validate([
-            'columns' => ['required', 'array', 'min:1'],
-            'columns.*' => ['string', Rule::in(LibraryMemberTableService::COPY_COLUMNS)],
-            'type' => ['required', Rule::in([LibraryMember::TYPE_STUDENT, LibraryMember::TYPE_EMPLOYEE])],
-            'search' => ['nullable', 'string', 'max:255'],
-            'year_level' => ['nullable', 'string', 'max:255'],
-            'section' => ['nullable', 'string', 'max:255'],
-            'sort' => ['nullable', 'string', 'max:255'],
-            'direction' => ['nullable', 'string', Rule::in(['asc', 'desc'])],
-        ]);
-
+        $validated = $request->validated();
         $type = $validated['type'];
-        $columns = collect($validated['columns'])
-            ->unique()
-            ->values()
-            ->all();
         $activeSchoolYearId = SchoolYear::active()->value('id');
         $copyPayload = $memberTable->copyColumns(
-            $columns,
+            $request->uniqueColumns(),
             $type,
             (string) ($validated['search'] ?? ''),
             (string) ($validated['year_level'] ?? ''),
@@ -228,20 +235,39 @@ class LibraryMemberController extends Controller
             ->with('success', 'Archived member has been permanently deleted.');
     }
 
-    public function exportArchived(Request $request): HttpResponse
+    public function bulkPermanentlyDeleteArchived(BulkDestroyArchivedLibraryMembersRequest $request, LibraryMemberService $members): RedirectResponse
     {
-        $type = in_array($request->string('type')->toString(), [LibraryMember::TYPE_STUDENT, LibraryMember::TYPE_EMPLOYEE], true)
-            ? $request->string('type')->toString()
-            : LibraryMember::TYPE_STUDENT;
+        $validated = $request->validated();
+        $count = $members->permanentlyDeleteArchivedMany($validated['member_ids']);
+
+        return redirect()
+            ->route('admin.members.archive', ['type' => $validated['type']])
+            ->with('success', "{$count} archived members have been permanently deleted.");
+    }
+
+    public function exportArchived(Request $request, LibraryMemberService $members, LibraryMemberTableService $memberTable): HttpResponse
+    {
+        $type = $memberTable->typeOption($request->string('type')->toString());
         $search = $request->string('search')->toString();
+        $yearLevel = $request->string('year_level')->toString();
+        $section = $request->string('section')->toString();
+        $department = $request->string('department')->toString();
+        $status = in_array($request->string('status')->toString(), ['active', 'inactive'], true)
+            ? $request->string('status')->toString()
+            : '';
         $activeSchoolYearId = SchoolYear::active()->value('id');
+        $exportedMembers = $this->archivedMembersQuery($type, $search, $activeSchoolYearId, $yearLevel, $section, $department, $status)
+            ->with(['visits.schoolYear'])
+            ->orderByDesc('deleted_at')
+            ->get();
+
+        if ($request->boolean('delete_after_export')) {
+            $members->permanentlyDeleteArchivedMany($exportedMembers->pluck('id')->all());
+        }
 
         return response()
             ->view('members.archive-export-table', [
-                'members' => $this->archivedMembersQuery($type, $search, $activeSchoolYearId)
-                    ->with(['visits.schoolYear'])
-                    ->orderByDesc('deleted_at')
-                    ->get(),
+                'members' => $exportedMembers,
             ])
             ->header('Content-Type', 'application/vnd.ms-excel')
             ->header('Content-Disposition', 'attachment; filename="archived-library-members.xls"');
@@ -255,33 +281,15 @@ class LibraryMemberController extends Controller
         return AcademicLevels::options();
     }
 
-    /**
-     * @return array<int, string>
-     */
-    private function sectionsByYearLevel(?int $schoolYearId): array
-    {
-        if (! $schoolYearId) {
-            return [];
-        }
-
-        return SchoolYearSection::query()
-            ->forSchoolYear($schoolYearId)
-            ->select('year_level', 'name')
-            ->orderBy('year_level')
-            ->orderBy('name')
-            ->get()
-            ->groupBy('year_level')
-            ->map(fn ($enrollments) => $enrollments
-                ->pluck('name')
-                ->filter()
-                ->unique()
-                ->values()
-                ->all())
-            ->all();
-    }
-
-    private function archivedMembersQuery(string $type, string $search, ?int $activeSchoolYearId)
-    {
+    private function archivedMembersQuery(
+        string $type,
+        string $search,
+        ?int $activeSchoolYearId,
+        string $yearLevel = '',
+        string $section = '',
+        string $department = '',
+        string $status = '',
+    ) {
         return LibraryMember::onlyTrashed()
             ->with([
                 'student' => fn ($query) => $query->forSchoolYear($activeSchoolYearId),
@@ -289,6 +297,19 @@ class LibraryMemberController extends Controller
             ])
             ->ofType($type)
             ->search($search)
+            ->when($status === 'active', fn ($query) => $query->where('is_active', true))
+            ->when($status === 'inactive', fn ($query) => $query->where('is_active', false))
+            ->when($type === LibraryMember::TYPE_STUDENT && $activeSchoolYearId, function ($query) use ($activeSchoolYearId, $yearLevel, $section): void {
+                $query->whereHas('studentEnrollments', function ($query) use ($activeSchoolYearId, $yearLevel, $section): void {
+                    $query
+                        ->forSchoolYear($activeSchoolYearId)
+                        ->when($yearLevel, fn ($query) => $query->where('year_level', $yearLevel))
+                        ->when($section, fn ($query) => $query->where('section', $section));
+                });
+            })
+            ->when($type === LibraryMember::TYPE_EMPLOYEE && $department, function ($query) use ($department): void {
+                $query->whereHas('employee', fn ($query) => $query->where('department', $department));
+            })
             ->select('library_members.*');
     }
 }

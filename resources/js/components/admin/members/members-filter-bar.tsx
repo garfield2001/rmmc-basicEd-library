@@ -36,7 +36,7 @@ export function MembersFilterBar({
     return (
         <section className="min-h-30 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div className="grid grid-cols-2 gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-1">
+                <div className="admin-segmented-tabs">
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = activeType === tab.value;
@@ -46,9 +46,7 @@ export function MembersFilterBar({
                                 key={tab.value}
                                 type="button"
                                 onClick={() => onTypeChange(tab.value)}
-                                className={`flex h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-medium transition ${
-                                    isActive ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'
-                                }`}
+                                className={`admin-segmented-tab ${isActive ? 'admin-segmented-tab-active' : ''}`}
                             >
                                 <Icon className="size-4" />
                                 {tab.label}

@@ -116,7 +116,7 @@ export function SchoolYearSettings({ schoolYears, stats }: SchoolYearSettingsPro
                 </div>
             </form>
 
-            <div className="mt-5 overflow-hidden rounded-lg border border-[#040DBF]/10">
+            <div className="mt-5 max-h-128 overflow-y-auto rounded-lg border border-[#040DBF]/10">
                 {schoolYears.map((schoolYear) => (
                     <div
                         key={schoolYear.id}
@@ -133,8 +133,7 @@ export function SchoolYearSettings({ schoolYears, stats }: SchoolYearSettingsPro
                                 )}
                             </div>
                             <p className="mt-1 text-sm text-[#020659]/70">
-                                {formatDisplayDate(schoolYear.starts_at)} to {formatDisplayDate(schoolYear.ends_at)} -{' '}
-                                {schoolYear.student_enrollments_count} student records
+                                {formatDisplayDate(schoolYear.starts_at)} to {formatDisplayDate(schoolYear.ends_at)}
                             </p>
                         </div>
                         {!schoolYear.is_active && (

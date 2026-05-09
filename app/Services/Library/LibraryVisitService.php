@@ -5,16 +5,19 @@ namespace App\Services\Library;
 use App\Models\LibraryMember;
 use App\Models\LibraryVisit;
 use App\Models\SchoolYear;
+use App\Services\Settings\LibraryScanSettingsService;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
 class LibraryVisitService
 {
+    public function __construct(private readonly LibraryScanSettingsService $scanSettings) {}
+
     public function recordFromRFID(string $RFIDUid): LibraryVisit
     {
         $now = now();
 
-        /* $this->ensureScanWindowIsOpen($now); */
+        $this->ensureScanWindowIsOpen($now);
 
         $schoolYear = SchoolYear::active()->first();
 
@@ -93,31 +96,50 @@ class LibraryVisitService
 
     private function ensureScanWindowIsOpen(Carbon $now): void
     {
-        // TODO: Restore the official library operating-hour restriction once the final schedule is confirmed.
+        $window = $this->scanSettings->scanWindow();
+        $timezone = config('app.timezone');
+        $currentTime = $now->copy()->timezone($timezone);
+        $startsAt = Carbon::createFromFormat('H:i', $window['starts_at'], $timezone)->setDateFrom($currentTime);
+        $endsAt = Carbon::createFromFormat('H:i', $window['ends_at'], $timezone)->setDateFrom($currentTime);
+        $isOpen = $startsAt->lt($endsAt)
+            ? $currentTime->betweenIncluded($startsAt, $endsAt)
+            : $currentTime->gte($startsAt) || $currentTime->lte($endsAt);
 
+        if ($isOpen) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'rfid_uid' => "Library visits can only be scanned from {$startsAt->format('g:i A')} to {$endsAt->format('g:i A')}.",
+        ]);
     }
 
     private function ensureMemberCanRevisit(LibraryMember $member, int $schoolYearId, Carbon $now): void
     {
+        $intervalMinutes = $this->scanSettings->repeatScanIntervalMinutes();
         $lastVisit = $member->visits()
             ->where('school_year_id', $schoolYearId)
             ->latest('visited_at')
             ->first();
 
-        if (! $lastVisit || $lastVisit->visited_at->lte($now->copy()->subHour())) {
+        if (! $lastVisit || $lastVisit->visited_at->lte($now->copy()->subMinutes($intervalMinutes))) {
             return;
         }
 
         $nextAllowedAt = $lastVisit->visited_at
             ->copy()
-            ->addHour()
+            ->addMinutes($intervalMinutes)
             ->timezone(config('app.timezone'));
         $lastVisitAt = $lastVisit->visited_at
             ->copy()
             ->timezone(config('app.timezone'));
+        $intervalHours = (int) ($intervalMinutes / 60);
+        $intervalLabel = $intervalMinutes % 60 === 0
+            ? "{$intervalHours} ".str('hour')->plural($intervalHours)
+            : $intervalMinutes.' minutes';
 
         throw ValidationException::withMessages([
-            'rfid_uid' => "This ID was already scanned at {$lastVisitAt->format('g:i A')}. A new visit can be recorded after {$nextAllowedAt->format('g:i A')} because repeat scans are limited to once per hour.",
+            'rfid_uid' => "This ID was already scanned at {$lastVisitAt->format('g:i A')}. A new visit can be recorded after {$nextAllowedAt->format('g:i A')} because repeat scans are limited to once every {$intervalLabel}.",
         ]);
     }
 

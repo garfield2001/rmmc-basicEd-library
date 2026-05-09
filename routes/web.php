@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminProfileController;
+use App\Http\Controllers\AdminScanSettingsController;
 use App\Http\Controllers\AdminSchoolYearController;
 use App\Http\Controllers\AdminSettingsController;
 use App\Http\Controllers\AdminVisitMonitorController;
@@ -32,6 +33,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('admin/live-visits', AdminVisitMonitorController::class)->name('admin.live-visits');
     Route::get('admin/settings', AdminSettingsController::class)->name('admin.settings');
     Route::patch('admin/profile', [AdminProfileController::class, 'update'])->name('admin.profile.update');
+    Route::patch('admin/scan-settings', [AdminScanSettingsController::class, 'update'])->name('admin.scan-settings.update');
     Route::post('admin/school-years', [AdminSchoolYearController::class, 'store'])->name('admin.school-years.store');
     Route::patch('admin/school-years/{schoolYear}', [AdminSchoolYearController::class, 'update'])->name('admin.school-years.update');
     Route::patch('admin/school-years/{schoolYear}/activate', [AdminSchoolYearController::class, 'activate'])->name('admin.school-years.activate');
@@ -42,6 +44,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('admin/members/copy-columns', [LibraryMemberController::class, 'copyColumns'])->name('admin.members.copy-columns');
     Route::get('admin/members/archive', [LibraryMemberController::class, 'archive'])->name('admin.members.archive');
     Route::get('admin/members/archive/export', [LibraryMemberController::class, 'exportArchived'])->name('admin.members.archive.export');
+    Route::delete('admin/members/archive/bulk', [LibraryMemberController::class, 'bulkPermanentlyDeleteArchived'])->name('admin.members.archive.bulk-destroy');
     Route::patch('admin/members/archive/{member}/restore', [LibraryMemberController::class, 'restoreArchived'])->name('admin.members.archive.restore');
     Route::delete('admin/members/archive/{member}', [LibraryMemberController::class, 'permanentlyDeleteArchived'])->name('admin.members.archive.destroy');
     Route::resource('admin/members', LibraryMemberController::class)->except('show')->names('admin.members');

@@ -9,5 +9,4 @@ export interface SchoolYearRow extends SchoolYearSummary {
     minimum_visits: number;
     target_visits: number;
     is_active: boolean;
-    student_enrollments_count: number;
 }
