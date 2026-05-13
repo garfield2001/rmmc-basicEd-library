@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Support\Academics\AcademicLevels;
 
-class StudentSeeder extends LibraryMemberSeeder
+class StudentSeeder extends RegisteredVisitorSeeder
 {
     public function run(): void
     {
@@ -14,7 +14,7 @@ class StudentSeeder extends LibraryMemberSeeder
 
     /**
      * Add real school student details here.
-     * Shared member data, including RFID, lives in LibraryMemberSeeder.
+     * Shared member data, including RFID, lives in RegisteredVisitorSeeder.
      * Factory students are added separately after this list.
      *
      * @return array<int, array<string, mixed>>
@@ -77,7 +77,7 @@ class StudentSeeder extends LibraryMemberSeeder
      *
      * @return array<string, array<string, int>>
      */
-    private function enrollmentPlan(): array
+    private function rosterPlan(): array
     {
         return [
             'Kindergarten 1' => [
@@ -135,7 +135,7 @@ class StudentSeeder extends LibraryMemberSeeder
     {
         $students = [];
 
-        foreach ($this->enrollmentPlan() as $yearLevel => $sections) {
+        foreach ($this->rosterPlan() as $yearLevel => $sections) {
             $yearIndex = AcademicLevels::rank($yearLevel);
             $sectionNumber = 1;
 

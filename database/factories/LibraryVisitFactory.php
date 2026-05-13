@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\LibraryMember;
+use App\Models\RegisteredVisitor;
 use App\Models\LibraryVisit;
 use App\Models\SchoolYear;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -17,7 +17,7 @@ class LibraryVisitFactory extends Factory
     public function definition(): array
     {
         return [
-            'library_member_id' => LibraryMember::factory(),
+            'registered_visitor_id' => RegisteredVisitor::factory(),
             'school_year_id' => SchoolYear::factory(),
             'visited_at' => fake()->dateTimeBetween('-30 days', 'now'),
         ];

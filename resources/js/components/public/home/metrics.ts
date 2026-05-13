@@ -7,7 +7,7 @@ export function getAdministrationStats(home: HomePageData) {
         {
             label: 'Visits today',
             value: home.metrics.visitsToday.toLocaleString(),
-            detail: 'Successful RFID visits recorded since midnight.',
+            detail: 'Successful Radio-Frequency ID visits recorded since midnight.',
             icon: ScanLine,
         },
         {

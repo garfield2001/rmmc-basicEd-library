@@ -7,8 +7,9 @@ import { useRFIDScanListener } from '@/hooks/use-rfid-scan-listener';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
 import { csrfFetch } from '@/lib/http';
-import { type AdminVisitMonitor, type ScanTarget } from '@/types/dashboard';
+import { type AdminVisitMonitor, type DashboardVisit, type ScanTarget } from '@/types/dashboard';
 import { Head, useForm } from '@inertiajs/react';
+import { useEchoPublic } from '@laravel/echo-react';
 import { Clock3 } from 'lucide-react';
 import { type FormEventHandler, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -21,12 +22,17 @@ interface ScanForm {
     rfid_uid: string;
 }
 
+interface LibraryVisitRecordedEvent {
+    visit: DashboardVisit;
+}
+
 export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
     const scanInputRef = useRef<HTMLInputElement | null>(null);
+    const [liveVisitMonitor, setLiveVisitMonitor] = useState(visitMonitor);
     const [scanError, setScanError] = useState<string | undefined>();
     const [scanTargets, setScanTargets] = useState<ScanTarget[]>(visitMonitor.scanTargets ?? []);
     const [loadingScanTargets, setLoadingScanTargets] = useState(false);
-    const lastVisit = visitMonitor.todayVisits[0];
+    const lastVisit = liveVisitMonitor.todayVisits[0];
     const { formattedManilaTime } = useManilaClock();
     const {
         data: scanData,
@@ -46,6 +52,31 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
             textTerms: [target.name, target.firstName, target.lastName, target.type, target.detail].filter((term): term is string => Boolean(term)),
         }));
     }, [scanTargets]);
+
+    useEffect(() => {
+        setLiveVisitMonitor(visitMonitor);
+    }, [visitMonitor]);
+
+    useEchoPublic<LibraryVisitRecordedEvent>('library-visits', '.LibraryVisitRecorded', (event) => {
+        setLiveVisitMonitor((current) => {
+            if (current.todayVisits.some((visit) => visit.id === event.visit.id)) {
+                return current;
+            }
+
+            const isStudent = event.visit.member.type === 'student';
+            const isEmployee = event.visit.member.type === 'employee';
+
+            return {
+                ...current,
+                metrics: {
+                    visitsToday: current.metrics.visitsToday + 1,
+                    studentVisitsToday: current.metrics.studentVisitsToday + (isStudent ? 1 : 0),
+                    employeeVisitsToday: current.metrics.employeeVisitsToday + (isEmployee ? 1 : 0),
+                },
+                todayVisits: [event.visit, ...current.todayVisits],
+            };
+        });
+    });
 
     const submitScan: FormEventHandler = (event) => {
         event.preventDefault();
@@ -131,13 +162,19 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
                     <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
                             title="Live Visits"
-                            description="RFID visit recording, today's scanned members, and live student or employee attendance flow."
+                            description="Today's scanned visitors, Radio-Frequency ID visit recording, and live student or employee attendance flow."
                             actions={
                                 <div className="flex items-center gap-2 text-sm text-[#030A8C]">
                                     <Clock3 className="size-4" />
                                     <span>{formattedManilaTime}</span>
                                 </div>
                             }
+                        />
+
+                        <LiveVisitMetrics
+                            visitsToday={liveVisitMonitor.metrics.visitsToday}
+                            studentVisitsToday={liveVisitMonitor.metrics.studentVisitsToday}
+                            employeeVisitsToday={liveVisitMonitor.metrics.employeeVisitsToday}
                         />
 
                         <LiveVisitScanner
@@ -156,16 +193,10 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
                             emptyMessage="Scanned students and employees will appear in the live table below."
                         />
 
-                        <LiveVisitMetrics
-                            visitsToday={visitMonitor.metrics.visitsToday}
-                            studentVisitsToday={visitMonitor.metrics.studentVisitsToday}
-                            employeeVisitsToday={visitMonitor.metrics.employeeVisitsToday}
-                        />
-
                         <LiveVisitsTable
-                            visits={visitMonitor.todayVisits}
-                            studentCount={visitMonitor.metrics.studentVisitsToday}
-                            employeeCount={visitMonitor.metrics.employeeVisitsToday}
+                            visits={liveVisitMonitor.todayVisits}
+                            studentCount={liveVisitMonitor.metrics.studentVisitsToday}
+                            employeeCount={liveVisitMonitor.metrics.employeeVisitsToday}
                         />
                     </div>
                 </AdminLayout>

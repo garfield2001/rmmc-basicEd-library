@@ -2,8 +2,9 @@
 
 namespace App\Services\Library;
 
-use App\Models\LibraryMember;
+use App\Events\LibraryVisitRecorded;
 use App\Models\LibraryVisit;
+use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use App\Services\Settings\LibraryScanSettingsService;
 use Illuminate\Support\Carbon;
@@ -27,24 +28,30 @@ class LibraryVisitService
             ]);
         }
 
+        $this->ensureSchoolYearIsOpen($schoolYear, $now);
+
         $member = $this->resolveMember($RFIDUid, $schoolYear->id);
         $this->ensureMemberCanRevisit($member, $schoolYear->id, $now);
 
-        return LibraryVisit::create([
-            'library_member_id' => $member->id,
+        $visit = LibraryVisit::create([
+            'registered_visitor_id' => $member->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => $now,
         ])->load(['member', 'schoolYear']);
+
+        LibraryVisitRecorded::dispatch($visit);
+
+        return $visit;
     }
 
-    private function resolveMember(string $lookup, int $schoolYearId): LibraryMember
+    private function resolveMember(string $lookup, int $schoolYearId): RegisteredVisitor
     {
         $normalizedLookup = $this->normalizeLookup($lookup);
 
-        $members = LibraryMember::active()
+        $members = RegisteredVisitor::active()
             ->visitEligibleForSchoolYear($schoolYearId)
             ->get()
-            ->filter(function (LibraryMember $member) use ($normalizedLookup): bool {
+            ->filter(function (RegisteredVisitor $member) use ($normalizedLookup): bool {
                 $values = [
                     $member->rfid_uid,
                     $member->school_id,
@@ -60,10 +67,10 @@ class LibraryVisitService
             ->values();
 
         if ($members->isEmpty()) {
-            $members = LibraryMember::active()
+            $members = RegisteredVisitor::active()
                 ->visitEligibleForSchoolYear($schoolYearId)
                 ->get()
-                ->filter(function (LibraryMember $member) use ($normalizedLookup): bool {
+                ->filter(function (RegisteredVisitor $member) use ($normalizedLookup): bool {
                     $values = [
                         $member->rfid_uid,
                         $member->school_id,
@@ -85,12 +92,12 @@ class LibraryVisitService
 
         if ($members->count() > 1) {
             throw ValidationException::withMessages([
-                'rfid_uid' => 'Multiple active members match that search. Please use the RFID or school ID.',
+                'rfid_uid' => 'Multiple active registered visitors match that search. Please use the RFID or school ID.',
             ]);
         }
 
         throw ValidationException::withMessages([
-            'rfid_uid' => 'No active member enrolled or eligible for the active school year matches that RFID, name, or school ID.',
+            'rfid_uid' => 'No active registered visitor eligible for the active school year matches that RFID, name, or school ID.',
         ]);
     }
 
@@ -114,7 +121,23 @@ class LibraryVisitService
         ]);
     }
 
-    private function ensureMemberCanRevisit(LibraryMember $member, int $schoolYearId, Carbon $now): void
+    private function ensureSchoolYearIsOpen(SchoolYear $schoolYear, Carbon $now): void
+    {
+        $timezone = config('app.timezone');
+        $currentDate = $now->copy()->timezone($timezone)->startOfDay();
+        $startsAt = $schoolYear->starts_at->copy()->timezone($timezone)->startOfDay();
+        $endsAt = $schoolYear->ends_at->copy()->timezone($timezone)->endOfDay();
+
+        if ($currentDate->betweenIncluded($startsAt, $endsAt)) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'rfid_uid' => "The active school year {$schoolYear->name} is open for visits from {$startsAt->format('M j, Y')} to {$endsAt->format('M j, Y')}. Reports only count visits inside that range.",
+        ]);
+    }
+
+    private function ensureMemberCanRevisit(RegisteredVisitor $member, int $schoolYearId, Carbon $now): void
     {
         $intervalMinutes = $this->scanSettings->repeatScanIntervalMinutes();
         $lastVisit = $member->visits()

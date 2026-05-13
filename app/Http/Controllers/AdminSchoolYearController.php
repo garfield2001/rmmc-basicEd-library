@@ -14,7 +14,7 @@ class AdminSchoolYearController extends Controller
     {
         $schoolYear = $schoolYears->create($request->validated());
 
-        return back()->with('success', "School year {$schoolYear->name} has been created. Existing students were promoted with blank sections.");
+        return back()->with('success', "Transitioned to school year {$schoolYear->name}. Eligible students were promoted, and completed Grade 10 students were moved to Archive.");
     }
 
     public function activate(SchoolYear $schoolYear, SchoolYearService $schoolYears): RedirectResponse

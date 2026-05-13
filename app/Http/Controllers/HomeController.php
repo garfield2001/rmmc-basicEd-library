@@ -10,12 +10,8 @@ use Inertia\Response;
 
 class HomeController extends Controller
 {
-    public function index(Request $request, HomePageService $homePage): Response|RedirectResponse
+    public function index(HomePageService $homePage): Response|RedirectResponse
     {
-        if ($request->user()?->isAdmin()) {
-            return redirect()->route('admin.dashboard');
-        }
-
         return Inertia::render('index', [
             'home' => $homePage->data(),
         ]);

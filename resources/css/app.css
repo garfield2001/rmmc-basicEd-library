@@ -435,6 +435,17 @@
         color: #030a8c !important;
     }
 
+    .admin-theme-root .admin-danger-action {
+        border-color: rgb(254 202 202) !important;
+        color: #dc2626 !important;
+    }
+
+    .admin-theme-root .admin-danger-action:hover {
+        border-color: rgb(252 165 165) !important;
+        background-color: #fef2f2 !important;
+        color: #b91c1c !important;
+    }
+
     html[data-admin-theme='dark'] .admin-theme-root {
         background: linear-gradient(180deg, #040617 0%, #070b1d 45%, #0b1020 100%) !important;
         color: #e5edff !important;
@@ -520,6 +531,18 @@
     html[data-admin-theme='dark'] .admin-theme-root :is(button, a)[class*='bg-zinc-950'] {
         background-color: #1d4ed8 !important;
         color: #ffffff !important;
+    }
+
+    html[data-admin-theme='dark'] .admin-theme-root .admin-danger-action {
+        border-color: rgb(248 113 113 / 0.45) !important;
+        background-color: rgb(127 29 29 / 0.18) !important;
+        color: #fca5a5 !important;
+    }
+
+    html[data-admin-theme='dark'] .admin-theme-root .admin-danger-action:hover {
+        border-color: rgb(252 165 165 / 0.62) !important;
+        background-color: rgb(127 29 29 / 0.32) !important;
+        color: #fecaca !important;
     }
 
     html[data-admin-theme='dark'] .admin-theme-root .admin-school-year-badge {

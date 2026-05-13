@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Library Visit Report</title>
+    <title>Library Progress Report</title>
     <style>
         body { font-family: Arial, sans-serif; color: #111827; }
         h1 { font-size: 22px; margin-bottom: 4px; }
@@ -13,33 +13,44 @@
     </style>
 </head>
 <body>
-    <h1>Library Visit Report</h1>
+    <h1>Library Progress Report</h1>
+    <p>{{ ucfirst($report['summary']['member_type']) }}s · {{ $report['school_year']['name'] ?? 'No school year' }}</p>
     <p>{{ $report['filters']['start_date'] }} to {{ $report['filters']['end_date'] }}</p>
 
     <table>
         <thead>
             <tr>
-                <th>Visited At</th>
                 <th>School Year</th>
                 <th>School ID</th>
                 <th>Name</th>
                 <th>Type</th>
+                <th>Status</th>
                 <th>Year Level</th>
                 <th>Section</th>
                 <th>Department</th>
+                <th>Visits</th>
+                <th>Minimum Met</th>
+                <th>Target Met</th>
+                <th>Progress</th>
+                <th>Last Visit</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($report['rows'] as $row)
                 <tr>
-                    <td>{{ $row['visited_at'] }}</td>
-                    <td>{{ $row['school_year'] }}</td>
+                    <td>{{ $report['school_year']['name'] ?? '' }}</td>
                     <td>{{ $row['school_id'] }}</td>
                     <td>{{ $row['name'] }}</td>
                     <td>{{ $row['type'] }}</td>
+                    <td>{{ $row['status'] }}</td>
                     <td>{{ $row['year_level'] }}</td>
                     <td>{{ $row['section'] }}</td>
                     <td>{{ $row['department'] }}</td>
+                    <td>{{ $row['visit_count'] }}</td>
+                    <td>{{ $row['minimum_met'] ? 'Yes' : 'No' }}</td>
+                    <td>{{ $row['target_met'] ? 'Yes' : 'No' }}</td>
+                    <td>{{ $row['progress_percent'] }}%</td>
+                    <td>{{ $row['last_visit_at'] }}</td>
                 </tr>
             @endforeach
         </tbody>

@@ -33,7 +33,9 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
     const [search, setSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState<RowsPerPageOption>(defaultVisitsPerPage);
+    const [isPaging, setIsPaging] = useState(false);
     const tableBodyRef = useRef<HTMLTableSectionElement | null>(null);
+    const pagingTimerRef = useRef<number | null>(null);
     const visitTabs: { label: string; value: VisitTab; count: number; icon: typeof GraduationCap }[] = [
         { label: 'Students', value: 'student', count: studentCount, icon: GraduationCap },
         { label: 'Employees', value: 'employee', count: employeeCount, icon: BriefcaseBusiness },
@@ -86,6 +88,44 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
     useEffect(() => {
         setCurrentPage((page) => Math.min(page, totalPages));
     }, [totalPages]);
+
+    useEffect(() => {
+        return () => {
+            if (pagingTimerRef.current) {
+                window.clearTimeout(pagingTimerRef.current);
+            }
+        };
+    }, []);
+
+    const showBriefTableLoading = () => {
+        if (pagingTimerRef.current) {
+            window.clearTimeout(pagingTimerRef.current);
+        }
+
+        setIsPaging(true);
+        pagingTimerRef.current = window.setTimeout(() => {
+            setIsPaging(false);
+            pagingTimerRef.current = null;
+        }, 180);
+    };
+
+    const changePage = (nextPage: number) => {
+        if (nextPage === currentPage) {
+            return;
+        }
+
+        showBriefTableLoading();
+        setCurrentPage(nextPage);
+    };
+
+    const changeRowsPerPage = (nextRowsPerPage: RowsPerPageOption) => {
+        if (nextRowsPerPage === rowsPerPage) {
+            return;
+        }
+
+        showBriefTableLoading();
+        setRowsPerPage(nextRowsPerPage);
+    };
 
     return (
         <section className="admin-surface overflow-hidden rounded-lg border border-[#040DBF]/10 bg-white/95 shadow-sm">
@@ -149,7 +189,9 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                         </TableRow>
                     </TableHeader>
                     <TableBody ref={tableBodyRef}>
-                        {visibleVisits.length > 0 ? (
+                        {isPaging ? (
+                            <LiveVisitLoadingRows columns={visitTab === 'student' ? 5 : 4} />
+                        ) : visibleVisits.length > 0 ? (
                             <>
                                 {usesVirtualRows && virtualRows.paddingTop > 0 && (
                                     <VirtualTableSpacerRow height={virtualRows.paddingTop} colSpan={visitTab === 'student' ? 5 : 4} />
@@ -201,11 +243,31 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                 total={filteredVisits.length}
                 rowsPerPage={rowsPerPage}
                 rowsPerPageOptions={[5, 10, 30, 50, 100, 'all']}
-                onRowsPerPageChange={setRowsPerPage}
-                onPrevious={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                onNext={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                onRowsPerPageChange={changeRowsPerPage}
+                onPrevious={() => changePage(Math.max(1, currentPage - 1))}
+                onNext={() => changePage(Math.min(totalPages, currentPage + 1))}
             />
         </section>
+    );
+}
+
+function LiveVisitLoadingRows({ columns }: { columns: number }) {
+    return (
+        <>
+            {Array.from({ length: 5 }).map((_, rowIndex) => (
+                <TableRow key={rowIndex} className="hover:bg-transparent">
+                    {Array.from({ length: columns }).map((_, columnIndex) => (
+                        <TableCell key={columnIndex}>
+                            <span
+                                className={`admin-page-loading-line h-3 ${
+                                    columnIndex === 2 ? 'w-36' : columnIndex % 2 === 0 ? 'w-20' : 'w-28'
+                                } max-w-full`}
+                            />
+                        </TableCell>
+                    ))}
+                </TableRow>
+            ))}
+        </>
     );
 }
 

@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Library Visits Report</title>
+        <title>Library Progress Report</title>
         <style>
             body {
                 color: #18181b;
@@ -80,42 +80,46 @@
     <body>
         <header>
             <div>
-                <h1>Library Visits Report</h1>
+                <h1>Library Progress Report</h1>
+                <p>{{ ucfirst($report['summary']['member_type']) }}s &middot; {{ $report['school_year']['name'] ?? 'No school year' }}</p>
                 <p>{{ $report['filters']['start_date'] }} to {{ $report['filters']['end_date'] }}</p>
             </div>
             <button onclick="window.print()">Print / Save as PDF</button>
         </header>
 
         <section class="summary">
-            <div><strong>{{ $report['summary']['total'] }}</strong><br>Total visits</div>
-            <div><strong>{{ $report['summary']['students'] }}</strong><br>Students</div>
-            <div><strong>{{ $report['summary']['employees'] }}</strong><br>Employees</div>
+            <div><strong>{{ $report['summary']['members'] }}</strong><br>Visitors</div>
+            <div><strong>{{ $report['summary']['total_visits'] }}</strong><br>Total visits</div>
+            <div><strong>{{ $report['summary']['met_target'] }}</strong><br>Met target</div>
+            <div><strong>{{ $report['summary']['progress_percent'] }}%</strong><br>Overall progress</div>
         </section>
 
         <table>
             <thead>
                 <tr>
-                    <th>Visited at</th>
-                    <th>School year</th>
                     <th>School ID</th>
                     <th>Name</th>
-                    <th>Type</th>
+                    <th>Status</th>
                     <th>Year level</th>
                     <th>Section</th>
                     <th>Department</th>
+                    <th>Visits</th>
+                    <th>Progress</th>
+                    <th>Last visit</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($report['rows'] as $row)
                     <tr>
-                        <td>{{ $row['visited_at'] }}</td>
-                        <td>{{ $row['school_year'] }}</td>
                         <td>{{ $row['school_id'] }}</td>
                         <td>{{ $row['name'] }}</td>
-                        <td>{{ $row['type'] }}</td>
+                        <td>{{ $row['status'] }}</td>
                         <td>{{ $row['year_level'] ?? '-' }}</td>
                         <td>{{ $row['section'] ?? '-' }}</td>
                         <td>{{ $row['department'] ?? '-' }}</td>
+                        <td>{{ $row['visit_count'] }}</td>
+                        <td>{{ $row['progress_percent'] }}%</td>
+                        <td>{{ $row['last_visit_at'] ?? '-' }}</td>
                     </tr>
                 @endforeach
             </tbody>

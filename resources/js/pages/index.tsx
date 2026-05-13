@@ -10,7 +10,7 @@ import { useScanErrorDialog } from '@/components/public/home/use-scan-error-dial
 import { ToastProvider } from '@/components/ui/toaster';
 import { ScanSuccessModal } from '@/components/visits/scan-success-modal';
 import { type SharedData } from '@/types/shared';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { type FormEventHandler, useCallback, useEffect, useState } from 'react';
 
 export default function Index({ home }: IndexProps) {
@@ -46,27 +46,6 @@ export default function Index({ home }: IndexProps) {
         loginOpen: showLogin,
         scannerInputRef: scanner.inputRef,
     });
-
-    useEffect(() => {
-        if (showLogin) {
-            return;
-        }
-
-        const interval = window.setInterval(() => {
-            router.get(
-                window.location.pathname,
-                {},
-                {
-                    preserveScroll: true,
-                    preserveState: true,
-                    replace: true,
-                    only: ['home'],
-                },
-            );
-        }, 15000);
-
-        return () => window.clearInterval(interval);
-    }, [showLogin]);
 
     useEffect(() => {
         delete document.documentElement.dataset.adminTheme;

@@ -2,8 +2,8 @@
 
 namespace App\Services\Dashboard;
 
-use App\Models\LibraryMember;
 use App\Models\LibraryVisit;
+use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -18,23 +18,23 @@ class AdminDashboardService
         return [
             'schoolYear' => $schoolYear?->only(['id', 'name', 'minimum_visits', 'target_visits']),
             'metrics' => [
-                'activeMembers' => LibraryMember::active()->visitEligibleForSchoolYear($schoolYear?->id)->count(),
-                'enrolledStudents' => $schoolYear ? $schoolYear->studentEnrollments()->count() : 0,
+                'activeVisitors' => RegisteredVisitor::active()->visitEligibleForSchoolYear($schoolYear?->id)->count(),
+                'studentRecords' => $schoolYear ? $schoolYear->studentSchoolYearRecords()->count() : 0,
                 'visitsToday' => LibraryVisit::query()
                     ->whereDate('visited_at', $today)
                     ->when($schoolYear, fn ($query) => $query->where('school_year_id', $schoolYear->id), fn ($query) => $query->whereRaw('1 = 0'))
                     ->count(),
-                'employeeMembers' => LibraryMember::where('type', LibraryMember::TYPE_EMPLOYEE)->count(),
+                'employeeVisitors' => RegisteredVisitor::where('type', RegisteredVisitor::TYPE_EMPLOYEE)->count(),
             ],
-            'memberBreakdown' => [
-                'students' => LibraryMember::where('type', LibraryMember::TYPE_STUDENT)->count(),
-                'employees' => LibraryMember::where('type', LibraryMember::TYPE_EMPLOYEE)->count(),
+            'visitorBreakdown' => [
+                'students' => RegisteredVisitor::where('type', RegisteredVisitor::TYPE_STUDENT)->count(),
+                'employees' => RegisteredVisitor::where('type', RegisteredVisitor::TYPE_EMPLOYEE)->count(),
             ],
             'charts' => [
                 'visitsByDay' => $this->visitsByDay($schoolYear?->id),
                 'visitsByType' => [
-                    ['label' => 'Students', 'value' => $this->visitCountByType($schoolYear?->id, LibraryMember::TYPE_STUDENT)],
-                    ['label' => 'Employees', 'value' => $this->visitCountByType($schoolYear?->id, LibraryMember::TYPE_EMPLOYEE)],
+                    ['label' => 'Students', 'value' => $this->visitCountByType($schoolYear?->id, RegisteredVisitor::TYPE_STUDENT)],
+                    ['label' => 'Employees', 'value' => $this->visitCountByType($schoolYear?->id, RegisteredVisitor::TYPE_EMPLOYEE)],
                 ],
                 'studentVisitsByYearLevel' => $this->studentVisitsByYearLevel($schoolYear?->id),
             ],
@@ -76,18 +76,18 @@ class AdminDashboardService
         /** @var Collection<int, LibraryVisit> $visits */
         $visits = LibraryVisit::query()
             ->with([
-                'member.studentEnrollments',
+                'member.studentSchoolYearRecords',
             ])
             ->when($schoolYearId, fn ($query) => $query->where('school_year_id', $schoolYearId), fn ($query) => $query->whereRaw('1 = 0'))
-            ->whereHas('member', fn ($query) => $query->where('type', LibraryMember::TYPE_STUDENT))
+            ->whereHas('member', fn ($query) => $query->where('type', RegisteredVisitor::TYPE_STUDENT))
             ->get();
 
         return $visits
             ->groupBy(function (LibraryVisit $visit): string {
-                $enrollment = $visit->member?->studentEnrollments
+                $studentRecord = $visit->member?->studentSchoolYearRecords
                     ?->firstWhere('school_year_id', $visit->school_year_id);
 
-                return $enrollment?->year_level ?? 'Unassigned';
+                return $studentRecord?->year_level ?? 'Unassigned';
             })
             ->map(fn (Collection $group, string $label): array => [
                 'label' => $label,

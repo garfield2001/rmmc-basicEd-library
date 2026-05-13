@@ -10,12 +10,13 @@ return new class extends Migration
     {
         Schema::create('library_visits', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('library_member_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('registered_visitor_id')->constrained()->cascadeOnDelete();
             $table->foreignId('school_year_id')->constrained()->cascadeOnDelete();
             $table->timestamp('visited_at')->index();
             $table->timestamps();
+            $table->softDeletes();
 
-            $table->index(['library_member_id', 'school_year_id']);
+            $table->index(['registered_visitor_id', 'school_year_id']);
         });
     }
 

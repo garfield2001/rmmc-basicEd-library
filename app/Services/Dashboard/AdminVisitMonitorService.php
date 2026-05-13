@@ -2,7 +2,7 @@
 
 namespace App\Services\Dashboard;
 
-use App\Models\LibraryMember;
+use App\Models\RegisteredVisitor;
 use App\Models\LibraryVisit;
 use App\Models\SchoolYear;
 use Illuminate\Database\Eloquent\Builder;
@@ -22,10 +22,10 @@ class AdminVisitMonitorService
             'metrics' => [
                 'visitsToday' => (clone $todayVisitQuery)->count(),
                 'studentVisitsToday' => (clone $todayVisitQuery)
-                    ->whereHas('member', fn (Builder $query) => $query->where('type', LibraryMember::TYPE_STUDENT))
+                    ->whereHas('member', fn (Builder $query) => $query->where('type', RegisteredVisitor::TYPE_STUDENT))
                     ->count(),
                 'employeeVisitsToday' => (clone $todayVisitQuery)
-                    ->whereHas('member', fn (Builder $query) => $query->where('type', LibraryMember::TYPE_EMPLOYEE))
+                    ->whereHas('member', fn (Builder $query) => $query->where('type', RegisteredVisitor::TYPE_EMPLOYEE))
                     ->count(),
             ],
             'todayVisits' => LibraryVisit::query()
@@ -33,14 +33,14 @@ class AdminVisitMonitorService
                     'member:id,school_id,type,first_name,middle_name,last_name,photo',
                     'member.student' => fn ($query) => $query
                         ->select(
-                            'student_enrollments.id',
-                            'student_enrollments.library_member_id',
-                            'student_enrollments.school_year_id',
-                            'student_enrollments.year_level',
-                            'student_enrollments.section',
+                            'student_school_year_records.id',
+                            'student_school_year_records.registered_visitor_id',
+                            'student_school_year_records.school_year_id',
+                            'student_school_year_records.year_level',
+                            'student_school_year_records.section',
                         )
                         ->forSchoolYear($activeSchoolYearId),
-                    'member.employee:id,library_member_id,department',
+                    'member.employee:id,registered_visitor_id,department',
                 ])
                 ->whereDate('visited_at', $today)
                 ->when($activeSchoolYearId, fn (Builder $query) => $query->where('school_year_id', $activeSchoolYearId), fn (Builder $query) => $query->whereRaw('1 = 0'))
@@ -61,19 +61,19 @@ class AdminVisitMonitorService
 
         $activeSchoolYearId = SchoolYear::active()->value('id');
 
-        return LibraryMember::active()
+        return RegisteredVisitor::active()
             ->visitEligibleForSchoolYear($activeSchoolYearId)
             ->with([
                 'student' => fn ($query) => $query
                     ->select(
-                        'student_enrollments.id',
-                        'student_enrollments.library_member_id',
-                        'student_enrollments.school_year_id',
-                        'student_enrollments.year_level',
-                        'student_enrollments.section',
+                        'student_school_year_records.id',
+                        'student_school_year_records.registered_visitor_id',
+                        'student_school_year_records.school_year_id',
+                        'student_school_year_records.year_level',
+                        'student_school_year_records.section',
                     )
                     ->forSchoolYear($activeSchoolYearId),
-                'employee:id,library_member_id,department',
+                'employee:id,registered_visitor_id,department',
             ])
             ->where(function (Builder $query) use ($activeSchoolYearId, $search): void {
                 $query
@@ -81,7 +81,7 @@ class AdminVisitMonitorService
                     ->orWhere('rfid_uid', 'like', "{$search}%")
                     ->orWhere('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhereHas('studentEnrollments', function (Builder $query) use ($activeSchoolYearId, $search): void {
+                    ->orWhereHas('studentSchoolYearRecords', function (Builder $query) use ($activeSchoolYearId, $search): void {
                         $query
                             ->forSchoolYear($activeSchoolYearId)
                             ->where(function (Builder $query) use ($search): void {
@@ -96,7 +96,7 @@ class AdminVisitMonitorService
             ->orderBy('first_name')
             ->limit($limit)
             ->get()
-            ->map(fn (LibraryMember $member): array => $this->scanTargetData($member))
+            ->map(fn (RegisteredVisitor $member): array => $this->scanTargetData($member))
             ->all();
     }
 
@@ -117,7 +117,7 @@ class AdminVisitMonitorService
         ];
     }
 
-    private function scanTargetData(LibraryMember $member): array
+    private function scanTargetData(RegisteredVisitor $member): array
     {
         return [
             'id' => $member->id,
@@ -127,7 +127,7 @@ class AdminVisitMonitorService
             'firstName' => $member->first_name,
             'lastName' => $member->last_name,
             'type' => $member->type,
-            'detail' => $member->type === LibraryMember::TYPE_EMPLOYEE
+            'detail' => $member->type === RegisteredVisitor::TYPE_EMPLOYEE
                 ? $member->employee?->department
                 : collect([$member->student?->year_level, $member->student?->section])->filter()->join(' - '),
         ];

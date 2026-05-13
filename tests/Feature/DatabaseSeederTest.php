@@ -2,9 +2,10 @@
 
 namespace Tests\Feature;
 
-use App\Models\Employee;
-use App\Models\LibraryMember;
-use App\Models\StudentEnrollment;
+use App\Models\EmployeeProfile;
+use App\Models\RegisteredVisitor;
+use App\Models\SchoolYear;
+use App\Models\StudentSchoolYearRecord;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -13,43 +14,43 @@ class DatabaseSeederTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_database_seeder_creates_manual_members_and_factory_members_without_unique_conflicts(): void
+    public function test_database_seeder_creates_manual_and_factory_registered_visitors_without_unique_conflicts(): void
     {
         $this->seed();
 
         $this->assertDatabaseHas('users', [
-            'email' => 'admin@example.com',
+            'email' => 'admin@gmail.com',
             'role' => 'admin',
         ]);
 
-        $manualStudent = LibraryMember::query()
+        $manualStudent = RegisteredVisitor::query()
             ->where('school_id', '2316020010')
-            ->where('type', LibraryMember::TYPE_STUDENT)
+            ->where('type', RegisteredVisitor::TYPE_STUDENT)
             ->firstOrFail();
 
         $this->assertMatchesRegularExpression('/^\d{10}$/', $manualStudent->rfid_uid);
 
-        $this->assertDatabaseMissing('library_members', [
+        $this->assertDatabaseMissing('registered_visitors', [
             'school_id' => 'STU-1001',
         ]);
 
-        $this->assertDatabaseHas('library_members', [
+        $this->assertDatabaseHas('registered_visitors', [
             'school_id' => 'OP1-308',
             'rfid_uid' => '0163313553',
-            'type' => LibraryMember::TYPE_EMPLOYEE,
+            'type' => RegisteredVisitor::TYPE_EMPLOYEE,
         ]);
 
-        $this->assertSame(1, User::query()->where('email', 'admin@example.com')->count());
-        $this->assertSame(LibraryMember::query()->count(), LibraryMember::query()->distinct('rfid_uid')->count('rfid_uid'));
-        $this->assertSame(LibraryMember::query()->count(), LibraryMember::query()->distinct('school_id')->count('school_id'));
+        $this->assertSame(1, User::query()->where('email', 'admin@gmail.com')->count());
+        $this->assertSame(RegisteredVisitor::query()->count(), RegisteredVisitor::query()->distinct('rfid_uid')->count('rfid_uid'));
+        $this->assertSame(RegisteredVisitor::query()->count(), RegisteredVisitor::query()->distinct('school_id')->count('school_id'));
         $this->assertTrue(
-            LibraryMember::query()
-                ->where('type', LibraryMember::TYPE_STUDENT)
+            RegisteredVisitor::query()
+                ->where('type', RegisteredVisitor::TYPE_STUDENT)
                 ->pluck('school_id')
                 ->every(fn (string $schoolId): bool => preg_match('/^\d{10}$/', $schoolId) === 1),
         );
-        $this->assertGreaterThanOrEqual(600, StudentEnrollment::query()->count());
-        $this->assertGreaterThanOrEqual(50, Employee::query()->count());
+        $this->assertGreaterThanOrEqual(600, StudentSchoolYearRecord::query()->count());
+        $this->assertGreaterThanOrEqual(50, EmployeeProfile::query()->count());
 
         $teachingDepartments = [
             'Basic Education Faculty',
@@ -67,17 +68,18 @@ class DatabaseSeederTest extends TestCase
         ];
 
         $this->assertTrue(
-            Employee::query()
+            EmployeeProfile::query()
                 ->pluck('department')
                 ->every(fn (string $department): bool => in_array($department, $teachingDepartments, true)),
         );
 
-        $studentEnrollments = StudentEnrollment::query();
+        $activeSchoolYearId = SchoolYear::query()->where('name', '2026-2027')->value('id');
+        $studentSchoolYearRecords = StudentSchoolYearRecord::query()->where('school_year_id', $activeSchoolYearId);
 
         foreach (['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4'] as $yearLevel) {
             $this->assertSame(
                 1,
-                (clone $studentEnrollments)
+                (clone $studentSchoolYearRecords)
                     ->where('year_level', $yearLevel)
                     ->distinct('section')
                     ->count('section'),
@@ -85,7 +87,7 @@ class DatabaseSeederTest extends TestCase
         }
 
         foreach (['Grade 5', 'Grade 6'] as $yearLevel) {
-            $sectionCount = (clone $studentEnrollments)
+            $sectionCount = (clone $studentSchoolYearRecords)
                 ->where('year_level', $yearLevel)
                 ->distinct('section')
                 ->count('section');
@@ -94,7 +96,7 @@ class DatabaseSeederTest extends TestCase
             $this->assertLessThanOrEqual(3, $sectionCount);
         }
 
-        (clone $studentEnrollments)
+        (clone $studentSchoolYearRecords)
             ->selectRaw('year_level, section, count(*) as student_count')
             ->groupBy('year_level', 'section')
             ->get()

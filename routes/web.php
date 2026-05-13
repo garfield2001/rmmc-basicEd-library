@@ -8,7 +8,7 @@ use App\Http\Controllers\AdminSettingsController;
 use App\Http\Controllers\AdminVisitMonitorController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\LibraryMemberController;
+use App\Http\Controllers\RegisteredVisitorController;
 use App\Http\Controllers\LibraryVisitController;
 use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
@@ -38,16 +38,17 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::patch('admin/school-years/{schoolYear}', [AdminSchoolYearController::class, 'update'])->name('admin.school-years.update');
     Route::patch('admin/school-years/{schoolYear}/activate', [AdminSchoolYearController::class, 'activate'])->name('admin.school-years.activate');
 
-    Route::post('admin/members/preview-student-assignment', [LibraryMemberController::class, 'previewStudentAssignment'])->name('admin.members.preview-student-assignment');
-    Route::patch('admin/members/bulk-assign-students', [LibraryMemberController::class, 'bulkAssignStudents'])->name('admin.members.bulk-assign-students');
-    Route::delete('admin/members/bulk', [LibraryMemberController::class, 'bulkDestroy'])->name('admin.members.bulk-destroy');
-    Route::post('admin/members/copy-columns', [LibraryMemberController::class, 'copyColumns'])->name('admin.members.copy-columns');
-    Route::get('admin/members/archive', [LibraryMemberController::class, 'archive'])->name('admin.members.archive');
-    Route::get('admin/members/archive/export', [LibraryMemberController::class, 'exportArchived'])->name('admin.members.archive.export');
-    Route::delete('admin/members/archive/bulk', [LibraryMemberController::class, 'bulkPermanentlyDeleteArchived'])->name('admin.members.archive.bulk-destroy');
-    Route::patch('admin/members/archive/{member}/restore', [LibraryMemberController::class, 'restoreArchived'])->name('admin.members.archive.restore');
-    Route::delete('admin/members/archive/{member}', [LibraryMemberController::class, 'permanentlyDeleteArchived'])->name('admin.members.archive.destroy');
-    Route::resource('admin/members', LibraryMemberController::class)->except('show')->names('admin.members');
+    Route::post('admin/registered-visitors/preview-student-assignment', [RegisteredVisitorController::class, 'previewStudentAssignment'])->name('admin.registered-visitors.preview-student-assignment');
+    Route::patch('admin/registered-visitors/bulk-assign-students', [RegisteredVisitorController::class, 'bulkAssignStudents'])->name('admin.registered-visitors.bulk-assign-students');
+    Route::delete('admin/registered-visitors/bulk', [RegisteredVisitorController::class, 'bulkDestroy'])->name('admin.registered-visitors.bulk-destroy');
+    Route::post('admin/registered-visitors/copy-columns', [RegisteredVisitorController::class, 'copyColumns'])->name('admin.registered-visitors.copy-columns');
+    Route::post('admin/registered-visitors/import', [RegisteredVisitorController::class, 'import'])->name('admin.registered-visitors.import');
+    Route::get('admin/registered-visitors/archive', [RegisteredVisitorController::class, 'archive'])->name('admin.registered-visitors.archive');
+    Route::get('admin/registered-visitors/archive/export', [RegisteredVisitorController::class, 'exportArchived'])->name('admin.registered-visitors.archive.export');
+    Route::delete('admin/registered-visitors/archive/bulk', [RegisteredVisitorController::class, 'bulkPermanentlyDeleteArchived'])->name('admin.registered-visitors.archive.bulk-destroy');
+    Route::patch('admin/registered-visitors/archive/{member}/restore', [RegisteredVisitorController::class, 'restoreArchived'])->name('admin.registered-visitors.archive.restore');
+    Route::delete('admin/registered-visitors/archive/{member}', [RegisteredVisitorController::class, 'permanentlyDeleteArchived'])->name('admin.registered-visitors.archive.destroy');
+    Route::resource('admin/registered-visitors', RegisteredVisitorController::class)->except('show')->names('admin.registered-visitors');
 
     Route::get('admin/reports', [ReportController::class, 'index'])->name('admin.reports');
     Route::get('admin/reports/visits.csv', [ReportController::class, 'exportCsv'])->name('admin.reports.visits.csv');

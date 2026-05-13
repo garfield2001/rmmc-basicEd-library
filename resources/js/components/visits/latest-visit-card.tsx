@@ -42,7 +42,7 @@ function memberTypeLabel(visit: DashboardVisit) {
         return 'Employee';
     }
 
-    return 'Unknown member type';
+    return 'Unknown visitor type';
 }
 
 function academicOrWorkDetail(visit: DashboardVisit) {
@@ -84,7 +84,7 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                             });
                         }}
                         className="group relative cursor-pointer rounded-xl border border-zinc-200 bg-white/90 p-5 text-left shadow-sm transition duration-200 ease-out hover:scale-[1.01] hover:border-zinc-300 hover:bg-white hover:shadow-md focus:ring-4 focus:ring-zinc-100 focus:outline-none"
-                        aria-label={`View full details for ${visit.member.name ?? 'latest scanned member'}`}
+                        aria-label={`View full details for ${visit.member.name ?? 'latest scanned visitor'}`}
                         aria-describedby={tooltipId}
                     >
                         <div className="flex items-center justify-between gap-4">
@@ -98,7 +98,7 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                         </div>
 
                         <div className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
-                            <DetailItem label="Name" value={visit.member.name ?? 'Unknown member'} />
+                            <DetailItem label="Name" value={visit.member.name ?? 'Unknown visitor'} />
                             <DetailItem label="ID" value={visit.member.schoolId ?? 'No ID'} />
                             <DetailItem
                                 label={visit.member.type === 'student' ? 'Year and section' : 'Department'}
@@ -138,8 +138,8 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                         <div className="h-2 bg-[linear-gradient(90deg,#040DBF_0%,#030A8C_52%,#010440_100%)]" />
                         <DialogHeader>
                             <div className="px-6 pt-6">
-                                <DialogTitle className="text-2xl text-[#010440]">Latest scanned member</DialogTitle>
-                                <DialogDescription className="mt-1">Complete details for the most recent RFID visit.</DialogDescription>
+                                <DialogTitle className="text-2xl text-[#010440]">Latest scanned visitor</DialogTitle>
+                                <DialogDescription className="mt-1">Complete details for the most recent Radio-Frequency ID visit.</DialogDescription>
                             </div>
                         </DialogHeader>
 
@@ -158,14 +158,14 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                                     </span>
                                 </div>
 
-                                <p className="mt-5 text-3xl font-semibold tracking-normal text-[#010440]">{visit.member.name ?? 'Unknown member'}</p>
+                                <p className="mt-5 text-3xl font-semibold tracking-normal text-[#010440]">{visit.member.name ?? 'Unknown visitor'}</p>
                                 <p className="mt-2 flex items-center gap-2 text-sm text-[#030A8C]">
                                     <IdCard className="size-4" />
                                     {visit.member.schoolId ?? 'No ID'}
                                 </p>
 
                                 <div className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
-                                    <DetailItem label="Member type" value={memberTypeLabel(visit)} />
+                                    <DetailItem label="Visitor type" value={memberTypeLabel(visit)} />
                                     <DetailItem label="Recorded at" value={formatVisitDateTime(visit)} />
                                     {visit.member.type === 'employee' ? (
                                         <DetailItem label="Department" value={visit.member.department} />
@@ -183,8 +183,8 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                                         Visit record
                                     </div>
                                     <p className="mt-2 leading-6">
-                                        This detail view is read-only. Edit member profile information from Library Members when a name, photo, or
-                                        department needs correction.
+                                        This detail view is read-only. Edit visitor profile information from Registered Visitors when a name, photo,
+                                        or department needs correction.
                                     </p>
                                 </div>
                             </div>

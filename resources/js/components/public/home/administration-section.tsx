@@ -52,8 +52,8 @@ export function AdministrationSection({
                         <p className="public-display-label font-semibold text-blue-200">Staff Area</p>
                         <h2 className="public-admin-title mt-2 font-semibold tracking-normal text-white">Administration and records</h2>
                         <p className="public-admin-copy mt-3 max-w-4xl text-blue-100 sm:mt-4">
-                            Library staff can sign in here to manage member profiles, verify visit activity, export attendance records, and maintain
-                            scanner settings.
+                            Library staff can sign in here to manage registered visitor profiles, verify visit activity, export attendance records,
+                            and maintain scanner settings.
                         </p>
                     </div>
 

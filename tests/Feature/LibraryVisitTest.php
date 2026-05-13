@@ -2,10 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Models\LibraryMember;
+use App\Models\AppSetting;
 use App\Models\LibraryVisit;
+use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
-use App\Models\StudentEnrollment;
+use App\Models\StudentSchoolYearRecord;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -31,7 +32,7 @@ class LibraryVisitTest extends TestCase
         $response->assertSessionHas('recentVisit');
         $response->assertSessionMissing('success');
         $this->assertDatabaseHas('library_visits', [
-            'library_member_id' => $member->id,
+            'registered_visitor_id' => $member->id,
             'school_year_id' => $schoolYear->id,
         ]);
     }
@@ -48,7 +49,7 @@ class LibraryVisitTest extends TestCase
         ])->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('library_visits', [
-            'library_member_id' => $member->id,
+            'registered_visitor_id' => $member->id,
             'school_year_id' => $schoolYear->id,
         ]);
     }
@@ -65,7 +66,7 @@ class LibraryVisitTest extends TestCase
         ])->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('library_visits', [
-            'library_member_id' => $member->id,
+            'registered_visitor_id' => $member->id,
         ]);
     }
 
@@ -81,7 +82,7 @@ class LibraryVisitTest extends TestCase
         ])->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('library_visits', [
-            'library_member_id' => $member->id,
+            'registered_visitor_id' => $member->id,
         ]);
     }
 
@@ -97,20 +98,20 @@ class LibraryVisitTest extends TestCase
         ])->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('library_visits', [
-            'library_member_id' => $member->id,
+            'registered_visitor_id' => $member->id,
         ]);
     }
 
-    public function test_ambiguous_member_lookup_is_rejected(): void
+    public function test_ambiguous_registered_visitor_lookup_is_rejected(): void
     {
         $this->travelTo(Carbon::parse('2026-09-01 08:00:00', config('app.timezone')));
 
         $this->createActiveSchoolYear();
         $this->createMember();
-        $otherMember = LibraryMember::create([
+        $otherMember = RegisteredVisitor::create([
             'rfid_uid' => '1000000002',
             'school_id' => 'STU-002',
-            'type' => LibraryMember::TYPE_STUDENT,
+            'type' => RegisteredVisitor::TYPE_STUDENT,
             'first_name' => 'Ana',
             'last_name' => 'Santos',
         ]);
@@ -123,7 +124,7 @@ class LibraryVisitTest extends TestCase
         $this->assertSame(0, LibraryVisit::count());
     }
 
-    public function test_member_cannot_revisit_within_one_hour(): void
+    public function test_registered_visitor_cannot_revisit_within_one_hour(): void
     {
         $this->travelTo(Carbon::parse('2026-09-01 08:30:00', config('app.timezone')));
 
@@ -131,7 +132,7 @@ class LibraryVisitTest extends TestCase
         $member = $this->createMember();
 
         LibraryVisit::create([
-            'library_member_id' => $member->id,
+            'registered_visitor_id' => $member->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => now()->subMinutes(30),
         ]);
@@ -143,7 +144,7 @@ class LibraryVisitTest extends TestCase
         $this->assertSame(1, LibraryVisit::count());
     }
 
-    public function test_member_can_revisit_after_one_hour(): void
+    public function test_registered_visitor_can_revisit_after_one_hour(): void
     {
         $this->travelTo(Carbon::parse('2026-09-01 09:00:00', config('app.timezone')));
 
@@ -151,7 +152,7 @@ class LibraryVisitTest extends TestCase
         $member = $this->createMember();
 
         LibraryVisit::create([
-            'library_member_id' => $member->id,
+            'registered_visitor_id' => $member->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => now()->subHour(),
         ]);
@@ -178,7 +179,7 @@ class LibraryVisitTest extends TestCase
         ])->assertSessionHasNoErrors();
 
         LibraryVisit::create([
-            'library_member_id' => $member->id,
+            'registered_visitor_id' => $member->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => now()->subMinutes(90),
         ]);
@@ -190,7 +191,7 @@ class LibraryVisitTest extends TestCase
         $this->assertSame(1, LibraryVisit::count());
     }
 
-    public function test_student_without_active_school_year_enrollment_cannot_scan(): void
+    public function test_student_without_active_school_year_record_cannot_scan(): void
     {
         $this->travelTo(Carbon::parse('2026-09-01 08:00:00', config('app.timezone')));
 
@@ -203,16 +204,16 @@ class LibraryVisitTest extends TestCase
             'is_active' => false,
         ]);
         $this->createActiveSchoolYear();
-        $member = LibraryMember::create([
+        $member = RegisteredVisitor::create([
             'rfid_uid' => '1000000001',
             'school_id' => 'STU-001',
-            'type' => LibraryMember::TYPE_STUDENT,
+            'type' => RegisteredVisitor::TYPE_STUDENT,
             'first_name' => 'Maria',
             'last_name' => 'Santos',
         ]);
 
-        StudentEnrollment::create([
-            'library_member_id' => $member->id,
+        StudentSchoolYearRecord::create([
+            'registered_visitor_id' => $member->id,
             'school_year_id' => $oldSchoolYear->id,
             'year_level' => 'Grade 1',
             'section' => 'Rizal',
@@ -245,28 +246,28 @@ class LibraryVisitTest extends TestCase
             'target_visits' => 4,
             'is_active' => true,
         ]);
-        $member = LibraryMember::create([
+        $member = RegisteredVisitor::create([
             'rfid_uid' => '1000000001',
             'school_id' => 'STU-001',
-            'type' => LibraryMember::TYPE_STUDENT,
+            'type' => RegisteredVisitor::TYPE_STUDENT,
             'first_name' => 'Juan',
             'last_name' => 'Santos',
         ]);
 
-        StudentEnrollment::create([
-            'library_member_id' => $member->id,
+        StudentSchoolYearRecord::create([
+            'registered_visitor_id' => $member->id,
             'school_year_id' => $oldSchoolYear->id,
             'year_level' => 'Grade 10',
             'section' => 'Rizal',
         ]);
-        StudentEnrollment::create([
-            'library_member_id' => $member->id,
+        StudentSchoolYearRecord::create([
+            'registered_visitor_id' => $member->id,
             'school_year_id' => $newSchoolYear->id,
             'year_level' => 'Grade 10',
             'section' => null,
         ]);
         LibraryVisit::create([
-            'library_member_id' => $member->id,
+            'registered_visitor_id' => $member->id,
             'school_year_id' => $oldSchoolYear->id,
             'visited_at' => Carbon::parse('2026-09-01 08:00:00', config('app.timezone')),
         ]);
@@ -276,28 +277,28 @@ class LibraryVisitTest extends TestCase
         ])->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('library_visits', [
-            'library_member_id' => $member->id,
+            'registered_visitor_id' => $member->id,
             'school_year_id' => $oldSchoolYear->id,
         ]);
         $this->assertDatabaseHas('library_visits', [
-            'library_member_id' => $member->id,
+            'registered_visitor_id' => $member->id,
             'school_year_id' => $newSchoolYear->id,
         ]);
     }
 
-    public function test_soft_deleted_member_keeps_historical_visits(): void
+    public function test_soft_deleted_registered_visitor_keeps_historical_visits(): void
     {
         $schoolYear = $this->createActiveSchoolYear();
         $member = $this->createMember();
         $visit = LibraryVisit::create([
-            'library_member_id' => $member->id,
+            'registered_visitor_id' => $member->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => now(),
         ]);
 
         $member->delete();
 
-        $this->assertSoftDeleted('library_members', ['id' => $member->id]);
+        $this->assertSoftDeleted('registered_visitors', ['id' => $member->id]);
         $this->assertDatabaseHas('library_visits', ['id' => $visit->id]);
         $this->assertSame($member->id, $visit->fresh()->member?->id);
     }
@@ -306,6 +307,7 @@ class LibraryVisitTest extends TestCase
     {
         $this->travelTo(Carbon::parse('2026-09-01 06:59:00', config('app.timezone')));
 
+        $this->setScanWindow('08:00', '17:00');
         $this->createActiveSchoolYear();
         $this->createMember();
 
@@ -319,6 +321,35 @@ class LibraryVisitTest extends TestCase
     public function test_scan_after_window_is_rejected(): void
     {
         $this->travelTo(Carbon::parse('2026-09-01 23:30:00', config('app.timezone')));
+
+        $this->setScanWindow('08:00', '17:00');
+        $this->createActiveSchoolYear();
+        $this->createMember();
+
+        $this->post('/library-visits', [
+            'rfid_uid' => '1000000001',
+        ])->assertSessionHasErrors('rfid_uid');
+
+        $this->assertSame(0, LibraryVisit::count());
+    }
+
+    public function test_scan_before_active_school_year_start_is_rejected(): void
+    {
+        $this->travelTo(Carbon::parse('2026-05-13 08:00:00', config('app.timezone')));
+
+        $this->createActiveSchoolYear();
+        $this->createMember();
+
+        $this->post('/library-visits', [
+            'rfid_uid' => '1000000001',
+        ])->assertSessionHasErrors('rfid_uid');
+
+        $this->assertSame(0, LibraryVisit::count());
+    }
+
+    public function test_scan_after_active_school_year_end_is_rejected(): void
+    {
+        $this->travelTo(Carbon::parse('2027-04-01 08:00:00', config('app.timezone')));
 
         $this->createActiveSchoolYear();
         $this->createMember();
@@ -342,12 +373,12 @@ class LibraryVisitTest extends TestCase
         ]);
     }
 
-    private function createMember(): LibraryMember
+    private function createMember(): RegisteredVisitor
     {
-        $member = LibraryMember::create([
+        $member = RegisteredVisitor::create([
             'rfid_uid' => '1000000001',
             'school_id' => 'STU-001',
-            'type' => LibraryMember::TYPE_STUDENT,
+            'type' => RegisteredVisitor::TYPE_STUDENT,
             'first_name' => 'Maria',
             'last_name' => 'Santos',
         ]);
@@ -357,15 +388,27 @@ class LibraryVisitTest extends TestCase
         return $member;
     }
 
-    private function enrollMemberForActiveSchoolYear(LibraryMember $member): void
+    private function enrollMemberForActiveSchoolYear(RegisteredVisitor $member): void
     {
         $schoolYear = SchoolYear::active()->firstOrFail();
 
-        StudentEnrollment::create([
-            'library_member_id' => $member->id,
+        StudentSchoolYearRecord::create([
+            'registered_visitor_id' => $member->id,
             'school_year_id' => $schoolYear->id,
             'year_level' => 'Grade 1',
             'section' => 'Rizal',
+        ]);
+    }
+
+    private function setScanWindow(string $startsAt, string $endsAt): void
+    {
+        AppSetting::query()->create([
+            'key' => 'library_scan_settings',
+            'value' => [
+                'repeat_scan_interval_minutes' => 60,
+                'scan_starts_at' => $startsAt,
+                'scan_ends_at' => $endsAt,
+            ],
         ]);
     }
 }

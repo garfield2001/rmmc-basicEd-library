@@ -24,7 +24,7 @@ export function AdminNavbar({ collapsed, resolvedTheme, onCollapsedChange, onThe
 
                 <div>
                     <p className="text-sm font-semibold text-[#010440]">{name}</p>
-                    <p className="text-xs text-[#030A8C]">Library RFID attendance monitor</p>
+                    <p className="text-xs text-[#030A8C]">Library attendance monitoring</p>
                 </div>
             </div>
 

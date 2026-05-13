@@ -121,7 +121,7 @@ export const ScanLookupInput = forwardRef<HTMLInputElement, ScanLookupInputProps
             {shouldShowOptions && (
                 <div className="absolute top-full right-0 left-0 z-50 mt-2 max-h-72 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg">
                     {loading ? (
-                        <div className="px-3 py-3 text-sm text-zinc-500">Searching members...</div>
+                        <div className="px-3 py-3 text-sm text-zinc-500">Searching registered visitors...</div>
                     ) : (
                         filteredOptions.map((option, index) => (
                             <button

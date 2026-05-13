@@ -23,12 +23,16 @@ class IndexTest extends TestCase
                 ->missing('adminDashboard'));
     }
 
-    public function test_index_redirects_authenticated_users_to_admin_dashboard(): void
+    public function test_index_page_can_be_rendered_for_authenticated_admins(): void
     {
         $user = User::factory()->create(['role' => 'admin']);
 
         $this->actingAs($user)
             ->get('/')
-            ->assertRedirect('/admin');
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('index')
+                ->has('home')
+                ->missing('adminDashboard'));
     }
 }

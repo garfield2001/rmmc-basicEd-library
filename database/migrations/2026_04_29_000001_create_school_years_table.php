@@ -17,6 +17,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('target_visits')->default(4);
             $table->boolean('is_active')->default(false)->index();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

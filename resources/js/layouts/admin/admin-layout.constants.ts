@@ -24,8 +24,8 @@ export const navItems: AdminNavItem[] = [
     },
     {
         key: 'members',
-        label: 'Library Members',
-        href: '/admin/members',
+        label: 'Registered Visitors',
+        href: '/admin/registered-visitors',
         icon: UsersRound,
     },
     {

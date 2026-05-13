@@ -38,9 +38,9 @@ class SchoolYear extends Model
         return $this->hasMany(LibraryVisit::class);
     }
 
-    public function studentEnrollments(): HasMany
+    public function studentSchoolYearRecords(): HasMany
     {
-        return $this->hasMany(StudentEnrollment::class);
+        return $this->hasMany(StudentSchoolYearRecord::class);
     }
 
     public function sections(): HasMany

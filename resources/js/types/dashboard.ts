@@ -38,12 +38,12 @@ export interface AdminDashboard {
           })
         | null;
     metrics: {
-        activeMembers: number;
-        enrolledStudents: number;
+        activeVisitors: number;
+        studentRecords: number;
         visitsToday: number;
-        employeeMembers: number;
+        employeeVisitors: number;
     };
-    memberBreakdown: {
+    visitorBreakdown: {
         students: number;
         employees: number;
     };

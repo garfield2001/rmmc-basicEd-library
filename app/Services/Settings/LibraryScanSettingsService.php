@@ -11,8 +11,8 @@ class LibraryScanSettingsService
 
     private const DEFAULTS = [
         'repeat_scan_interval_minutes' => 60,
-        'scan_starts_at' => '08:00',
-        'scan_ends_at' => '17:00',
+        'scan_starts_at' => '00:00',
+        'scan_ends_at' => '23:59',
     ];
 
     public function get(): array

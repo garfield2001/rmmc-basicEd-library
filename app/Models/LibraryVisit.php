@@ -13,7 +13,7 @@ class LibraryVisit extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'library_member_id',
+        'registered_visitor_id',
         'school_year_id',
         'visited_at',
     ];
@@ -27,7 +27,7 @@ class LibraryVisit extends Model
 
     public function member(): BelongsTo
     {
-        return $this->belongsTo(LibraryMember::class, 'library_member_id')->withTrashed();
+        return $this->belongsTo(RegisteredVisitor::class, 'registered_visitor_id')->withTrashed();
     }
 
     public function schoolYear(): BelongsTo

@@ -104,7 +104,7 @@ export function ScanSuccessModal({ visit }: ScanSuccessModalProps) {
                                 Visit recorded successfully
                             </div>
                             <DialogTitle className="mt-5 text-4xl leading-tight font-semibold tracking-normal text-[#010440] sm:text-5xl">
-                                {visibleVisit.member.name ?? 'Unknown member'}
+                                {visibleVisit.member.name ?? 'Unknown visitor'}
                             </DialogTitle>
                             <DialogDescription className="sr-only">
                                 Library visit was recorded successfully and this confirmation closes automatically.

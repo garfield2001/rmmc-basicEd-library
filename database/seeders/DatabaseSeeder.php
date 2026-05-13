@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Models\Employee;
-use App\Models\LibraryMember;
+use App\Models\EmployeeProfile;
 use App\Models\LibraryVisit;
+use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use App\Models\SchoolYearSection;
-use App\Models\StudentEnrollment;
+use App\Models\StudentSchoolYearRecord;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
@@ -20,23 +20,32 @@ class DatabaseSeeder extends Seeder
             Schema::disableForeignKeyConstraints();
 
             LibraryVisit::truncate();
-            StudentEnrollment::truncate();
+            StudentSchoolYearRecord::truncate();
             SchoolYearSection::truncate();
-            Employee::truncate();
-            LibraryMember::truncate();
+            EmployeeProfile::truncate();
+            RegisteredVisitor::truncate();
             SchoolYear::truncate();
             User::truncate();
         } finally {
             Schema::enableForeignKeyConstraints();
         }
 
-        LibraryMemberSeeder::resetUsedRFIDs();
+        RegisteredVisitorSeeder::resetUsedRFIDs();
 
         User::create([
             'name' => 'RMMC Library Admin',
-            'email' => 'admin@example.com',
+            'email' => 'admin@gmail.com',
             'password' => 'password',
             'role' => 'admin',
+        ]);
+
+        SchoolYear::create([
+            'name' => '2025-2026',
+            'starts_at' => '2025-06-01',
+            'ends_at' => '2026-03-31',
+            'minimum_visits' => 3,
+            'target_visits' => 4,
+            'is_active' => false,
         ]);
 
         SchoolYear::create([
@@ -51,8 +60,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             StudentSeeder::class,
             EmployeeSeeder::class,
+            HistoricalSchoolYearSeeder::class,
         ]);
 
-        $this->command?->info('Admin login: admin@example.com / password');
+        $this->command?->info('Admin login: admin@gmail.com / password');
     }
 }

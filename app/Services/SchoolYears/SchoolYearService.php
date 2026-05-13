@@ -2,11 +2,12 @@
 
 namespace App\Services\SchoolYears;
 
-use App\Models\LibraryMember;
+use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
-use App\Models\StudentEnrollment;
+use App\Models\StudentSchoolYearRecord;
 use App\Support\Academics\AcademicLevels;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class SchoolYearService
 {
@@ -39,44 +40,22 @@ class SchoolYearService
 
     public function activate(SchoolYear $schoolYear): SchoolYear
     {
-        return DB::transaction(function () use ($schoolYear): SchoolYear {
-            $previousActiveSchoolYear = SchoolYear::active()->whereKeyNot($schoolYear->id)->first();
-
-            SchoolYear::query()->whereKeyNot($schoolYear->id)->update(['is_active' => false]);
-            $schoolYear->update(['is_active' => true]);
-
-            if ($previousActiveSchoolYear) {
-                $this->promoteStudents($previousActiveSchoolYear, $schoolYear);
-            }
-
-            return $schoolYear->refresh();
-        });
+        throw ValidationException::withMessages([
+            'school_year' => 'Previous school years cannot be reactivated after a transition. Create the next school year to move forward.',
+        ]);
     }
 
     public function update(SchoolYear $schoolYear, array $data): SchoolYear
     {
         return DB::transaction(function () use ($schoolYear, $data): SchoolYear {
-            $makeActive = (bool) ($data['make_active'] ?? false);
-            $previousActiveSchoolYear = $makeActive
-                ? SchoolYear::active()->whereKeyNot($schoolYear->id)->first()
-                : null;
-
-            if ($makeActive) {
-                SchoolYear::query()->whereKeyNot($schoolYear->id)->update(['is_active' => false]);
-            }
-
             $schoolYear->update([
                 'name' => $data['name'],
                 'starts_at' => $data['starts_at'],
                 'ends_at' => $data['ends_at'],
                 'minimum_visits' => $data['minimum_visits'],
                 'target_visits' => $data['target_visits'],
-                'is_active' => $makeActive ? true : $schoolYear->is_active,
+                'is_active' => $schoolYear->is_active,
             ]);
-
-            if ($previousActiveSchoolYear) {
-                $this->promoteStudents($previousActiveSchoolYear, $schoolYear);
-            }
 
             return $schoolYear->refresh();
         });
@@ -86,21 +65,27 @@ class SchoolYearService
     {
         $promoted = 0;
 
-        StudentEnrollment::query()
+        StudentSchoolYearRecord::query()
             ->with('member:id,type')
             ->where('school_year_id', $fromSchoolYear->id)
             ->orderBy('id')
             ->get()
-            ->each(function (StudentEnrollment $enrollment) use ($toSchoolYear, &$promoted): void {
-                if ($enrollment->member?->type !== LibraryMember::TYPE_STUDENT) {
+            ->each(function (StudentSchoolYearRecord $studentRecord) use ($toSchoolYear, &$promoted): void {
+                if ($studentRecord->member?->type !== RegisteredVisitor::TYPE_STUDENT) {
                     return;
                 }
 
-                $nextYearLevel = AcademicLevels::nextAfter($enrollment->year_level) ?? $enrollment->year_level;
+                $nextYearLevel = AcademicLevels::nextAfter($studentRecord->year_level);
 
-                $promotedEnrollment = StudentEnrollment::query()->firstOrCreate(
+                if (! $nextYearLevel) {
+                    $studentRecord->member?->delete();
+
+                    return;
+                }
+
+                $promotedStudentRecord = StudentSchoolYearRecord::query()->firstOrCreate(
                     [
-                        'library_member_id' => $enrollment->library_member_id,
+                        'registered_visitor_id' => $studentRecord->registered_visitor_id,
                         'school_year_id' => $toSchoolYear->id,
                     ],
                     [
@@ -110,7 +95,7 @@ class SchoolYearService
                     ],
                 );
 
-                if ($promotedEnrollment->wasRecentlyCreated) {
+                if ($promotedStudentRecord->wasRecentlyCreated) {
                     $promoted++;
                 }
             });

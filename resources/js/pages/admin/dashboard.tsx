@@ -38,8 +38,8 @@ function ChartList({ title, points }: { title: string; points: ChartPoint[] }) {
 export default function Dashboard({ dashboard }: DashboardProps) {
     const overviewMetrics = [
         {
-            label: 'Active members',
-            value: dashboard.metrics.activeMembers,
+            label: 'Active visitors',
+            value: dashboard.metrics.activeVisitors,
             detail: 'Can record library visits',
             icon: UsersRound,
         },
@@ -50,14 +50,14 @@ export default function Dashboard({ dashboard }: DashboardProps) {
             icon: Activity,
         },
         {
-            label: 'Enrolled students',
-            value: dashboard.metrics.enrolledStudents,
+            label: 'Student records',
+            value: dashboard.metrics.studentRecords,
             detail: dashboard.schoolYear?.name ?? 'No active school year',
             icon: UserCheck,
         },
         {
-            label: 'Employee members',
-            value: dashboard.metrics.employeeMembers,
+            label: 'Employee visitors',
+            value: dashboard.metrics.employeeVisitors,
             detail: 'Faculty and staff profiles',
             icon: BriefcaseBusiness,
         },
@@ -71,7 +71,7 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                     <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
                             title="Dashboard"
-                            description="Overview of member coverage, visit activity, and school-year attendance trends."
+                            description="Overview of registered visitors, visit activity, and school-year library traffic."
                             actions={
                                 <Link
                                     href="/admin/live-visits"
@@ -88,7 +88,7 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                                 const Icon = metric.icon;
 
                                 return (
-                                    <div key={metric.label} className="admin-surface rounded-lg border border-[#040DBF]/10 bg-white/95 p-5 shadow-sm">
+                                    <div key={metric.label} className="admin-surface rounded-lg border border-[#040DBF]/10 bg-white/95 p-5 shadow-md">
                                         <div className="flex items-start justify-between gap-4">
                                             <div>
                                                 <p className="text-sm font-medium text-[#030A8C]">{metric.label}</p>
@@ -109,21 +109,21 @@ export default function Dashboard({ dashboard }: DashboardProps) {
 
                             <div className="grid gap-4">
                                 <section className="admin-surface rounded-lg border border-[#040DBF]/10 bg-white/95 p-5 shadow-sm">
-                                    <h2 className="text-lg font-semibold tracking-normal text-[#010440]">Member breakdown</h2>
+                                    <h2 className="text-lg font-semibold tracking-normal text-[#010440]">Visitor breakdown</h2>
                                     <div className="mt-5 grid gap-3">
                                         <div className="flex items-center justify-between rounded-lg bg-[#f6f8ff] p-4">
                                             <span className="inline-flex items-center gap-2 text-sm font-medium text-[#020659]">
                                                 <GraduationCap className="size-4 text-[#040DBF]" />
                                                 Students
                                             </span>
-                                            <span className="text-xl font-semibold text-[#010440]">{dashboard.memberBreakdown.students}</span>
+                                            <span className="text-xl font-semibold text-[#010440]">{dashboard.visitorBreakdown.students}</span>
                                         </div>
                                         <div className="flex items-center justify-between rounded-lg bg-[#f6f8ff] p-4">
                                             <span className="inline-flex items-center gap-2 text-sm font-medium text-[#020659]">
                                                 <BriefcaseBusiness className="size-4 text-[#040DBF]" />
                                                 Employees
                                             </span>
-                                            <span className="text-xl font-semibold text-[#010440]">{dashboard.memberBreakdown.employees}</span>
+                                            <span className="text-xl font-semibold text-[#010440]">{dashboard.visitorBreakdown.employees}</span>
                                         </div>
                                     </div>
                                 </section>

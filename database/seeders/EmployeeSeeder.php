@@ -2,16 +2,16 @@
 
 namespace Database\Seeders;
 
-use App\Models\Employee;
+use App\Models\EmployeeProfile;
 
-class EmployeeSeeder extends LibraryMemberSeeder
+class EmployeeSeeder extends RegisteredVisitorSeeder
 {
     public function run(): void
     {
         $this->createEmployeeMembers($this->schoolEmployees());
 
         foreach ($this->fakeEmployeeDepartmentPlan() as $department => $employeeCount) {
-            Employee::factory()
+            EmployeeProfile::factory()
                 ->count($employeeCount)
                 ->create([
                     'department' => $department,
@@ -21,8 +21,8 @@ class EmployeeSeeder extends LibraryMemberSeeder
 
     /**
      * Add real school employee details here.
-     * Shared member data, including RFID, lives in LibraryMemberSeeder.
-     * Factory employees are added separately after this list.
+     * Shared member data, including RFID, lives in RegisteredVisitorSeeder.
+     * Factory employee profiles are added separately after this list.
      *
      * @return array<int, array<string, mixed>>
      */

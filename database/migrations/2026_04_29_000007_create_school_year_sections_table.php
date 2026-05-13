@@ -15,11 +15,12 @@ return new class extends Migration
             $table->string('year_level')->index();
             $table->string('name');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->unique(['school_year_id', 'year_level', 'name']);
         });
 
-        Schema::table('student_enrollments', function (Blueprint $table) {
+        Schema::table('student_school_year_records', function (Blueprint $table) {
             $table->foreignId('school_year_section_id')
                 ->nullable()
                 ->after('school_year_id')
@@ -27,36 +28,36 @@ return new class extends Migration
                 ->nullOnDelete();
         });
 
-        DB::table('student_enrollments')
+        DB::table('student_school_year_records')
             ->select('school_year_id', 'year_level', 'section')
             ->distinct()
             ->orderBy('school_year_id')
             ->get()
-            ->each(function (object $enrollment): void {
-                if (! $enrollment->section) {
+            ->each(function (object $studentRecord): void {
+                if (! $studentRecord->section) {
                     return;
                 }
 
                 $now = now();
                 $sectionId = DB::table('school_year_sections')->insertGetId([
-                    'school_year_id' => $enrollment->school_year_id,
-                    'year_level' => $enrollment->year_level,
-                    'name' => $enrollment->section,
+                    'school_year_id' => $studentRecord->school_year_id,
+                    'year_level' => $studentRecord->year_level,
+                    'name' => $studentRecord->section,
                     'created_at' => $now,
                     'updated_at' => $now,
                 ]);
 
-                DB::table('student_enrollments')
-                    ->where('school_year_id', $enrollment->school_year_id)
-                    ->where('year_level', $enrollment->year_level)
-                    ->where('section', $enrollment->section)
+                DB::table('student_school_year_records')
+                    ->where('school_year_id', $studentRecord->school_year_id)
+                    ->where('year_level', $studentRecord->year_level)
+                    ->where('section', $studentRecord->section)
                     ->update(['school_year_section_id' => $sectionId]);
             });
     }
 
     public function down(): void
     {
-        Schema::table('student_enrollments', function (Blueprint $table) {
+        Schema::table('student_school_year_records', function (Blueprint $table) {
             $table->dropConstrainedForeignId('school_year_section_id');
         });
 

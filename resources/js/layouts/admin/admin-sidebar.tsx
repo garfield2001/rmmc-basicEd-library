@@ -43,9 +43,9 @@ export function AdminSidebar({ active, collapsed }: AdminSidebarProps) {
         },
         {
             label: 'Archive',
-            href: '/admin/members/archive',
+            href: '/admin/registered-visitors/archive',
             icon: ArchiveRestore,
-            active: currentUrl.startsWith('/admin/members/archive'),
+            active: currentUrl.startsWith('/admin/registered-visitors/archive'),
         },
     ];
 

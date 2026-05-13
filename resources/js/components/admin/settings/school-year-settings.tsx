@@ -62,7 +62,7 @@ export function SchoolYearSettings({ schoolYears, stats }: SchoolYearSettingsPro
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                     <Stat label="Students" value={stats.studentMembers} />
-                    <Stat label="Active enrollments" value={stats.activeEnrollments} />
+                    <Stat label="Active student records" value={stats.activeEnrollments} />
                 </div>
             </div>
 
