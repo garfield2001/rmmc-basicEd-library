@@ -2,13 +2,13 @@ import { cn } from '@/lib/utils';
 
 import { FallbackImage } from './fallback-image';
 
-interface MemberAvatarProps {
+interface VisitorAvatarProps {
     name?: string | null;
     src?: string | null;
     className?: string;
 }
 
-export function MemberAvatar({ name, src, className }: MemberAvatarProps) {
+export function VisitorAvatar({ name, src, className }: VisitorAvatarProps) {
     return (
         <div
             className={cn(

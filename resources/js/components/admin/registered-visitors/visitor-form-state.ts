@@ -1,6 +1,6 @@
 import type { RegisteredVisitorRow } from '@/types/registered-visitors';
 
-export type MemberFormData = {
+export type VisitorFormData = {
     _method: string;
     rfid_uid: string;
     school_id: string;
@@ -15,7 +15,7 @@ export type MemberFormData = {
     department: string;
 };
 
-export const memberFormSteps = [
+export const visitorFormSteps = [
     {
         title: 'Identity',
         description: 'RFID card, school ID, and visitor type.',
@@ -30,24 +30,24 @@ export const memberFormSteps = [
     },
 ];
 
-export function initialMemberData(member: RegisteredVisitorRow | null): MemberFormData {
+export function initialVisitorData(visitor: RegisteredVisitorRow | null): VisitorFormData {
     return {
-        _method: member ? 'put' : 'post',
-        rfid_uid: member?.rfid_uid ?? '',
-        school_id: member?.school_id ?? '',
-        type: member?.type ?? 'student',
-        first_name: member?.first_name ?? '',
-        middle_name: member?.middle_name ?? '',
-        last_name: member?.last_name ?? '',
+        _method: visitor ? 'put' : 'post',
+        rfid_uid: visitor?.rfid_uid ?? '',
+        school_id: visitor?.school_id ?? '',
+        type: visitor?.type ?? 'student',
+        first_name: visitor?.first_name ?? '',
+        middle_name: visitor?.middle_name ?? '',
+        last_name: visitor?.last_name ?? '',
         photo_file: null,
-        is_active: member?.is_active ?? true,
-        year_level: member?.student?.year_level ?? '',
-        section: member?.student?.section ?? '',
-        department: member?.employee?.department ?? '',
+        is_active: visitor?.is_active ?? true,
+        year_level: visitor?.student?.year_level ?? '',
+        section: visitor?.student?.section ?? '',
+        department: visitor?.employee?.department ?? '',
     };
 }
 
-export function isStepComplete(step: number, data: MemberFormData): boolean {
+export function isStepComplete(step: number, data: VisitorFormData): boolean {
     if (step === 0) {
         return data.rfid_uid.trim().length > 0 && data.school_id.trim().length > 0;
     }
@@ -63,7 +63,7 @@ export function isStepComplete(step: number, data: MemberFormData): boolean {
     return data.department.trim().length > 0;
 }
 
-export function firstStepWithErrors(errors: Partial<Record<keyof MemberFormData, string>>): number | null {
+export function firstStepWithErrors(errors: Partial<Record<keyof VisitorFormData, string>>): number | null {
     if (errors.rfid_uid || errors.school_id || errors.type) {
         return 0;
     }
@@ -79,6 +79,6 @@ export function firstStepWithErrors(errors: Partial<Record<keyof MemberFormData,
     return null;
 }
 
-export function stepHasErrors(step: number, errors: Partial<Record<keyof MemberFormData, string>>): boolean {
+export function stepHasErrors(step: number, errors: Partial<Record<keyof VisitorFormData, string>>): boolean {
     return firstStepWithErrors(errors) === step;
 }

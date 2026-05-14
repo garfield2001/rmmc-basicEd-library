@@ -7,7 +7,7 @@ import { navItems, sidebarAnimationStorageKey } from './admin-layout.constants';
 import type { AdminSidebarProps } from './admin-layout.types';
 import { AdminLogoMark } from './admin-logo-mark';
 
-export function AdminSidebar({ active, collapsed }: AdminSidebarProps) {
+export function AdminSidebar({ active, collapsed, mobileOpen, onNavigate }: AdminSidebarProps) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const user = auth.user;
@@ -51,6 +51,7 @@ export function AdminSidebar({ active, collapsed }: AdminSidebarProps) {
 
     const logout = () => {
         setAdminMenuOpen(false);
+        onNavigate?.();
         router.post('/logout');
     };
 
@@ -82,7 +83,9 @@ export function AdminSidebar({ active, collapsed }: AdminSidebarProps) {
 
     return (
         <aside
-            className={`${shouldAnimate ? 'admin-sidebar-enter' : ''} admin-surface border-[#040DBF]/10 bg-white/95 p-4 shadow-sm transition-[width] ${sidebarMotion} lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-full lg:flex-col lg:self-start lg:overflow-y-auto lg:border-r`}
+            className={`${shouldAnimate ? 'admin-sidebar-enter' : ''} admin-surface fixed inset-y-0 left-0 z-50 flex h-screen w-72 flex-col overflow-y-auto border-r border-[#040DBF]/10 bg-white/95 p-4 shadow-xl shadow-[#010440]/15 transition-[transform,width] ${sidebarMotion} ${
+                mobileOpen ? 'translate-x-0' : '-translate-x-full'
+            } lg:sticky lg:top-0 lg:z-auto lg:w-full lg:translate-x-0 lg:self-start lg:shadow-sm`}
         >
             <div className="border-b border-[#040DBF]/10 pb-4">
                 <div className={sidebarRow}>
@@ -105,6 +108,7 @@ export function AdminSidebar({ active, collapsed }: AdminSidebarProps) {
                         <Link
                             key={item.href}
                             href={item.href}
+                            onClick={onNavigate}
                             title={collapsed ? item.label : undefined}
                             className={`${sidebarRow} rounded-lg border text-sm font-medium ${
                                 isActive
@@ -160,7 +164,10 @@ export function AdminSidebar({ active, collapsed }: AdminSidebarProps) {
                                 <Link
                                     key={tool.href}
                                     href={tool.href}
-                                    onClick={() => setAdminMenuOpen(false)}
+                                    onClick={() => {
+                                        setAdminMenuOpen(false);
+                                        onNavigate?.();
+                                    }}
                                     className={`flex h-10 items-center gap-2 rounded-md border px-3 text-sm font-medium transition-[background-color,border-color,color,box-shadow] ${
                                         tool.active
                                             ? 'border-[#040DBF] bg-[#040DBF] text-white shadow-sm shadow-[#040DBF]/20 hover:bg-[#030A8C]'

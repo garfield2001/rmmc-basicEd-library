@@ -45,10 +45,10 @@ return [
             'throw' => false,
         ],
 
-        'member_photos' => [
+        'visitor_photos' => [
             'driver' => 'local',
-            'root' => public_path('member-photos'),
-            'url' => env('APP_URL').'/member-photos',
+            'root' => public_path('visitor-photos'),
+            'url' => env('APP_URL').'/visitor-photos',
             'visibility' => 'public',
             'throw' => false,
         ],

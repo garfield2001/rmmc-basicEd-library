@@ -23,7 +23,7 @@ export const navItems: AdminNavItem[] = [
         icon: Activity,
     },
     {
-        key: 'members',
+        key: 'visitors',
         label: 'Registered Visitors',
         href: '/admin/registered-visitors',
         icon: UsersRound,

@@ -3,7 +3,7 @@ import type { SchoolYearSummary } from './school-year';
 export interface DashboardVisit {
     id: number;
     visitedAt: string | null;
-    member: {
+    visitor: {
         schoolId: string | null;
         name: string | null;
         type: 'student' | 'employee' | null;
@@ -39,7 +39,7 @@ export interface AdminDashboard {
         | null;
     metrics: {
         activeVisitors: number;
-        studentRecords: number;
+        studentRegistrations: number;
         visitsToday: number;
         employeeVisitors: number;
     };

@@ -81,14 +81,14 @@
         <header>
             <div>
                 <h1>Library Progress Report</h1>
-                <p>{{ ucfirst($report['summary']['member_type']) }}s &middot; {{ $report['school_year']['name'] ?? 'No school year' }}</p>
+                <p>{{ ucfirst($report['summary']['visitor_type']) }}s &middot; {{ $report['school_year']['name'] ?? 'No school year' }}</p>
                 <p>{{ $report['filters']['start_date'] }} to {{ $report['filters']['end_date'] }}</p>
             </div>
             <button onclick="window.print()">Print / Save as PDF</button>
         </header>
 
         <section class="summary">
-            <div><strong>{{ $report['summary']['members'] }}</strong><br>Visitors</div>
+            <div><strong>{{ $report['summary']['visitors'] }}</strong><br>Visitors</div>
             <div><strong>{{ $report['summary']['total_visits'] }}</strong><br>Total visits</div>
             <div><strong>{{ $report['summary']['met_target'] }}</strong><br>Met target</div>
             <div><strong>{{ $report['summary']['progress_percent'] }}%</strong><br>Overall progress</div>

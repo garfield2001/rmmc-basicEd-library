@@ -5,16 +5,16 @@ namespace Database\Factories;
 use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use App\Models\SchoolYearSection;
-use App\Models\StudentSchoolYearRecord;
+use App\Models\StudentRegistration;
 use App\Support\Academics\AcademicLevels;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<StudentSchoolYearRecord>
+ * @extends Factory<StudentRegistration>
  */
-class StudentSchoolYearRecordFactory extends Factory
+class StudentRegistrationFactory extends Factory
 {
-    protected $model = StudentSchoolYearRecord::class;
+    protected $model = StudentRegistration::class;
 
     public function definition(): array
     {

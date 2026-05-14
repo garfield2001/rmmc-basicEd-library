@@ -4,7 +4,7 @@ import { Menu, Moon, Sun } from 'lucide-react';
 import type { AdminNavbarProps } from './admin-layout.types';
 import { SchoolYearNavbarControl } from './school-year-navbar-control';
 
-export function AdminNavbar({ collapsed, resolvedTheme, onCollapsedChange, onThemeToggle }: AdminNavbarProps) {
+export function AdminNavbar({ collapsed, mobileSidebarOpen, resolvedTheme, onCollapsedChange, onMobileSidebarToggle, onThemeToggle }: AdminNavbarProps) {
     const { name } = usePage<SharedData>().props;
     const ThemeIcon = resolvedTheme === 'dark' ? Sun : Moon;
 
@@ -13,11 +13,18 @@ export function AdminNavbar({ collapsed, resolvedTheme, onCollapsedChange, onThe
             <div className="flex items-center gap-3">
                 <button
                     type="button"
-                    onClick={() => onCollapsedChange(!collapsed)}
+                    onClick={() => {
+                        if (window.matchMedia('(min-width: 1024px)').matches) {
+                            onCollapsedChange(!collapsed);
+                            return;
+                        }
+
+                        onMobileSidebarToggle();
+                    }}
                     className="flex size-11 items-center justify-center rounded-lg border border-[#040DBF]/15 bg-white text-[#020659] shadow-sm transition-[background-color,border-color,color,box-shadow] duration-200 hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-md hover:shadow-[#040DBF]/10"
                     title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                    aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                    aria-expanded={!collapsed}
+                    aria-label="Toggle sidebar"
+                    aria-expanded={mobileSidebarOpen || !collapsed}
                 >
                     <Menu className="size-5" aria-hidden="true" />
                 </button>

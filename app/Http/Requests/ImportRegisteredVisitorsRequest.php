@@ -15,7 +15,7 @@ class ImportRegisteredVisitorsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'members_file' => ['required', 'file', 'max:5120'],
+            'visitors_file' => ['required', 'file', 'max:5120'],
         ];
     }
 
@@ -23,7 +23,7 @@ class ImportRegisteredVisitorsRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
-                $file = $this->file('members_file');
+                $file = $this->file('visitors_file');
 
                 if (! $file) {
                     return;
@@ -32,7 +32,7 @@ class ImportRegisteredVisitorsRequest extends FormRequest
                 $extension = strtolower($file->getClientOriginalExtension());
 
                 if (! in_array($extension, ['csv', 'txt', 'xls'], true)) {
-                    $validator->errors()->add('members_file', 'Upload a CSV file or an Excel file exported from this app.');
+                    $validator->errors()->add('visitors_file', 'Upload a CSV file or an Excel file exported from this app.');
                 }
             },
         ];

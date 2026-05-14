@@ -17,7 +17,7 @@ class EmployeeProfile extends Model
         'department',
     ];
 
-    public function member(): BelongsTo
+    public function visitor(): BelongsTo
     {
         return $this->belongsTo(RegisteredVisitor::class, 'registered_visitor_id')->withTrashed();
     }

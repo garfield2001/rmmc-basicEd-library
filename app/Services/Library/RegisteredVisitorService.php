@@ -4,7 +4,7 @@ namespace App\Services\Library;
 
 use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
-use App\Models\StudentSchoolYearRecord;
+use App\Models\StudentRegistration;
 use App\Services\SchoolYears\SchoolYearSectionService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
@@ -16,7 +16,7 @@ use Illuminate\Validation\ValidationException;
 
 class RegisteredVisitorService
 {
-    private const PHOTO_DISK = 'member_photos';
+    private const PHOTO_DISK = 'visitor_photos';
 
     public function __construct(private readonly SchoolYearSectionService $sections) {}
 
@@ -24,47 +24,47 @@ class RegisteredVisitorService
     {
         return DB::transaction(function () use ($data): RegisteredVisitor {
             $data['photo'] = $this->storePhoto($data['photo_file'] ?? null);
-            $member = RegisteredVisitor::create($this->memberData($data));
+            $visitor = RegisteredVisitor::create($this->visitorData($data));
 
-            $this->syncDetails($member, $data);
+            $this->syncDetails($visitor, $data);
 
-            return $member->load(['student', 'employee']);
+            return $visitor->load(['student', 'employee']);
         });
     }
 
-    public function update(RegisteredVisitor $member, array $data): RegisteredVisitor
+    public function update(RegisteredVisitor $visitor, array $data): RegisteredVisitor
     {
-        return DB::transaction(function () use ($member, $data): RegisteredVisitor {
+        return DB::transaction(function () use ($visitor, $data): RegisteredVisitor {
             $newPhoto = $this->storePhoto($data['photo_file'] ?? null);
 
             if ($newPhoto) {
-                $this->deletePhoto($member->photo);
+                $this->deletePhoto($visitor->photo);
                 $data['photo'] = $newPhoto;
             } else {
-                $data['photo'] = $member->photo;
+                $data['photo'] = $visitor->photo;
             }
 
-            $member->update($this->memberData($data));
-            $this->syncDetails($member, $data);
+            $visitor->update($this->visitorData($data));
+            $this->syncDetails($visitor, $data);
 
-            return $member->load(['student', 'employee']);
+            return $visitor->load(['student', 'employee']);
         });
     }
 
-    public function delete(RegisteredVisitor $member): void
+    public function delete(RegisteredVisitor $visitor): void
     {
-        DB::transaction(function () use ($member): void {
-            $member->delete();
+        DB::transaction(function () use ($visitor): void {
+            $visitor->delete();
         });
     }
 
     /**
-     * @param  array<int, int>  $memberIds
+     * @param  array<int, int>  $visitorIds
      */
-    public function bulkArchive(array $memberIds): int
+    public function bulkArchive(array $visitorIds): int
     {
         return DB::transaction(fn (): int => RegisteredVisitor::query()
-            ->whereIn('id', $memberIds)
+            ->whereIn('id', $visitorIds)
             ->delete());
     }
 
@@ -73,46 +73,46 @@ class RegisteredVisitorService
         return DB::transaction(fn (): int => $query->delete());
     }
 
-    public function restoreArchived(int $memberId): RegisteredVisitor
+    public function restoreArchived(int $visitorId): RegisteredVisitor
     {
-        return DB::transaction(function () use ($memberId): RegisteredVisitor {
-            $member = RegisteredVisitor::onlyTrashed()->findOrFail($memberId);
-            $member->restore();
-            $this->restoreStudentToActiveSchoolYear($member);
+        return DB::transaction(function () use ($visitorId): RegisteredVisitor {
+            $visitor = RegisteredVisitor::onlyTrashed()->findOrFail($visitorId);
+            $visitor->restore();
+            $this->restoreStudentToActiveSchoolYear($visitor);
 
-            return $member;
+            return $visitor;
         });
     }
 
-    public function permanentlyDeleteArchived(int $memberId): void
+    public function permanentlyDeleteArchived(int $visitorId): void
     {
-        DB::transaction(function () use ($memberId): void {
-            $member = RegisteredVisitor::onlyTrashed()->findOrFail($memberId);
-            $photo = $member->photo;
+        DB::transaction(function () use ($visitorId): void {
+            $visitor = RegisteredVisitor::onlyTrashed()->findOrFail($visitorId);
+            $photo = $visitor->photo;
 
-            $member->forceDelete();
+            $visitor->forceDelete();
             $this->deletePhoto($photo);
         });
     }
 
     /**
-     * @param  array<int, int>  $memberIds
+     * @param  array<int, int>  $visitorIds
      */
-    public function permanentlyDeleteArchivedMany(array $memberIds): int
+    public function permanentlyDeleteArchivedMany(array $visitorIds): int
     {
-        return DB::transaction(function () use ($memberIds): int {
-            $members = RegisteredVisitor::onlyTrashed()
-                ->whereIn('id', $memberIds)
+        return DB::transaction(function () use ($visitorIds): int {
+            $visitors = RegisteredVisitor::onlyTrashed()
+                ->whereIn('id', $visitorIds)
                 ->get();
 
-            $members->each(function (RegisteredVisitor $member): void {
-                $photo = $member->photo;
+            $visitors->each(function (RegisteredVisitor $visitor): void {
+                $photo = $visitor->photo;
 
-                $member->forceDelete();
+                $visitor->forceDelete();
                 $this->deletePhoto($photo);
             });
 
-            return $members->count();
+            return $visitors->count();
         });
     }
 
@@ -130,16 +130,16 @@ class RegisteredVisitorService
         $students = RegisteredVisitor::query()
             ->where('type', RegisteredVisitor::TYPE_STUDENT)
             ->whereIn('school_id', $uniqueIds->all())
-            ->with(['studentSchoolYearRecords' => fn ($query) => $query->forSchoolYear($schoolYear->id)])
+            ->with(['studentRegistrations' => fn ($query) => $query->forSchoolYear($schoolYear->id)])
             ->get()
-            ->sortBy(fn (RegisteredVisitor $member): int => $uniqueIds->search($member->school_id))
+            ->sortBy(fn (RegisteredVisitor $visitor): int => $uniqueIds->search($visitor->school_id))
             ->values();
         $incompleteDetailIds = $students
-            ->filter(fn (RegisteredVisitor $member): bool => ! $this->hasCompleteActiveStudentDetails($member, $schoolYear->id))
+            ->filter(fn (RegisteredVisitor $visitor): bool => ! $this->hasCompleteActiveStudentDetails($visitor, $schoolYear->id))
             ->pluck('school_id')
             ->values();
         $assignableStudents = $students
-            ->filter(fn (RegisteredVisitor $member): bool => $this->hasActiveYearLevel($member, $schoolYear->id))
+            ->filter(fn (RegisteredVisitor $visitor): bool => $this->hasActiveYearLevel($visitor, $schoolYear->id))
             ->values();
 
         return [
@@ -147,8 +147,8 @@ class RegisteredVisitorService
             'uniqueCount' => $uniqueIds->count(),
             'matchedCount' => $students->count(),
             'targetSection' => trim((string) $sectionName) ?: null,
-            'memberIds' => $assignableStudents->pluck('id')->values()->all(),
-            'matchedStudents' => $students->map(fn (RegisteredVisitor $member): array => $this->assignmentPreviewRow($member, $schoolYear->id))->all(),
+            'visitorIds' => $assignableStudents->pluck('id')->values()->all(),
+            'matchedStudents' => $students->map(fn (RegisteredVisitor $visitor): array => $this->assignmentPreviewRow($visitor, $schoolYear->id))->all(),
             'notFoundIds' => $uniqueIds->diff($students->pluck('school_id'))->values()->all(),
             'duplicateIds' => $duplicateIds->all(),
             'incompleteDetailIds' => $incompleteDetailIds->all(),
@@ -156,35 +156,35 @@ class RegisteredVisitorService
     }
 
     /**
-     * @param  array<int, int>  $memberIds
+     * @param  array<int, int>  $visitorIds
      */
-    public function assignStudents(array $memberIds, ?string $sectionName): int
+    public function assignStudents(array $visitorIds, ?string $sectionName): int
     {
         $schoolYear = $this->activeSchoolYearOrFail();
         $sectionName = trim((string) $sectionName);
 
-        return DB::transaction(function () use ($schoolYear, $memberIds, $sectionName): int {
+        return DB::transaction(function () use ($schoolYear, $visitorIds, $sectionName): int {
             $students = RegisteredVisitor::query()
-                ->whereKey($memberIds)
+                ->whereKey($visitorIds)
                 ->where('type', RegisteredVisitor::TYPE_STUDENT)
-                ->with(['studentSchoolYearRecords' => fn ($query) => $query->forSchoolYear($schoolYear->id)])
+                ->with(['studentRegistrations' => fn ($query) => $query->forSchoolYear($schoolYear->id)])
                 ->get()
-                ->filter(fn (RegisteredVisitor $member): bool => $this->hasActiveYearLevel($member, $schoolYear->id));
+                ->filter(fn (RegisteredVisitor $visitor): bool => $this->hasActiveYearLevel($visitor, $schoolYear->id));
 
-            $students->each(function (RegisteredVisitor $member) use ($schoolYear, $sectionName): void {
-                $studentRecord = $member->studentSchoolYearRecords->firstWhere('school_year_id', $schoolYear->id);
+            $students->each(function (RegisteredVisitor $visitor) use ($schoolYear, $sectionName): void {
+                $studentRegistration = $visitor->studentRegistrations->firstWhere('school_year_id', $schoolYear->id);
                 $section = $sectionName !== ''
-                    ? $this->sections->findOrCreate($schoolYear->id, $studentRecord->year_level, $sectionName)
+                    ? $this->sections->findOrCreate($schoolYear->id, $studentRegistration->year_level, $sectionName)
                     : null;
 
-                $this->assignStudentDetails($member->id, $schoolYear->id, $studentRecord->year_level, $section?->id, $section?->name);
+                $this->assignStudentDetails($visitor->id, $schoolYear->id, $studentRegistration->year_level, $section?->id, $section?->name);
             });
 
             return $students->count();
         });
     }
 
-    private function memberData(array $data): array
+    private function visitorData(array $data): array
     {
         return [
             'rfid_uid' => $data['rfid_uid'],
@@ -219,23 +219,23 @@ class RegisteredVisitorService
         Storage::disk(self::PHOTO_DISK)->delete($fileName);
     }
 
-    private function syncDetails(RegisteredVisitor $member, array $data): void
+    private function syncDetails(RegisteredVisitor $visitor, array $data): void
     {
         if ($data['type'] === RegisteredVisitor::TYPE_STUDENT) {
             $schoolYear = $this->activeSchoolYearOrFail();
-            $member->employee()->delete();
+            $visitor->employee()->delete();
             $sectionName = trim((string) ($data['section'] ?? ''));
             $section = $sectionName !== ''
                 ? $this->sections->findOrCreate($schoolYear->id, $data['year_level'], $sectionName)
                 : null;
 
-            $this->assignStudentDetails($member->id, $schoolYear->id, $data['year_level'], $section?->id, $section?->name);
+            $this->assignStudentDetails($visitor->id, $schoolYear->id, $data['year_level'], $section?->id, $section?->name);
 
             return;
         }
 
-        $member->studentSchoolYearRecords()->delete();
-        $member->employee()->updateOrCreate([], [
+        $visitor->studentRegistrations()->delete();
+        $visitor->employee()->updateOrCreate([], [
             'department' => $data['department'],
         ]);
     }
@@ -253,11 +253,11 @@ class RegisteredVisitorService
         return $schoolYear;
     }
 
-    private function assignStudentDetails(int $memberId, int $schoolYearId, string $yearLevel, ?int $sectionId, ?string $sectionName): void
+    private function assignStudentDetails(int $visitorId, int $schoolYearId, string $yearLevel, ?int $sectionId, ?string $sectionName): void
     {
         RegisteredVisitor::query()
-            ->findOrFail($memberId)
-            ->studentSchoolYearRecords()
+            ->findOrFail($visitorId)
+            ->studentRegistrations()
             ->updateOrCreate(
                 ['school_year_id' => $schoolYearId],
                 [
@@ -268,9 +268,9 @@ class RegisteredVisitorService
             );
     }
 
-    private function restoreStudentToActiveSchoolYear(RegisteredVisitor $member): void
+    private function restoreStudentToActiveSchoolYear(RegisteredVisitor $visitor): void
     {
-        if ($member->type !== RegisteredVisitor::TYPE_STUDENT) {
+        if ($visitor->type !== RegisteredVisitor::TYPE_STUDENT) {
             return;
         }
 
@@ -280,31 +280,31 @@ class RegisteredVisitorService
             return;
         }
 
-        $activeStudentRecord = StudentSchoolYearRecord::withTrashed()
-            ->where('registered_visitor_id', $member->id)
+        $activestudentRegistration = StudentRegistration::withTrashed()
+            ->where('registered_visitor_id', $visitor->id)
             ->where('school_year_id', $activeSchoolYear->id)
             ->first();
 
-        if ($activeStudentRecord) {
-            $activeStudentRecord->restore();
+        if ($activestudentRegistration) {
+            $activestudentRegistration->restore();
 
             return;
         }
 
-        $latestStudentRecord = StudentSchoolYearRecord::withTrashed()
-            ->where('registered_visitor_id', $member->id)
+        $lateststudentRegistration = StudentRegistration::withTrashed()
+            ->where('registered_visitor_id', $visitor->id)
             ->orderByDesc('school_year_id')
             ->first();
 
-        if (! $latestStudentRecord?->year_level) {
+        if (! $lateststudentRegistration?->year_level) {
             return;
         }
 
-        StudentSchoolYearRecord::create([
-            'registered_visitor_id' => $member->id,
+        StudentRegistration::create([
+            'registered_visitor_id' => $visitor->id,
             'school_year_id' => $activeSchoolYear->id,
             'school_year_section_id' => null,
-            'year_level' => $latestStudentRecord->year_level,
+            'year_level' => $lateststudentRegistration->year_level,
             'section' => null,
         ]);
     }
@@ -320,31 +320,31 @@ class RegisteredVisitorService
             ->values();
     }
 
-    private function assignmentPreviewRow(RegisteredVisitor $member, int $schoolYearId): array
+    private function assignmentPreviewRow(RegisteredVisitor $visitor, int $schoolYearId): array
     {
-        $studentRecord = $member->studentSchoolYearRecords->firstWhere('school_year_id', $schoolYearId);
+        $studentRegistration = $visitor->studentRegistrations->firstWhere('school_year_id', $schoolYearId);
 
         return [
-            'id' => $member->id,
-            'schoolId' => $member->school_id,
-            'name' => $member->full_name,
-            'currentYearLevel' => $studentRecord?->year_level,
-            'currentSection' => $studentRecord?->section,
+            'id' => $visitor->id,
+            'schoolId' => $visitor->school_id,
+            'name' => $visitor->full_name,
+            'currentYearLevel' => $studentRegistration?->year_level,
+            'currentSection' => $studentRegistration?->section,
         ];
     }
 
-    private function hasCompleteActiveStudentDetails(RegisteredVisitor $member, int $schoolYearId): bool
+    private function hasCompleteActiveStudentDetails(RegisteredVisitor $visitor, int $schoolYearId): bool
     {
-        $studentRecord = $member->studentSchoolYearRecords->firstWhere('school_year_id', $schoolYearId);
+        $studentRegistration = $visitor->studentRegistrations->firstWhere('school_year_id', $schoolYearId);
 
-        return filled($studentRecord?->year_level) && filled($studentRecord?->section);
+        return filled($studentRegistration?->year_level) && filled($studentRegistration?->section);
     }
 
-    private function hasActiveYearLevel(RegisteredVisitor $member, int $schoolYearId): bool
+    private function hasActiveYearLevel(RegisteredVisitor $visitor, int $schoolYearId): bool
     {
-        $studentRecord = $member->studentSchoolYearRecords->firstWhere('school_year_id', $schoolYearId);
+        $studentRegistration = $visitor->studentRegistrations->firstWhere('school_year_id', $schoolYearId);
 
-        return filled($studentRecord?->year_level);
+        return filled($studentRegistration?->year_level);
     }
 
     private function emptyAssignmentPreview(?string $sectionName): array
@@ -354,7 +354,7 @@ class RegisteredVisitorService
             'uniqueCount' => 0,
             'matchedCount' => 0,
             'targetSection' => trim((string) $sectionName) ?: null,
-            'memberIds' => [],
+            'visitorIds' => [],
             'matchedStudents' => [],
             'notFoundIds' => [],
             'duplicateIds' => [],

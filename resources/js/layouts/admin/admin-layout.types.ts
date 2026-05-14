@@ -1,7 +1,7 @@
 import type { LayoutDashboard } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-export type AdminSection = 'dashboard' | 'live-visits' | 'members' | 'reports' | 'settings' | 'archive';
+export type AdminSection = 'dashboard' | 'live-visits' | 'visitors' | 'reports' | 'settings' | 'archive';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 
@@ -20,12 +20,16 @@ export interface AdminLayoutProps {
 export interface AdminSidebarProps {
     active: AdminSection;
     collapsed: boolean;
+    mobileOpen: boolean;
+    onNavigate?: () => void;
 }
 
 export interface AdminNavbarProps {
     collapsed: boolean;
+    mobileSidebarOpen: boolean;
     resolvedTheme: 'light' | 'dark';
     onCollapsedChange: (collapsed: boolean) => void;
+    onMobileSidebarToggle: () => void;
     onThemeToggle: () => void;
 }
 

@@ -24,7 +24,7 @@ class RegisteredVisitorResource extends JsonResource
             'last_name' => $this->last_name,
             'name' => $this->full_name,
             'photo' => $this->photo,
-            'photo_url' => $this->photo ? asset('member-photos/'.$this->photo) : null,
+            'photo_url' => $this->photo ? asset('visitor-photos/'.$this->photo) : null,
             'is_active' => $this->is_active,
             'deleted_at' => $this->deleted_at?->toIso8601String(),
             'group' => $this->group,

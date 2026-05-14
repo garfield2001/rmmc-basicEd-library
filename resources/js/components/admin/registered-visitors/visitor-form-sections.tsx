@@ -2,23 +2,23 @@ import { SelectInput } from '@/components/ui/select-input';
 import { studentYearLevels } from '@/constants/academic';
 import type { RegisteredVisitorRow } from '@/types/registered-visitors';
 import { BriefcaseBusiness, GraduationCap, ImagePlus } from 'lucide-react';
-import type { MemberFormData } from './member-form-state';
+import type { VisitorFormData } from './visitor-form-state';
 
 interface SectionProps {
-    data: MemberFormData;
-    errors: Partial<Record<keyof MemberFormData, string>>;
-    setData: (field: keyof MemberFormData, value: MemberFormData[keyof MemberFormData]) => void;
+    data: VisitorFormData;
+    errors: Partial<Record<keyof VisitorFormData, string>>;
+    setData: (field: keyof VisitorFormData, value: VisitorFormData[keyof VisitorFormData]) => void;
     inputClass: string;
     sectionClass: string;
 }
 
 interface IdentitySectionProps extends SectionProps {
     isEditing: boolean;
-    onTypeChange: (type: MemberFormData['type']) => void;
+    onTypeChange: (type: VisitorFormData['type']) => void;
 }
 
 interface DetailsSectionProps extends SectionProps {
-    member: RegisteredVisitorRow | null;
+    visitor: RegisteredVisitorRow | null;
     sectionOptions: string[];
 }
 
@@ -82,7 +82,7 @@ export function ProfileSection({ data, errors, setData, inputClass, sectionClass
     );
 }
 
-export function DetailsSection({ data, errors, setData, inputClass, sectionClass, member, sectionOptions }: DetailsSectionProps) {
+export function DetailsSection({ data, errors, setData, inputClass, sectionClass, visitor, sectionOptions }: DetailsSectionProps) {
     return (
         <section className={sectionClass}>
             <h3 className="mb-4 text-sm font-semibold text-[#010440]">Details</h3>
@@ -108,13 +108,13 @@ export function DetailsSection({ data, errors, setData, inputClass, sectionClass
                         <label className="text-sm font-medium text-[#010440]">
                             Section
                             <input
-                                list="member-section-options"
+                                list="visitor-section-options"
                                 value={data.section}
                                 onChange={(event) => setData('section', event.target.value)}
                                 className={inputClass}
                                 placeholder="Section optional"
                             />
-                            <datalist id="member-section-options">
+                            <datalist id="visitor-section-options">
                                 {sectionOptions.map((section) => (
                                     <option key={section} value={section} />
                                 ))}
@@ -134,7 +134,7 @@ export function DetailsSection({ data, errors, setData, inputClass, sectionClass
                     Photo upload
                     <span className="mt-2 flex h-10 items-center gap-2 rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm text-[#020659]">
                         <ImagePlus className="size-4" />
-                        <span className="truncate">{data.photo_file?.name ?? (member?.photo_url ? 'Keep current photo' : 'Choose photo')}</span>
+                        <span className="truncate">{data.photo_file?.name ?? (visitor?.photo_url ? 'Keep current photo' : 'Choose photo')}</span>
                     </span>
                     <input
                         type="file"

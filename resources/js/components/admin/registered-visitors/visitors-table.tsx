@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { MemberAvatar } from '@/components/ui/member-avatar';
+import { VisitorAvatar } from '@/components/ui/visitor-avatar';
 import { PaginationControls, type RowsPerPageOption } from '@/components/ui/pagination-controls';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { VirtualTableSpacerRow } from '@/components/ui/virtual-table-spacer-row';
@@ -13,9 +13,9 @@ import { router } from '@inertiajs/react';
 import { AlertTriangle, ArrowDown, ArrowUp, Check, ChevronsUpDown, ClipboardCopy, Columns3, Pencil, RotateCcw, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-type MemberType = 'student' | 'employee';
+type VisitorType = 'student' | 'employee';
 type SortDirection = 'asc' | 'desc';
-type ColumnKey = 'member' | 'school_id' | 'year_level' | 'section' | 'department' | 'status';
+type ColumnKey = 'visitor' | 'school_id' | 'year_level' | 'section' | 'department' | 'status';
 const VIRTUAL_ROW_HEIGHT = 73;
 const VIRTUAL_OVERSCAN = 8;
 
@@ -24,16 +24,16 @@ interface ColumnOption {
     label: string;
 }
 
-interface MembersTableProps {
-    members: Paginated<RegisteredVisitorRow>;
-    activeType: MemberType;
+interface VisitorsTableProps {
+    visitors: Paginated<RegisteredVisitorRow>;
+    activeType: VisitorType;
     rowsPerPage: RowsPerPageOption;
     sort: string;
     direction: SortDirection;
     isLoading?: boolean;
     copyFilters: {
         search: string;
-        type: MemberType;
+        type: VisitorType;
         year_level: string;
         section: string;
         department: string;
@@ -43,14 +43,14 @@ interface MembersTableProps {
     onRowsPerPageChange: (rows: RowsPerPageOption) => void;
     onSortChange: (column: string) => void;
     onSortClear: () => void;
-    onEdit: (member: RegisteredVisitorRow) => void;
-    onDelete: (member: RegisteredVisitorRow) => void;
+    onEdit: (visitor: RegisteredVisitorRow) => void;
+    onDelete: (visitor: RegisteredVisitorRow) => void;
     onPrevious: () => void;
     onNext: () => void;
 }
 
-export function MembersTable({
-    members,
+export function VisitorsTable({
+    visitors,
     activeType,
     rowsPerPage,
     sort,
@@ -64,15 +64,15 @@ export function MembersTable({
     onDelete,
     onPrevious,
     onNext,
-}: MembersTableProps) {
-    const currentPage = members.meta?.current_page ?? members.current_page ?? 1;
-    const totalPages = members.meta?.last_page ?? members.last_page ?? 1;
-    const from = members.meta?.from ?? members.from ?? 0;
-    const to = members.meta?.to ?? members.to ?? 0;
-    const total = members.meta?.total ?? members.total ?? members.data.length;
+}: VisitorsTableProps) {
+    const currentPage = visitors.meta?.current_page ?? visitors.current_page ?? 1;
+    const totalPages = visitors.meta?.last_page ?? visitors.last_page ?? 1;
+    const from = visitors.meta?.from ?? visitors.from ?? 0;
+    const to = visitors.meta?.to ?? visitors.to ?? 0;
+    const total = visitors.meta?.total ?? visitors.total ?? visitors.data.length;
     const columns = useMemo<ColumnOption[]>(() => {
         const sharedColumns: ColumnOption[] = [
-            { key: 'member', label: activeType === 'student' ? 'Student' : 'Employee' },
+            { key: 'visitor', label: activeType === 'student' ? 'Student' : 'Employee' },
             { key: 'school_id', label: 'School ID' },
         ];
 
@@ -86,7 +86,7 @@ export function MembersTable({
     const [copyMenuOpen, setCopyMenuOpen] = useState(false);
     const [copyStatus, setCopyStatus] = useState<string | null>(null);
     const [isCopying, setIsCopying] = useState(false);
-    const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
+    const [selectedVisitorIds, setSelectedVisitorIds] = useState<number[]>([]);
     const [selectedAllMatching, setSelectedAllMatching] = useState(false);
     const [bulkArchiveOpen, setBulkArchiveOpen] = useState(false);
     const [bulkArchiving, setBulkArchiving] = useState(false);
@@ -98,20 +98,20 @@ export function MembersTable({
     const allColumnsVisible = hiddenColumns.length === 0;
     const viewportHeight = useViewportHeight();
     const onePageRowCapacity = Math.max(1, Math.floor(viewportHeight / VIRTUAL_ROW_HEIGHT));
-    const usesVirtualRows = !isLoading && rowsPerPage === 'all' && members.data.length > onePageRowCapacity;
+    const usesVirtualRows = !isLoading && rowsPerPage === 'all' && visitors.data.length > onePageRowCapacity;
     const virtualRows = useWindowVirtualRows({
         enabled: usesVirtualRows,
-        itemCount: members.data.length,
+        itemCount: visitors.data.length,
         rowHeight: VIRTUAL_ROW_HEIGHT,
         overscan: VIRTUAL_OVERSCAN,
         containerRef: tableBodyRef,
     });
-    const displayedMembers = usesVirtualRows ? members.data.slice(virtualRows.startIndex, virtualRows.endIndex) : members.data;
-    const pageMemberIds = members.data.map((member) => member.id);
-    const selectedPageIds = pageMemberIds.filter((id) => selectedAllMatching || selectedMemberIds.includes(id));
-    const allPageMembersSelected = pageMemberIds.length > 0 && selectedPageIds.length === pageMemberIds.length;
-    const selectedCount = selectedAllMatching ? total : selectedMemberIds.length;
-    const canSelectAllMatching = !selectedAllMatching && allPageMembersSelected && total > pageMemberIds.length;
+    const displayedVisitors = usesVirtualRows ? visitors.data.slice(virtualRows.startIndex, virtualRows.endIndex) : visitors.data;
+    const pageVisitorIds = visitors.data.map((visitor) => visitor.id);
+    const selectedPageIds = pageVisitorIds.filter((id) => selectedAllMatching || selectedVisitorIds.includes(id));
+    const allpageVisitorsSelected = pageVisitorIds.length > 0 && selectedPageIds.length === pageVisitorIds.length;
+    const selectedCount = selectedAllMatching ? total : selectedVisitorIds.length;
+    const canSelectAllMatching = !selectedAllMatching && allpageVisitorsSelected && total > pageVisitorIds.length;
 
     useEffect(() => {
         setHiddenColumns((current) => current.filter((column) => columns.some((option) => option.key === column)));
@@ -126,20 +126,20 @@ export function MembersTable({
     }, [columns]);
 
     useEffect(() => {
-        const memberIds = new Set(members.data.map((member) => member.id));
+        const visitorIds = new Set(visitors.data.map((visitor) => visitor.id));
 
-        setSelectedMemberIds((current) => {
+        setSelectedVisitorIds((current) => {
             if (selectedAllMatching) {
-                return Array.from(memberIds);
+                return Array.from(visitorIds);
             }
 
-            return current.filter((id) => memberIds.has(id));
+            return current.filter((id) => visitorIds.has(id));
         });
-    }, [members.data, selectedAllMatching]);
+    }, [visitors.data, selectedAllMatching]);
 
     useEffect(() => {
         setSelectedAllMatching(false);
-        setSelectedMemberIds([]);
+        setSelectedVisitorIds([]);
     }, [activeType, copyFilters.search, copyFilters.year_level, copyFilters.section, copyFilters.department]);
 
     useEffect(() => {
@@ -200,44 +200,44 @@ export function MembersTable({
     const togglePageSelection = () => {
         if (selectedAllMatching) {
             setSelectedAllMatching(false);
-            setSelectedMemberIds([]);
+            setSelectedVisitorIds([]);
 
             return;
         }
 
-        if (allPageMembersSelected) {
-            setSelectedMemberIds((current) => current.filter((id) => !pageMemberIds.includes(id)));
+        if (allpageVisitorsSelected) {
+            setSelectedVisitorIds((current) => current.filter((id) => !pageVisitorIds.includes(id)));
 
             return;
         }
 
-        setSelectedMemberIds((current) => Array.from(new Set([...current, ...pageMemberIds])));
+        setSelectedVisitorIds((current) => Array.from(new Set([...current, ...pageVisitorIds])));
     };
 
-    const toggleMemberSelection = (memberId: number) => {
+    const toggleVisitorSelection = (visitorId: number) => {
         if (selectedAllMatching) {
             setSelectedAllMatching(false);
-            setSelectedMemberIds(pageMemberIds.filter((id) => id !== memberId));
+            setSelectedVisitorIds(pageVisitorIds.filter((id) => id !== visitorId));
 
             return;
         }
 
-        setSelectedMemberIds((current) => {
-            if (current.includes(memberId)) {
-                return current.filter((id) => id !== memberId);
+        setSelectedVisitorIds((current) => {
+            if (current.includes(visitorId)) {
+                return current.filter((id) => id !== visitorId);
             }
 
-            return [...current, memberId];
+            return [...current, visitorId];
         });
     };
 
-    const archiveSelectedMembers = () => {
+    const archiveSelectedVisitors = () => {
         setBulkArchiveOpen(false);
         setBulkArchiving(true);
         router.delete('/admin/registered-visitors/bulk', {
             data: {
                 select_all: selectedAllMatching,
-                ...(!selectedAllMatching ? { member_ids: selectedMemberIds } : {}),
+                ...(!selectedAllMatching ? { visitor_ids: selectedVisitorIds } : {}),
                 type: activeType,
                 search: copyFilters.search || undefined,
                 year_level: activeType === 'student' ? copyFilters.year_level || undefined : undefined,
@@ -247,7 +247,7 @@ export function MembersTable({
             preserveScroll: true,
             onFinish: () => setBulkArchiving(false),
             onSuccess: () => {
-                setSelectedMemberIds([]);
+                setSelectedVisitorIds([]);
                 setSelectedAllMatching(false);
             },
         });
@@ -304,7 +304,7 @@ export function MembersTable({
                                     type="button"
                                     onClick={() => {
                                         setSelectedAllMatching(true);
-                                        setSelectedMemberIds(pageMemberIds);
+                                        setSelectedVisitorIds(pageVisitorIds);
                                     }}
                                     className="h-9 rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm"
                                 >
@@ -322,7 +322,7 @@ export function MembersTable({
                             <button
                                 type="button"
                                 onClick={() => {
-                                    setSelectedMemberIds([]);
+                                    setSelectedVisitorIds([]);
                                     setSelectedAllMatching(false);
                                 }}
                                 className="h-9 rounded-lg border border-zinc-200 bg-white px-3 text-sm font-medium text-zinc-600 transition-[background-color,border-color,color] hover:border-zinc-300 hover:bg-zinc-100 hover:text-zinc-900"
@@ -450,14 +450,14 @@ export function MembersTable({
                             <TableHead className="w-12">
                                 <input
                                     type="checkbox"
-                                    checked={allPageMembersSelected}
-                                    disabled={isLoading || pageMemberIds.length === 0}
+                                    checked={allpageVisitorsSelected}
+                                    disabled={isLoading || pageVisitorIds.length === 0}
                                     onChange={togglePageSelection}
                                     className="size-4 rounded border-zinc-300"
-                                    aria-label="Select current page members"
+                                    aria-label="Select current page visitors"
                                 />
                             </TableHead>
-                            {isVisible('member') && (
+                            {isVisible('visitor') && (
                                 <SortableHead
                                     column="name"
                                     label={activeType === 'student' ? 'Student' : 'Employee'}
@@ -514,21 +514,21 @@ export function MembersTable({
                                 activeType={activeType}
                                 rowCount={rowsPerPage === 'all' ? 10 : Math.min(rowsPerPage, 10)}
                             />
-                        ) : members.data.length > 0 ? (
+                        ) : visitors.data.length > 0 ? (
                             <>
                                 {usesVirtualRows && virtualRows.paddingTop > 0 && (
                                     <VirtualTableSpacerRow height={virtualRows.paddingTop} colSpan={visibleColumnCount} />
                                 )}
-                                {displayedMembers.map((member) => (
-                                    <MemberDataRow
-                                        key={member.id}
-                                        member={member}
+                                {displayedVisitors.map((visitor) => (
+                                    <VisitorDataRow
+                                        key={visitor.id}
+                                        visitor={visitor}
                                         activeType={activeType}
                                         isVisible={isVisible}
-                                        selected={selectedAllMatching || selectedMemberIds.includes(member.id)}
-                                        onSelect={() => toggleMemberSelection(member.id)}
-                                        onEdit={() => onEdit(member)}
-                                        onDelete={() => onDelete(member)}
+                                        selected={selectedAllMatching || selectedVisitorIds.includes(visitor.id)}
+                                        onSelect={() => toggleVisitorSelection(visitor.id)}
+                                        onEdit={() => onEdit(visitor)}
+                                        onDelete={() => onDelete(visitor)}
                                     />
                                 ))}
                                 {usesVirtualRows && virtualRows.paddingBottom > 0 && (
@@ -557,12 +557,12 @@ export function MembersTable({
                 onPrevious={onPrevious}
                 onNext={onNext}
             />
-            <BulkArchiveMembersDialog
+            <BulkArchiveVisitorsDialog
                 count={selectedCount}
                 open={bulkArchiveOpen}
                 processing={bulkArchiving}
                 onOpenChange={(open) => !open && !bulkArchiving && setBulkArchiveOpen(false)}
-                onConfirm={archiveSelectedMembers}
+                onConfirm={archiveSelectedVisitors}
             />
         </div>
     );
@@ -586,8 +586,8 @@ async function writeClipboard(text: string) {
     document.body.removeChild(textarea);
 }
 
-function MemberDataRow({
-    member,
+function VisitorDataRow({
+    visitor,
     activeType,
     isVisible,
     selected,
@@ -595,8 +595,8 @@ function MemberDataRow({
     onEdit,
     onDelete,
 }: {
-    member: RegisteredVisitorRow;
-    activeType: MemberType;
+    visitor: RegisteredVisitorRow;
+    activeType: VisitorType;
     isVisible: (column: ColumnKey) => boolean;
     selected: boolean;
     onSelect: () => void;
@@ -611,29 +611,29 @@ function MemberDataRow({
                     checked={selected}
                     onChange={onSelect}
                     className="size-4 rounded border-zinc-300"
-                    aria-label={`Select ${member.name}`}
+                    aria-label={`Select ${visitor.name}`}
                 />
             </TableCell>
-            {isVisible('member') && (
+            {isVisible('visitor') && (
                 <TableCell>
-                    <MemberIdentity member={member} />
+                    <VisitorIdentity visitor={visitor} />
                 </TableCell>
             )}
-            {isVisible('school_id') && <TableCell className="font-medium">{member.school_id}</TableCell>}
+            {isVisible('school_id') && <TableCell className="font-medium">{visitor.school_id}</TableCell>}
             {activeType === 'student' ? (
                 <>
-                    {isVisible('year_level') && <TableCell className="text-zinc-500">{member.student?.year_level || '-'}</TableCell>}
-                    {isVisible('section') && <TableCell className="text-zinc-500">{member.student?.section || '-'}</TableCell>}
+                    {isVisible('year_level') && <TableCell className="text-zinc-500">{visitor.student?.year_level || '-'}</TableCell>}
+                    {isVisible('section') && <TableCell className="text-zinc-500">{visitor.student?.section || '-'}</TableCell>}
                 </>
             ) : (
-                isVisible('department') && <TableCell className="text-zinc-500">{member.employee?.department || '-'}</TableCell>
+                isVisible('department') && <TableCell className="text-zinc-500">{visitor.employee?.department || '-'}</TableCell>
             )}
             {isVisible('status') && (
                 <TableCell>
                     <span
-                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${member.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-500'}`}
+                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${visitor.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-500'}`}
                     >
-                        {member.is_active ? 'Active' : 'Inactive'}
+                        {visitor.is_active ? 'Active' : 'Inactive'}
                     </span>
                 </TableCell>
             )}
@@ -647,7 +647,7 @@ function MemberDataRow({
     );
 }
 
-function LoadingRows({ visibleColumns, activeType, rowCount }: { visibleColumns: ColumnOption[]; activeType: MemberType; rowCount: number }) {
+function LoadingRows({ visibleColumns, activeType, rowCount }: { visibleColumns: ColumnOption[]; activeType: VisitorType; rowCount: number }) {
     return (
         <>
             {Array.from({ length: rowCount }).map((_, rowIndex) => (
@@ -672,8 +672,8 @@ function LoadingRows({ visibleColumns, activeType, rowCount }: { visibleColumns:
     );
 }
 
-function LoadingCell({ column, activeType }: { column: ColumnKey; activeType: MemberType }) {
-    if (column === 'member') {
+function LoadingCell({ column, activeType }: { column: ColumnKey; activeType: VisitorType }) {
+    if (column === 'visitor') {
         return (
             <div className="flex items-center gap-3">
                 <SkeletonBlock className="size-10 rounded-lg" />
@@ -726,11 +726,11 @@ function SortableHead({
     );
 }
 
-function MemberIdentity({ member }: { member: RegisteredVisitorRow }) {
+function VisitorIdentity({ visitor }: { visitor: RegisteredVisitorRow }) {
     return (
         <div className="flex items-center gap-3">
-            <MemberAvatar name={member.name} src={member.photo_url} />
-            <p className="min-w-0 font-medium">{member.name}</p>
+            <VisitorAvatar name={visitor.name} src={visitor.photo_url} />
+            <p className="min-w-0 font-medium">{visitor.name}</p>
         </div>
     );
 }
@@ -751,7 +751,7 @@ function ActionButton({ label, icon: Icon, danger = false, onClick }: { label: s
     );
 }
 
-function BulkArchiveMembersDialog({
+function BulkArchiveVisitorsDialog({
     count,
     open,
     processing,

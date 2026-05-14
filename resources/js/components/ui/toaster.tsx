@@ -74,7 +74,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         notify({
             kind: 'success',
             title: 'Library visit recorded.',
-            description: `${flash.recentVisit.member.name ?? 'The scanned visitor'} was added to today's live visits.`,
+            description: `${flash.recentVisit.visitor.name ?? 'The scanned visitor'} was added to today's live visits.`,
         });
     }, [flash.recentVisit, notify, page.url]);
 

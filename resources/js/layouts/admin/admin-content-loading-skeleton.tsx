@@ -1,15 +1,15 @@
 import type { CSSProperties } from 'react';
 
-export type AdminLoadingTarget = 'dashboard' | 'live-visits' | 'members-index' | 'members-form' | 'reports' | 'settings';
+export type AdminLoadingTarget = 'dashboard' | 'live-visits' | 'visitors-index' | 'visitors-form' | 'reports' | 'settings';
 
 export function AdminContentLoadingSkeleton({ target }: { target: AdminLoadingTarget }) {
     return (
         <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8" role="status" aria-live="polite" aria-label="Loading page">
-            {target !== 'members-form' && <HeaderSkeleton hasAction={target === 'dashboard' || target === 'live-visits' || target === 'members-index'} />}
+            {target !== 'visitors-form' && <HeaderSkeleton hasAction={target === 'dashboard' || target === 'live-visits' || target === 'visitors-index'} />}
             {target === 'dashboard' && <DashboardSkeleton />}
             {target === 'live-visits' && <LiveVisitsSkeleton />}
-            {target === 'members-index' && <MembersSkeleton />}
-            {target === 'members-form' && <MemberFormSkeleton />}
+            {target === 'visitors-index' && <VisitorsSkeleton />}
+            {target === 'visitors-form' && <VisitorFormSkeleton />}
             {target === 'reports' && <ReportsSkeleton />}
             {target === 'settings' && <SettingsSkeleton />}
         </div>
@@ -105,7 +105,7 @@ function LiveVisitsSkeleton() {
     );
 }
 
-function MembersSkeleton() {
+function VisitorsSkeleton() {
     return (
         <>
             <div className="admin-page-loading-surface p-5">
@@ -121,7 +121,7 @@ function MembersSkeleton() {
     );
 }
 
-function MemberFormSkeleton() {
+function VisitorFormSkeleton() {
     return (
         <>
             <div className="border-b border-zinc-200 bg-white py-5">

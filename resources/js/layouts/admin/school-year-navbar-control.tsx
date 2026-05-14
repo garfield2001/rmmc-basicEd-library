@@ -292,7 +292,7 @@ function SchoolYearDetailsDialog({
                             ))
                         ) : (
                             <div className="rounded-lg border border-dashed border-[#040DBF]/20 p-5 text-sm text-[#020659]/70">
-                                No school years yet. Add one to start tracking student records.
+                                No school years yet. Add one to start tracking Student registrations.
                             </div>
                         )}
                     </div>

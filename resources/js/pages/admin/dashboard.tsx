@@ -50,8 +50,8 @@ export default function Dashboard({ dashboard }: DashboardProps) {
             icon: Activity,
         },
         {
-            label: 'Student records',
-            value: dashboard.metrics.studentRecords,
+            label: 'Student registrations',
+            value: dashboard.metrics.studentRegistrations,
             detail: dashboard.schoolYear?.name ?? 'No active school year',
             icon: UserCheck,
         },

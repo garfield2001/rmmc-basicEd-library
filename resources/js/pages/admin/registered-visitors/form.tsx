@@ -4,11 +4,11 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { BriefcaseBusiness, GraduationCap, RadioTower, Save } from 'lucide-react';
 import { type FormEventHandler, useEffect, useRef, useState } from 'react';
 
-interface MemberFormProps {
-    member: RegisteredVisitorRow | null;
+interface VisitorFormProps {
+    visitor: RegisteredVisitorRow | null;
 }
 
-type MemberFormData = {
+type VisitorFormData = {
     _method: string;
     rfid_uid: string;
     school_id: string;
@@ -23,25 +23,25 @@ type MemberFormData = {
     department: string;
 };
 
-export default function MemberForm({ member }: MemberFormProps) {
-    const isEditing = Boolean(member);
+export default function VisitorForm({ visitor }: VisitorFormProps) {
+    const isEditing = Boolean(visitor);
     const scanBuffer = useRef('');
     const scanTimer = useRef<number | null>(null);
     const [scanStatus, setScanStatus] = useState('Ready for RFID scan');
 
-    const { data, setData, post, processing, errors } = useForm<MemberFormData>({
+    const { data, setData, post, processing, errors } = useForm<VisitorFormData>({
         _method: isEditing ? 'put' : 'post',
-        rfid_uid: member?.rfid_uid ?? '',
-        school_id: member?.school_id ?? '',
-        type: member?.type ?? 'student',
-        first_name: member?.first_name ?? '',
-        middle_name: member?.middle_name ?? '',
-        last_name: member?.last_name ?? '',
+        rfid_uid: visitor?.rfid_uid ?? '',
+        school_id: visitor?.school_id ?? '',
+        type: visitor?.type ?? 'student',
+        first_name: visitor?.first_name ?? '',
+        middle_name: visitor?.middle_name ?? '',
+        last_name: visitor?.last_name ?? '',
         photo_file: null,
-        is_active: member?.is_active ?? true,
-        year_level: member?.student?.year_level ?? '',
-        section: member?.student?.section ?? '',
-        department: member?.employee?.department ?? '',
+        is_active: visitor?.is_active ?? true,
+        year_level: visitor?.student?.year_level ?? '',
+        section: visitor?.student?.section ?? '',
+        department: visitor?.employee?.department ?? '',
     });
 
     useEffect(() => {
@@ -99,8 +99,8 @@ export default function MemberForm({ member }: MemberFormProps) {
     const submit: FormEventHandler = (event) => {
         event.preventDefault();
 
-        if (isEditing && member) {
-            post(`/admin/registered-visitors/${member.id}`, {
+        if (isEditing && visitor) {
+            post(`/admin/registered-visitors/${visitor.id}`, {
                 forceFormData: true,
             });
             return;
@@ -114,7 +114,7 @@ export default function MemberForm({ member }: MemberFormProps) {
     const inputClass =
         'mt-2 h-10 w-full rounded-lg border border-zinc-300 px-3 text-sm outline-none focus:border-zinc-500 focus:ring-4 focus:ring-zinc-100';
 
-    const changeMemberType = (type: MemberFormData['type']) => {
+    const changeVisitorType = (type: VisitorFormData['type']) => {
         setData({
             ...data,
             type,
@@ -133,7 +133,7 @@ export default function MemberForm({ member }: MemberFormProps) {
         <>
             <Head title={isEditing ? 'Edit Visitor' : 'Add Visitor'} />
             <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f4f5_42%,#e7e5e4_100%)] text-zinc-950">
-                <AdminLayout active="members">
+                <AdminLayout active="visitors">
                     <header className="admin-surface border-b border-zinc-200 bg-white">
                         <div className="admin-content-shell mx-auto w-full px-4 py-5 sm:px-6">
                             <h1 className="admin-page-title font-semibold">{isEditing ? 'Edit Visitor' : 'Add Student or Employee'}</h1>
@@ -192,7 +192,7 @@ export default function MemberForm({ member }: MemberFormProps) {
                                     <div className="mt-2 grid grid-cols-2 gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-1">
                                         <button
                                             type="button"
-                                            onClick={() => changeMemberType('student')}
+                                            onClick={() => changeVisitorType('student')}
                                             className={`flex h-9 items-center justify-center gap-2 rounded-md text-sm font-medium transition ${
                                                 data.type === 'student' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'
                                             }`}
@@ -202,7 +202,7 @@ export default function MemberForm({ member }: MemberFormProps) {
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => changeMemberType('employee')}
+                                            onClick={() => changeVisitorType('employee')}
                                             className={`flex h-9 items-center justify-center gap-2 rounded-md text-sm font-medium transition ${
                                                 data.type === 'employee' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'
                                             }`}
@@ -255,11 +255,11 @@ export default function MemberForm({ member }: MemberFormProps) {
                                         />
                                     </label>
                                     {errors.photo_file && <p className="mt-1 text-xs text-red-600">{errors.photo_file}</p>}
-                                    {member?.photo_url && (
+                                    {visitor?.photo_url && (
                                         <div className="mt-3 inline-flex overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 p-1">
                                             <img
-                                                src={member.photo_url}
-                                                alt={`${member.name} current photo`}
+                                                src={visitor.photo_url}
+                                                alt={`${visitor.name} current photo`}
                                                 className="size-20 rounded-md object-cover"
                                             />
                                         </div>

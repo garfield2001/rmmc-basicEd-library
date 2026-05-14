@@ -8,7 +8,9 @@ use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use App\Services\Settings\LibraryScanSettingsService;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class LibraryVisitService
 {
@@ -30,34 +32,55 @@ class LibraryVisitService
 
         $this->ensureSchoolYearIsOpen($schoolYear, $now);
 
-        $member = $this->resolveMember($RFIDUid, $schoolYear->id);
-        $this->ensureMemberCanRevisit($member, $schoolYear->id, $now);
+        $visitor = $this->resolveVisitor($RFIDUid, $schoolYear->id);
+        $this->ensureVisitorCanRevisit($visitor, $schoolYear->id, $now);
 
         $visit = LibraryVisit::create([
-            'registered_visitor_id' => $member->id,
+            'registered_visitor_id' => $visitor->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => $now,
-        ])->load(['member', 'schoolYear']);
+        ])->load(['visitor', 'schoolYear']);
 
-        LibraryVisitRecorded::dispatch($visit);
+        if ($this->shouldBroadcastLiveVisits()) {
+            try {
+                LibraryVisitRecorded::dispatch($visit);
+            } catch (Throwable $exception) {
+                Log::warning('Library visit was recorded, but live broadcasting failed.', [
+                    'visit_id' => $visit->id,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
+        }
 
         return $visit;
     }
 
-    private function resolveMember(string $lookup, int $schoolYearId): RegisteredVisitor
+    private function shouldBroadcastLiveVisits(): bool
+    {
+        if (config('broadcasting.default') !== 'reverb') {
+            return false;
+        }
+
+        return filled(config('broadcasting.connections.reverb.app_id'))
+            && filled(config('broadcasting.connections.reverb.key'))
+            && filled(config('broadcasting.connections.reverb.secret'))
+            && filled(config('broadcasting.connections.reverb.options.host'));
+    }
+
+    private function resolveVisitor(string $lookup, int $schoolYearId): RegisteredVisitor
     {
         $normalizedLookup = $this->normalizeLookup($lookup);
 
-        $members = RegisteredVisitor::active()
+        $visitors = RegisteredVisitor::active()
             ->visitEligibleForSchoolYear($schoolYearId)
             ->get()
-            ->filter(function (RegisteredVisitor $member) use ($normalizedLookup): bool {
+            ->filter(function (RegisteredVisitor $visitor) use ($normalizedLookup): bool {
                 $values = [
-                    $member->rfid_uid,
-                    $member->school_id,
-                    $member->first_name,
-                    $member->last_name,
-                    $member->full_name,
+                    $visitor->rfid_uid,
+                    $visitor->school_id,
+                    $visitor->first_name,
+                    $visitor->last_name,
+                    $visitor->full_name,
                 ];
 
                 return collect($values)
@@ -66,17 +89,17 @@ class LibraryVisitService
             })
             ->values();
 
-        if ($members->isEmpty()) {
-            $members = RegisteredVisitor::active()
+        if ($visitors->isEmpty()) {
+            $visitors = RegisteredVisitor::active()
                 ->visitEligibleForSchoolYear($schoolYearId)
                 ->get()
-                ->filter(function (RegisteredVisitor $member) use ($normalizedLookup): bool {
+                ->filter(function (RegisteredVisitor $visitor) use ($normalizedLookup): bool {
                     $values = [
-                        $member->rfid_uid,
-                        $member->school_id,
-                        $member->first_name,
-                        $member->last_name,
-                        $member->full_name,
+                        $visitor->rfid_uid,
+                        $visitor->school_id,
+                        $visitor->first_name,
+                        $visitor->last_name,
+                        $visitor->full_name,
                     ];
 
                     return collect($values)
@@ -86,11 +109,11 @@ class LibraryVisitService
                 ->values();
         }
 
-        if ($members->count() === 1) {
-            return $members->first();
+        if ($visitors->count() === 1) {
+            return $visitors->first();
         }
 
-        if ($members->count() > 1) {
+        if ($visitors->count() > 1) {
             throw ValidationException::withMessages([
                 'rfid_uid' => 'Multiple active registered visitors match that search. Please use the RFID or school ID.',
             ]);
@@ -137,10 +160,10 @@ class LibraryVisitService
         ]);
     }
 
-    private function ensureMemberCanRevisit(RegisteredVisitor $member, int $schoolYearId, Carbon $now): void
+    private function ensureVisitorCanRevisit(RegisteredVisitor $visitor, int $schoolYearId, Carbon $now): void
     {
         $intervalMinutes = $this->scanSettings->repeatScanIntervalMinutes();
-        $lastVisit = $member->visits()
+        $lastVisit = $visitor->visits()
             ->where('school_year_id', $schoolYearId)
             ->latest('visited_at')
             ->first();

@@ -3,23 +3,23 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { type RegisteredVisitorRow } from '@/types/registered-visitors';
 import { useForm } from '@inertiajs/react';
 import { useEffect, useRef, useState, type FormEventHandler } from 'react';
-import { DetailsSection, IdentitySection, ProfileSection } from './member-form-sections';
-import { firstStepWithErrors, initialMemberData, isStepComplete, memberFormSteps, stepHasErrors, type MemberFormData } from './member-form-state';
+import { DetailsSection, IdentitySection, ProfileSection } from './visitor-form-sections';
+import { firstStepWithErrors, initialVisitorData, isStepComplete, visitorFormSteps, stepHasErrors, type VisitorFormData } from './visitor-form-state';
 
-interface MemberFormModalProps {
-    member: RegisteredVisitorRow | null;
+interface VisitorFormModalProps {
+    visitor: RegisteredVisitorRow | null;
     open: boolean;
     sectionsByYearLevel: Record<string, string[]>;
     onOpenChange: (open: boolean) => void;
 }
 
-export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChange }: MemberFormModalProps) {
-    const isEditing = Boolean(member);
+export function VisitorFormModal({ visitor, open, sectionsByYearLevel, onOpenChange }: VisitorFormModalProps) {
+    const isEditing = Boolean(visitor);
     const [step, setStep] = useState(0);
     const [attemptedStep, setAttemptedStep] = useState<number | null>(null);
     const scanBuffer = useRef('');
     const scanTimer = useRef<number | null>(null);
-    const { data, setData, post, processing, errors, clearErrors, reset } = useForm<MemberFormData>(initialMemberData(member));
+    const { data, setData, post, processing, errors, clearErrors, reset } = useForm<VisitorFormData>(initialVisitorData(visitor));
     const inputClass =
         'mt-2 h-10 w-full rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm text-[#010440] outline-none transition focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10';
     const sectionClass = isEditing ? 'rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff] p-4' : 'space-y-4';
@@ -35,8 +35,8 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
         setAttemptedStep(null);
         clearErrors();
         reset();
-        setData(initialMemberData(member));
-    }, [clearErrors, member, open, reset, setData]);
+        setData(initialVisitorData(visitor));
+    }, [clearErrors, visitor, open, reset, setData]);
 
     useEffect(() => {
         if (!open || isEditing) {
@@ -89,7 +89,7 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
         };
     }, [isEditing, open, setData]);
 
-    const changeMemberType = (type: MemberFormData['type']) => {
+    const changeVisitorType = (type: VisitorFormData['type']) => {
         setData({
             ...data,
             type,
@@ -105,7 +105,7 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
         clearErrors('type', 'department', 'year_level', 'section');
     };
 
-    const updateData = (field: keyof MemberFormData, value: MemberFormData[keyof MemberFormData]) => {
+    const updateData = (field: keyof VisitorFormData, value: VisitorFormData[keyof VisitorFormData]) => {
         setData(field, value);
         clearErrors(field);
     };
@@ -113,7 +113,7 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
     const submit: FormEventHandler = (event) => {
         event.preventDefault();
 
-        if (!isEditing && step < memberFormSteps.length - 1) {
+        if (!isEditing && step < visitorFormSteps.length - 1) {
             setAttemptedStep(step);
 
             if (!currentStepComplete) {
@@ -129,7 +129,7 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
             return;
         }
 
-        if (!isEditing && !memberFormSteps.every((_, index) => isStepComplete(index, data))) {
+        if (!isEditing && !visitorFormSteps.every((_, index) => isStepComplete(index, data))) {
             setAttemptedStep(step);
             return;
         }
@@ -138,12 +138,12 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
-                if (!member) {
+                if (!visitor) {
                     onOpenChange(false);
                 }
             },
             onError: (formErrors) => {
-                const errorStep = firstStepWithErrors(formErrors as Partial<Record<keyof MemberFormData, string>>);
+                const errorStep = firstStepWithErrors(formErrors as Partial<Record<keyof VisitorFormData, string>>);
 
                 if (errorStep !== null) {
                     setStep(errorStep);
@@ -152,9 +152,9 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
             },
         };
 
-        if (member) {
+        if (visitor) {
             onOpenChange(false);
-            post(`/admin/registered-visitors/${member.id}`, options);
+            post(`/admin/registered-visitors/${visitor.id}`, options);
             return;
         }
 
@@ -192,17 +192,17 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
                     <div className="border-y border-[#040DBF]/10 py-4">
                         <div className="flex items-center justify-between gap-3 text-xs font-semibold tracking-[0.16em] text-[#030A8C] uppercase">
                             <span>
-                                Step {step + 1} of {memberFormSteps.length}
+                                Step {step + 1} of {visitorFormSteps.length}
                             </span>
-                            <span>{memberFormSteps[step].title}</span>
+                            <span>{visitorFormSteps[step].title}</span>
                         </div>
                         <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#040DBF]/10">
                             <div
                                 className="h-full rounded-full bg-[#040DBF] transition-[width] duration-300"
-                                style={{ width: `${((step + 1) / memberFormSteps.length) * 100}%` }}
+                                style={{ width: `${((step + 1) / visitorFormSteps.length) * 100}%` }}
                             />
                         </div>
-                        <p className="mt-3 text-sm leading-6 text-[#020659]">{memberFormSteps[step].description}</p>
+                        <p className="mt-3 text-sm leading-6 text-[#020659]">{visitorFormSteps[step].description}</p>
                     </div>
                 )}
 
@@ -215,7 +215,7 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
                             inputClass={inputClass}
                             sectionClass={sectionClass}
                             isEditing={isEditing}
-                            onTypeChange={changeMemberType}
+                            onTypeChange={changeVisitorType}
                         />
                     )}
 
@@ -230,7 +230,7 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
                             setData={updateData}
                             inputClass={inputClass}
                             sectionClass={sectionClass}
-                            member={member}
+                            visitor={visitor}
                             sectionOptions={data.year_level ? (sectionsByYearLevel[data.year_level] ?? []) : []}
                         />
                     )}
@@ -257,7 +257,7 @@ export function MemberFormModal({ member, open, sectionsByYearLevel, onOpenChang
                                 ? processing
                                     ? 'Saving...'
                                     : 'Save changes'
-                                : step === memberFormSteps.length - 1
+                                : step === visitorFormSteps.length - 1
                                   ? processing
                                       ? 'Saving...'
                                       : 'Create visitor'

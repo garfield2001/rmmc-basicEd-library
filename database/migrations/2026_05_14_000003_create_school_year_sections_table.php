@@ -8,20 +8,20 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('library_visits', function (Blueprint $table) {
+        Schema::create('school_year_sections', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('registered_visitor_id')->constrained()->cascadeOnDelete();
             $table->foreignId('school_year_id')->constrained()->cascadeOnDelete();
-            $table->timestamp('visited_at')->index();
+            $table->string('year_level', 50)->index();
+            $table->string('name', 50);
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index(['registered_visitor_id', 'school_year_id']);
+            $table->unique(['school_year_id', 'year_level', 'name']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('library_visits');
+        Schema::dropIfExists('school_year_sections');
     }
 };

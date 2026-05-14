@@ -1,15 +1,19 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FallbackImage } from '@/components/ui/fallback-image';
-import { VISIT_SCAN_SUCCESS_MODAL_AUTO_CLOSE_SECONDS } from '@/config/timing';
 import { type DashboardVisit } from '@/types/dashboard';
 import { BriefcaseBusiness, CalendarClock, CheckCircle2, GraduationCap, IdCard, Timer, UserRound, type LucideIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface ScanSuccessModalProps {
     visit: DashboardVisit | null | undefined;
+    closeAfterSeconds: number;
 }
 
 const fallback = '-';
+
+function visitSignature(visit: DashboardVisit | null | undefined) {
+    return visit ? `${visit.id}:${visit.visitedAt ?? 'pending'}` : null;
+}
 
 function formatVisitTime(visitedAt: string | null) {
     return visitedAt
@@ -34,23 +38,27 @@ function DetailItem({ label, value, icon: Icon }: { label: string; value: string
     );
 }
 
-export function ScanSuccessModal({ visit }: ScanSuccessModalProps) {
+export function ScanSuccessModal({ visit, closeAfterSeconds }: ScanSuccessModalProps) {
     const [visibleVisit, setVisibleVisit] = useState<DashboardVisit | null>(null);
+    const [visibleVisitSignature, setVisibleVisitSignature] = useState<string | null>(null);
     const [isOpen, setIsOpen] = useState(false);
-    const [closeCountdown, setCloseCountdown] = useState(VISIT_SCAN_SUCCESS_MODAL_AUTO_CLOSE_SECONDS);
-    const isEmployee = visibleVisit?.member.type === 'employee';
+    const [closeCountdown, setCloseCountdown] = useState(closeAfterSeconds);
+    const isEmployee = visibleVisit?.visitor.type === 'employee';
     const TypeIcon = isEmployee ? BriefcaseBusiness : GraduationCap;
     const typeLabel = isEmployee ? 'Employee' : 'Student';
 
     useEffect(() => {
-        if (!visit || visit.id === visibleVisit?.id) {
+        const nextVisitSignature = visitSignature(visit);
+
+        if (!visit || nextVisitSignature === visibleVisitSignature) {
             return;
         }
 
         setVisibleVisit(visit);
-        setCloseCountdown(VISIT_SCAN_SUCCESS_MODAL_AUTO_CLOSE_SECONDS);
+        setVisibleVisitSignature(nextVisitSignature);
+        setCloseCountdown(closeAfterSeconds);
         setIsOpen(true);
-    }, [visibleVisit?.id, visit]);
+    }, [closeAfterSeconds, visibleVisitSignature, visit]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -70,9 +78,9 @@ export function ScanSuccessModal({ visit }: ScanSuccessModalProps) {
             return;
         }
 
-        setCloseCountdown(VISIT_SCAN_SUCCESS_MODAL_AUTO_CLOSE_SECONDS);
+        setCloseCountdown(closeAfterSeconds);
 
-        const closeTimer = window.setTimeout(() => setIsOpen(false), VISIT_SCAN_SUCCESS_MODAL_AUTO_CLOSE_SECONDS * 1000);
+        const closeTimer = window.setTimeout(() => setIsOpen(false), closeAfterSeconds * 1000);
         const countdownTimer = window.setInterval(() => {
             setCloseCountdown((currentCountdown) => Math.max(currentCountdown - 1, 1));
         }, 1000);
@@ -81,7 +89,7 @@ export function ScanSuccessModal({ visit }: ScanSuccessModalProps) {
             window.clearTimeout(closeTimer);
             window.clearInterval(countdownTimer);
         };
-    }, [isOpen, visibleVisit?.id]);
+    }, [closeAfterSeconds, isOpen, visibleVisit?.id]);
 
     if (!visibleVisit) {
         return null;
@@ -104,7 +112,7 @@ export function ScanSuccessModal({ visit }: ScanSuccessModalProps) {
                                 Visit recorded successfully
                             </div>
                             <DialogTitle className="mt-5 text-4xl leading-tight font-semibold tracking-normal text-[#010440] sm:text-5xl">
-                                {visibleVisit.member.name ?? 'Unknown visitor'}
+                                {visibleVisit.visitor.name ?? 'Unknown visitor'}
                             </DialogTitle>
                             <DialogDescription className="sr-only">
                                 Library visit was recorded successfully and this confirmation closes automatically.
@@ -121,19 +129,19 @@ export function ScanSuccessModal({ visit }: ScanSuccessModalProps) {
                     </DialogHeader>
 
                     <div className="mt-8 grid gap-8 sm:grid-cols-[300px_minmax(0,1fr)]">
-                        <ScanMemberPhoto visit={visibleVisit} />
+                        <ScanVisitorPhoto visit={visibleVisit} />
 
                         <div className="min-w-0">
                             <div className="grid gap-4 sm:grid-cols-2">
-                                <DetailItem label="School ID" value={visibleVisit.member.schoolId ?? 'No school ID'} icon={IdCard} />
+                                <DetailItem label="School ID" value={visibleVisit.visitor.schoolId ?? 'No school ID'} icon={IdCard} />
                                 <DetailItem label="Visitor type" value={typeLabel} icon={TypeIcon} />
                                 <DetailItem label="Recorded at" value={formatVisitTime(visibleVisit.visitedAt)} icon={CalendarClock} />
                                 {isEmployee ? (
-                                    <DetailItem label="Department" value={visibleVisit.member.department} />
+                                    <DetailItem label="Department" value={visibleVisit.visitor.department} />
                                 ) : (
                                     <>
-                                        <DetailItem label="Year level" value={visibleVisit.member.yearLevel} />
-                                        <DetailItem label="Section" value={visibleVisit.member.section} />
+                                        <DetailItem label="Year level" value={visibleVisit.visitor.yearLevel} />
+                                        <DetailItem label="Section" value={visibleVisit.visitor.section} />
                                     </>
                                 )}
                             </div>
@@ -145,11 +153,11 @@ export function ScanSuccessModal({ visit }: ScanSuccessModalProps) {
     );
 }
 
-function ScanMemberPhoto({ visit }: { visit: DashboardVisit }) {
+function ScanVisitorPhoto({ visit }: { visit: DashboardVisit }) {
     return (
         <div className="scan-success-photo overflow-hidden rounded-xl border border-[#040DBF]/15 bg-white p-2 shadow-lg shadow-[#010440]/10">
             <FallbackImage
-                src={visit.member.photoUrl}
+                src={visit.visitor.photoUrl}
                 className="aspect-square size-full rounded-lg object-cover"
                 fallback={
                     <div className="flex aspect-square items-center justify-center rounded-lg bg-[#eef2ff] text-[#030A8C]/50">

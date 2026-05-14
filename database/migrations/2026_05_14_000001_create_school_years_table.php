@@ -8,9 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('school_years', function (Blueprint $table) {
+        Schema::create('school_years', function (Blueprint $table): void {
             $table->id();
-            $table->string('name')->unique();
+            $table->string('name', 32)->unique();
             $table->date('starts_at');
             $table->date('ends_at');
             $table->unsignedTinyInteger('minimum_visits')->default(3);

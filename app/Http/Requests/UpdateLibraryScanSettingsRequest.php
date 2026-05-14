@@ -14,9 +14,12 @@ class UpdateLibraryScanSettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'repeat_scan_interval_hours' => ['required', 'integer', 'min:1', 'max:24'],
+            'repeat_scan_interval_minutes' => ['required', 'integer', 'min:1', 'max:1440'],
             'scan_starts_at' => ['required', 'date_format:H:i'],
             'scan_ends_at' => ['required', 'date_format:H:i', 'different:scan_starts_at'],
+            'success_modal_close_seconds' => ['required', 'integer', 'min:1', 'max:60'],
+            'error_modal_close_seconds' => ['required', 'integer', 'min:1', 'max:60'],
+            'scanner_cooldown_seconds' => ['required', 'integer', 'min:0', 'max:60'],
         ];
     }
 }

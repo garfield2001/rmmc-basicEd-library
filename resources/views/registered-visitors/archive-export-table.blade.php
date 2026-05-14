@@ -22,32 +22,32 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($members as $member)
-                    @forelse ($member->visits as $visit)
+                @foreach ($visitors as $visitor)
+                    @forelse ($visitor->visits as $visit)
                         <tr>
-                            <td>{{ optional($member->deleted_at)->format('Y-m-d H:i:s') }}</td>
-                            <td>{{ $member->school_id }}</td>
-                            <td>{{ $member->rfid_uid }}</td>
-                            <td>{{ $member->full_name }}</td>
-                            <td>{{ $member->type }}</td>
-                            <td>{{ $member->student?->year_level }}</td>
-                            <td>{{ $member->student?->section }}</td>
-                            <td>{{ $member->employee?->department }}</td>
-                            <td>{{ $member->is_active ? 'Active' : 'Inactive' }}</td>
+                            <td>{{ optional($visitor->deleted_at)->format('Y-m-d H:i:s') }}</td>
+                            <td>{{ $visitor->school_id }}</td>
+                            <td>{{ $visitor->rfid_uid }}</td>
+                            <td>{{ $visitor->full_name }}</td>
+                            <td>{{ $visitor->type }}</td>
+                            <td>{{ $visitor->student?->year_level }}</td>
+                            <td>{{ $visitor->student?->section }}</td>
+                            <td>{{ $visitor->employee?->department }}</td>
+                            <td>{{ $visitor->is_active ? 'Active' : 'Inactive' }}</td>
                             <td>{{ $visit->schoolYear?->name }}</td>
                             <td>{{ optional($visit->visited_at)->format('Y-m-d H:i:s') }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td>{{ optional($member->deleted_at)->format('Y-m-d H:i:s') }}</td>
-                            <td>{{ $member->school_id }}</td>
-                            <td>{{ $member->rfid_uid }}</td>
-                            <td>{{ $member->full_name }}</td>
-                            <td>{{ $member->type }}</td>
-                            <td>{{ $member->student?->year_level }}</td>
-                            <td>{{ $member->student?->section }}</td>
-                            <td>{{ $member->employee?->department }}</td>
-                            <td>{{ $member->is_active ? 'Active' : 'Inactive' }}</td>
+                            <td>{{ optional($visitor->deleted_at)->format('Y-m-d H:i:s') }}</td>
+                            <td>{{ $visitor->school_id }}</td>
+                            <td>{{ $visitor->rfid_uid }}</td>
+                            <td>{{ $visitor->full_name }}</td>
+                            <td>{{ $visitor->type }}</td>
+                            <td>{{ $visitor->student?->year_level }}</td>
+                            <td>{{ $visitor->student?->section }}</td>
+                            <td>{{ $visitor->employee?->department }}</td>
+                            <td>{{ $visitor->is_active ? 'Active' : 'Inactive' }}</td>
                             <td></td>
                             <td></td>
                         </tr>

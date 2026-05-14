@@ -22,25 +22,25 @@ class AdminVisitMonitorService
             'metrics' => [
                 'visitsToday' => (clone $todayVisitQuery)->count(),
                 'studentVisitsToday' => (clone $todayVisitQuery)
-                    ->whereHas('member', fn (Builder $query) => $query->where('type', RegisteredVisitor::TYPE_STUDENT))
+                    ->whereHas('visitor', fn (Builder $query) => $query->where('type', RegisteredVisitor::TYPE_STUDENT))
                     ->count(),
                 'employeeVisitsToday' => (clone $todayVisitQuery)
-                    ->whereHas('member', fn (Builder $query) => $query->where('type', RegisteredVisitor::TYPE_EMPLOYEE))
+                    ->whereHas('visitor', fn (Builder $query) => $query->where('type', RegisteredVisitor::TYPE_EMPLOYEE))
                     ->count(),
             ],
             'todayVisits' => LibraryVisit::query()
                 ->with([
-                    'member:id,school_id,type,first_name,middle_name,last_name,photo',
-                    'member.student' => fn ($query) => $query
+                    'visitor:id,school_id,type,first_name,middle_name,last_name,photo',
+                    'visitor.student' => fn ($query) => $query
                         ->select(
-                            'student_school_year_records.id',
-                            'student_school_year_records.registered_visitor_id',
-                            'student_school_year_records.school_year_id',
-                            'student_school_year_records.year_level',
-                            'student_school_year_records.section',
+                            'student_registrations.id',
+                            'student_registrations.registered_visitor_id',
+                            'student_registrations.school_year_id',
+                            'student_registrations.year_level',
+                            'student_registrations.section',
                         )
                         ->forSchoolYear($activeSchoolYearId),
-                    'member.employee:id,registered_visitor_id,department',
+                    'visitor.employee:id,registered_visitor_id,department',
                 ])
                 ->whereDate('visited_at', $today)
                 ->when($activeSchoolYearId, fn (Builder $query) => $query->where('school_year_id', $activeSchoolYearId), fn (Builder $query) => $query->whereRaw('1 = 0'))
@@ -66,11 +66,11 @@ class AdminVisitMonitorService
             ->with([
                 'student' => fn ($query) => $query
                     ->select(
-                        'student_school_year_records.id',
-                        'student_school_year_records.registered_visitor_id',
-                        'student_school_year_records.school_year_id',
-                        'student_school_year_records.year_level',
-                        'student_school_year_records.section',
+                        'student_registrations.id',
+                        'student_registrations.registered_visitor_id',
+                        'student_registrations.school_year_id',
+                        'student_registrations.year_level',
+                        'student_registrations.section',
                     )
                     ->forSchoolYear($activeSchoolYearId),
                 'employee:id,registered_visitor_id,department',
@@ -81,7 +81,7 @@ class AdminVisitMonitorService
                     ->orWhere('rfid_uid', 'like', "{$search}%")
                     ->orWhere('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhereHas('studentSchoolYearRecords', function (Builder $query) use ($activeSchoolYearId, $search): void {
+                    ->orWhereHas('studentRegistrations', function (Builder $query) use ($activeSchoolYearId, $search): void {
                         $query
                             ->forSchoolYear($activeSchoolYearId)
                             ->where(function (Builder $query) use ($search): void {
@@ -96,7 +96,7 @@ class AdminVisitMonitorService
             ->orderBy('first_name')
             ->limit($limit)
             ->get()
-            ->map(fn (RegisteredVisitor $member): array => $this->scanTargetData($member))
+            ->map(fn (RegisteredVisitor $visitor): array => $this->scanTargetData($visitor))
             ->all();
     }
 
@@ -105,31 +105,31 @@ class AdminVisitMonitorService
         return [
             'id' => $visit->id,
             'visitedAt' => $visit->visited_at?->toIso8601String(),
-            'member' => [
-                'schoolId' => $visit->member?->school_id,
-                'name' => $visit->member?->full_name,
-                'type' => $visit->member?->type,
-                'yearLevel' => $visit->member?->student?->year_level,
-                'section' => $visit->member?->student?->section,
-                'department' => $visit->member?->employee?->department,
-                'photoUrl' => $visit->member?->photo ? asset('member-photos/'.$visit->member->photo) : null,
+            'visitor' => [
+                'schoolId' => $visit->visitor?->school_id,
+                'name' => $visit->visitor?->full_name,
+                'type' => $visit->visitor?->type,
+                'yearLevel' => $visit->visitor?->student?->year_level,
+                'section' => $visit->visitor?->student?->section,
+                'department' => $visit->visitor?->employee?->department,
+                'photoUrl' => $visit->visitor?->photo ? asset('visitor-photos/'.$visit->visitor->photo) : null,
             ],
         ];
     }
 
-    private function scanTargetData(RegisteredVisitor $member): array
+    private function scanTargetData(RegisteredVisitor $visitor): array
     {
         return [
-            'id' => $member->id,
-            'RFIDUid' => $member->rfid_uid,
-            'schoolId' => $member->school_id,
-            'name' => $member->full_name,
-            'firstName' => $member->first_name,
-            'lastName' => $member->last_name,
-            'type' => $member->type,
-            'detail' => $member->type === RegisteredVisitor::TYPE_EMPLOYEE
-                ? $member->employee?->department
-                : collect([$member->student?->year_level, $member->student?->section])->filter()->join(' - '),
+            'id' => $visitor->id,
+            'RFIDUid' => $visitor->rfid_uid,
+            'schoolId' => $visitor->school_id,
+            'name' => $visitor->full_name,
+            'firstName' => $visitor->first_name,
+            'lastName' => $visitor->last_name,
+            'type' => $visitor->type,
+            'detail' => $visitor->type === RegisteredVisitor::TYPE_EMPLOYEE
+                ? $visitor->employee?->department
+                : collect([$visitor->student?->year_level, $visitor->student?->section])->filter()->join(' - '),
         ];
     }
 }

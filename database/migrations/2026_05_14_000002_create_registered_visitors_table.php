@@ -8,11 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('registered_visitors', function (Blueprint $table) {
+        Schema::create('registered_visitors', function (Blueprint $table): void {
             $table->id();
-            $table->string('rfid_uid')->unique();
+            $table->string('rfid_uid', 10)->unique();
             $table->string('school_id')->unique();
-            $table->string('type')->index();
+            $table->string('type', 24)->index();
             $table->string('first_name');
             $table->string('middle_name')->nullable();
             $table->string('last_name');
@@ -20,6 +20,9 @@ return new class extends Migration
             $table->boolean('is_active')->default(true)->index();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index(['type', 'is_active']);
+            $table->index(['last_name', 'first_name']);
         });
     }
 

@@ -28,10 +28,10 @@ class PublicDashboardService
                 'employees' => RegisteredVisitor::active()->where('type', RegisteredVisitor::TYPE_EMPLOYEE)->count(),
                 'visitsToday' => (clone $todayVisitQuery)->count(),
                 'studentVisitsToday' => (clone $todayVisitQuery)
-                    ->whereHas('member', fn (Builder $query) => $query->where('type', RegisteredVisitor::TYPE_STUDENT))
+                    ->whereHas('visitor', fn (Builder $query) => $query->where('type', RegisteredVisitor::TYPE_STUDENT))
                     ->count(),
                 'employeeVisitsToday' => (clone $todayVisitQuery)
-                    ->whereHas('member', fn (Builder $query) => $query->where('type', RegisteredVisitor::TYPE_EMPLOYEE))
+                    ->whereHas('visitor', fn (Builder $query) => $query->where('type', RegisteredVisitor::TYPE_EMPLOYEE))
                     ->count(),
             ],
         ];

@@ -97,11 +97,11 @@ export function BulkStudentAssignmentPanel({ open, onOpenChange, onAssigned }: B
                             className="min-h-0 flex-1 resize-none rounded-lg border border-zinc-300 bg-white p-3 text-sm leading-6 text-zinc-950 outline-none focus:border-zinc-500 focus:ring-4 focus:ring-zinc-100"
                         />
                         <div className="shrink-0 space-y-2">
-                            <label htmlFor="bulk-member-section" className="text-sm font-medium text-zinc-700">
+                            <label htmlFor="bulk-visitor-section" className="text-sm font-medium text-zinc-700">
                                 Assign section
                             </label>
                             <input
-                                id="bulk-member-section"
+                                id="bulk-visitor-section"
                                 value={section}
                                 onChange={(event) => setSection(event.target.value)}
                                 placeholder="Leave blank to clear section"
@@ -120,14 +120,14 @@ export function BulkStudentAssignmentPanel({ open, onOpenChange, onAssigned }: B
                     <AssignmentPreview
                         preview={preview}
                         onConfirm={() => {
-                            if (preview?.memberIds.length) {
-                                const memberIds = preview.memberIds;
+                            if (preview?.visitorIds.length) {
+                                const visitorIds = preview.visitorIds;
 
                                 onOpenChange(false);
                                 router.patch(
                                     '/admin/registered-visitors/bulk-assign-students',
                                     {
-                                        member_ids: memberIds,
+                                        visitor_ids: visitorIds,
                                         section,
                                     },
                                     {
@@ -179,7 +179,7 @@ function AssignmentPreview({ preview, onConfirm }: { preview: StudentAssignmentP
                             {preview.uniqueCount.toLocaleString()} unique IDs checked from {preview.inputCount.toLocaleString()} pasted entries.
                         </p>
                     </div>
-                    <Button type="button" onClick={onConfirm} disabled={preview.memberIds.length === 0}>
+                    <Button type="button" onClick={onConfirm} disabled={preview.visitorIds.length === 0}>
                         <MoveRight className="size-4" />
                         Confirm assignment
                     </Button>

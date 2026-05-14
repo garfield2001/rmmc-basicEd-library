@@ -1,8 +1,8 @@
 import { BulkStudentAssignmentPanel } from '@/components/admin/registered-visitors/bulk-student-assignment-panel';
-import { DeleteMemberDialog } from '@/components/admin/registered-visitors/delete-member-dialog';
-import { MemberFormModal } from '@/components/admin/registered-visitors/member-form-modal';
-import { MembersFilterBar } from '@/components/admin/registered-visitors/members-filter-bar';
-import { MembersTable } from '@/components/admin/registered-visitors/members-table';
+import { DeleteVisitorDialog } from '@/components/admin/registered-visitors/delete-visitor-dialog';
+import { VisitorFormModal } from '@/components/admin/registered-visitors/visitor-form-modal';
+import { VisitorsFilterBar } from '@/components/admin/registered-visitors/visitors-filter-bar';
+import { VisitorsTable } from '@/components/admin/registered-visitors/visitors-table';
 import { Button } from '@/components/ui/button';
 import type { RowsPerPageOption } from '@/components/ui/pagination-controls';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
@@ -13,8 +13,8 @@ import { Head, router } from '@inertiajs/react';
 import { ClipboardList, Plus, Upload } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-interface MembersIndexProps {
-    members: Paginated<RegisteredVisitorRow>;
+interface VisitorsIndexProps {
+    visitors: Paginated<RegisteredVisitorRow>;
     filters: {
         search: string;
         type: 'student' | 'employee';
@@ -32,9 +32,9 @@ interface MembersIndexProps {
     };
 }
 
-type MemberType = 'student' | 'employee';
+type VisitorType = 'student' | 'employee';
 
-export default function MembersIndex({ members, filters, filterOptions }: MembersIndexProps) {
+export default function VisitorsIndex({ visitors, filters, filterOptions }: VisitorsIndexProps) {
     const [search, setSearch] = useState(filters.search ?? '');
     const [yearLevel, setYearLevel] = useState(filters.year_level ?? '');
     const [section, setSection] = useState(filters.section ?? '');
@@ -44,13 +44,13 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
     const [perPage, setPerPage] = useState<RowsPerPageOption>(filters.per_page ?? 5);
     const [tableLoading, setTableLoading] = useState(false);
     const [importing, setImporting] = useState(false);
-    const [memberFormOpen, setMemberFormOpen] = useState(false);
+    const [visitorFormOpen, setVisitorFormOpen] = useState(false);
     const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
-    const [selectedMember, setSelectedMember] = useState<RegisteredVisitorRow | null>(null);
-    const [memberToDelete, setMemberToDelete] = useState<RegisteredVisitorRow | null>(null);
+    const [selectedVisitor, setselectedVisitor] = useState<RegisteredVisitorRow | null>(null);
+    const [visitorToDelete, setVisitorToDelete] = useState<RegisteredVisitorRow | null>(null);
     const importInputRef = useRef<HTMLInputElement | null>(null);
     const loadingTimerRef = useRef<number | null>(null);
-    const activeType: MemberType = filters.type === 'employee' ? 'employee' : 'student';
+    const activeType: VisitorType = filters.type === 'employee' ? 'employee' : 'student';
     const availableSections = useMemo(() => {
         return yearLevel ? (filterOptions.sectionsByYearLevel[yearLevel] ?? []) : [];
     }, [filterOptions.sectionsByYearLevel, yearLevel]);
@@ -72,9 +72,9 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
         setTableLoading(false);
     }, []);
 
-    const requestMembers = useCallback(
+    const requestVisitors = useCallback(
         (
-            type: MemberType,
+            type: VisitorType,
             nextSearch: string,
             nextYearLevel: string,
             nextSection: string,
@@ -147,7 +147,7 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
         }
 
         const filterTimer = window.setTimeout(() => {
-            requestMembers(activeType, search, yearLevel, normalizedSection, department, perPage);
+            requestVisitors(activeType, search, yearLevel, normalizedSection, department, perPage);
         }, 300);
 
         return () => window.clearTimeout(filterTimer);
@@ -162,7 +162,7 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
         filters.direction,
         filters.department,
         perPage,
-        requestMembers,
+        requestVisitors,
         search,
         section,
         department,
@@ -176,17 +176,17 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
         setSection('');
     };
 
-    const openCreateMember = () => {
-        setSelectedMember(null);
-        setMemberFormOpen(true);
+    const openCreateVisitor = () => {
+        setselectedVisitor(null);
+        setVisitorFormOpen(true);
     };
 
-    const openEditMember = (member: RegisteredVisitorRow) => {
-        setSelectedMember(member);
-        setMemberFormOpen(true);
+    const openEditVisitor = (visitor: RegisteredVisitorRow) => {
+        setselectedVisitor(visitor);
+        setVisitorFormOpen(true);
     };
 
-    const importMembers = (file: File | null) => {
+    const importVisitors = (file: File | null) => {
         if (!file) {
             return;
         }
@@ -194,7 +194,7 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
         setImporting(true);
         router.post(
             '/admin/registered-visitors/import',
-            { members_file: file },
+            { visitors_file: file },
             {
                 forceFormData: true,
                 preserveScroll: true,
@@ -214,16 +214,16 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
 
         setSort(column);
         setDirection(nextDirection);
-        requestMembers(activeType, search, yearLevel, section, department, perPage, column, nextDirection);
+        requestVisitors(activeType, search, yearLevel, section, department, perPage, column, nextDirection);
     };
 
     const clearSort = () => {
         setSort('created_at');
         setDirection('desc');
-        requestMembers(activeType, search, yearLevel, section, department, perPage, 'created_at', 'desc');
+        requestVisitors(activeType, search, yearLevel, section, department, perPage, 'created_at', 'desc');
     };
 
-    const sortForType = (type: MemberType) => {
+    const sortForType = (type: VisitorType) => {
         if (type === 'student' && sort === 'department') {
             return 'created_at';
         }
@@ -235,13 +235,13 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
         return sort;
     };
 
-    const changeType = (type: MemberType) => {
+    const changeType = (type: VisitorType) => {
         const nextSort = sortForType(type);
         const nextDirection = nextSort === 'created_at' ? 'desc' : direction;
 
         setSort(nextSort);
         setDirection(nextDirection);
-        requestMembers(type, search, yearLevel, section, department, perPage, nextSort, nextDirection);
+        requestVisitors(type, search, yearLevel, section, department, perPage, nextSort, nextDirection);
     };
 
     const visitPage = (url: string | null | undefined) => {
@@ -259,7 +259,7 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
         <>
             <Head title="Registered Visitors" />
             <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f4f5_42%,#e7e5e4_100%)] text-zinc-950">
-                <AdminLayout active="members">
+                <AdminLayout active="visitors">
                     <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
                             title="Registered Visitors"
@@ -293,7 +293,7 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
                                         type="file"
                                         accept=".csv,.txt,.xls"
                                         className="hidden"
-                                        onChange={(event) => importMembers(event.target.files?.[0] ?? null)}
+                                        onChange={(event) => importVisitors(event.target.files?.[0] ?? null)}
                                     />
                                     <Button
                                         type="button"
@@ -305,7 +305,7 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
                                         <Upload className="size-4" />
                                         {importing ? 'Importing...' : 'Import'}
                                     </Button>
-                                    <Button type="button" onClick={openCreateMember} className="w-full sm:w-auto">
+                                    <Button type="button" onClick={openCreateVisitor} className="w-full sm:w-auto">
                                         <Plus className="size-4" />
                                         Add visitor
                                     </Button>
@@ -313,7 +313,7 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
                             }
                         />
 
-                        <MembersFilterBar
+                        <VisitorsFilterBar
                             activeType={activeType}
                             search={search}
                             yearLevel={yearLevel}
@@ -337,8 +337,8 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
                             />
                         )}
 
-                        <MembersTable
-                            members={members}
+                        <VisitorsTable
+                            visitors={visitors}
                             activeType={activeType}
                             rowsPerPage={perPage}
                             sort={sort}
@@ -356,23 +356,23 @@ export default function MembersIndex({ members, filters, filterOptions }: Member
                             onRowsPerPageChange={setPerPage}
                             onSortChange={changeSort}
                             onSortClear={clearSort}
-                            onEdit={openEditMember}
-                            onDelete={setMemberToDelete}
-                            onPrevious={() => visitPage(members.prev_page_url ?? members.links.find((link) => link.label.includes('Previous'))?.url)}
-                            onNext={() => visitPage(members.next_page_url ?? members.links.find((link) => link.label.includes('Next'))?.url)}
+                            onEdit={openEditVisitor}
+                            onDelete={setVisitorToDelete}
+                            onPrevious={() => visitPage(visitors.prev_page_url ?? visitors.links.find((link) => link.label.includes('Previous'))?.url)}
+                            onNext={() => visitPage(visitors.next_page_url ?? visitors.links.find((link) => link.label.includes('Next'))?.url)}
                         />
                     </div>
 
-                    <MemberFormModal
-                        member={selectedMember}
-                        open={memberFormOpen}
+                    <VisitorFormModal
+                        visitor={selectedVisitor}
+                        open={visitorFormOpen}
                         sectionsByYearLevel={filterOptions.sectionsByYearLevel}
-                        onOpenChange={setMemberFormOpen}
+                        onOpenChange={setVisitorFormOpen}
                     />
-                    <DeleteMemberDialog
-                        member={memberToDelete}
-                        open={Boolean(memberToDelete)}
-                        onOpenChange={(open) => !open && setMemberToDelete(null)}
+                    <DeleteVisitorDialog
+                        visitor={visitorToDelete}
+                        open={Boolean(visitorToDelete)}
+                        onOpenChange={(open) => !open && setVisitorToDelete(null)}
                     />
                 </AdminLayout>
             </main>

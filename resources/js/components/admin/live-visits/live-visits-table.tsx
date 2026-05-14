@@ -1,13 +1,15 @@
-import { MemberAvatar } from '@/components/ui/member-avatar';
+import { VisitorAvatar } from '@/components/ui/visitor-avatar';
 import { PaginationControls, type RowsPerPageOption } from '@/components/ui/pagination-controls';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { VirtualTableSpacerRow } from '@/components/ui/virtual-table-spacer-row';
 import { useViewportHeight, useWindowVirtualRows } from '@/hooks/use-window-virtual-rows';
 import type { DashboardVisit } from '@/types/dashboard';
-import { BarChart3, BriefcaseBusiness, GraduationCap, Search } from 'lucide-react';
+import { ArrowDown, ArrowUp, BarChart3, BriefcaseBusiness, ChevronsUpDown, GraduationCap, Search } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 type VisitTab = 'student' | 'employee';
+type SortColumn = 'visitedAt' | 'schoolId' | 'name' | 'group';
+type SortDirection = 'asc' | 'desc';
 
 interface LiveVisitsTableProps {
     visits: DashboardVisit[];
@@ -34,6 +36,8 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState<RowsPerPageOption>(defaultVisitsPerPage);
     const [isPaging, setIsPaging] = useState(false);
+    const [sortColumn, setSortColumn] = useState<SortColumn>('visitedAt');
+    const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const tableBodyRef = useRef<HTMLTableSectionElement | null>(null);
     const pagingTimerRef = useRef<number | null>(null);
     const visitTabs: { label: string; value: VisitTab; count: number; icon: typeof GraduationCap }[] = [
@@ -45,24 +49,28 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
 
         return visits.filter((visit) => {
             const searchable = [
-                visit.member.schoolId,
-                visit.member.name,
-                visit.member.type,
-                visit.member.yearLevel,
-                visit.member.section,
-                visit.member.department,
+                visit.visitor.schoolId,
+                visit.visitor.name,
+                visit.visitor.type,
+                visit.visitor.yearLevel,
+                visit.visitor.section,
+                visit.visitor.department,
             ]
                 .filter(Boolean)
                 .join(' ')
                 .toLowerCase();
 
-            return visit.member.type === visitTab && (!normalizedSearch || searchable.includes(normalizedSearch));
+            return visit.visitor.type === visitTab && (!normalizedSearch || searchable.includes(normalizedSearch));
         });
     }, [search, visitTab, visits]);
+    const sortedVisits = useMemo(
+        () => sortLiveVisits(filteredVisits, sortColumn, sortDirection),
+        [filteredVisits, sortColumn, sortDirection],
+    );
     const viewportHeight = useViewportHeight();
     const onePageRowCapacity = Math.max(1, Math.floor(viewportHeight / virtualRowHeight));
-    const totalPages = rowsPerPage === 'all' ? 1 : Math.max(1, Math.ceil(filteredVisits.length / rowsPerPage));
-    const pagedVisits = rowsPerPage === 'all' ? filteredVisits : filteredVisits.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+    const totalPages = rowsPerPage === 'all' ? 1 : Math.max(1, Math.ceil(sortedVisits.length / rowsPerPage));
+    const pagedVisits = rowsPerPage === 'all' ? sortedVisits : sortedVisits.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
     const usesVirtualRows = rowsPerPage === 'all' && pagedVisits.length > onePageRowCapacity;
     const virtualRows = useWindowVirtualRows({
         enabled: usesVirtualRows,
@@ -78,7 +86,7 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
     }, [search, visitTab, rowsPerPage]);
 
     useEffect(() => {
-        const newestVisitType = visits[0]?.member.type;
+        const newestVisitType = visits[0]?.visitor.type;
 
         if (newestVisitType === 'student' || newestVisitType === 'employee') {
             setVisitTab(newestVisitType);
@@ -125,6 +133,20 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
 
         showBriefTableLoading();
         setRowsPerPage(nextRowsPerPage);
+    };
+
+    const changeSort = (column: SortColumn) => {
+        setSortColumn((currentColumn) => {
+            if (currentColumn === column) {
+                setSortDirection((direction) => (direction === 'asc' ? 'desc' : 'asc'));
+
+                return currentColumn;
+            }
+
+            setSortDirection(column === 'visitedAt' ? 'desc' : 'asc');
+
+            return column;
+        });
     };
 
     return (
@@ -175,16 +197,16 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                 <Table className={visitTab === 'student' ? 'min-w-[760px]' : 'min-w-[640px]'}>
                     <TableHeader className="bg-[#f6f8ff]">
                         <TableRow>
-                            <TableHead>Time</TableHead>
-                            <TableHead>ID</TableHead>
-                            <TableHead>Name</TableHead>
+                            <SortableHead column="visitedAt" label="Time" sort={sortColumn} direction={sortDirection} onSortChange={changeSort} />
+                            <SortableHead column="schoolId" label="ID" sort={sortColumn} direction={sortDirection} onSortChange={changeSort} />
+                            <SortableHead column="name" label="Name" sort={sortColumn} direction={sortDirection} onSortChange={changeSort} />
                             {visitTab === 'student' ? (
                                 <>
-                                    <TableHead>Year level</TableHead>
+                                    <SortableHead column="group" label="Year level" sort={sortColumn} direction={sortDirection} onSortChange={changeSort} />
                                     <TableHead>Section</TableHead>
                                 </>
                             ) : (
-                                <TableHead>Department</TableHead>
+                                <SortableHead column="group" label="Department" sort={sortColumn} direction={sortDirection} onSortChange={changeSort} />
                             )}
                         </TableRow>
                     </TableHeader>
@@ -199,17 +221,17 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                                 {visibleVisits.map((visit) => (
                                     <TableRow key={visit.id}>
                                         <TableCell className="text-[#030A8C]">{formatVisitTime(visit)}</TableCell>
-                                        <TableCell className="font-medium">{visit.member.schoolId}</TableCell>
+                                        <TableCell className="font-medium">{visit.visitor.schoolId}</TableCell>
                                         <TableCell>
-                                            <VisitMemberCell visit={visit} />
+                                            <VisitVisitorCell visit={visit} />
                                         </TableCell>
                                         {visitTab === 'student' ? (
                                             <>
-                                                <TableCell className="text-[#020659]/70">{visit.member.yearLevel || '-'}</TableCell>
-                                                <TableCell className="text-[#020659]/70">{visit.member.section || '-'}</TableCell>
+                                                <TableCell className="text-[#020659]/70">{visit.visitor.yearLevel || '-'}</TableCell>
+                                                <TableCell className="text-[#020659]/70">{visit.visitor.section || '-'}</TableCell>
                                             </>
                                         ) : (
-                                            <TableCell className="text-[#020659]/70">{visit.member.department || '-'}</TableCell>
+                                            <TableCell className="text-[#020659]/70">{visit.visitor.department || '-'}</TableCell>
                                         )}
                                     </TableRow>
                                 ))}
@@ -238,9 +260,9 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
             <PaginationControls
                 currentPage={currentPage}
                 totalPages={totalPages}
-                from={filteredVisits.length === 0 ? 0 : rowsPerPage === 'all' ? 1 : (currentPage - 1) * rowsPerPage + 1}
-                to={rowsPerPage === 'all' ? filteredVisits.length : Math.min(currentPage * rowsPerPage, filteredVisits.length)}
-                total={filteredVisits.length}
+                from={sortedVisits.length === 0 ? 0 : rowsPerPage === 'all' ? 1 : (currentPage - 1) * rowsPerPage + 1}
+                to={rowsPerPage === 'all' ? sortedVisits.length : Math.min(currentPage * rowsPerPage, sortedVisits.length)}
+                total={sortedVisits.length}
                 rowsPerPage={rowsPerPage}
                 rowsPerPageOptions={[5, 10, 30, 50, 100, 'all']}
                 onRowsPerPageChange={changeRowsPerPage}
@@ -249,6 +271,68 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
             />
         </section>
     );
+}
+
+function SortableHead({
+    column,
+    label,
+    sort,
+    direction,
+    onSortChange,
+}: {
+    column: SortColumn;
+    label: string;
+    sort: SortColumn;
+    direction: SortDirection;
+    onSortChange: (column: SortColumn) => void;
+}) {
+    const active = sort === column;
+    const Icon = active ? (direction === 'asc' ? ArrowUp : ArrowDown) : ChevronsUpDown;
+
+    return (
+        <TableHead>
+            <button type="button" onClick={() => onSortChange(column)} className="inline-flex items-center gap-1.5 hover:text-[#010440]">
+                {label}
+                <Icon className="size-3.5" />
+            </button>
+        </TableHead>
+    );
+}
+
+function sortLiveVisits(visits: DashboardVisit[], column: SortColumn, direction: SortDirection) {
+    return [...visits].sort((first, second) => {
+        const firstValue = sortValue(first, column);
+        const secondValue = sortValue(second, column);
+        const comparison = compareValues(firstValue, secondValue);
+
+        return direction === 'asc' ? comparison : comparison * -1;
+    });
+}
+
+function sortValue(visit: DashboardVisit, column: SortColumn) {
+    if (column === 'visitedAt') {
+        return visit.visitedAt ? new Date(visit.visitedAt).getTime() : 0;
+    }
+
+    if (column === 'schoolId') {
+        return visit.visitor.schoolId ?? '';
+    }
+
+    if (column === 'name') {
+        return visit.visitor.name ?? '';
+    }
+
+    return visit.visitor.type === 'student'
+        ? [visit.visitor.yearLevel, visit.visitor.section].filter(Boolean).join(' ')
+        : (visit.visitor.department ?? '');
+}
+
+function compareValues(first: string | number, second: string | number) {
+    if (typeof first === 'number' && typeof second === 'number') {
+        return first - second;
+    }
+
+    return String(first).localeCompare(String(second), undefined, { numeric: true, sensitivity: 'base' });
 }
 
 function LiveVisitLoadingRows({ columns }: { columns: number }) {
@@ -271,15 +355,15 @@ function LiveVisitLoadingRows({ columns }: { columns: number }) {
     );
 }
 
-function VisitMemberCell({ visit }: { visit: DashboardVisit }) {
+function VisitVisitorCell({ visit }: { visit: DashboardVisit }) {
     return (
         <div className="flex items-center gap-3">
-            <MemberAvatar
-                name={visit.member.name}
-                src={visit.member.photoUrl}
+            <VisitorAvatar
+                name={visit.visitor.name}
+                src={visit.visitor.photoUrl}
                 className="live-visit-avatar bg-[#eef2ff] text-[#030A8C]/70 ring-1 ring-[#040DBF]/10"
             />
-            <span>{visit.member.name}</span>
+            <span>{visit.visitor.name}</span>
         </div>
     );
 }

@@ -1,10 +1,10 @@
 import { SelectInput } from '@/components/ui/select-input';
 import { BriefcaseBusiness, GraduationCap, Search } from 'lucide-react';
 
-type MemberType = 'student' | 'employee';
+type VisitorType = 'student' | 'employee';
 
-interface MembersFilterBarProps {
-    activeType: MemberType;
+interface VisitorsFilterBarProps {
+    activeType: VisitorType;
     search: string;
     yearLevel: string;
     section: string;
@@ -16,10 +16,10 @@ interface MembersFilterBarProps {
     onYearLevelChange: (value: string) => void;
     onSectionChange: (value: string) => void;
     onDepartmentChange: (value: string) => void;
-    onTypeChange: (type: MemberType) => void;
+    onTypeChange: (type: VisitorType) => void;
 }
 
-export function MembersFilterBar({
+export function VisitorsFilterBar({
     activeType,
     search,
     yearLevel,
@@ -33,7 +33,7 @@ export function MembersFilterBar({
     onSectionChange,
     onDepartmentChange,
     onTypeChange,
-}: MembersFilterBarProps) {
+}: VisitorsFilterBarProps) {
     const tabs = [
         { label: 'Students', value: 'student' as const, icon: GraduationCap },
         { label: 'Employees', value: 'employee' as const, icon: BriefcaseBusiness },

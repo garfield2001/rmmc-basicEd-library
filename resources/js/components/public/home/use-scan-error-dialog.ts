@@ -1,10 +1,13 @@
-import { VISIT_SCAN_ERROR_MODAL_AUTO_CLOSE_SECONDS } from '@/config/timing';
 import type { DashboardVisit } from '@/types/dashboard';
 import { useEffect, useState } from 'react';
 
-export function useScanErrorDialog(scanValidationError: string | undefined, recentVisit: DashboardVisit | null | undefined) {
+export function useScanErrorDialog(
+    scanValidationError: string | undefined,
+    recentVisit: DashboardVisit | null | undefined,
+    closeAfterSeconds: number,
+) {
     const [isOpen, setIsOpen] = useState(false);
-    const [countdown, setCountdown] = useState(VISIT_SCAN_ERROR_MODAL_AUTO_CLOSE_SECONDS);
+    const [countdown, setCountdown] = useState(closeAfterSeconds);
 
     useEffect(() => {
         if (scanValidationError) {
@@ -23,9 +26,9 @@ export function useScanErrorDialog(scanValidationError: string | undefined, rece
             return;
         }
 
-        setCountdown(VISIT_SCAN_ERROR_MODAL_AUTO_CLOSE_SECONDS);
+        setCountdown(closeAfterSeconds);
 
-        const closeTimer = window.setTimeout(() => setIsOpen(false), VISIT_SCAN_ERROR_MODAL_AUTO_CLOSE_SECONDS * 1000);
+        const closeTimer = window.setTimeout(() => setIsOpen(false), closeAfterSeconds * 1000);
         const countdownTimer = window.setInterval(() => {
             setCountdown((currentCountdown) => Math.max(currentCountdown - 1, 1));
         }, 1000);
@@ -34,7 +37,7 @@ export function useScanErrorDialog(scanValidationError: string | undefined, rece
             window.clearTimeout(closeTimer);
             window.clearInterval(countdownTimer);
         };
-    }, [isOpen, scanValidationError]);
+    }, [closeAfterSeconds, isOpen, scanValidationError]);
 
     return {
         isOpen,

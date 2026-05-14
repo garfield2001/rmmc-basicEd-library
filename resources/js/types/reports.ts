@@ -29,19 +29,19 @@ export interface VisitReport {
         school_year_id: number | null;
         start_date: string;
         end_date: string;
-        member_type: string | null;
-        member_status: string | null;
+        visitor_type: string | null;
+        visitor_status: string | null;
         year_level: string | null;
         section: string | null;
         department: string | null;
     };
     school_year: VisitReportSchoolYear | null;
     summary: {
-        member_type: string;
-        members: number;
+        visitor_type: string;
+        visitors: number;
         total_visits: number;
-        visited_members: number;
-        unvisited_members: number;
+        visited_visitors: number;
+        unvisited_visitors: number;
         met_minimum: number;
         met_target: number;
         average_visits: number;

@@ -33,12 +33,12 @@ function formatVisitDateTime(visit: DashboardVisit) {
         : 'Pending';
 }
 
-function memberTypeLabel(visit: DashboardVisit) {
-    if (visit.member.type === 'student') {
+function visitorTypeLabel(visit: DashboardVisit) {
+    if (visit.visitor.type === 'student') {
         return 'Student';
     }
 
-    if (visit.member.type === 'employee') {
+    if (visit.visitor.type === 'employee') {
         return 'Employee';
     }
 
@@ -46,11 +46,11 @@ function memberTypeLabel(visit: DashboardVisit) {
 }
 
 function academicOrWorkDetail(visit: DashboardVisit) {
-    if (visit.member.type === 'student') {
-        return [visit.member.yearLevel, visit.member.section].filter(Boolean).join(' - ') || fallback;
+    if (visit.visitor.type === 'student') {
+        return [visit.visitor.yearLevel, visit.visitor.section].filter(Boolean).join(' - ') || fallback;
     }
 
-    return visit.member.department || fallback;
+    return visit.visitor.department || fallback;
 }
 
 function DetailItem({ label, value }: { label: string; value: string | null | undefined }) {
@@ -66,7 +66,7 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
     const [showDetails, setShowDetails] = useState(false);
     const [tooltipPosition, setTooltipPosition] = useState({ x: 16, y: 16 });
     const tooltipId = useId();
-    const TypeIcon = visit?.member.type === 'employee' ? BriefcaseBusiness : GraduationCap;
+    const TypeIcon = visit?.visitor.type === 'employee' ? BriefcaseBusiness : GraduationCap;
 
     return (
         <>
@@ -84,7 +84,7 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                             });
                         }}
                         className="group relative cursor-pointer rounded-xl border border-zinc-200 bg-white/90 p-5 text-left shadow-sm transition duration-200 ease-out hover:scale-[1.01] hover:border-zinc-300 hover:bg-white hover:shadow-md focus:ring-4 focus:ring-zinc-100 focus:outline-none"
-                        aria-label={`View full details for ${visit.member.name ?? 'latest scanned visitor'}`}
+                        aria-label={`View full details for ${visit.visitor.name ?? 'latest scanned visitor'}`}
                         aria-describedby={tooltipId}
                     >
                         <div className="flex items-center justify-between gap-4">
@@ -98,10 +98,10 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                         </div>
 
                         <div className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
-                            <DetailItem label="Name" value={visit.member.name ?? 'Unknown visitor'} />
-                            <DetailItem label="ID" value={visit.member.schoolId ?? 'No ID'} />
+                            <DetailItem label="Name" value={visit.visitor.name ?? 'Unknown visitor'} />
+                            <DetailItem label="ID" value={visit.visitor.schoolId ?? 'No ID'} />
                             <DetailItem
-                                label={visit.member.type === 'student' ? 'Year and section' : 'Department'}
+                                label={visit.visitor.type === 'student' ? 'Year and section' : 'Department'}
                                 value={academicOrWorkDetail(visit)}
                             />
                         </div>
@@ -150,7 +150,7 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                                 <div className="flex flex-wrap items-center gap-2">
                                     <span className="inline-flex items-center gap-1.5 rounded-full border border-[#040DBF]/15 bg-[#f6f8ff] px-3 py-1 text-xs font-medium text-[#030A8C]">
                                         <TypeIcon className="size-3.5" />
-                                        {memberTypeLabel(visit)}
+                                        {visitorTypeLabel(visit)}
                                     </span>
                                     <span className="inline-flex items-center gap-1.5 rounded-full border border-[#040DBF]/15 bg-white px-3 py-1 text-xs font-medium text-[#030A8C]">
                                         <CalendarClock className="size-3.5" />
@@ -158,21 +158,20 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                                     </span>
                                 </div>
 
-                                <p className="mt-5 text-3xl font-semibold tracking-normal text-[#010440]">{visit.member.name ?? 'Unknown visitor'}</p>
+                                <p className="mt-5 text-3xl font-semibold tracking-normal text-[#010440]">{visit.visitor.name ?? 'Unknown visitor'}</p>
                                 <p className="mt-2 flex items-center gap-2 text-sm text-[#030A8C]">
                                     <IdCard className="size-4" />
-                                    {visit.member.schoolId ?? 'No ID'}
+                                    {visit.visitor.schoolId ?? 'No ID'}
                                 </p>
 
                                 <div className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
-                                    <DetailItem label="Visitor type" value={memberTypeLabel(visit)} />
-                                    <DetailItem label="Recorded at" value={formatVisitDateTime(visit)} />
-                                    {visit.member.type === 'employee' ? (
-                                        <DetailItem label="Department" value={visit.member.department} />
+                                    <DetailItem label="Visitor type" value={visitorTypeLabel(visit)} />
+                                    {visit.visitor.type === 'employee' ? (
+                                        <DetailItem label="Department" value={visit.visitor.department} />
                                     ) : (
                                         <>
-                                            <DetailItem label="Year level" value={visit.member.yearLevel} />
-                                            <DetailItem label="Section" value={visit.member.section} />
+                                            <DetailItem label="Year level" value={visit.visitor.yearLevel} />
+                                            <DetailItem label="Section" value={visit.visitor.section} />
                                         </>
                                     )}
                                 </div>
@@ -200,7 +199,7 @@ function VisitPhoto({ visit }: { visit: DashboardVisit }) {
     return (
         <div className="overflow-hidden rounded-xl border border-[#040DBF]/15 bg-[#f6f8ff] p-2 shadow-sm">
             <FallbackImage
-                src={visit.member.photoUrl}
+                src={visit.visitor.photoUrl}
                 className="aspect-square size-full rounded-lg object-cover"
                 fallback={
                     <div className="flex aspect-square items-center justify-center rounded-lg bg-white text-[#030A8C]/45">

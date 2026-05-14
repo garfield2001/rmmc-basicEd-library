@@ -18,7 +18,7 @@ class SchoolYearFactory extends Factory
 
         return [
             'name' => $year.'-'.($year + 1),
-            'starts_at' => "{$year}-06-01",
+            'starts_at' => "{$year}-05-01",
             'ends_at' => ($year + 1).'-03-31',
             'minimum_visits' => 3,
             'target_visits' => 4,

@@ -5,11 +5,14 @@ namespace App\Services\Home;
 use App\Models\LibraryVisit;
 use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
+use App\Services\Settings\LibraryScanSettingsService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
 class HomePageService
 {
+    public function __construct(private readonly LibraryScanSettingsService $scanSettings) {}
+
     public function data(): array
     {
         $schoolYear = SchoolYear::active()
@@ -23,6 +26,7 @@ class HomePageService
 
         return [
             'schoolYear' => $schoolYear?->only(['id', 'name']),
+            'scanSettings' => $this->scanSettings->toPageProps(),
 
             'metrics' => [
                 'students' => RegisteredVisitor::active()
@@ -37,13 +41,13 @@ class HomePageService
                 'visitsToday' => (clone $todayVisits)->count(),
 
                 'studentVisitsToday' => (clone $todayVisits)
-                    ->whereHas('member', function (Builder $query): void {
+                    ->whereHas('visitor', function (Builder $query): void {
                         $query->where('type', RegisteredVisitor::TYPE_STUDENT);
                     })
                     ->count(),
 
                 'employeeVisitsToday' => (clone $todayVisits)
-                    ->whereHas('member', function (Builder $query): void {
+                    ->whereHas('visitor', function (Builder $query): void {
                         $query->where('type', RegisteredVisitor::TYPE_EMPLOYEE);
                     })
                     ->count(),

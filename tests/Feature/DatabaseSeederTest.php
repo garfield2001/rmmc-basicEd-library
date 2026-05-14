@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\EmployeeProfile;
 use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
-use App\Models\StudentSchoolYearRecord;
+use App\Models\StudentRegistration;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -22,6 +22,11 @@ class DatabaseSeederTest extends TestCase
             'email' => 'admin@gmail.com',
             'role' => 'admin',
         ]);
+        $activeSchoolYear = SchoolYear::query()->where('name', '2026-2027')->firstOrFail();
+
+        $this->assertSame('2026-05-01', $activeSchoolYear->starts_at->toDateString());
+        $this->assertSame('2027-03-07', $activeSchoolYear->ends_at->toDateString());
+        $this->assertTrue($activeSchoolYear->is_active);
 
         $manualStudent = RegisteredVisitor::query()
             ->where('school_id', '2316020010')
@@ -49,10 +54,10 @@ class DatabaseSeederTest extends TestCase
                 ->pluck('school_id')
                 ->every(fn (string $schoolId): bool => preg_match('/^\d{10}$/', $schoolId) === 1),
         );
-        $this->assertGreaterThanOrEqual(600, StudentSchoolYearRecord::query()->count());
+        $this->assertGreaterThanOrEqual(600, StudentRegistration::query()->count());
         $this->assertGreaterThanOrEqual(50, EmployeeProfile::query()->count());
 
-        $teachingDepartments = [
+        $employeeDepartments = [
             'Basic Education Faculty',
             'Senior High School Faculty',
             'College of Engineering Faculty',
@@ -65,21 +70,21 @@ class DatabaseSeederTest extends TestCase
             'College of Hospitality Management Faculty',
             'Mathematics Faculty',
             'Science Faculty',
+            'Management Information Systems',
         ];
 
         $this->assertTrue(
             EmployeeProfile::query()
                 ->pluck('department')
-                ->every(fn (string $department): bool => in_array($department, $teachingDepartments, true)),
+                ->every(fn (string $department): bool => in_array($department, $employeeDepartments, true)),
         );
 
-        $activeSchoolYearId = SchoolYear::query()->where('name', '2026-2027')->value('id');
-        $studentSchoolYearRecords = StudentSchoolYearRecord::query()->where('school_year_id', $activeSchoolYearId);
+        $studentRegistrations = StudentRegistration::query()->where('school_year_id', $activeSchoolYear->id);
 
         foreach (['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4'] as $yearLevel) {
             $this->assertSame(
                 1,
-                (clone $studentSchoolYearRecords)
+                (clone $studentRegistrations)
                     ->where('year_level', $yearLevel)
                     ->distinct('section')
                     ->count('section'),
@@ -87,7 +92,7 @@ class DatabaseSeederTest extends TestCase
         }
 
         foreach (['Grade 5', 'Grade 6'] as $yearLevel) {
-            $sectionCount = (clone $studentSchoolYearRecords)
+            $sectionCount = (clone $studentRegistrations)
                 ->where('year_level', $yearLevel)
                 ->distinct('section')
                 ->count('section');
@@ -96,7 +101,7 @@ class DatabaseSeederTest extends TestCase
             $this->assertLessThanOrEqual(3, $sectionCount);
         }
 
-        (clone $studentSchoolYearRecords)
+        (clone $studentRegistrations)
             ->selectRaw('year_level, section, count(*) as student_count')
             ->groupBy('year_level', 'section')
             ->get()

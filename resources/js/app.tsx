@@ -6,7 +6,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 
 configureEcho({
-    broadcaster: 'reverb',
+    broadcaster: import.meta.env.VITE_REVERB_APP_KEY ? 'reverb' : 'null',
 });
 
 const appName = (import.meta.env.VITE_APP_NAME || 'RMMC Basic Education Library').replaceAll('_', ' ');

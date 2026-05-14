@@ -1,4 +1,4 @@
-import { PUBLIC_SCANNER_BLOCKED_INPUT_TIMEOUT_MS, PUBLIC_SCANNER_COOLDOWN_MS } from '@/config/timing';
+import { PUBLIC_SCANNER_BLOCKED_INPUT_TIMEOUT_MS } from '@/config/timing';
 import { useRFIDScanListener } from '@/hooks/use-rfid-scan-listener';
 import { router } from '@inertiajs/react';
 import { type FormEventHandler, useCallback, useEffect, useRef, useState } from 'react';
@@ -6,11 +6,12 @@ import type { ScanForm } from './types';
 
 interface UsePublicScannerOptions {
     enabled: boolean;
+    cooldownSeconds: number;
     onScanStart?: () => void;
     onScanError: () => void;
 }
 
-export function usePublicScanner({ enabled, onScanStart, onScanError }: UsePublicScannerOptions) {
+export function usePublicScanner({ enabled, cooldownSeconds, onScanStart, onScanError }: UsePublicScannerOptions) {
     const [data, setData] = useState<ScanForm>({ rfid_uid: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isPreparing, setIsPreparing] = useState(false);
@@ -54,8 +55,8 @@ export function usePublicScanner({ enabled, onScanStart, onScanError }: UsePubli
         setIsPreparing(true);
         resetScan('rfid_uid');
 
-        readyTimerRef.current = window.setTimeout(releaseScanner, PUBLIC_SCANNER_COOLDOWN_MS);
-    }, [releaseScanner, resetScan]);
+        readyTimerRef.current = window.setTimeout(releaseScanner, Math.max(0, cooldownSeconds) * 1000);
+    }, [cooldownSeconds, releaseScanner, resetScan]);
 
     const finishScan = useCallback(() => {
         submittingRef.current = false;

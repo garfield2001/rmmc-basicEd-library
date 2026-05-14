@@ -15,8 +15,8 @@ class BulkAssignRegisteredVisitorStudentsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'member_ids' => ['required', 'array', 'min:1'],
-            'member_ids.*' => ['integer', Rule::exists('registered_visitors', 'id')],
+            'visitor_ids' => ['required', 'array', 'min:1'],
+            'visitor_ids.*' => ['integer', Rule::exists('registered_visitors', 'id')],
             'section' => ['nullable', 'string', 'max:255'],
         ];
     }

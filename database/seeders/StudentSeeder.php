@@ -8,20 +8,20 @@ class StudentSeeder extends RegisteredVisitorSeeder
 {
     public function run(): void
     {
-        $this->createStudentMembers($this->schoolStudents());
-        $this->createStudentMembers($this->generatedStudents());
+        $this->createStudentVisitors($this->schoolStudents());
+        $this->createStudentVisitors($this->generatedStudents());
     }
 
     /**
      * Add real school student details here.
-     * Shared member data, including RFID, lives in RegisteredVisitorSeeder.
+     * Shared visitor data, including RFID, lives in RegisteredVisitorSeeder.
      * Factory students are added separately after this list.
      *
      * @return array<int, array<string, mixed>>
      */
     private function schoolStudents(): array
     {
-        return $this->attachManualDetails($this->manualStudentMembers(), [
+        return $this->attachManualDetails($this->manualStudentVisitors(), [
             '1900001001' => [
                 'year_level' => 'Kindergarten 1',
                 'section' => 'Aguinaldo',
@@ -96,7 +96,7 @@ class StudentSeeder extends RegisteredVisitorSeeder
                 'Mabini' => 28,
             ],
             'Grade 4' => [
-                'Del Pilar' => 31,
+                'Del Pilar' => 32,
             ],
             'Grade 5' => [
                 'Aguinaldo' => 29,

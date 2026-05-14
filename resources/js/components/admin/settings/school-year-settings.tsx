@@ -10,8 +10,8 @@ import type { FormEventHandler } from 'react';
 interface SchoolYearSettingsProps {
     schoolYears: SchoolYearRow[];
     stats: {
-        studentMembers: number;
-        activeEnrollments: number;
+        studentVisitors: number;
+        activeRegistrations: number;
     };
 }
 
@@ -61,8 +61,8 @@ export function SchoolYearSettings({ schoolYears, stats }: SchoolYearSettingsPro
                     </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                    <Stat label="Students" value={stats.studentMembers} />
-                    <Stat label="Active student records" value={stats.activeEnrollments} />
+                    <Stat label="Students" value={stats.studentVisitors} />
+                    <Stat label="Active Student registrations" value={stats.activeRegistrations} />
                 </div>
             </div>
 

@@ -32,8 +32,8 @@ interface ReportsProps {
     reportOptions: VisitReportOptions;
 }
 
-type MemberType = 'student' | 'employee';
-type MemberTypeFilter = '' | MemberType;
+type VisitorType = 'student' | 'employee';
+type VisitorTypeFilter = '' | VisitorType;
 type DateRangeMode = '' | 'school_year' | 'custom';
 type AllFilterValue = '__all__';
 type ReportSortColumn = 'school_id' | 'name' | 'group' | 'visit_count' | 'progress_percent' | 'last_visit_at' | 'status';
@@ -43,8 +43,8 @@ interface ReportQuery {
     school_year_id: string;
     start_date: string;
     end_date: string;
-    member_type: MemberTypeFilter;
-    member_status: string;
+    visitor_type: VisitorTypeFilter;
+    visitor_status: string;
     year_level: string;
     section: string;
     department: string;
@@ -58,8 +58,8 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
     const activeSchoolYear = reportOptions.schoolYears.find((schoolYear) => schoolYear.is_active) ?? reportOptions.schoolYears[0] ?? null;
     const initialSchoolYearId = report?.filters.school_year_id ? String(report.filters.school_year_id) : '';
     const initialSchoolYear = reportOptions.schoolYears.find((schoolYear) => String(schoolYear.id) === initialSchoolYearId) ?? activeSchoolYear;
-    const initialMemberType: MemberTypeFilter =
-        report?.filters.member_type === 'employee' || report?.filters.member_type === 'student' ? report.filters.member_type : '';
+    const initialVisitorType: VisitorTypeFilter =
+        report?.filters.visitor_type === 'employee' || report?.filters.visitor_type === 'student' ? report.filters.visitor_type : '';
 
     const [schoolYearId, setSchoolYearId] = useState(initialSchoolYearId);
     const [startDate, setStartDate] = useState(report?.filters.start_date ?? '');
@@ -67,8 +67,8 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
     const [dateRangeMode, setDateRangeMode] = useState<DateRangeMode>(() =>
         report ? inferDateRangeMode(initialSchoolYear, report.filters.start_date, report.filters.end_date) : '',
     );
-    const [memberType, setMemberType] = useState<MemberTypeFilter>(initialMemberType);
-    const [memberStatus, setMemberStatus] = useState(report ? (report.filters.member_status ?? allFilterValue) : '');
+    const [visitorType, setVisitorType] = useState<VisitorTypeFilter>(initialVisitorType);
+    const [visitorStatus, setVisitorStatus] = useState(report ? (report.filters.visitor_status ?? allFilterValue) : '');
     const [yearLevel, setYearLevel] = useState(report ? (report.filters.year_level ?? allFilterValue) : '');
     const [section, setSection] = useState(report ? (report.filters.section ?? allFilterValue) : '');
     const [department, setDepartment] = useState(report ? (report.filters.department ?? allFilterValue) : '');
@@ -89,13 +89,13 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
         [reportOptions.sectionsBySchoolYear, reportOptions.sectionsByYearLevel, schoolYearId],
     );
     const availableSections = useMemo(
-        () => (memberType === 'student' && yearLevel && yearLevel !== allFilterValue ? (sectionSource[yearLevel] ?? []) : []),
-        [memberType, sectionSource, yearLevel],
+        () => (visitorType === 'student' && yearLevel && yearLevel !== allFilterValue ? (sectionSource[yearLevel] ?? []) : []),
+        [visitorType, sectionSource, yearLevel],
     );
     const reportRows = report?.rows ?? [];
     const sortedRows = useMemo(
-        () => sortReportRows(reportRows, sortColumn, sortDirection, memberType),
-        [memberType, reportRows, sortColumn, sortDirection],
+        () => sortReportRows(reportRows, sortColumn, sortDirection, visitorType),
+        [visitorType, reportRows, sortColumn, sortDirection],
     );
     const totalPages = Math.max(1, Math.ceil(sortedRows.length / rowsPerPage));
     const visibleRows = sortedRows.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
@@ -109,22 +109,22 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
         (!schoolYearBounds || (startDate >= schoolYearBounds.start && endDate <= schoolYearBounds.end)),
     );
     const dateRangeSummary = summarizeDateRange(startDate, endDate);
-    const studentFiltersComplete = memberType !== 'student' || Boolean(yearLevel && (yearLevel === allFilterValue || section));
-    const employeeFiltersComplete = memberType !== 'employee' || Boolean(department);
-    const reportCanFetch = Boolean(dateRangeIsValid && memberType && memberStatus && studentFiltersComplete && employeeFiltersComplete);
+    const studentFiltersComplete = visitorType !== 'student' || Boolean(yearLevel && (yearLevel === allFilterValue || section));
+    const employeeFiltersComplete = visitorType !== 'employee' || Boolean(department);
+    const reportCanFetch = Boolean(dateRangeIsValid && visitorType && visitorStatus && studentFiltersComplete && employeeFiltersComplete);
 
     const query = useMemo<ReportQuery>(
         () => ({
             school_year_id: schoolYearId,
             start_date: startDate,
             end_date: endDate,
-            member_type: memberType,
-            member_status: memberStatus !== allFilterValue ? memberStatus : '',
-            year_level: memberType === 'student' && yearLevel !== allFilterValue ? yearLevel : '',
-            section: memberType === 'student' && yearLevel !== allFilterValue && section !== allFilterValue ? section : '',
-            department: memberType === 'employee' && department !== allFilterValue ? department : '',
+            visitor_type: visitorType,
+            visitor_status: visitorStatus !== allFilterValue ? visitorStatus : '',
+            year_level: visitorType === 'student' && yearLevel !== allFilterValue ? yearLevel : '',
+            section: visitorType === 'student' && yearLevel !== allFilterValue && section !== allFilterValue ? section : '',
+            department: visitorType === 'employee' && department !== allFilterValue ? department : '',
         }),
-        [department, endDate, memberStatus, memberType, schoolYearId, section, startDate, yearLevel],
+        [department, endDate, visitorStatus, visitorType, schoolYearId, section, startDate, yearLevel],
     );
 
     const queryString = useMemo(() => toSearchParams(query).toString(), [query]);
@@ -145,12 +145,12 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
     }, [queryString]);
 
     useEffect(() => {
-        if (memberType !== 'student' || !section || section === allFilterValue || availableSections.includes(section)) {
+        if (visitorType !== 'student' || !section || section === allFilterValue || availableSections.includes(section)) {
             return;
         }
 
         setSection('');
-    }, [availableSections, memberType, section]);
+    }, [availableSections, visitorType, section]);
 
     useEffect(() => {
         if (!didMountRef.current) {
@@ -201,7 +201,7 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
 
     useEffect(() => {
         if (
-            memberType === 'student' &&
+            visitorType === 'student' &&
             yearLevel &&
             yearLevel !== allFilterValue &&
             availableSections.length === 1 &&
@@ -209,13 +209,13 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
         ) {
             setSection(availableSections[0]);
         }
-    }, [availableSections, memberType, section, yearLevel]);
+    }, [availableSections, visitorType, section, yearLevel]);
 
     useEffect(() => {
-        if (memberType === 'employee' && reportOptions.departments.length === 1 && department !== reportOptions.departments[0]) {
+        if (visitorType === 'employee' && reportOptions.departments.length === 1 && department !== reportOptions.departments[0]) {
             setDepartment(reportOptions.departments[0]);
         }
-    }, [department, memberType, reportOptions.departments]);
+    }, [department, visitorType, reportOptions.departments]);
 
     const chooseSchoolYear = (value: string) => {
         setSchoolYearId(value);
@@ -232,8 +232,8 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
             setDateRangeMode('');
             setStartDate('');
             setEndDate('');
-            setMemberType('');
-            setMemberStatus('');
+            setVisitorType('');
+            setVisitorStatus('');
             setYearLevel('');
             setSection('');
             setDepartment('');
@@ -249,8 +249,8 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
 
         setStartDate(value === 'school_year' ? schoolYearBounds.start : '');
         setEndDate(value === 'school_year' ? schoolYearBounds.end : '');
-        setMemberType('');
-        setMemberStatus('');
+        setVisitorType('');
+        setVisitorStatus('');
         setYearLevel('');
         setSection('');
         setDepartment('');
@@ -261,8 +261,8 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
         setEndDate(nextEndDate);
     };
 
-    const chooseMemberType = (value: MemberTypeFilter) => {
-        setMemberType(value);
+    const chooseVisitorType = (value: VisitorTypeFilter) => {
+        setVisitorType(value);
 
         if (!value) {
             setYearLevel('');
@@ -354,8 +354,8 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                     <label className="text-sm font-medium text-[#010440]">
                                         {dateRangeMode === 'custom' ? '4.' : '3.'} Visitors
                                         <SelectInput
-                                            value={memberType}
-                                            onChange={(event) => chooseMemberType(event.target.value as MemberTypeFilter)}
+                                            value={visitorType}
+                                            onChange={(event) => chooseVisitorType(event.target.value as VisitorTypeFilter)}
                                             className="mt-2"
                                         >
                                             <option value="">Select visitors</option>
@@ -365,10 +365,10 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                     </label>
                                 )}
 
-                                {dateRangeIsValid && memberType && (
+                                {dateRangeIsValid && visitorType && (
                                     <label className="text-sm font-medium text-[#010440]">
                                         Status
-                                        <SelectInput value={memberStatus} onChange={(event) => setMemberStatus(event.target.value)} className="mt-2">
+                                        <SelectInput value={visitorStatus} onChange={(event) => setVisitorStatus(event.target.value)} className="mt-2">
                                             <option value="">Select status</option>
                                             <option value={allFilterValue}>All statuses</option>
                                             <option value="active">Active</option>
@@ -378,9 +378,9 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                 )}
 
                                 {dateRangeIsValid &&
-                                    memberType &&
-                                    memberStatus &&
-                                    (memberType === 'student' ? (
+                                    visitorType &&
+                                    visitorStatus &&
+                                    (visitorType === 'student' ? (
                                         <>
                                             <label className="text-sm font-medium text-[#010440]">
                                                 Year level
@@ -455,8 +455,8 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                 <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                                     <MetricCard
                                         icon={UsersRound}
-                                        label={memberType === 'student' ? 'Students' : 'Employees'}
-                                        value={report.summary.members}
+                                        label={visitorType === 'student' ? 'Students' : 'Employees'}
+                                        value={report.summary.visitors}
                                     />
                                     <MetricCard
                                         icon={Activity}
@@ -473,7 +473,7 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                     <MetricCard
                                         icon={Target}
                                         label="No visits"
-                                        value={report.summary.unvisited_members}
+                                        value={report.summary.unvisited_visitors}
                                         detail={`${report.summary.progress_percent}% overall progress`}
                                     />
                                 </section>
@@ -531,7 +531,7 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                                     />
                                                     <ReportSortableHead
                                                         column="group"
-                                                        label={memberType === 'student' ? 'Year and section' : 'Department'}
+                                                        label={visitorType === 'student' ? 'Year and section' : 'Department'}
                                                         sort={sortColumn}
                                                         direction={sortDirection}
                                                         onSortChange={changeSort}
@@ -572,7 +572,7 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                                         <ReportRow
                                                             key={row.id}
                                                             row={row}
-                                                            memberType={memberType}
+                                                            visitorType={visitorType}
                                                             targetVisits={report.summary.target_visits}
                                                         />
                                                     ))
@@ -859,9 +859,9 @@ function MetricCard({ icon: Icon, label, value, detail }: { icon: typeof UsersRo
     );
 }
 
-function ReportRow({ row, memberType, targetVisits }: { row: VisitReportRow; memberType: MemberType; targetVisits: number }) {
-    const groupLabel = memberType === 'student' ? [row.year_level, row.section].filter(Boolean).join(' - ') || '-' : row.department || '-';
-    const GroupIcon = memberType === 'student' ? GraduationCap : BriefcaseBusiness;
+function ReportRow({ row, visitorType, targetVisits }: { row: VisitReportRow; visitorType: VisitorType; targetVisits: number }) {
+    const groupLabel = visitorType === 'student' ? [row.year_level, row.section].filter(Boolean).join(' - ') || '-' : row.department || '-';
+    const GroupIcon = visitorType === 'student' ? GraduationCap : BriefcaseBusiness;
 
     return (
         <TableRow>
@@ -928,24 +928,24 @@ function sortReportRows(
     rows: VisitReportRow[],
     column: ReportSortColumn | null,
     direction: SortDirection,
-    memberType: MemberTypeFilter,
+    visitorType: VisitorTypeFilter,
 ): VisitReportRow[] {
     if (!column) {
         return rows;
     }
 
     return [...rows].sort((first, second) => {
-        const firstValue = reportSortValue(first, column, memberType);
-        const secondValue = reportSortValue(second, column, memberType);
+        const firstValue = reportSortValue(first, column, visitorType);
+        const secondValue = reportSortValue(second, column, visitorType);
         const result = compareReportValues(firstValue, secondValue);
 
         return direction === 'asc' ? result : result * -1;
     });
 }
 
-function reportSortValue(row: VisitReportRow, column: ReportSortColumn, memberType: MemberTypeFilter) {
+function reportSortValue(row: VisitReportRow, column: ReportSortColumn, visitorType: VisitorTypeFilter) {
     if (column === 'group') {
-        return memberType === 'student' ? [row.year_level, row.section].filter(Boolean).join(' ') : (row.department ?? '');
+        return visitorType === 'student' ? [row.year_level, row.section].filter(Boolean).join(' ') : (row.department ?? '');
     }
 
     return row[column] ?? '';

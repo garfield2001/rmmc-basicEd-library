@@ -3,12 +3,11 @@ import { LiveVisitScanner } from '@/components/admin/live-visits/live-visit-scan
 import { LiveVisitsTable } from '@/components/admin/live-visits/live-visits-table';
 import { useManilaClock } from '@/components/public/home/use-manila-clock';
 import { LatestVisitCard } from '@/components/visits/latest-visit-card';
-import { useRFIDScanListener } from '@/hooks/use-rfid-scan-listener';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
 import { csrfFetch } from '@/lib/http';
 import { type AdminVisitMonitor, type DashboardVisit, type ScanTarget } from '@/types/dashboard';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { useEchoPublic } from '@laravel/echo-react';
 import { Clock3 } from 'lucide-react';
 import { type FormEventHandler, useEffect, useMemo, useRef, useState } from 'react';
@@ -25,6 +24,8 @@ interface ScanForm {
 interface LibraryVisitRecordedEvent {
     visit: DashboardVisit;
 }
+
+const liveVisitPollMs = 2500;
 
 export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
     const scanInputRef = useRef<HTMLInputElement | null>(null);
@@ -57,14 +58,30 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
         setLiveVisitMonitor(visitMonitor);
     }, [visitMonitor]);
 
+    useEffect(() => {
+        const interval = window.setInterval(() => {
+            if (document.hidden) {
+                return;
+            }
+
+            router.reload({
+                only: ['visitMonitor'],
+                preserveScroll: true,
+                preserveState: true,
+            });
+        }, liveVisitPollMs);
+
+        return () => window.clearInterval(interval);
+    }, []);
+
     useEchoPublic<LibraryVisitRecordedEvent>('library-visits', '.LibraryVisitRecorded', (event) => {
         setLiveVisitMonitor((current) => {
             if (current.todayVisits.some((visit) => visit.id === event.visit.id)) {
                 return current;
             }
 
-            const isStudent = event.visit.member.type === 'student';
-            const isEmployee = event.visit.member.type === 'employee';
+            const isStudent = event.visit.visitor.type === 'student';
+            const isEmployee = event.visit.visitor.type === 'employee';
 
             return {
                 ...current,
@@ -140,19 +157,6 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
             window.clearTimeout(timer);
         };
     }, [scanData.rfid_uid]);
-
-    useRFIDScanListener({
-        onScanStart: () => setScanError(undefined),
-        onError: (errors) => {
-            setScanError(typeof errors.rfid_uid === 'string' ? errors.rfid_uid : 'Unable to record this visit.');
-        },
-        onFinish: () => {
-            setScanData('rfid_uid', '');
-            setScanTargets([]);
-            resetScan('rfid_uid');
-            scanInputRef.current?.focus();
-        },
-    });
 
     return (
         <>

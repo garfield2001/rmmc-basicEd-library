@@ -5,25 +5,25 @@ import { router } from '@inertiajs/react';
 import { AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 
-interface DeleteMemberDialogProps {
-    member: RegisteredVisitorRow | null;
+interface DeleteVisitorDialogProps {
+    visitor: RegisteredVisitorRow | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
 
-export function DeleteMemberDialog({ member, open, onOpenChange }: DeleteMemberDialogProps) {
+export function DeleteVisitorDialog({ visitor, open, onOpenChange }: DeleteVisitorDialogProps) {
     const [processing, setProcessing] = useState(false);
 
-    const deleteMember = () => {
-        if (!member) {
+    const deleteVisitor = () => {
+        if (!visitor) {
             return;
         }
 
-        const memberId = member.id;
+        const visitorId = visitor.id;
 
         onOpenChange(false);
         setProcessing(true);
-        router.delete(`/admin/registered-visitors/${memberId}`, {
+        router.delete(`/admin/registered-visitors/${visitorId}`, {
             preserveScroll: true,
             onFinish: () => setProcessing(false),
         });
@@ -46,7 +46,7 @@ export function DeleteMemberDialog({ member, open, onOpenChange }: DeleteMemberD
                     </div>
                     <DialogTitle className="text-2xl text-[#010440]">Archive visitor?</DialogTitle>
                     <DialogDescription>
-                        This will move {member?.name ?? 'this visitor'} to Archived Registered Visitors. Their visit history stays available, and the
+                        This will move {visitor?.name ?? 'this visitor'} to Archived Registered Visitors. Their visit history stays available, and the
                         visitor can be restored later.
                     </DialogDescription>
                 </DialogHeader>
@@ -55,7 +55,7 @@ export function DeleteMemberDialog({ member, open, onOpenChange }: DeleteMemberD
                     <Button type="button" variant="outline" onClick={() => close(false)} disabled={processing}>
                         Cancel
                     </Button>
-                    <Button type="button" variant="danger" onClick={deleteMember} disabled={processing}>
+                    <Button type="button" variant="danger" onClick={deleteVisitor} disabled={processing}>
                         {processing ? 'Archiving...' : 'Archive visitor'}
                     </Button>
                 </DialogFooter>

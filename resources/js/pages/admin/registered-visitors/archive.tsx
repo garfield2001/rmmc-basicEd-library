@@ -19,8 +19,8 @@ interface ArchiveSchoolYear {
     is_active: boolean;
 }
 
-interface MembersArchiveProps {
-    members: Paginated<RegisteredVisitorRow>;
+interface VisitorsArchiveProps {
+    visitors: Paginated<RegisteredVisitorRow>;
     filters: {
         search: string;
         type: 'student' | 'employee';
@@ -39,9 +39,9 @@ interface MembersArchiveProps {
     };
 }
 
-type MemberType = 'student' | 'employee';
+type VisitorType = 'student' | 'employee';
 
-export default function MembersArchive({ members, filters, filterOptions }: MembersArchiveProps) {
+export default function VisitorsArchive({ visitors, filters, filterOptions }: VisitorsArchiveProps) {
     const [search, setSearch] = useState(filters.search ?? '');
     const [schoolYearId, setSchoolYearId] = useState(filters.school_year_id ? String(filters.school_year_id) : '');
     const [yearLevel, setYearLevel] = useState(filters.year_level ?? '');
@@ -49,20 +49,20 @@ export default function MembersArchive({ members, filters, filterOptions }: Memb
     const [department, setDepartment] = useState(filters.department ?? '');
     const [status, setStatus] = useState(filters.status ?? '');
     const [tableLoading, setTableLoading] = useState(false);
-    const [memberToRestore, setMemberToRestore] = useState<RegisteredVisitorRow | null>(null);
-    const [memberToDelete, setMemberToDelete] = useState<RegisteredVisitorRow | null>(null);
+    const [visitorToRestore, setVisitorToRestore] = useState<RegisteredVisitorRow | null>(null);
+    const [visitorToDelete, setVisitorToDelete] = useState<RegisteredVisitorRow | null>(null);
     const [exportDialogOpen, setExportDialogOpen] = useState(false);
-    const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
+    const [selectedVisitorIds, setSelectedVisitorIds] = useState<number[]>([]);
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [processingAction, setProcessingAction] = useState<'restore' | 'delete' | null>(null);
     const didMountRef = useRef(false);
     const loadingTimerRef = useRef<number | null>(null);
     const activeType = filters.type === 'employee' ? 'employee' : 'student';
-    const currentPage = members.meta?.current_page ?? members.current_page ?? 1;
-    const totalPages = members.meta?.last_page ?? members.last_page ?? 1;
-    const from = members.meta?.from ?? members.from ?? 0;
-    const to = members.meta?.to ?? members.to ?? 0;
-    const total = members.meta?.total ?? members.total ?? members.data.length;
+    const currentPage = visitors.meta?.current_page ?? visitors.current_page ?? 1;
+    const totalPages = visitors.meta?.last_page ?? visitors.last_page ?? 1;
+    const from = visitors.meta?.from ?? visitors.from ?? 0;
+    const to = visitors.meta?.to ?? visitors.to ?? 0;
+    const total = visitors.meta?.total ?? visitors.total ?? visitors.data.length;
     const sectionSource = useMemo(
         () => (schoolYearId ? (filterOptions.sectionsBySchoolYear[schoolYearId] ?? {}) : filterOptions.sectionsByYearLevel),
         [filterOptions.sectionsBySchoolYear, filterOptions.sectionsByYearLevel, schoolYearId],
@@ -70,7 +70,7 @@ export default function MembersArchive({ members, filters, filterOptions }: Memb
     const availableSections = useMemo(() => {
         return yearLevel ? (sectionSource[yearLevel] ?? []) : [];
     }, [sectionSource, yearLevel]);
-    const selectedCount = selectedMemberIds.length;
+    const selectedCount = selectedVisitorIds.length;
     const tabs = [
         { label: 'Students', value: 'student' as const, icon: GraduationCap },
         { label: 'Employees', value: 'employee' as const, icon: BriefcaseBusiness },
@@ -93,7 +93,7 @@ export default function MembersArchive({ members, filters, filterOptions }: Memb
         setTableLoading(false);
     };
 
-    const archiveQuery = (type: MemberType, deleteAfterExport = false) => ({
+    const archiveQuery = (type: VisitorType, deleteAfterExport = false) => ({
         type,
         search: search || undefined,
         school_year_id: type === 'student' ? schoolYearId || undefined : undefined,
@@ -115,9 +115,9 @@ export default function MembersArchive({ members, filters, filterOptions }: Memb
         return `/admin/registered-visitors/archive/export?${params.toString()}`;
     };
 
-    const visitArchive = (type: MemberType) => {
+    const visitArchive = (type: VisitorType) => {
         startTableLoading();
-        setSelectedMemberIds([]);
+        setSelectedVisitorIds([]);
         if (type === 'student') {
             setDepartment('');
         } else {
@@ -134,8 +134,8 @@ export default function MembersArchive({ members, filters, filterOptions }: Memb
     };
 
     useEffect(() => {
-        setSelectedMemberIds([]);
-    }, [members.data]);
+        setSelectedVisitorIds([]);
+    }, [visitors.data]);
 
     useEffect(() => {
         return () => {
@@ -174,7 +174,7 @@ export default function MembersArchive({ members, filters, filterOptions }: Memb
         const timeout = window.setTimeout(() => {
             startTableLoading();
             router.get('/admin/registered-visitors/archive', archiveQuery(activeType), {
-                only: ['members', 'filters', 'filterOptions'],
+                only: ['visitors', 'filters', 'filterOptions'],
                 preserveScroll: true,
                 preserveState: true,
                 replace: true,
@@ -196,13 +196,13 @@ export default function MembersArchive({ members, filters, filterOptions }: Memb
         setSection('');
     };
 
-    const restoreMember = (member: RegisteredVisitorRow) => {
-        const memberId = member.id;
+    const restoreVisitor = (visitor: RegisteredVisitorRow) => {
+        const visitorId = visitor.id;
 
-        setMemberToRestore(null);
+        setVisitorToRestore(null);
         setProcessingAction('restore');
         router.patch(
-            `/admin/registered-visitors/archive/${memberId}/restore`,
+            `/admin/registered-visitors/archive/${visitorId}/restore`,
             {},
             {
                 preserveScroll: true,
@@ -211,40 +211,40 @@ export default function MembersArchive({ members, filters, filterOptions }: Memb
         );
     };
 
-    const permanentlyDeleteMember = (member: RegisteredVisitorRow) => {
-        const memberId = member.id;
+    const permanentlydeleteVisitor = (visitor: RegisteredVisitorRow) => {
+        const visitorId = visitor.id;
 
-        setMemberToDelete(null);
+        setVisitorToDelete(null);
         setProcessingAction('delete');
-        router.delete(`/admin/registered-visitors/archive/${memberId}`, {
+        router.delete(`/admin/registered-visitors/archive/${visitorId}`, {
             preserveScroll: true,
             onFinish: () => setProcessingAction(null),
         });
     };
 
-    const permanentlyDeleteSelectedMembers = () => {
+    const permanentlyDeleteselectedVisitors = () => {
         setBulkDeleteOpen(false);
         setProcessingAction('delete');
         router.delete('/admin/registered-visitors/archive/bulk', {
             data: {
-                member_ids: selectedMemberIds,
+                visitor_ids: selectedVisitorIds,
                 type: activeType,
             },
             preserveScroll: true,
             onFinish: () => setProcessingAction(null),
-            onSuccess: () => setSelectedMemberIds([]),
+            onSuccess: () => setSelectedVisitorIds([]),
         });
     };
 
-    const toggleMemberSelection = (memberId: number) => {
-        setSelectedMemberIds((current) => (current.includes(memberId) ? current.filter((id) => id !== memberId) : [...current, memberId]));
+    const toggleVisitorSelection = (visitorId: number) => {
+        setSelectedVisitorIds((current) => (current.includes(visitorId) ? current.filter((id) => id !== visitorId) : [...current, visitorId]));
     };
 
     const togglePageSelection = () => {
-        const pageIds = members.data.map((member) => member.id);
-        const allSelected = pageIds.length > 0 && pageIds.every((id) => selectedMemberIds.includes(id));
+        const pageIds = visitors.data.map((visitor) => visitor.id);
+        const allSelected = pageIds.length > 0 && pageIds.every((id) => selectedVisitorIds.includes(id));
 
-        setSelectedMemberIds((current) =>
+        setSelectedVisitorIds((current) =>
             allSelected ? current.filter((id) => !pageIds.includes(id)) : Array.from(new Set([...current, ...pageIds])),
         );
     };
@@ -377,10 +377,10 @@ export default function MembersArchive({ members, filters, filterOptions }: Memb
                                                 <input
                                                     type="checkbox"
                                                     checked={
-                                                        members.data.length > 0 &&
-                                                        members.data.every((member) => selectedMemberIds.includes(member.id))
+                                                        visitors.data.length > 0 &&
+                                                        visitors.data.every((visitor) => selectedVisitorIds.includes(visitor.id))
                                                     }
-                                                    disabled={tableLoading || members.data.length === 0}
+                                                    disabled={tableLoading || visitors.data.length === 0}
                                                     onChange={togglePageSelection}
                                                     className="size-4 rounded border-zinc-300"
                                                     aria-label="Select archived visitors on this page"
@@ -397,33 +397,33 @@ export default function MembersArchive({ members, filters, filterOptions }: Memb
                                     <TableBody>
                                         {tableLoading ? (
                                             <ArchiveLoadingRows />
-                                        ) : members.data.length > 0 ? (
-                                            members.data.map((member) => (
-                                                <TableRow key={member.id}>
+                                        ) : visitors.data.length > 0 ? (
+                                            visitors.data.map((visitor) => (
+                                                <TableRow key={visitor.id}>
                                                     <TableCell>
                                                         <input
                                                             type="checkbox"
-                                                            checked={selectedMemberIds.includes(member.id)}
-                                                            onChange={() => toggleMemberSelection(member.id)}
+                                                            checked={selectedVisitorIds.includes(visitor.id)}
+                                                            onChange={() => toggleVisitorSelection(visitor.id)}
                                                             className="size-4 rounded border-zinc-300"
-                                                            aria-label={`Select ${member.name}`}
+                                                            aria-label={`Select ${visitor.name}`}
                                                         />
                                                     </TableCell>
-                                                    <TableCell className="text-zinc-500">{formatDate(member.deleted_at)}</TableCell>
-                                                    <TableCell className="font-medium">{member.school_id}</TableCell>
-                                                    <TableCell>{member.name}</TableCell>
+                                                    <TableCell className="text-zinc-500">{formatDate(visitor.deleted_at)}</TableCell>
+                                                    <TableCell className="font-medium">{visitor.school_id}</TableCell>
+                                                    <TableCell>{visitor.name}</TableCell>
                                                     <TableCell className="text-zinc-500">
-                                                        {member.type === 'student'
-                                                            ? [member.student?.year_level, member.student?.section].filter(Boolean).join(' / ') || '-'
-                                                            : member.employee?.department || '-'}
+                                                        {visitor.type === 'student'
+                                                            ? [visitor.student?.year_level, visitor.student?.section].filter(Boolean).join(' / ') || '-'
+                                                            : visitor.employee?.department || '-'}
                                                     </TableCell>
                                                     <TableCell>
                                                         <span
                                                             className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                                                                member.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-500'
+                                                                visitor.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-500'
                                                             }`}
                                                         >
-                                                            {member.is_active ? 'Active' : 'Inactive'}
+                                                            {visitor.is_active ? 'Active' : 'Inactive'}
                                                         </span>
                                                     </TableCell>
                                                     <TableCell>
@@ -431,13 +431,13 @@ export default function MembersArchive({ members, filters, filterOptions }: Memb
                                                             <IconActionButton
                                                                 label="Restore visitor"
                                                                 icon={RotateCcw}
-                                                                onClick={() => setMemberToRestore(member)}
+                                                                onClick={() => setVisitorToRestore(visitor)}
                                                             />
                                                             <IconActionButton
                                                                 label="Permanently delete visitor"
                                                                 icon={Trash2}
                                                                 danger
-                                                                onClick={() => setMemberToDelete(member)}
+                                                                onClick={() => setVisitorToDelete(visitor)}
                                                             />
                                                         </div>
                                                     </TableCell>
@@ -461,29 +461,29 @@ export default function MembersArchive({ members, filters, filterOptions }: Memb
                                 to={to ?? 0}
                                 total={total}
                                 onPrevious={() =>
-                                    visitPage(members.prev_page_url ?? members.links.find((link) => link.label.includes('Previous'))?.url)
+                                    visitPage(visitors.prev_page_url ?? visitors.links.find((link) => link.label.includes('Previous'))?.url)
                                 }
-                                onNext={() => visitPage(members.next_page_url ?? members.links.find((link) => link.label.includes('Next'))?.url)}
+                                onNext={() => visitPage(visitors.next_page_url ?? visitors.links.find((link) => link.label.includes('Next'))?.url)}
                             />
                         </section>
                     </div>
 
                     <ArchiveActionDialog
-                        member={memberToRestore}
+                        visitor={visitorToRestore}
                         action="restore"
                         processing={processingAction === 'restore'}
-                        open={Boolean(memberToRestore)}
-                        onOpenChange={(open) => !open && setMemberToRestore(null)}
-                        onConfirm={(member) => member && restoreMember(member)}
+                        open={Boolean(visitorToRestore)}
+                        onOpenChange={(open) => !open && setVisitorToRestore(null)}
+                        onConfirm={(visitor) => visitor && restoreVisitor(visitor)}
                     />
                     <ArchiveActionDialog
-                        member={null}
+                        visitor={null}
                         count={selectedCount}
                         action="bulk-delete"
                         processing={processingAction === 'delete'}
                         open={bulkDeleteOpen}
                         onOpenChange={(open) => !open && setBulkDeleteOpen(false)}
-                        onConfirm={permanentlyDeleteSelectedMembers}
+                        onConfirm={permanentlyDeleteselectedVisitors}
                     />
                     <ExportArchiveDialog
                         open={exportDialogOpen}
@@ -492,12 +492,12 @@ export default function MembersArchive({ members, filters, filterOptions }: Memb
                         exportAndDeleteUrl={exportUrl(true)}
                     />
                     <ArchiveActionDialog
-                        member={memberToDelete}
+                        visitor={visitorToDelete}
                         action="delete"
                         processing={processingAction === 'delete'}
-                        open={Boolean(memberToDelete)}
-                        onOpenChange={(open) => !open && setMemberToDelete(null)}
-                        onConfirm={(member) => member && permanentlyDeleteMember(member)}
+                        open={Boolean(visitorToDelete)}
+                        onOpenChange={(open) => !open && setVisitorToDelete(null)}
+                        onConfirm={(visitor) => visitor && permanentlydeleteVisitor(visitor)}
                     />
                 </AdminLayout>
             </main>
@@ -626,7 +626,7 @@ function ExportArchiveDialog({
 }
 
 function ArchiveActionDialog({
-    member,
+    visitor,
     count = 0,
     action,
     processing,
@@ -634,13 +634,13 @@ function ArchiveActionDialog({
     onOpenChange,
     onConfirm,
 }: {
-    member: RegisteredVisitorRow | null;
+    visitor: RegisteredVisitorRow | null;
     count?: number;
     action: 'restore' | 'delete' | 'bulk-delete';
     processing: boolean;
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onConfirm: (member: RegisteredVisitorRow | null) => void;
+    onConfirm: (visitor: RegisteredVisitorRow | null) => void;
 }) {
     const isDelete = action === 'delete' || action === 'bulk-delete';
     const Icon = isDelete ? AlertTriangle : RotateCcw;
@@ -651,8 +651,8 @@ function ArchiveActionDialog({
             return;
         }
 
-        if (member) {
-            onConfirm(member);
+        if (visitor) {
+            onConfirm(visitor);
         }
     };
     const title = action === 'bulk-delete' ? 'Permanently delete selected?' : isDelete ? 'Permanently delete visitor?' : 'Restore visitor?';
@@ -660,8 +660,8 @@ function ArchiveActionDialog({
         action === 'bulk-delete'
             ? `This will permanently delete ${count} selected archived ${count === 1 ? 'visitor' : 'visitors'} from the app. Export first if you need an offline copy.`
             : isDelete
-              ? `This will permanently delete ${member?.name ?? 'this visitor'} and their archived records from the app. Export the archive first if you need an offline copy.`
-              : `This will restore ${member?.name ?? 'this visitor'} to Registered Visitors so they can be managed and scanned again when eligible.`;
+              ? `This will permanently delete ${visitor?.name ?? 'this visitor'} and their archived records from the app. Export the archive first if you need an offline copy.`
+              : `This will restore ${visitor?.name ?? 'this visitor'} to Registered Visitors so they can be managed and scanned again when eligible.`;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

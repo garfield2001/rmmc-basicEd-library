@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('employee_profiles', function (Blueprint $table) {
+        Schema::create('employee_profiles', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('registered_visitor_id')->unique()->constrained()->cascadeOnDelete();
             $table->string('department')->index();

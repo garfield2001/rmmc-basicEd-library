@@ -15,11 +15,11 @@ class UpdateRegisteredVisitorRequest extends FormRequest
 
     public function rules(): array
     {
-        $memberId = $this->route('member')?->id;
+        $visitorId = $this->route('visitor')?->id;
 
         return [
-            'rfid_uid' => ['required', 'string', 'regex:/^\d{10}$/', Rule::unique('registered_visitors', 'rfid_uid')->ignore($memberId)],
-            'school_id' => ['required', 'string', 'max:255', Rule::unique('registered_visitors', 'school_id')->ignore($memberId)],
+            'rfid_uid' => ['required', 'string', 'regex:/^\d{10}$/', Rule::unique('registered_visitors', 'rfid_uid')->ignore($visitorId)],
+            'school_id' => ['required', 'string', 'max:255', Rule::unique('registered_visitors', 'school_id')->ignore($visitorId)],
             'type' => ['required', Rule::in([RegisteredVisitor::TYPE_STUDENT, RegisteredVisitor::TYPE_EMPLOYEE])],
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],

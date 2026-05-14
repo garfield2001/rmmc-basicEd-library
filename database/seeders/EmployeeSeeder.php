@@ -8,7 +8,7 @@ class EmployeeSeeder extends RegisteredVisitorSeeder
 {
     public function run(): void
     {
-        $this->createEmployeeMembers($this->schoolEmployees());
+        $this->createEmployeeVisitors($this->schoolEmployees());
 
         foreach ($this->fakeEmployeeDepartmentPlan() as $department => $employeeCount) {
             EmployeeProfile::factory()
@@ -21,14 +21,14 @@ class EmployeeSeeder extends RegisteredVisitorSeeder
 
     /**
      * Add real school employee details here.
-     * Shared member data, including RFID, lives in RegisteredVisitorSeeder.
+     * Shared visitor data, including RFID, lives in RegisteredVisitorSeeder.
      * Factory employee profiles are added separately after this list.
      *
      * @return array<int, array<string, mixed>>
      */
     private function schoolEmployees(): array
     {
-        return $this->attachManualDetails($this->manualEmployeeMembers(), [
+        return $this->attachManualDetails($this->manualEmployeeVisitors(), [
             'EMP-2001' => [
                 'department' => 'Basic Education Faculty',
             ],
@@ -47,12 +47,15 @@ class EmployeeSeeder extends RegisteredVisitorSeeder
             'OP1164' => [
                 'department' => 'College of Computer Science Faculty',
             ],
+            'OP1-303' => [
+                'department' => 'Management Information Systems',
+            ],
         ]);
     }
 
     /**
-     * Fake employees are grouped by teaching department so every seeded
-     * employee represents teaching personnel.
+     * Fake employees are grouped by department so every seeded employee
+     * represents an active school employee visitor.
      *
      * @return array<string, int>
      */

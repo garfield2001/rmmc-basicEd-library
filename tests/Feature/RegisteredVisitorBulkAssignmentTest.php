@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
-use App\Models\StudentSchoolYearRecord;
+use App\Models\StudentRegistration;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -19,7 +19,7 @@ class RegisteredVisitorBulkAssignmentTest extends TestCase
         $schoolYear = SchoolYear::factory()->active()->create();
         $student = RegisteredVisitor::factory()->student()->create(['school_id' => '2609010003']);
 
-        StudentSchoolYearRecord::factory()->create([
+        StudentRegistration::factory()->create([
             'registered_visitor_id' => $student->id,
             'school_year_id' => $schoolYear->id,
             'year_level' => 'Grade 2',
@@ -36,17 +36,17 @@ class RegisteredVisitorBulkAssignmentTest extends TestCase
             ->assertJsonPath('preview.matchedCount', 1)
             ->assertJsonPath('preview.notFoundIds.0', 'UNKNOWN')
             ->assertJsonPath('preview.duplicateIds.0', '2609010003')
-            ->assertJsonPath('preview.memberIds.0', $student->id)
+            ->assertJsonPath('preview.visitorIds.0', $student->id)
             ->assertJsonPath('preview.targetSection', 'Sampaguita')
             ->assertJsonPath('preview.matchedStudents.0.currentYearLevel', 'Grade 2')
             ->assertJsonPath('preview.matchedStudents.0.currentSection', 'Old Section');
 
         $this->actingAs($admin)->patch('/admin/registered-visitors/bulk-assign-students', [
-            'member_ids' => [$student->id],
+            'visitor_ids' => [$student->id],
             'section' => 'Sampaguita',
         ])->assertSessionHas('success');
 
-        $this->assertDatabaseHas('student_school_year_records', [
+        $this->assertDatabaseHas('student_registrations', [
             'registered_visitor_id' => $student->id,
             'year_level' => 'Grade 2',
             'section' => 'Sampaguita',
@@ -60,7 +60,7 @@ class RegisteredVisitorBulkAssignmentTest extends TestCase
         $activeSchoolYear = SchoolYear::factory()->active()->create(['name' => '2026-2027']);
         $student = RegisteredVisitor::factory()->student()->create();
 
-        StudentSchoolYearRecord::factory()->create([
+        StudentRegistration::factory()->create([
             'registered_visitor_id' => $student->id,
             'school_year_id' => $oldSchoolYear->id,
             'year_level' => 'Grade 1',
@@ -71,10 +71,10 @@ class RegisteredVisitorBulkAssignmentTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('admin/registered-visitors/index')
-                ->where('members.data', [])
+                ->where('visitors.data', [])
             );
 
-        StudentSchoolYearRecord::factory()->create([
+        StudentRegistration::factory()->create([
             'registered_visitor_id' => $student->id,
             'school_year_id' => $activeSchoolYear->id,
             'year_level' => 'Grade 2',
@@ -85,7 +85,7 @@ class RegisteredVisitorBulkAssignmentTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('admin/registered-visitors/index')
-                ->has('members.data', 1)
+                ->has('visitors.data', 1)
             );
     }
 }

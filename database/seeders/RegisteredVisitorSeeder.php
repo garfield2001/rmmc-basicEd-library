@@ -34,7 +34,7 @@ abstract class RegisteredVisitorSeeder extends Seeder
      *
      * @return array<int, array<string, mixed>>
      */
-    protected function manualStudentMembers(): array
+    protected function manualStudentVisitors(): array
     {
         return [
             [
@@ -113,7 +113,6 @@ abstract class RegisteredVisitorSeeder extends Seeder
                 'first_name' => 'Bernard',
                 'middle_name' => 'R.',
                 'last_name' => 'Villarias',
-                'photo' => '487408466_2842190175960854_2337569948505719080_n.jpg',
             ],
         ];
     }
@@ -126,7 +125,7 @@ abstract class RegisteredVisitorSeeder extends Seeder
      *
      * @return array<int, array<string, mixed>>
      */
-    protected function manualEmployeeMembers(): array
+    protected function manualEmployeeVisitors(): array
     {
         return [
             [
@@ -171,22 +170,22 @@ abstract class RegisteredVisitorSeeder extends Seeder
                 'middle_name' => null,
                 'last_name' => 'Flores',
             ],
-            /*             [
-                'school_id' => 'OP1-319',
-                'rfid_uid' => '3476642503',
-                'first_name' => 'Joshua',
+            [
+                'school_id' => 'OP1-303',
+                'rfid_uid' => '1395154304',
+                'first_name' => 'Gay Marie',
                 'middle_name' => null,
-                'last_name' => 'Palacios',
-            ], */
+                'last_name' => 'Farnazo',
+            ],
         ];
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $members
+     * @param  array<int, array<string, mixed>>  $visitors
      * @param  array<string, array<string, mixed>>  $detailsBySchoolId
      * @return array<int, array<string, mixed>>
      */
-    protected function attachManualDetails(array $members, array $detailsBySchoolId): array
+    protected function attachManualDetails(array $visitors, array $detailsBySchoolId): array
     {
         $normalizedDetailsBySchoolId = [];
 
@@ -194,38 +193,38 @@ abstract class RegisteredVisitorSeeder extends Seeder
             $normalizedDetailsBySchoolId[(string) $schoolId] = $details;
         }
 
-        $memberSchoolIds = array_map('strval', array_column($members, 'school_id'));
+        $visitorSchoolIds = array_map('strval', array_column($visitors, 'school_id'));
 
-        foreach ($memberSchoolIds as $schoolId) {
+        foreach ($visitorSchoolIds as $schoolId) {
             if (! array_key_exists($schoolId, $normalizedDetailsBySchoolId)) {
                 throw new InvalidArgumentException("Seeder details are missing for school ID [{$schoolId}].");
             }
         }
 
         foreach (array_keys($normalizedDetailsBySchoolId) as $schoolId) {
-            if (! in_array((string) $schoolId, $memberSchoolIds, true)) {
+            if (! in_array((string) $schoolId, $visitorSchoolIds, true)) {
                 throw new InvalidArgumentException("Seeder details were provided for unknown school ID [{$schoolId}].");
             }
         }
 
         return array_map(
-            fn (array $member): array => [
-                ...$member,
-                ...$normalizedDetailsBySchoolId[(string) $member['school_id']],
+            fn (array $visitor): array => [
+                ...$visitor,
+                ...$normalizedDetailsBySchoolId[(string) $visitor['school_id']],
             ],
-            $members,
+            $visitors,
         );
     }
 
     /**
      * @param  array<string, mixed>  $student
      */
-    protected function createStudentMember(array $student): RegisteredVisitor
+    protected function createStudentVisitor(array $student): RegisteredVisitor
     {
         $this->validateDetailData($student, ['year_level', 'section']);
         $this->validateStudentSchoolId($student['school_id']);
 
-        $member = $this->createMember($student, RegisteredVisitor::TYPE_STUDENT);
+        $visitor = $this->createVisitor($student, RegisteredVisitor::TYPE_STUDENT);
         $schoolYear = SchoolYear::active()->firstOrFail();
         $section = SchoolYearSection::query()->firstOrCreate([
             'school_year_id' => $schoolYear->id,
@@ -233,23 +232,23 @@ abstract class RegisteredVisitorSeeder extends Seeder
             'name' => $student['section'],
         ]);
 
-        $member->studentSchoolYearRecords()->create([
+        $visitor->studentRegistrations()->create([
             'school_year_id' => $schoolYear->id,
             'school_year_section_id' => $section->id,
             'year_level' => $student['year_level'],
             'section' => $section->name,
         ]);
 
-        return $member;
+        return $visitor;
     }
 
     /**
      * @param  array<int, array<string, mixed>>  $students
      */
-    protected function createStudentMembers(array $students): void
+    protected function createStudentVisitors(array $students): void
     {
         foreach ($students as $student) {
-            $this->createStudentMember($student);
+            $this->createStudentVisitor($student);
         }
     }
 
@@ -263,26 +262,26 @@ abstract class RegisteredVisitorSeeder extends Seeder
     /**
      * @param  array<string, mixed>  $employee
      */
-    protected function createEmployeeMember(array $employee): RegisteredVisitor
+    protected function createEmployeeVisitor(array $employee): RegisteredVisitor
     {
         $this->validateDetailData($employee, ['department']);
 
-        $member = $this->createMember($employee, RegisteredVisitor::TYPE_EMPLOYEE);
+        $visitor = $this->createVisitor($employee, RegisteredVisitor::TYPE_EMPLOYEE);
 
-        $member->employee()->create([
+        $visitor->employee()->create([
             'department' => $employee['department'],
         ]);
 
-        return $member;
+        return $visitor;
     }
 
     /**
      * @param  array<int, array<string, mixed>>  $employee_profiles
      */
-    protected function createEmployeeMembers(array $employee_profiles): void
+    protected function createEmployeeVisitors(array $employee_profiles): void
     {
         foreach ($employee_profiles as $employee) {
-            $this->createEmployeeMember($employee);
+            $this->createEmployeeVisitor($employee);
         }
     }
 
@@ -304,57 +303,57 @@ abstract class RegisteredVisitorSeeder extends Seeder
     }
 
     /**
-     * @param  array<string, mixed>  $memberData
+     * @param  array<string, mixed>  $visitorData
      */
-    private function createMember(array $memberData, string $type): RegisteredVisitor
+    private function createVisitor(array $visitorData, string $type): RegisteredVisitor
     {
-        $this->validateMemberData($memberData);
+        $this->validateVisitorData($visitorData);
 
         return RegisteredVisitor::create([
-            'rfid_uid' => $this->resolveRFIDUid($memberData),
-            'school_id' => $this->useManualSchoolId($memberData['school_id']),
+            'rfid_uid' => $this->resolveRFIDUid($visitorData),
+            'school_id' => $this->useManualSchoolId($visitorData['school_id']),
             'type' => $type,
-            'first_name' => $memberData['first_name'],
-            'middle_name' => $memberData['middle_name'] ?? null,
-            'last_name' => $memberData['last_name'],
-            'photo' => $memberData['photo'] ?? null,
-            'is_active' => $memberData['is_active'] ?? true,
+            'first_name' => $visitorData['first_name'],
+            'middle_name' => $visitorData['middle_name'] ?? null,
+            'last_name' => $visitorData['last_name'],
+            'photo' => $visitorData['photo'] ?? null,
+            'is_active' => $visitorData['is_active'] ?? true,
         ]);
     }
 
     /**
-     * @param  array<string, mixed>  $memberData
+     * @param  array<string, mixed>  $visitorData
      */
-    private function validateMemberData(array $memberData): void
+    private function validateVisitorData(array $visitorData): void
     {
         foreach (['school_id', 'first_name', 'last_name'] as $field) {
-            if (! isset($memberData[$field]) || ! is_string($memberData[$field]) || trim($memberData[$field]) === '') {
+            if (! isset($visitorData[$field]) || ! is_string($visitorData[$field]) || trim($visitorData[$field]) === '') {
                 throw new InvalidArgumentException("Seeder field [{$field}] is required.");
             }
 
-            if (strlen($memberData[$field]) > 255) {
+            if (strlen($visitorData[$field]) > 255) {
                 throw new InvalidArgumentException("Seeder field [{$field}] must not be longer than 255 characters.");
             }
         }
 
         foreach (['middle_name', 'photo'] as $field) {
-            if (isset($memberData[$field]) && $memberData[$field] !== null && (! is_string($memberData[$field]) || strlen($memberData[$field]) > 255)) {
+            if (isset($visitorData[$field]) && $visitorData[$field] !== null && (! is_string($visitorData[$field]) || strlen($visitorData[$field]) > 255)) {
                 throw new InvalidArgumentException("Seeder field [{$field}] must be null or a string up to 255 characters.");
             }
         }
     }
 
     /**
-     * @param  array<string, mixed>  $memberData
+     * @param  array<string, mixed>  $visitorData
      */
-    private function resolveRFIDUid(array $memberData): string
+    private function resolveRFIDUid(array $visitorData): string
     {
-        if (! empty($memberData['rfid_uid'])) {
-            if (! is_string($memberData['rfid_uid'])) {
+        if (! empty($visitorData['rfid_uid'])) {
+            if (! is_string($visitorData['rfid_uid'])) {
                 throw new InvalidArgumentException('Seeder RFID must be stored as a string.');
             }
 
-            return $this->useManualRFID($memberData['rfid_uid']);
+            return $this->useManualRFID($visitorData['rfid_uid']);
         }
 
         return $this->randomRFID();

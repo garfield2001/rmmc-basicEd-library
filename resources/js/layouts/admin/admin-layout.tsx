@@ -15,6 +15,7 @@ const pageLoadingDelayMs = 500;
 export function AdminLayout({ active, children }: AdminLayoutProps) {
     const [isPageLoading, setIsPageLoading] = useState(false);
     const [loadingTarget, setLoadingTarget] = useState<AdminLoadingTarget>(() => loadingTargetFromPath(activePathFromSection(active)));
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const pageLoadingTimer = useRef<number | null>(null);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
         if (typeof window === 'undefined') {
@@ -72,13 +73,29 @@ export function AdminLayout({ active, children }: AdminLayoutProps) {
                     isSidebarCollapsed ? 'lg:grid-cols-[72px_minmax(0,1fr)]' : 'lg:grid-cols-[280px_minmax(0,1fr)]'
                 } ${isSidebarCollapsed ? 'admin-sidebar-collapsed' : ''}`}
             >
-                <AdminSidebar active={active} collapsed={isSidebarCollapsed} />
+                {isMobileSidebarOpen && (
+                    <button
+                        type="button"
+                        className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[1px] lg:hidden"
+                        aria-label="Close sidebar"
+                        onClick={() => setIsMobileSidebarOpen(false)}
+                    />
+                )}
+
+                <AdminSidebar
+                    active={active}
+                    collapsed={isSidebarCollapsed}
+                    mobileOpen={isMobileSidebarOpen}
+                    onNavigate={() => setIsMobileSidebarOpen(false)}
+                />
 
                 <section className="min-w-0 space-y-6">
                     <AdminNavbar
                         collapsed={isSidebarCollapsed}
+                        mobileSidebarOpen={isMobileSidebarOpen}
                         resolvedTheme={resolvedTheme}
                         onCollapsedChange={changeSidebarCollapsed}
+                        onMobileSidebarToggle={() => setIsMobileSidebarOpen((open) => !open)}
                         onThemeToggle={() => setThemePreference(resolvedTheme === 'dark' ? 'light' : 'dark')}
                     />
                     {isPageLoading ? <AdminContentLoadingSkeleton target={loadingTarget} /> : children}
@@ -98,11 +115,11 @@ function loadingTargetFromPath(pathname: string): AdminLoadingTarget {
     }
 
     if (pathname === '/admin/registered-visitors/create' || /^\/admin\/registered-visitors\/[^/]+\/edit$/.test(pathname)) {
-        return 'members-form';
+        return 'visitors-form';
     }
 
     if (pathname.startsWith('/admin/registered-visitors')) {
-        return 'members-index';
+        return 'visitors-index';
     }
 
     if (pathname.startsWith('/admin/reports')) {
@@ -125,7 +142,7 @@ function activePathFromSection(active: AdminLayoutProps['active']) {
         return '/admin/live-visits';
     }
 
-    if (active === 'members') {
+    if (active === 'visitors') {
         return '/admin/registered-visitors';
     }
 

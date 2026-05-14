@@ -19,7 +19,7 @@ class AdminDashboardService
             'schoolYear' => $schoolYear?->only(['id', 'name', 'minimum_visits', 'target_visits']),
             'metrics' => [
                 'activeVisitors' => RegisteredVisitor::active()->visitEligibleForSchoolYear($schoolYear?->id)->count(),
-                'studentRecords' => $schoolYear ? $schoolYear->studentSchoolYearRecords()->count() : 0,
+                'studentRegistrations' => $schoolYear ? $schoolYear->studentRegistrations()->count() : 0,
                 'visitsToday' => LibraryVisit::query()
                     ->whereDate('visited_at', $today)
                     ->when($schoolYear, fn ($query) => $query->where('school_year_id', $schoolYear->id), fn ($query) => $query->whereRaw('1 = 0'))
@@ -67,7 +67,7 @@ class AdminDashboardService
     {
         return LibraryVisit::query()
             ->when($schoolYearId, fn ($query) => $query->where('school_year_id', $schoolYearId), fn ($query) => $query->whereRaw('1 = 0'))
-            ->whereHas('member', fn ($query) => $query->where('type', $type))
+            ->whereHas('visitor', fn ($query) => $query->where('type', $type))
             ->count();
     }
 
@@ -76,18 +76,18 @@ class AdminDashboardService
         /** @var Collection<int, LibraryVisit> $visits */
         $visits = LibraryVisit::query()
             ->with([
-                'member.studentSchoolYearRecords',
+                'visitor.studentRegistrations',
             ])
             ->when($schoolYearId, fn ($query) => $query->where('school_year_id', $schoolYearId), fn ($query) => $query->whereRaw('1 = 0'))
-            ->whereHas('member', fn ($query) => $query->where('type', RegisteredVisitor::TYPE_STUDENT))
+            ->whereHas('visitor', fn ($query) => $query->where('type', RegisteredVisitor::TYPE_STUDENT))
             ->get();
 
         return $visits
             ->groupBy(function (LibraryVisit $visit): string {
-                $studentRecord = $visit->member?->studentSchoolYearRecords
+                $studentRegistration = $visit->visitor?->studentRegistrations
                     ?->firstWhere('school_year_id', $visit->school_year_id);
 
-                return $studentRecord?->year_level ?? 'Unassigned';
+                return $studentRegistration?->year_level ?? 'Unassigned';
             })
             ->map(fn (Collection $group, string $label): array => [
                 'label' => $label,

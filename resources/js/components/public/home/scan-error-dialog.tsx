@@ -32,7 +32,7 @@ export function ScanErrorDialog({ open, error, countdown, onOpenChange }: ScanEr
                         </DialogTitle>
                         <DialogDescription className="sr-only">
                             {isRestrictedRescan
-                                ? 'This member has already scanned recently and must wait before scanning again.'
+                                ? 'This visitor has already scanned recently and must wait before scanning again.'
                                 : 'The scanned card or ID could not be matched to an active registered visitor.'}
                         </DialogDescription>
                     </DialogHeader>

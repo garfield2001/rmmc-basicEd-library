@@ -4,7 +4,7 @@ namespace App\Services\Reports;
 
 use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
-use App\Models\StudentSchoolYearRecord;
+use App\Models\StudentRegistration;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -16,20 +16,20 @@ class VisitReportService
         $schoolYear = $this->resolveSchoolYear($filters);
         [$startDate, $endDate] = $this->resolveDateRange($filters, $schoolYear);
         $schoolYearId = $schoolYear?->id;
-        $memberType = $filters['member_type'] ?? RegisteredVisitor::TYPE_STUDENT;
-        $memberStatus = $filters['member_status'] ?? null;
+        $visitorType = $filters['visitor_type'] ?? RegisteredVisitor::TYPE_STUDENT;
+        $visitorStatus = $filters['visitor_status'] ?? null;
         $yearLevel = $filters['year_level'] ?? null;
         $section = $filters['section'] ?? null;
         $department = $filters['department'] ?? null;
         $minimumVisits = $schoolYear?->minimum_visits ?? 0;
         $targetVisits = $schoolYear?->target_visits ?? 0;
 
-        /** @var Collection<int, RegisteredVisitor> $members */
-        $members = RegisteredVisitor::query()
+        /** @var Collection<int, RegisteredVisitor> $visitors */
+        $visitors = RegisteredVisitor::query()
             ->when($schoolYear && ! $schoolYear->is_active, fn (Builder $query) => $query->withTrashed())
             ->with([
                 'employee',
-                'studentSchoolYearRecords' => fn ($query) => $query->forSchoolYear($schoolYearId),
+                'studentRegistrations' => fn ($query) => $query->forSchoolYear($schoolYearId),
             ])
             ->withCount([
                 'visits as visits_count' => fn ($query) => $query
@@ -41,13 +41,13 @@ class VisitReportService
                     ->whereBetween('visited_at', [$startDate, $endDate])
                     ->when($schoolYearId, fn ($query) => $query->where('school_year_id', $schoolYearId), fn ($query) => $query->whereRaw('1 = 0')),
             ], 'visited_at')
-            ->where('type', $memberType)
-            ->when($memberStatus, fn (Builder $query) => $query->where('is_active', $memberStatus === 'active'))
+            ->where('type', $visitorType)
+            ->when($visitorStatus, fn (Builder $query) => $query->where('is_active', $visitorStatus === 'active'))
             ->when(
-                $memberType === RegisteredVisitor::TYPE_STUDENT,
+                $visitorType === RegisteredVisitor::TYPE_STUDENT,
                 fn (Builder $query) => $query
                     ->when($schoolYearId, fn (Builder $query) => $query->whereHas(
-                        'studentSchoolYearRecords',
+                        'studentRegistrations',
                         fn (Builder $query) => $query
                             ->forSchoolYear($schoolYearId)
                             ->when($yearLevel, fn (Builder $query) => $query->where('year_level', $yearLevel))
@@ -55,7 +55,7 @@ class VisitReportService
                     ), fn (Builder $query) => $query->whereRaw('1 = 0')),
             )
             ->when(
-                $memberType === RegisteredVisitor::TYPE_EMPLOYEE && $department,
+                $visitorType === RegisteredVisitor::TYPE_EMPLOYEE && $department,
                 fn (Builder $query) => $query->whereHas('employee', fn (Builder $query) => $query->where('department', $department)),
             )
             ->orderByDesc('visits_count')
@@ -63,50 +63,50 @@ class VisitReportService
             ->orderBy('first_name')
             ->get();
 
-        $totalVisits = $members->sum('visits_count');
-        $memberCount = $members->count();
-        $visitedMembers = $members->where('visits_count', '>', 0)->count();
-        $targetVisitTotal = $memberCount * $targetVisits;
+        $totalVisits = $visitors->sum('visits_count');
+        $visitorCount = $visitors->count();
+        $visitedVisitors = $visitors->where('visits_count', '>', 0)->count();
+        $targetVisitTotal = $visitorCount * $targetVisits;
 
         return [
             'filters' => [
                 'school_year_id' => $schoolYearId,
                 'start_date' => $startDate->toDateString(),
                 'end_date' => $endDate->toDateString(),
-                'member_type' => $memberType,
-                'member_status' => $memberStatus,
-                'year_level' => $memberType === RegisteredVisitor::TYPE_STUDENT ? $yearLevel : null,
-                'section' => $memberType === RegisteredVisitor::TYPE_STUDENT ? $section : null,
-                'department' => $memberType === RegisteredVisitor::TYPE_EMPLOYEE ? $department : null,
+                'visitor_type' => $visitorType,
+                'visitor_status' => $visitorStatus,
+                'year_level' => $visitorType === RegisteredVisitor::TYPE_STUDENT ? $yearLevel : null,
+                'section' => $visitorType === RegisteredVisitor::TYPE_STUDENT ? $section : null,
+                'department' => $visitorType === RegisteredVisitor::TYPE_EMPLOYEE ? $department : null,
             ],
             'school_year' => $schoolYear ? $this->schoolYearData($schoolYear) : null,
             'summary' => [
-                'member_type' => $memberType,
-                'members' => $memberCount,
+                'visitor_type' => $visitorType,
+                'visitors' => $visitorCount,
                 'total_visits' => $totalVisits,
-                'visited_members' => $visitedMembers,
-                'unvisited_members' => max(0, $memberCount - $visitedMembers),
-                'met_minimum' => $minimumVisits > 0 ? $members->where('visits_count', '>=', $minimumVisits)->count() : 0,
-                'met_target' => $targetVisits > 0 ? $members->where('visits_count', '>=', $targetVisits)->count() : 0,
-                'average_visits' => $memberCount > 0 ? round($totalVisits / $memberCount, 1) : 0,
+                'visited_visitors' => $visitedVisitors,
+                'unvisited_visitors' => max(0, $visitorCount - $visitedVisitors),
+                'met_minimum' => $minimumVisits > 0 ? $visitors->where('visits_count', '>=', $minimumVisits)->count() : 0,
+                'met_target' => $targetVisits > 0 ? $visitors->where('visits_count', '>=', $targetVisits)->count() : 0,
+                'average_visits' => $visitorCount > 0 ? round($totalVisits / $visitorCount, 1) : 0,
                 'minimum_visits' => $minimumVisits,
                 'target_visits' => $targetVisits,
                 'progress_percent' => $targetVisitTotal > 0 ? min(100, round(($totalVisits / $targetVisitTotal) * 100)) : 0,
             ],
-            'rows' => $members->map(fn (RegisteredVisitor $member): array => [
-                'id' => $member->id,
-                'school_id' => $member->school_id,
-                'name' => $member->full_name,
-                'type' => $member->type,
-                'status' => $member->is_active && ! $member->trashed() ? 'active' : 'inactive',
-                'department' => $member->type === RegisteredVisitor::TYPE_EMPLOYEE ? $member->employee?->department : null,
-                'year_level' => $member->type === RegisteredVisitor::TYPE_STUDENT ? $this->StudentSchoolYearRecordForMember($member)?->year_level : null,
-                'section' => $member->type === RegisteredVisitor::TYPE_STUDENT ? $this->StudentSchoolYearRecordForMember($member)?->section : null,
-                'visit_count' => (int) $member->visits_count,
-                'minimum_met' => $minimumVisits > 0 && $member->visits_count >= $minimumVisits,
-                'target_met' => $targetVisits > 0 && $member->visits_count >= $targetVisits,
-                'progress_percent' => $targetVisits > 0 ? min(100, round(($member->visits_count / $targetVisits) * 100)) : 0,
-                'last_visit_at' => $member->last_visit_at ? Carbon::parse($member->last_visit_at)->format('Y-m-d H:i:s') : null,
+            'rows' => $visitors->map(fn (RegisteredVisitor $visitor): array => [
+                'id' => $visitor->id,
+                'school_id' => $visitor->school_id,
+                'name' => $visitor->full_name,
+                'type' => $visitor->type,
+                'status' => $visitor->is_active && ! $visitor->trashed() ? 'active' : 'inactive',
+                'department' => $visitor->type === RegisteredVisitor::TYPE_EMPLOYEE ? $visitor->employee?->department : null,
+                'year_level' => $visitor->type === RegisteredVisitor::TYPE_STUDENT ? $this->studentRegistrationForVisitor($visitor)?->year_level : null,
+                'section' => $visitor->type === RegisteredVisitor::TYPE_STUDENT ? $this->studentRegistrationForVisitor($visitor)?->section : null,
+                'visit_count' => (int) $visitor->visits_count,
+                'minimum_met' => $minimumVisits > 0 && $visitor->visits_count >= $minimumVisits,
+                'target_met' => $targetVisits > 0 && $visitor->visits_count >= $targetVisits,
+                'progress_percent' => $targetVisits > 0 ? min(100, round(($visitor->visits_count / $targetVisits) * 100)) : 0,
+                'last_visit_at' => $visitor->last_visit_at ? Carbon::parse($visitor->last_visit_at)->format('Y-m-d H:i:s') : null,
             ])->values(),
         ];
     }
@@ -147,9 +147,9 @@ class VisitReportService
         return [$startDate, $endDate];
     }
 
-    private function StudentSchoolYearRecordForMember(RegisteredVisitor $member): ?StudentSchoolYearRecord
+    private function studentRegistrationForVisitor(RegisteredVisitor $visitor): ?StudentRegistration
     {
-        return $member->studentSchoolYearRecords->first();
+        return $visitor->studentRegistrations->first();
     }
 
     private function schoolYearData(SchoolYear $schoolYear): array

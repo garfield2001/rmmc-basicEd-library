@@ -6,9 +6,11 @@ use App\Models\EmployeeProfile;
 use App\Models\RegisteredVisitor;
 use App\Models\LibraryVisit;
 use App\Models\SchoolYear;
-use App\Models\StudentSchoolYearRecord;
+use App\Models\StudentRegistration;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -54,9 +56,9 @@ class AdminReportTest extends TestCase
             ->student()
             ->count(12)
             ->create(['last_name' => 'Santos'])
-            ->each(function (RegisteredVisitor $member) use ($schoolYear): void {
-                StudentSchoolYearRecord::factory()->create([
-                    'registered_visitor_id' => $member->id,
+            ->each(function (RegisteredVisitor $visitor) use ($schoolYear): void {
+                StudentRegistration::factory()->create([
+                    'registered_visitor_id' => $visitor->id,
                     'school_year_id' => $schoolYear->id,
                     'year_level' => 'Grade 5',
                     'section' => 'Rizal',
@@ -71,14 +73,47 @@ class AdminReportTest extends TestCase
 
     public function test_authenticated_user_can_view_settings(): void
     {
+        Storage::fake('local');
+
         $this->actingAs(User::factory()->create(['role' => 'admin']))
             ->get('/admin/settings')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('admin/settings')
-                ->where('scanSettings.repeat_scan_interval_hours', 1)
+                ->where('scanSettings.repeat_scan_interval_minutes', 60)
                 ->where('scanSettings.scan_starts_at', '00:00')
-                ->where('scanSettings.scan_ends_at', '23:59'));
+                ->where('scanSettings.scan_ends_at', '23:59')
+                ->where('scanSettings.success_modal_close_seconds', 3)
+                ->where('scanSettings.error_modal_close_seconds', 3)
+                ->where('scanSettings.scanner_cooldown_seconds', 5));
+    }
+
+    public function test_admin_can_update_scan_rules_without_database_settings_table(): void
+    {
+        Storage::fake('local');
+
+        $this->actingAs(User::factory()->create(['role' => 'admin']))
+            ->patch('/admin/scan-settings', [
+                'repeat_scan_interval_minutes' => 90,
+                'scan_starts_at' => '07:30',
+                'scan_ends_at' => '18:00',
+                'success_modal_close_seconds' => 4,
+                'error_modal_close_seconds' => 6,
+                'scanner_cooldown_seconds' => 2,
+            ])
+            ->assertSessionHas('success');
+
+        $this->assertFalse(Schema::hasTable('app_settings'));
+
+        $this->actingAs(User::factory()->create(['role' => 'admin']))
+            ->get('/admin/settings')
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('scanSettings.repeat_scan_interval_minutes', 90)
+                ->where('scanSettings.scan_starts_at', '07:30')
+                ->where('scanSettings.scan_ends_at', '18:00')
+                ->where('scanSettings.success_modal_close_seconds', 4)
+                ->where('scanSettings.error_modal_close_seconds', 6)
+                ->where('scanSettings.scanner_cooldown_seconds', 2));
     }
 
     public function test_authenticated_user_can_export_visit_report_csv(): void
@@ -90,7 +125,7 @@ class AdminReportTest extends TestCase
             'ends_at' => '2027-03-31',
             'is_active' => true,
         ]);
-        $member = RegisteredVisitor::create([
+        $visitor = RegisteredVisitor::create([
             'rfid_uid' => '300001',
             'school_id' => 'EMP-001',
             'type' => RegisteredVisitor::TYPE_EMPLOYEE,
@@ -98,12 +133,12 @@ class AdminReportTest extends TestCase
             'last_name' => 'Reyes',
         ]);
         EmployeeProfile::create([
-            'registered_visitor_id' => $member->id,
+            'registered_visitor_id' => $visitor->id,
             'department' => 'Faculty',
         ]);
 
         LibraryVisit::create([
-            'registered_visitor_id' => $member->id,
+            'registered_visitor_id' => $visitor->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => now(),
         ]);
@@ -114,7 +149,7 @@ class AdminReportTest extends TestCase
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
     }
 
-    public function test_report_progress_keeps_students_and_Employees_separate(): void
+    public function test_report_progress_keeps_students_and_employees_separate(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $schoolYear = SchoolYear::factory()->active()->create([
@@ -135,7 +170,7 @@ class AdminReportTest extends TestCase
             'last_name' => 'Reyes',
         ]);
 
-        StudentSchoolYearRecord::factory()->create([
+        StudentRegistration::factory()->create([
             'registered_visitor_id' => $student->id,
             'school_year_id' => $schoolYear->id,
             'year_level' => 'Grade 5',
@@ -157,12 +192,12 @@ class AdminReportTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->get("/admin/reports?school_year_id={$schoolYear->id}&start_date=2026-06-01&end_date=2027-03-31&member_type=student")
+            ->get("/admin/reports?school_year_id={$schoolYear->id}&start_date=2026-06-01&end_date=2027-03-31&visitor_type=student")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('admin/reports')
-                ->where('report.summary.member_type', 'student')
-                ->where('report.summary.members', 1)
+                ->where('report.summary.visitor_type', 'student')
+                ->where('report.summary.visitors', 1)
                 ->where('report.summary.total_visits', 2)
                 ->where('report.summary.met_minimum', 1)
                 ->where('report.rows.0.type', RegisteredVisitor::TYPE_STUDENT)
@@ -170,15 +205,58 @@ class AdminReportTest extends TestCase
                 ->where('report.rows.0.visit_count', 2));
 
         $this->actingAs($admin)
-            ->get("/admin/reports?school_year_id={$schoolYear->id}&start_date=2026-06-01&end_date=2027-03-31&member_type=employee")
+            ->get("/admin/reports?school_year_id={$schoolYear->id}&start_date=2026-06-01&end_date=2027-03-31&visitor_type=employee")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('report.summary.member_type', 'employee')
-                ->where('report.summary.members', 1)
+                ->where('report.summary.visitor_type', 'employee')
+                ->where('report.summary.visitors', 1)
                 ->where('report.summary.total_visits', 1)
                 ->where('report.rows.0.type', RegisteredVisitor::TYPE_EMPLOYEE)
                 ->where('report.rows.0.school_id', 'EMP-001')
                 ->where('report.rows.0.visit_count', 1));
+    }
+
+    public function test_employee_registration_carries_across_school_years_but_visit_progress_resets(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $previousSchoolYear = SchoolYear::factory()->create([
+            'name' => '2025-2026',
+            'starts_at' => '2025-06-01',
+            'ends_at' => '2026-03-31',
+            'is_active' => false,
+        ]);
+        $activeSchoolYear = SchoolYear::factory()->active()->create([
+            'name' => '2026-2027',
+            'starts_at' => '2026-06-01',
+            'ends_at' => '2027-03-31',
+            'minimum_visits' => 2,
+            'target_visits' => 3,
+        ]);
+        $employee = RegisteredVisitor::factory()->employee()->create([
+            'school_id' => 'EMP-RESET',
+            'first_name' => 'Lara',
+            'last_name' => 'Cruz',
+        ]);
+
+        EmployeeProfile::factory()->create([
+            'registered_visitor_id' => $employee->id,
+            'department' => 'Faculty',
+        ]);
+        LibraryVisit::factory()->count(2)->create([
+            'registered_visitor_id' => $employee->id,
+            'school_year_id' => $previousSchoolYear->id,
+            'visited_at' => '2025-08-01 09:00:00',
+        ]);
+
+        $this->actingAs($admin)
+            ->get("/admin/reports?school_year_id={$activeSchoolYear->id}&start_date=2026-06-01&end_date=2027-03-31&visitor_type=employee")
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('report.summary.visitors', 1)
+                ->where('report.summary.total_visits', 0)
+                ->where('report.summary.visited_visitors', 0)
+                ->where('report.rows.0.school_id', 'EMP-RESET')
+                ->where('report.rows.0.visit_count', 0));
     }
 
     public function test_report_dates_must_stay_inside_selected_school_year(): void
@@ -191,13 +269,13 @@ class AdminReportTest extends TestCase
 
         $this->actingAs($admin)
             ->from('/admin/reports')
-            ->get("/admin/reports?school_year_id={$schoolYear->id}&start_date=2026-05-31&end_date=2027-03-31&member_type=student")
+            ->get("/admin/reports?school_year_id={$schoolYear->id}&start_date=2026-05-31&end_date=2027-03-31&visitor_type=student")
             ->assertRedirect('/admin/reports')
             ->assertSessionHasErrors('start_date');
 
         $this->actingAs($admin)
             ->from('/admin/reports')
-            ->get("/admin/reports?school_year_id={$schoolYear->id}&start_date=2026-06-01&end_date=2027-04-01&member_type=student")
+            ->get("/admin/reports?school_year_id={$schoolYear->id}&start_date=2026-06-01&end_date=2027-04-01&visitor_type=student")
             ->assertRedirect('/admin/reports')
             ->assertSessionHasErrors('end_date');
     }
@@ -212,7 +290,7 @@ class AdminReportTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->get("/admin/reports?school_year_id={$schoolYear->id}&member_type=student")
+            ->get("/admin/reports?school_year_id={$schoolYear->id}&visitor_type=student")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('report.school_year.starts_at', '2026-06-01')

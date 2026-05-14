@@ -34,11 +34,12 @@ export default function Index({ home }: IndexProps) {
         isOpen: isScanErrorOpen,
         setIsOpen: setScanErrorOpen,
         countdown: scanErrorCountdown,
-    } = useScanErrorDialog(scanValidationError, flash.recentVisit);
+    } = useScanErrorDialog(scanValidationError, flash.recentVisit, home.scanSettings.error_modal_close_seconds);
     const closeScanError = useCallback(() => setScanErrorOpen(false), [setScanErrorOpen]);
     const openScanError = useCallback(() => setScanErrorOpen(true), [setScanErrorOpen]);
     const scanner = usePublicScanner({
         enabled: !showLogin,
+        cooldownSeconds: home.scanSettings.scanner_cooldown_seconds,
         onScanStart: closeScanError,
         onScanError: openScanError,
     });
@@ -112,7 +113,7 @@ export default function Index({ home }: IndexProps) {
                 onSubmit={submitLogin}
             />
 
-            <ScanSuccessModal visit={flash.recentVisit} />
+            <ScanSuccessModal visit={flash.recentVisit} closeAfterSeconds={home.scanSettings.success_modal_close_seconds} />
 
             <ScanErrorDialog open={isScanErrorOpen} error={scanValidationError} countdown={scanErrorCountdown} onOpenChange={setScanErrorOpen} />
 

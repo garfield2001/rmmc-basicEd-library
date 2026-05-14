@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class RegisteredVisitorTableService
 {
-    public const COPY_COLUMNS = ['member', 'school_id', 'year_level', 'section', 'department', 'status'];
+    public const COPY_COLUMNS = ['visitor', 'school_id', 'year_level', 'section', 'department', 'status'];
 
     public const SORT_COLUMNS = ['name', 'school_id', 'year_level', 'section', 'department', 'status'];
 
@@ -60,7 +60,7 @@ class RegisteredVisitorTableService
                     return;
                 }
 
-                $query->whereHas('studentSchoolYearRecords', function (Builder $query) use ($activeSchoolYearId, $yearLevel, $section): void {
+                $query->whereHas('studentRegistrations', function (Builder $query) use ($activeSchoolYearId, $yearLevel, $section): void {
                     $query
                         ->forSchoolYear($activeSchoolYearId)
                         ->when($yearLevel, fn (Builder $query) => $query->where('year_level', $yearLevel))
@@ -85,8 +85,8 @@ class RegisteredVisitorTableService
             'year_level' => $this->sortByActiveStudentColumn($query, 'year_level', $direction, $activeSchoolYearId),
             'section' => $this->sortByActiveStudentColumn($query, 'section', $direction, $activeSchoolYearId),
             'department' => $query
-                ->leftJoin('employee_profiles as member_employee_profiles', 'member_employee_profiles.registered_visitor_id', '=', 'registered_visitors.id')
-                ->orderBy('member_employee_profiles.department', $direction),
+                ->leftJoin('employee_profiles as visitor_employee_profiles', 'visitor_employee_profiles.registered_visitor_id', '=', 'registered_visitors.id')
+                ->orderBy('visitor_employee_profiles.department', $direction),
             default => $query->orderBy('registered_visitors.created_at', 'desc'),
         };
 
@@ -113,8 +113,8 @@ class RegisteredVisitorTableService
 
         $rows = $query
             ->get()
-            ->map(fn (RegisteredVisitor $member): array => collect($columns)
-                ->map(fn (string $column): string => $this->copyColumnValue($member, $column))
+            ->map(fn (RegisteredVisitor $visitor): array => collect($columns)
+                ->map(fn (string $column): string => $this->copyColumnValue($visitor, $column))
                 ->all());
 
         $lines = $rows->map(fn (array $row): string => implode("\t", $row));
@@ -129,15 +129,15 @@ class RegisteredVisitorTableService
         ];
     }
 
-    private function copyColumnValue(RegisteredVisitor $member, string $column): string
+    private function copyColumnValue(RegisteredVisitor $visitor, string $column): string
     {
         return match ($column) {
-            'member' => $member->full_name,
-            'school_id' => $member->school_id,
-            'year_level' => $member->student?->year_level ?? '',
-            'section' => $member->student?->section ?? '',
-            'department' => $member->employee?->department ?? '',
-            'status' => $member->is_active ? 'Active' : 'Inactive',
+            'visitor' => $visitor->full_name,
+            'school_id' => $visitor->school_id,
+            'year_level' => $visitor->student?->year_level ?? '',
+            'section' => $visitor->student?->section ?? '',
+            'department' => $visitor->employee?->department ?? '',
+            'status' => $visitor->is_active ? 'Active' : 'Inactive',
             default => '',
         };
     }
@@ -145,7 +145,7 @@ class RegisteredVisitorTableService
     private function copyColumnLabel(string $column): string
     {
         return match ($column) {
-            'member' => 'Name',
+            'visitor' => 'Name',
             'school_id' => 'School ID',
             'year_level' => 'Year level',
             'section' => 'Section',
@@ -164,11 +164,11 @@ class RegisteredVisitorTableService
         }
 
         $query
-            ->leftJoin('student_school_year_records as active_student_school_year_records', function ($join) use ($activeSchoolYearId): void {
+            ->leftJoin('student_registrations as active_student_registrations', function ($join) use ($activeSchoolYearId): void {
                 $join
-                    ->on('active_student_school_year_records.registered_visitor_id', '=', 'registered_visitors.id')
-                    ->where('active_student_school_year_records.school_year_id', '=', $activeSchoolYearId);
+                    ->on('active_student_registrations.registered_visitor_id', '=', 'registered_visitors.id')
+                    ->where('active_student_registrations.school_year_id', '=', $activeSchoolYearId);
             })
-            ->orderBy("active_student_school_year_records.{$column}", $direction);
+            ->orderBy("active_student_registrations.{$column}", $direction);
     }
 }

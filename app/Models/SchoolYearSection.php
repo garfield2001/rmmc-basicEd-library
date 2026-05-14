@@ -25,9 +25,9 @@ class SchoolYearSection extends Model
         return $this->belongsTo(SchoolYear::class)->withTrashed();
     }
 
-    public function studentSchoolYearRecords(): HasMany
+    public function studentRegistrations(): HasMany
     {
-        return $this->hasMany(StudentSchoolYearRecord::class);
+        return $this->hasMany(StudentRegistration::class);
     }
 
     public function scopeForSchoolYear(Builder $query, ?int $schoolYearId): Builder

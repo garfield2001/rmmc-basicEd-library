@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class StudentSchoolYearRecord extends Model
+class StudentRegistration extends Model
 {
     use HasFactory;
     use SoftDeletes;
@@ -21,7 +21,7 @@ class StudentSchoolYearRecord extends Model
         'section',
     ];
 
-    public function member(): BelongsTo
+    public function visitor(): BelongsTo
     {
         return $this->belongsTo(RegisteredVisitor::class, 'registered_visitor_id')->withTrashed();
     }

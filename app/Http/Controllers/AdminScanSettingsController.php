@@ -12,6 +12,6 @@ class AdminScanSettingsController extends Controller
     {
         $scanSettings->update($request->validated());
 
-        return back()->with('success', 'Library scan settings updated.');
+        return back()->with('success', 'Library scan rules updated.');
     }
 }

@@ -14,7 +14,7 @@
 </head>
 <body>
     <h1>Library Progress Report</h1>
-    <p>{{ ucfirst($report['summary']['member_type']) }}s · {{ $report['school_year']['name'] ?? 'No school year' }}</p>
+    <p>{{ ucfirst($report['summary']['visitor_type']) }}s · {{ $report['school_year']['name'] ?? 'No school year' }}</p>
     <p>{{ $report['filters']['start_date'] }} to {{ $report['filters']['end_date'] }}</p>
 
     <table>

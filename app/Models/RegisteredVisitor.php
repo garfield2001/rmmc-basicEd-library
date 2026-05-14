@@ -48,12 +48,12 @@ class RegisteredVisitor extends Model
 
     public function student(): HasOne
     {
-        return $this->hasOne(StudentSchoolYearRecord::class)->latestOfMany('school_year_id');
+        return $this->hasOne(StudentRegistration::class)->latestOfMany('school_year_id');
     }
 
-    public function studentSchoolYearRecords(): HasMany
+    public function studentRegistrations(): HasMany
     {
-        return $this->hasMany(StudentSchoolYearRecord::class);
+        return $this->hasMany(StudentRegistration::class);
     }
 
     public function employee(): HasOne
@@ -78,7 +78,7 @@ class RegisteredVisitor extends Model
                 ->orWhere(function (Builder $query) use ($schoolYearId): void {
                     $query
                         ->where('type', self::TYPE_STUDENT)
-                        ->whereHas('studentSchoolYearRecords', fn (Builder $query) => $query->forSchoolYear($schoolYearId));
+                        ->whereHas('studentRegistrations', fn (Builder $query) => $query->forSchoolYear($schoolYearId));
                 });
         });
     }

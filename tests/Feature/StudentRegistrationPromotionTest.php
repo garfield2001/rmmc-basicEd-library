@@ -4,12 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
-use App\Models\StudentSchoolYearRecord;
+use App\Models\StudentRegistration;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class StudentPromotionTest extends TestCase
+class StudentRegistrationPromotionTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -26,25 +26,25 @@ class StudentPromotionTest extends TestCase
         $gradeSix = RegisteredVisitor::factory()->student()->create();
         $gradeTen = RegisteredVisitor::factory()->student()->create();
 
-        StudentSchoolYearRecord::factory()->create([
+        StudentRegistration::factory()->create([
             'registered_visitor_id' => $kindergartenOne->id,
             'school_year_id' => $sourceSchoolYear->id,
             'year_level' => 'Kindergarten 1',
             'section' => 'Aguinaldo',
         ]);
-        StudentSchoolYearRecord::factory()->create([
+        StudentRegistration::factory()->create([
             'registered_visitor_id' => $kindergartenTwo->id,
             'school_year_id' => $sourceSchoolYear->id,
             'year_level' => 'Kindergarten 2',
             'section' => 'Bonifacio',
         ]);
-        StudentSchoolYearRecord::factory()->create([
+        StudentRegistration::factory()->create([
             'registered_visitor_id' => $gradeSix->id,
             'school_year_id' => $sourceSchoolYear->id,
             'year_level' => 'Grade 6',
             'section' => 'Rizal',
         ]);
-        StudentSchoolYearRecord::factory()->create([
+        StudentRegistration::factory()->create([
             'registered_visitor_id' => $gradeTen->id,
             'school_year_id' => $sourceSchoolYear->id,
             'year_level' => 'Grade 10',
@@ -60,21 +60,21 @@ class StudentPromotionTest extends TestCase
 
         $targetSchoolYear = SchoolYear::query()->where('name', '2026-2027')->firstOrFail();
 
-        $this->assertDatabaseHas('student_school_year_records', [
+        $this->assertDatabaseHas('student_registrations', [
             'registered_visitor_id' => $kindergartenOne->id,
             'school_year_id' => $targetSchoolYear->id,
             'year_level' => 'Kindergarten 2',
             'section' => null,
             'school_year_section_id' => null,
         ]);
-        $this->assertDatabaseHas('student_school_year_records', [
+        $this->assertDatabaseHas('student_registrations', [
             'registered_visitor_id' => $kindergartenTwo->id,
             'school_year_id' => $targetSchoolYear->id,
             'year_level' => 'Grade 1',
             'section' => null,
             'school_year_section_id' => null,
         ]);
-        $this->assertDatabaseHas('student_school_year_records', [
+        $this->assertDatabaseHas('student_registrations', [
             'registered_visitor_id' => $gradeSix->id,
             'school_year_id' => $targetSchoolYear->id,
             'year_level' => 'Grade 7',
@@ -82,7 +82,7 @@ class StudentPromotionTest extends TestCase
             'school_year_section_id' => null,
         ]);
         $this->assertSoftDeleted('registered_visitors', ['id' => $gradeTen->id]);
-        $this->assertDatabaseMissing('student_school_year_records', [
+        $this->assertDatabaseMissing('student_registrations', [
             'registered_visitor_id' => $gradeTen->id,
             'school_year_id' => $targetSchoolYear->id,
         ]);

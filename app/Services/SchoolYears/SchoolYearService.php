@@ -4,7 +4,7 @@ namespace App\Services\SchoolYears;
 
 use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
-use App\Models\StudentSchoolYearRecord;
+use App\Models\StudentRegistration;
 use App\Support\Academics\AcademicLevels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -65,27 +65,27 @@ class SchoolYearService
     {
         $promoted = 0;
 
-        StudentSchoolYearRecord::query()
-            ->with('member:id,type')
+        StudentRegistration::query()
+            ->with('visitor:id,type')
             ->where('school_year_id', $fromSchoolYear->id)
             ->orderBy('id')
             ->get()
-            ->each(function (StudentSchoolYearRecord $studentRecord) use ($toSchoolYear, &$promoted): void {
-                if ($studentRecord->member?->type !== RegisteredVisitor::TYPE_STUDENT) {
+            ->each(function (StudentRegistration $studentRegistration) use ($toSchoolYear, &$promoted): void {
+                if ($studentRegistration->visitor?->type !== RegisteredVisitor::TYPE_STUDENT) {
                     return;
                 }
 
-                $nextYearLevel = AcademicLevels::nextAfter($studentRecord->year_level);
+                $nextYearLevel = AcademicLevels::nextAfter($studentRegistration->year_level);
 
                 if (! $nextYearLevel) {
-                    $studentRecord->member?->delete();
+                    $studentRegistration->visitor?->delete();
 
                     return;
                 }
 
-                $promotedStudentRecord = StudentSchoolYearRecord::query()->firstOrCreate(
+                $promotedStudentRegistration = StudentRegistration::query()->firstOrCreate(
                     [
-                        'registered_visitor_id' => $studentRecord->registered_visitor_id,
+                        'registered_visitor_id' => $studentRegistration->registered_visitor_id,
                         'school_year_id' => $toSchoolYear->id,
                     ],
                     [
@@ -95,7 +95,7 @@ class SchoolYearService
                     ],
                 );
 
-                if ($promotedStudentRecord->wasRecentlyCreated) {
+                if ($promotedStudentRegistration->wasRecentlyCreated) {
                     $promoted++;
                 }
             });

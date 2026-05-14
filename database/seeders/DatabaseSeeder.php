@@ -7,7 +7,7 @@ use App\Models\LibraryVisit;
 use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use App\Models\SchoolYearSection;
-use App\Models\StudentSchoolYearRecord;
+use App\Models\StudentRegistration;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
             Schema::disableForeignKeyConstraints();
 
             LibraryVisit::truncate();
-            StudentSchoolYearRecord::truncate();
+            StudentRegistration::truncate();
             SchoolYearSection::truncate();
             EmployeeProfile::truncate();
             RegisteredVisitor::truncate();
@@ -39,25 +39,8 @@ class DatabaseSeeder extends Seeder
             'role' => 'admin',
         ]);
 
-        SchoolYear::create([
-            'name' => '2025-2026',
-            'starts_at' => '2025-06-01',
-            'ends_at' => '2026-03-31',
-            'minimum_visits' => 3,
-            'target_visits' => 4,
-            'is_active' => false,
-        ]);
-
-        SchoolYear::create([
-            'name' => '2026-2027',
-            'starts_at' => '2026-06-01',
-            'ends_at' => '2027-03-31',
-            'minimum_visits' => 3,
-            'target_visits' => 4,
-            'is_active' => true,
-        ]);
-
         $this->call([
+            SchoolYearSeeder::class,
             StudentSeeder::class,
             EmployeeSeeder::class,
             HistoricalSchoolYearSeeder::class,

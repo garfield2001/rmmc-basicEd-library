@@ -28,7 +28,7 @@ export interface StudentAssignmentPreview {
     uniqueCount: number;
     matchedCount: number;
     targetSection: string | null;
-    memberIds: number[];
+    visitorIds: number[];
     matchedStudents: {
         id: number;
         schoolId: string;

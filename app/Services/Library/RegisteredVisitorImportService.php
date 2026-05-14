@@ -32,28 +32,28 @@ class RegisteredVisitorImportService
             foreach ($rows as $row) {
                 $row = $this->normalizeRow($row);
 
-                if (! $this->hasMinimumMemberData($row)) {
+                if (! $this->hasMinimumVisitorData($row)) {
                     $summary['skipped']++;
 
                     continue;
                 }
 
                 $schoolYear = $this->schoolYearForRow($row);
-                $member = $this->findMember($row);
-                $wasNew = ! $member;
+                $visitor = $this->findVisitor($row);
+                $wasNew = ! $visitor;
 
-                $member = $member
-                    ? $this->updateMember($member, $row)
-                    : $this->createMember($row);
+                $visitor = $visitor
+                    ? $this->updateVisitor($visitor, $row)
+                    : $this->createVisitor($row);
 
-                if ($member->trashed()) {
-                    $member->restore();
+                if ($visitor->trashed()) {
+                    $visitor->restore();
                     $summary['restored']++;
                 }
 
-                $this->syncMemberDetails($member, $row, $schoolYear);
+                $this->syncVisitorDetails($visitor, $row, $schoolYear);
 
-                if ($this->syncVisit($member, $row, $schoolYear)) {
+                if ($this->syncVisit($visitor, $row, $schoolYear)) {
                     $summary['visits']++;
                 }
 
@@ -183,7 +183,7 @@ class RegisteredVisitorImportService
     /**
      * @param  array<string, string>  $row
      */
-    private function hasMinimumMemberData(array $row): bool
+    private function hasMinimumVisitorData(array $row): bool
     {
         return ($row['school_id'] ?? '') !== ''
             && ($row['first_name'] ?? '') !== ''
@@ -194,7 +194,7 @@ class RegisteredVisitorImportService
     /**
      * @param  array<string, string>  $row
      */
-    private function findMember(array $row): ?RegisteredVisitor
+    private function findVisitor(array $row): ?RegisteredVisitor
     {
         return RegisteredVisitor::withTrashed()
             ->where('school_id', $row['school_id'])
@@ -205,7 +205,7 @@ class RegisteredVisitorImportService
     /**
      * @param  array<string, string>  $row
      */
-    private function createMember(array $row): RegisteredVisitor
+    private function createVisitor(array $row): RegisteredVisitor
     {
         return RegisteredVisitor::create([
             'rfid_uid' => $this->rfidUid($row['rfid_uid'] ?? ''),
@@ -222,9 +222,9 @@ class RegisteredVisitorImportService
     /**
      * @param  array<string, string>  $row
      */
-    private function updateMember(RegisteredVisitor $member, array $row): RegisteredVisitor
+    private function updateVisitor(RegisteredVisitor $visitor, array $row): RegisteredVisitor
     {
-        $member->update([
+        $visitor->update([
             'type' => $row['type'],
             'first_name' => $row['first_name'],
             'middle_name' => $row['middle_name'] ?? null,
@@ -232,16 +232,16 @@ class RegisteredVisitorImportService
             'is_active' => $this->isActive($row),
         ]);
 
-        return $member->refresh();
+        return $visitor->refresh();
     }
 
     /**
      * @param  array<string, string>  $row
      */
-    private function syncMemberDetails(RegisteredVisitor $member, array $row, ?SchoolYear $schoolYear): void
+    private function syncVisitorDetails(RegisteredVisitor $visitor, array $row, ?SchoolYear $schoolYear): void
     {
-        if ($member->type === RegisteredVisitor::TYPE_EMPLOYEE) {
-            $member->employee()->updateOrCreate([], [
+        if ($visitor->type === RegisteredVisitor::TYPE_EMPLOYEE) {
+            $visitor->employee()->updateOrCreate([], [
                 'department' => $row['department'] ?? 'Unassigned',
             ]);
 
@@ -261,7 +261,7 @@ class RegisteredVisitorImportService
             ])
             : null;
 
-        $member->studentSchoolYearRecords()->updateOrCreate(
+        $visitor->studentRegistrations()->updateOrCreate(
             ['school_year_id' => $schoolYear->id],
             [
                 'school_year_section_id' => $section?->id,
@@ -274,7 +274,7 @@ class RegisteredVisitorImportService
     /**
      * @param  array<string, string>  $row
      */
-    private function syncVisit(RegisteredVisitor $member, array $row, ?SchoolYear $schoolYear): bool
+    private function syncVisit(RegisteredVisitor $visitor, array $row, ?SchoolYear $schoolYear): bool
     {
         $visitedAt = $this->dateFromRow($row['visited_at'] ?? '');
 
@@ -283,7 +283,7 @@ class RegisteredVisitorImportService
         }
 
         return LibraryVisit::query()->firstOrCreate([
-            'registered_visitor_id' => $member->id,
+            'registered_visitor_id' => $visitor->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => $visitedAt,
         ])->wasRecentlyCreated;
@@ -302,7 +302,7 @@ class RegisteredVisitorImportService
             return SchoolYear::query()->firstOrCreate(
                 ['name' => $name],
                 [
-                    'starts_at' => ($matches['start'] ?? now()->year).'-06-01',
+                    'starts_at' => ($matches['start'] ?? now()->year).'-05-01',
                     'ends_at' => ($matches['end'] ?? now()->addYear()->year).'-03-31',
                     'minimum_visits' => 3,
                     'target_visits' => 4,

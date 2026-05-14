@@ -14,16 +14,7 @@ class HistoricalSchoolYearSeeder extends Seeder
 {
     public function run(): void
     {
-        $schoolYear = SchoolYear::query()->firstOrCreate(
-            ['name' => '2025-2026'],
-            [
-                'starts_at' => '2025-06-01',
-                'ends_at' => '2026-03-31',
-                'minimum_visits' => 3,
-                'target_visits' => 4,
-                'is_active' => false,
-            ],
-        );
+        $schoolYear = SchoolYear::query()->where('name', '2025-2026')->firstOrFail();
 
         $this->seedPreviousStudentRecords($schoolYear);
         $this->seedCompletedGradeTenStudents($schoolYear);
@@ -36,8 +27,8 @@ class HistoricalSchoolYearSeeder extends Seeder
             ->where('type', RegisteredVisitor::TYPE_STUDENT)
             ->with('student')
             ->get()
-            ->each(function (RegisteredVisitor $member) use ($schoolYear): void {
-                $currentStudentRecord = $member->student;
+            ->each(function (RegisteredVisitor $visitor) use ($schoolYear): void {
+                $currentStudentRecord = $visitor->student;
 
                 if (! $currentStudentRecord) {
                     return;
@@ -47,7 +38,7 @@ class HistoricalSchoolYearSeeder extends Seeder
                 $section = $currentStudentRecord->section ?: 'A';
                 $schoolYearSection = $this->section($schoolYear, $yearLevel, $section);
 
-                $member->studentSchoolYearRecords()->updateOrCreate(
+                $visitor->studentRegistrations()->updateOrCreate(
                     ['school_year_id' => $schoolYear->id],
                     [
                         'school_year_section_id' => $schoolYearSection->id,
@@ -63,7 +54,7 @@ class HistoricalSchoolYearSeeder extends Seeder
         $section = $this->section($schoolYear, 'Grade 10', 'Rizal');
 
         foreach ($this->completedStudents() as $student) {
-            $member = RegisteredVisitor::query()->firstOrCreate(
+            $visitor = RegisteredVisitor::query()->firstOrCreate(
                 ['school_id' => $student['school_id']],
                 [
                     'rfid_uid' => $student['rfid_uid'],
@@ -76,7 +67,7 @@ class HistoricalSchoolYearSeeder extends Seeder
                 ],
             );
 
-            $member->studentSchoolYearRecords()->updateOrCreate(
+            $visitor->studentRegistrations()->updateOrCreate(
                 ['school_year_id' => $schoolYear->id],
                 [
                     'school_year_section_id' => $section->id,
@@ -85,8 +76,8 @@ class HistoricalSchoolYearSeeder extends Seeder
                 ],
             );
 
-            if (! $member->trashed()) {
-                $member->delete();
+            if (! $visitor->trashed()) {
+                $visitor->delete();
             }
         }
     }
@@ -95,7 +86,7 @@ class HistoricalSchoolYearSeeder extends Seeder
     {
         $students = RegisteredVisitor::withTrashed()
             ->where('type', RegisteredVisitor::TYPE_STUDENT)
-            ->whereHas('studentSchoolYearRecords', fn ($query) => $query->forSchoolYear($schoolYear->id))
+            ->whereHas('studentRegistrations', fn ($query) => $query->forSchoolYear($schoolYear->id))
             ->orderBy('school_id')
             ->limit(55)
             ->get();
@@ -106,23 +97,23 @@ class HistoricalSchoolYearSeeder extends Seeder
             ->limit(18)
             ->get();
 
-        $students->each(function (RegisteredVisitor $member, int $index) use ($schoolYear): void {
-            $this->visit($member, $schoolYear, Carbon::parse('2025-07-07 08:15:00')->addDays($index % 24));
+        $students->each(function (RegisteredVisitor $visitor, int $index) use ($schoolYear): void {
+            $this->visit($visitor, $schoolYear, Carbon::parse('2025-07-07 08:15:00')->addDays($index % 24));
 
             if ($index % 3 !== 0) {
-                $this->visit($member, $schoolYear, Carbon::parse('2025-09-08 09:30:00')->addDays($index % 30));
+                $this->visit($visitor, $schoolYear, Carbon::parse('2025-09-08 09:30:00')->addDays($index % 30));
             }
         });
 
-        $employee_profiles->each(function (RegisteredVisitor $member, int $index) use ($schoolYear): void {
-            $this->visit($member, $schoolYear, Carbon::parse('2025-08-04 10:00:00')->addDays($index % 20));
+        $employee_profiles->each(function (RegisteredVisitor $visitor, int $index) use ($schoolYear): void {
+            $this->visit($visitor, $schoolYear, Carbon::parse('2025-08-04 10:00:00')->addDays($index % 20));
         });
     }
 
-    private function visit(RegisteredVisitor $member, SchoolYear $schoolYear, Carbon $visitedAt): void
+    private function visit(RegisteredVisitor $visitor, SchoolYear $schoolYear, Carbon $visitedAt): void
     {
         LibraryVisit::query()->firstOrCreate([
-            'registered_visitor_id' => $member->id,
+            'registered_visitor_id' => $visitor->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => $visitedAt,
         ]);
