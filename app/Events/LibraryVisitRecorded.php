@@ -22,7 +22,7 @@ class LibraryVisitRecorded implements ShouldBroadcastNow
     {
         $visit->loadMissing([
             'visitor.student' => fn ($query) => $query->forSchoolYear($visit->school_year_id),
-            'visitor.employee',
+            'visitor.employee' => fn ($query) => $query->forSchoolYear($visit->school_year_id),
         ]);
 
         $this->visit = [

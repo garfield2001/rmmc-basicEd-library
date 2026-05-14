@@ -23,7 +23,6 @@ class StoreRegisteredVisitorRequest extends FormRequest
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'photo_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'is_active' => ['boolean'],
             'year_level' => ['required_if:type,student', 'nullable', 'string', 'max:255'],
             'section' => ['nullable', 'string', 'max:255'],
             'department' => ['required_if:type,employee', 'nullable', 'string', 'max:255'],

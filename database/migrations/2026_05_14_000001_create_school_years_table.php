@@ -13,11 +13,10 @@ return new class extends Migration
             $table->string('name', 32)->unique();
             $table->date('starts_at');
             $table->date('ends_at');
-            $table->unsignedTinyInteger('minimum_visits')->default(3);
-            $table->unsignedTinyInteger('target_visits')->default(4);
+            $table->unsignedTinyInteger('student_required_visits')->default(4);
+            $table->unsignedTinyInteger('employee_required_visits')->default(4);
             $table->boolean('is_active')->default(false)->index();
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

@@ -21,7 +21,6 @@ class ReportFilterRequest extends FormRequest
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'visitor_type' => ['nullable', Rule::in(['student', 'employee'])],
-            'visitor_status' => ['nullable', Rule::in(['active', 'inactive'])],
             'year_level' => ['nullable', 'string', 'max:255'],
             'section' => ['nullable', 'string', 'max:255'],
             'department' => ['nullable', 'string', 'max:255'],

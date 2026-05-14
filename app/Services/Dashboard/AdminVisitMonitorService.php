@@ -40,7 +40,9 @@ class AdminVisitMonitorService
                             'student_registrations.section',
                         )
                         ->forSchoolYear($activeSchoolYearId),
-                    'visitor.employee:id,registered_visitor_id,department',
+                    'visitor.employee' => fn ($query) => $query
+                        ->select('id', 'registered_visitor_id', 'school_year_id', 'department')
+                        ->forSchoolYear($activeSchoolYearId),
                 ])
                 ->whereDate('visited_at', $today)
                 ->when($activeSchoolYearId, fn (Builder $query) => $query->where('school_year_id', $activeSchoolYearId), fn (Builder $query) => $query->whereRaw('1 = 0'))
@@ -61,7 +63,7 @@ class AdminVisitMonitorService
 
         $activeSchoolYearId = SchoolYear::active()->value('id');
 
-        return RegisteredVisitor::active()
+        return RegisteredVisitor::query()
             ->visitEligibleForSchoolYear($activeSchoolYearId)
             ->with([
                 'student' => fn ($query) => $query
@@ -73,7 +75,9 @@ class AdminVisitMonitorService
                         'student_registrations.section',
                     )
                     ->forSchoolYear($activeSchoolYearId),
-                'employee:id,registered_visitor_id,department',
+                'employee' => fn ($query) => $query
+                    ->select('id', 'registered_visitor_id', 'school_year_id', 'department')
+                    ->forSchoolYear($activeSchoolYearId),
             ])
             ->where(function (Builder $query) use ($activeSchoolYearId, $search): void {
                 $query
@@ -90,7 +94,9 @@ class AdminVisitMonitorService
                                     ->orWhere('section', 'like', "%{$search}%");
                             });
                     })
-                    ->orWhereHas('employee', fn (Builder $query) => $query->where('department', 'like', "%{$search}%"));
+                    ->orWhereHas('employeeProfiles', fn (Builder $query) => $query
+                        ->forSchoolYear($activeSchoolYearId)
+                        ->where('department', 'like', "%{$search}%"));
             })
             ->orderBy('last_name')
             ->orderBy('first_name')

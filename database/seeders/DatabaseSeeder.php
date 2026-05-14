@@ -44,6 +44,7 @@ class DatabaseSeeder extends Seeder
             StudentSeeder::class,
             EmployeeSeeder::class,
             HistoricalSchoolYearSeeder::class,
+            CurrentSchoolYearVisitSeeder::class,
         ]);
 
         $this->command?->info('Admin login: admin@gmail.com / password');

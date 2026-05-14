@@ -13,29 +13,49 @@ interface SchoolYearForm {
     [key: string]: string | number | boolean;
     starts_at: string;
     ends_at: string;
-    minimum_visits: number;
-    target_visits: number;
+    student_required_visits: number;
+    employee_required_visits: number;
+    transfer_employees: boolean;
     confirmed_transition: boolean;
 }
 
 const emptySchoolYearForm: SchoolYearForm = {
     starts_at: '',
     ends_at: '',
-    minimum_visits: 3,
-    target_visits: 4,
+    student_required_visits: 4,
+    employee_required_visits: 4,
+    transfer_employees: false,
     confirmed_transition: false,
 };
 
 export function SchoolYearNavbarControl() {
     const { schoolYear, schoolYears } = usePage<SharedData>().props;
     const [detailsOpen, setDetailsOpen] = useState(false);
+    const [previewOpen, setPreviewOpen] = useState(false);
 
     return (
         <>
-            <div className="group relative">
+            {previewOpen && !detailsOpen && (
+                <div className="pointer-events-none fixed inset-0 z-30 bg-[#010440]/10 backdrop-blur-[3px] transition lg:block" aria-hidden="true" />
+            )}
+
+            <div
+                className="group relative z-40"
+                onMouseEnter={() => setPreviewOpen(true)}
+                onMouseLeave={() => setPreviewOpen(false)}
+                onFocus={() => setPreviewOpen(true)}
+                onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget)) {
+                        setPreviewOpen(false);
+                    }
+                }}
+            >
                 <button
                     type="button"
-                    onClick={() => setDetailsOpen(true)}
+                    onClick={() => {
+                        setPreviewOpen(false);
+                        setDetailsOpen(true);
+                    }}
                     className="admin-school-year-badge inline-flex h-9 items-center overflow-hidden rounded-full border border-[#040DBF]/10 bg-white text-xs shadow-sm transition hover:border-[#040DBF]/25 hover:shadow-md hover:shadow-[#040DBF]/10"
                 >
                     <span className="admin-school-year-label border-r border-[#040DBF]/10 bg-[#f6f8ff] px-3 font-medium text-[#030A8C]">
@@ -45,9 +65,9 @@ export function SchoolYearNavbarControl() {
                 </button>
 
                 <div className="pointer-events-none absolute top-full right-0 z-50 w-80 pt-2 opacity-0 transition group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100">
-                    <div className="rounded-lg border border-[#040DBF]/10 bg-white p-4 text-sm shadow-xl shadow-[#040DBF]/10">
+                    <div className="admin-school-year-popover rounded-lg border border-[#040DBF]/10 bg-white p-4 text-sm shadow-xl shadow-[#040DBF]/10">
                         <div className="flex items-start gap-3">
-                            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#f6f8ff] text-[#040DBF]">
+                            <span className="admin-school-year-popover-icon flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#f6f8ff] text-[#040DBF]">
                                 <CalendarClock className="size-5" />
                             </span>
                             <div className="min-w-0">
@@ -61,11 +81,19 @@ export function SchoolYearNavbarControl() {
                         </div>
                         {schoolYear && (
                             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                                <MiniStat label="Minimum" value={schoolYear.minimum_visits} />
-                                <MiniStat label="Target" value={schoolYear.target_visits} />
+                                <MiniStat label="Students" value={schoolYear.student_required_visits} />
+                                <MiniStat label="Employees" value={schoolYear.employee_required_visits} />
                             </div>
                         )}
-                        <Button type="button" size="sm" className="mt-4 w-full" onClick={() => setDetailsOpen(true)}>
+                        <Button
+                            type="button"
+                            size="sm"
+                            className="mt-4 w-full"
+                            onClick={() => {
+                                setPreviewOpen(false);
+                                setDetailsOpen(true);
+                            }}
+                        >
                             More details
                         </Button>
                     </div>
@@ -90,8 +118,8 @@ function SchoolYearDetailsDialog({
     const [editingSchoolYearId, setEditingSchoolYearId] = useState<number | null>(null);
     const { data, setData, post, patch, processing, errors, reset, clearErrors } = useForm<SchoolYearForm>({
         ...emptySchoolYearForm,
-        minimum_visits: activeSchoolYear?.minimum_visits ?? emptySchoolYearForm.minimum_visits,
-        target_visits: activeSchoolYear?.target_visits ?? emptySchoolYearForm.target_visits,
+        student_required_visits: activeSchoolYear?.student_required_visits ?? emptySchoolYearForm.student_required_visits,
+        employee_required_visits: activeSchoolYear?.employee_required_visits ?? emptySchoolYearForm.employee_required_visits,
     });
     const editingSchoolYear = schoolYears.find((schoolYear) => schoolYear.id === editingSchoolYearId) ?? null;
     const transitionYearStart = new Date().getFullYear();
@@ -101,8 +129,9 @@ function SchoolYearDetailsDialog({
         if (open && !editingSchoolYearId) {
             setData({
                 ...emptySchoolYearForm,
-                minimum_visits: activeSchoolYear?.minimum_visits ?? emptySchoolYearForm.minimum_visits,
-                target_visits: activeSchoolYear?.target_visits ?? emptySchoolYearForm.target_visits,
+                student_required_visits: activeSchoolYear?.student_required_visits ?? emptySchoolYearForm.student_required_visits,
+                employee_required_visits: activeSchoolYear?.employee_required_visits ?? emptySchoolYearForm.employee_required_visits,
+                transfer_employees: false,
             });
             clearErrors();
         }
@@ -113,19 +142,25 @@ function SchoolYearDetailsDialog({
         reset();
         setData({
             ...emptySchoolYearForm,
-            minimum_visits: activeSchoolYear?.minimum_visits ?? emptySchoolYearForm.minimum_visits,
-            target_visits: activeSchoolYear?.target_visits ?? emptySchoolYearForm.target_visits,
+            student_required_visits: activeSchoolYear?.student_required_visits ?? emptySchoolYearForm.student_required_visits,
+            employee_required_visits: activeSchoolYear?.employee_required_visits ?? emptySchoolYearForm.employee_required_visits,
+            transfer_employees: false,
         });
         clearErrors();
     };
 
     const beginEdit = (schoolYear: SchoolYearRow) => {
+        if (!schoolYear.is_active) {
+            return;
+        }
+
         setEditingSchoolYearId(schoolYear.id);
         setData({
             starts_at: schoolYear.starts_at,
             ends_at: schoolYear.ends_at,
-            minimum_visits: schoolYear.minimum_visits,
-            target_visits: schoolYear.target_visits,
+            student_required_visits: schoolYear.student_required_visits,
+            employee_required_visits: schoolYear.employee_required_visits,
+            transfer_employees: false,
             confirmed_transition: false,
         });
         clearErrors();
@@ -201,21 +236,21 @@ function SchoolYearDetailsDialog({
                                     yearWindowEnd={editingSchoolYear ? undefined : transitionYearEnd}
                                 />
                             </Field>
-                            <Field label="Minimum visits" error={errors.minimum_visits}>
+                            <Field label="Required student visits" error={errors.student_required_visits}>
                                 <input
                                     type="number"
                                     min="0"
-                                    value={data.minimum_visits}
-                                    onChange={(event) => setData('minimum_visits', Number(event.target.value))}
+                                    value={data.student_required_visits}
+                                    onChange={(event) => setData('student_required_visits', Number(event.target.value))}
                                     className={inputClass}
                                 />
                             </Field>
-                            <Field label="Target visits" error={errors.target_visits}>
+                            <Field label="Required employee visits" error={errors.employee_required_visits}>
                                 <input
                                     type="number"
                                     min="0"
-                                    value={data.target_visits}
-                                    onChange={(event) => setData('target_visits', Number(event.target.value))}
+                                    value={data.employee_required_visits}
+                                    onChange={(event) => setData('employee_required_visits', Number(event.target.value))}
                                     className={inputClass}
                                 />
                             </Field>
@@ -226,10 +261,19 @@ function SchoolYearDetailsDialog({
                                 <div className="flex gap-2">
                                     <AlertTriangle className="mt-0.5 size-4 shrink-0" />
                                     <p>
-                                        Creating this school year makes it active, promotes current students, and moves completed Grade 10 students to
-                                        Archive. Previous school years cannot be reactivated.
+                                        Creating this school year makes it active and starts with no students or employees unless you transfer
+                                        employee profiles below. Previous visits remain available in Reports.
                                     </p>
                                 </div>
+                                <label className="mt-3 flex items-center gap-2 font-medium">
+                                    <input
+                                        type="checkbox"
+                                        checked={Boolean(data.transfer_employees)}
+                                        onChange={(event) => setData('transfer_employees', event.target.checked)}
+                                        className="size-4 rounded border-amber-300"
+                                    />
+                                    Transfer employee profiles from the previous school year.
+                                </label>
                                 <label className="mt-3 flex items-center gap-2 font-medium">
                                     <input
                                         type="checkbox"
@@ -269,19 +313,21 @@ function SchoolYearDetailsDialog({
                                                 {formatDisplayDate(schoolYear.starts_at)} to {formatDisplayDate(schoolYear.ends_at)}
                                             </p>
                                         </div>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => beginEdit(schoolYear)}
-                                            title="Edit school year"
-                                        >
-                                            <Pencil className="size-4" />
-                                        </Button>
+                                        {schoolYear.is_active && (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => beginEdit(schoolYear)}
+                                                title="Edit active school year"
+                                            >
+                                                <Pencil className="size-4" />
+                                            </Button>
+                                        )}
                                     </div>
                                     <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                                        <MiniStat label="Minimum" value={schoolYear.minimum_visits} />
-                                        <MiniStat label="Target" value={schoolYear.target_visits} />
+                                        <MiniStat label="Students" value={schoolYear.student_required_visits} />
+                                        <MiniStat label="Employees" value={schoolYear.employee_required_visits} />
                                     </div>
                                     {!schoolYear.is_active && (
                                         <p className="mt-3 rounded-md bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-600">
@@ -317,7 +363,7 @@ function Field({ label, error, className, children }: { label: string; error?: s
 
 function MiniStat({ label, value }: { label: string; value: number }) {
     return (
-        <div className="rounded-md border border-[#040DBF]/10 bg-[#f6f8ff] px-2 py-1.5">
+        <div className="admin-school-year-mini-stat rounded-md border border-[#040DBF]/10 bg-[#f6f8ff] px-2 py-1.5">
             <p className="font-medium text-[#030A8C]">{label}</p>
             <p className="mt-0.5 font-semibold text-[#010440]">{value.toLocaleString()}</p>
         </div>

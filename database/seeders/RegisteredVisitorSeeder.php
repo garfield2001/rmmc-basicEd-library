@@ -235,6 +235,7 @@ abstract class RegisteredVisitorSeeder extends Seeder
         $visitor->studentRegistrations()->create([
             'school_year_id' => $schoolYear->id,
             'school_year_section_id' => $section->id,
+            ...$this->visitorSnapshot($visitor),
             'year_level' => $student['year_level'],
             'section' => $section->name,
         ]);
@@ -268,7 +269,11 @@ abstract class RegisteredVisitorSeeder extends Seeder
 
         $visitor = $this->createVisitor($employee, RegisteredVisitor::TYPE_EMPLOYEE);
 
-        $visitor->employee()->create([
+        $schoolYear = SchoolYear::active()->firstOrFail();
+
+        $visitor->employeeProfiles()->create([
+            'school_year_id' => $schoolYear->id,
+            ...$this->visitorSnapshot($visitor),
             'department' => $employee['department'],
         ]);
 
@@ -317,8 +322,19 @@ abstract class RegisteredVisitorSeeder extends Seeder
             'middle_name' => $visitorData['middle_name'] ?? null,
             'last_name' => $visitorData['last_name'],
             'photo' => $visitorData['photo'] ?? null,
-            'is_active' => $visitorData['is_active'] ?? true,
         ]);
+    }
+
+    private function visitorSnapshot(RegisteredVisitor $visitor): array
+    {
+        return [
+            'school_id' => $visitor->school_id,
+            'rfid_uid' => $visitor->rfid_uid,
+            'first_name' => $visitor->first_name,
+            'middle_name' => $visitor->middle_name,
+            'last_name' => $visitor->last_name,
+            'photo' => $visitor->photo,
+        ];
     }
 
     /**

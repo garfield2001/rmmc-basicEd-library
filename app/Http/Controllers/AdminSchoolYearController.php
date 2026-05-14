@@ -14,14 +14,14 @@ class AdminSchoolYearController extends Controller
     {
         $schoolYear = $schoolYears->create($request->validated());
 
-        return back()->with('success', "Transitioned to school year {$schoolYear->name}. Eligible students were promoted, and completed Grade 10 students were moved to Archive.");
+        return back()->with('success', "Transitioned to school year {$schoolYear->name}. The new school year is ready for fresh imports.");
     }
 
     public function activate(SchoolYear $schoolYear, SchoolYearService $schoolYears): RedirectResponse
     {
         $schoolYears->activate($schoolYear);
 
-        return back()->with('success', "School year {$schoolYear->name} is now active. Existing students were promoted with blank sections when needed.");
+        return back()->with('success', "School year {$schoolYear->name} is now active.");
     }
 
     public function update(UpdateSchoolYearRequest $request, SchoolYear $schoolYear, SchoolYearService $schoolYears): RedirectResponse

@@ -14,7 +14,6 @@ return new class extends Migration
             $table->foreignId('school_year_id')->constrained()->cascadeOnDelete();
             $table->timestamp('visited_at')->index();
             $table->timestamps();
-            $table->softDeletes();
 
             $table->index(['registered_visitor_id', 'school_year_id']);
             $table->index(['school_year_id', 'visited_at']);

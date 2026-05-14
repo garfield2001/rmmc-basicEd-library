@@ -162,16 +162,7 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                     <p className="mt-1 text-sm text-[#020659]/70">Latest RFID scans for the selected tab are shown first.</p>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <div className="relative">
-                        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#030A8C]/50" />
-                        <input
-                            value={search}
-                            onChange={(event) => setSearch(event.target.value)}
-                            placeholder={visitTab === 'student' ? 'Search ID, name, section' : 'Search ID, name, department'}
-                            className="h-10 w-full rounded-lg border border-[#040DBF]/15 bg-white pr-3 pl-9 text-sm transition outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 sm:w-72"
-                        />
-                    </div>
-                    <div className="admin-segmented-tabs">
+                    <div className="admin-segmented-tabs order-1 sm:order-none">
                         {visitTabs.map((tab) => {
                             const Icon = tab.icon;
                             const isActive = visitTab === tab.value;
@@ -189,6 +180,15 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                                 </button>
                             );
                         })}
+                    </div>
+                    <div className="relative">
+                        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#030A8C]/50" />
+                        <input
+                            value={search}
+                            onChange={(event) => setSearch(event.target.value)}
+                            placeholder={visitTab === 'student' ? 'Search ID, name, section' : 'Search ID, name, department'}
+                            className="h-10 w-full rounded-lg border border-[#040DBF]/15 bg-white pr-3 pl-9 text-sm transition outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 sm:w-72"
+                        />
                     </div>
                 </div>
             </div>

@@ -14,73 +14,72 @@ class AdminDashboardService
     {
         $schoolYear = SchoolYear::active()->first();
         $today = Carbon::today();
+        $studentVisitors = RegisteredVisitor::where('type', RegisteredVisitor::TYPE_STUDENT)->visitEligibleForSchoolYear($schoolYear?->id)->count();
+        $employeeVisitors = RegisteredVisitor::where('type', RegisteredVisitor::TYPE_EMPLOYEE)->visitEligibleForSchoolYear($schoolYear?->id)->count();
 
         return [
-            'schoolYear' => $schoolYear?->only(['id', 'name', 'minimum_visits', 'target_visits']),
+            'schoolYear' => $schoolYear ? [
+                'id' => $schoolYear->id,
+                'name' => $schoolYear->name,
+                'starts_at' => $schoolYear->starts_at->toDateString(),
+                'ends_at' => $schoolYear->ends_at->toDateString(),
+                'student_required_visits' => $schoolYear->student_required_visits,
+                'employee_required_visits' => $schoolYear->employee_required_visits,
+            ] : null,
             'metrics' => [
-                'activeVisitors' => RegisteredVisitor::active()->visitEligibleForSchoolYear($schoolYear?->id)->count(),
+                'registeredVisitors' => $studentVisitors + $employeeVisitors,
                 'studentRegistrations' => $schoolYear ? $schoolYear->studentRegistrations()->count() : 0,
                 'visitsToday' => LibraryVisit::query()
                     ->whereDate('visited_at', $today)
                     ->when($schoolYear, fn ($query) => $query->where('school_year_id', $schoolYear->id), fn ($query) => $query->whereRaw('1 = 0'))
                     ->count(),
-                'employeeVisitors' => RegisteredVisitor::where('type', RegisteredVisitor::TYPE_EMPLOYEE)->count(),
+                'employeeVisitors' => $employeeVisitors,
             ],
             'visitorBreakdown' => [
-                'students' => RegisteredVisitor::where('type', RegisteredVisitor::TYPE_STUDENT)->count(),
-                'employees' => RegisteredVisitor::where('type', RegisteredVisitor::TYPE_EMPLOYEE)->count(),
+                'students' => $studentVisitors,
+                'employees' => $employeeVisitors,
             ],
             'charts' => [
                 'visitsByDay' => $this->visitsByDay($schoolYear?->id),
-                'visitsByType' => [
-                    ['label' => 'Students', 'value' => $this->visitCountByType($schoolYear?->id, RegisteredVisitor::TYPE_STUDENT)],
-                    ['label' => 'Employees', 'value' => $this->visitCountByType($schoolYear?->id, RegisteredVisitor::TYPE_EMPLOYEE)],
-                ],
                 'studentVisitsByYearLevel' => $this->studentVisitsByYearLevel($schoolYear?->id),
+                'studentVisitsBySection' => $this->studentVisitsBySection($schoolYear?->id),
+                'requiredProgress' => $this->requiredProgress($schoolYear),
             ],
         ];
     }
 
     private function visitsByDay(?int $schoolYearId): array
     {
-        $start = now()->subDays(6)->startOfDay();
+        $start = now()->subDays(13)->startOfDay();
         $visits = LibraryVisit::query()
+            ->with('visitor:id,type')
             ->where('visited_at', '>=', $start)
             ->when($schoolYearId, fn ($query) => $query->where('school_year_id', $schoolYearId), fn ($query) => $query->whereRaw('1 = 0'))
             ->get()
             ->groupBy(fn (LibraryVisit $visit): string => $visit->visited_at->toDateString());
 
-        return collect(range(0, 6))
+        return collect(range(0, 13))
             ->map(function (int $daysAgo) use ($visits): array {
-                $date = now()->subDays(6 - $daysAgo);
+                $date = now()->subDays(13 - $daysAgo);
+                $dailyVisits = $visits->get($date->toDateString(), collect());
+                $studentVisits = $dailyVisits->filter(fn (LibraryVisit $visit): bool => $visit->visitor?->type === RegisteredVisitor::TYPE_STUDENT)->count();
+                $employeeVisits = $dailyVisits->filter(fn (LibraryVisit $visit): bool => $visit->visitor?->type === RegisteredVisitor::TYPE_EMPLOYEE)->count();
 
                 return [
                     'label' => $date->format('M d'),
-                    'value' => $visits->get($date->toDateString(), collect())->count(),
+                    'students' => $studentVisits,
+                    'employees' => $employeeVisits,
+                    'total' => $studentVisits + $employeeVisits,
                 ];
             })
             ->values()
             ->all();
     }
 
-    private function visitCountByType(?int $schoolYearId, string $type): int
-    {
-        return LibraryVisit::query()
-            ->when($schoolYearId, fn ($query) => $query->where('school_year_id', $schoolYearId), fn ($query) => $query->whereRaw('1 = 0'))
-            ->whereHas('visitor', fn ($query) => $query->where('type', $type))
-            ->count();
-    }
-
     private function studentVisitsByYearLevel(?int $schoolYearId): array
     {
         /** @var Collection<int, LibraryVisit> $visits */
-        $visits = LibraryVisit::query()
-            ->with([
-                'visitor.studentRegistrations',
-            ])
-            ->when($schoolYearId, fn ($query) => $query->where('school_year_id', $schoolYearId), fn ($query) => $query->whereRaw('1 = 0'))
-            ->whereHas('visitor', fn ($query) => $query->where('type', RegisteredVisitor::TYPE_STUDENT))
-            ->get();
+        $visits = $this->studentVisits($schoolYearId);
 
         return $visits
             ->groupBy(function (LibraryVisit $visit): string {
@@ -97,5 +96,76 @@ class AdminDashboardService
             ->values()
             ->take(6)
             ->all();
+    }
+
+    private function studentVisitsBySection(?int $schoolYearId): array
+    {
+        /** @var Collection<int, LibraryVisit> $visits */
+        $visits = $this->studentVisits($schoolYearId);
+
+        return $visits
+            ->groupBy(function (LibraryVisit $visit): string {
+                $studentRegistration = $visit->visitor?->studentRegistrations
+                    ?->firstWhere('school_year_id', $visit->school_year_id);
+
+                return trim(collect([$studentRegistration?->year_level, $studentRegistration?->section])->filter()->implode(' - ')) ?: 'Unassigned';
+            })
+            ->map(fn (Collection $group, string $label): array => [
+                'label' => $label,
+                'value' => $group->count(),
+            ])
+            ->sortByDesc('value')
+            ->values()
+            ->take(8)
+            ->all();
+    }
+
+    private function requiredProgress(?SchoolYear $schoolYear): array
+    {
+        if (! $schoolYear) {
+            return [];
+        }
+
+        return [
+            $this->requiredProgressForType($schoolYear, RegisteredVisitor::TYPE_STUDENT, 'Students', $schoolYear->student_required_visits),
+            $this->requiredProgressForType($schoolYear, RegisteredVisitor::TYPE_EMPLOYEE, 'Employees', $schoolYear->employee_required_visits),
+        ];
+    }
+
+    private function requiredProgressForType(SchoolYear $schoolYear, string $type, string $label, int $requiredVisits): array
+    {
+        /** @var Collection<int, RegisteredVisitor> $visitors */
+        $visitors = RegisteredVisitor::query()
+            ->where('type', $type)
+            ->visitEligibleForSchoolYear($schoolYear->id)
+            ->withCount([
+                'visits as visits_count' => fn ($query) => $query->where('school_year_id', $schoolYear->id),
+            ])
+            ->get();
+
+        $visitorCount = $visitors->count();
+        $visitCount = $visitors->sum('visits_count');
+        $requiredTotal = $visitorCount * $requiredVisits;
+
+        return [
+            'label' => $label,
+            'required' => $requiredVisits,
+            'visitors' => $visitorCount,
+            'visits' => $visitCount,
+            'required_total' => $requiredTotal,
+            'met_required' => $requiredVisits > 0 ? $visitors->where('visits_count', '>=', $requiredVisits)->count() : 0,
+            'percent' => $requiredTotal > 0 ? min(100, round(($visitCount / $requiredTotal) * 100)) : 0,
+        ];
+    }
+
+    private function studentVisits(?int $schoolYearId): Collection
+    {
+        return LibraryVisit::query()
+            ->with([
+                'visitor.studentRegistrations',
+            ])
+            ->when($schoolYearId, fn ($query) => $query->where('school_year_id', $schoolYearId), fn ($query) => $query->whereRaw('1 = 0'))
+            ->whereHas('visitor', fn ($query) => $query->where('type', RegisteredVisitor::TYPE_STUDENT))
+            ->get();
     }
 }

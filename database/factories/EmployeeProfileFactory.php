@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\EmployeeProfile;
 use App\Models\RegisteredVisitor;
+use App\Models\SchoolYear;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,6 +18,7 @@ class EmployeeProfileFactory extends Factory
     {
         return [
             'registered_visitor_id' => RegisteredVisitor::factory()->employee(),
+            'school_year_id' => SchoolYear::query()->active()->value('id') ?? SchoolYear::factory()->active()->create()->id,
             'department' => fake()->randomElement([
                 'Basic Education Faculty',
                 'Senior High School Faculty',

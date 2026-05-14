@@ -36,7 +36,7 @@ type VisitorType = 'student' | 'employee';
 type VisitorTypeFilter = '' | VisitorType;
 type DateRangeMode = '' | 'school_year' | 'custom';
 type AllFilterValue = '__all__';
-type ReportSortColumn = 'school_id' | 'name' | 'group' | 'visit_count' | 'progress_percent' | 'last_visit_at' | 'status';
+type ReportSortColumn = 'school_id' | 'name' | 'group' | 'visit_count' | 'progress_percent' | 'last_visit_at';
 type SortDirection = 'asc' | 'desc';
 
 interface ReportQuery {
@@ -44,7 +44,6 @@ interface ReportQuery {
     start_date: string;
     end_date: string;
     visitor_type: VisitorTypeFilter;
-    visitor_status: string;
     year_level: string;
     section: string;
     department: string;
@@ -68,7 +67,6 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
         report ? inferDateRangeMode(initialSchoolYear, report.filters.start_date, report.filters.end_date) : '',
     );
     const [visitorType, setVisitorType] = useState<VisitorTypeFilter>(initialVisitorType);
-    const [visitorStatus, setVisitorStatus] = useState(report ? (report.filters.visitor_status ?? allFilterValue) : '');
     const [yearLevel, setYearLevel] = useState(report ? (report.filters.year_level ?? allFilterValue) : '');
     const [section, setSection] = useState(report ? (report.filters.section ?? allFilterValue) : '');
     const [department, setDepartment] = useState(report ? (report.filters.department ?? allFilterValue) : '');
@@ -111,7 +109,7 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
     const dateRangeSummary = summarizeDateRange(startDate, endDate);
     const studentFiltersComplete = visitorType !== 'student' || Boolean(yearLevel && (yearLevel === allFilterValue || section));
     const employeeFiltersComplete = visitorType !== 'employee' || Boolean(department);
-    const reportCanFetch = Boolean(dateRangeIsValid && visitorType && visitorStatus && studentFiltersComplete && employeeFiltersComplete);
+    const reportCanFetch = Boolean(dateRangeIsValid && visitorType && studentFiltersComplete && employeeFiltersComplete);
 
     const query = useMemo<ReportQuery>(
         () => ({
@@ -119,12 +117,11 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
             start_date: startDate,
             end_date: endDate,
             visitor_type: visitorType,
-            visitor_status: visitorStatus !== allFilterValue ? visitorStatus : '',
             year_level: visitorType === 'student' && yearLevel !== allFilterValue ? yearLevel : '',
             section: visitorType === 'student' && yearLevel !== allFilterValue && section !== allFilterValue ? section : '',
             department: visitorType === 'employee' && department !== allFilterValue ? department : '',
         }),
-        [department, endDate, visitorStatus, visitorType, schoolYearId, section, startDate, yearLevel],
+        [department, endDate, visitorType, schoolYearId, section, startDate, yearLevel],
     );
 
     const queryString = useMemo(() => toSearchParams(query).toString(), [query]);
@@ -233,7 +230,6 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
             setStartDate('');
             setEndDate('');
             setVisitorType('');
-            setVisitorStatus('');
             setYearLevel('');
             setSection('');
             setDepartment('');
@@ -250,7 +246,6 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
         setStartDate(value === 'school_year' ? schoolYearBounds.start : '');
         setEndDate(value === 'school_year' ? schoolYearBounds.end : '');
         setVisitorType('');
-        setVisitorStatus('');
         setYearLevel('');
         setSection('');
         setDepartment('');
@@ -365,21 +360,8 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                     </label>
                                 )}
 
-                                {dateRangeIsValid && visitorType && (
-                                    <label className="text-sm font-medium text-[#010440]">
-                                        Status
-                                        <SelectInput value={visitorStatus} onChange={(event) => setVisitorStatus(event.target.value)} className="mt-2">
-                                            <option value="">Select status</option>
-                                            <option value={allFilterValue}>All statuses</option>
-                                            <option value="active">Active</option>
-                                            <option value="inactive">Inactive</option>
-                                        </SelectInput>
-                                    </label>
-                                )}
-
                                 {dateRangeIsValid &&
                                     visitorType &&
-                                    visitorStatus &&
                                     (visitorType === 'student' ? (
                                         <>
                                             <label className="text-sm font-medium text-[#010440]">
@@ -466,9 +448,9 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                     />
                                     <MetricCard
                                         icon={CheckCircle2}
-                                        label="Met target"
-                                        value={report.summary.met_target}
-                                        detail={`${report.summary.target_visits} visits target`}
+                                        label="Met required"
+                                        value={report.summary.met_required}
+                                        detail={`${report.summary.required_visits} required visits`}
                                     />
                                     <MetricCard
                                         icon={Target}
@@ -488,7 +470,7 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                         </div>
                                         <div className="min-w-64">
                                             <div className="flex items-center justify-between gap-3 text-sm">
-                                                <span className="font-medium text-[#020659]">Overall target progress</span>
+                                                <span className="font-medium text-[#020659]">Overall required progress</span>
                                                 <span className="font-semibold text-[#010440]">{report.summary.progress_percent}%</span>
                                             </div>
                                             <ProgressBar value={report.summary.progress_percent} className="mt-2" />
@@ -512,7 +494,7 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                         )}
                                     </div>
                                     <div className="overflow-x-auto">
-                                        <Table className="min-w-250">
+                                        <Table className="min-w-220">
                                             <TableHeader className="bg-[#f6f8ff]">
                                                 <TableRow>
                                                     <ReportSortableHead
@@ -557,13 +539,6 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                                         direction={sortDirection}
                                                         onSortChange={changeSort}
                                                     />
-                                                    <ReportSortableHead
-                                                        column="status"
-                                                        label="Status"
-                                                        sort={sortColumn}
-                                                        direction={sortDirection}
-                                                        onSortChange={changeSort}
-                                                    />
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
@@ -573,12 +548,12 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                                             key={row.id}
                                                             row={row}
                                                             visitorType={visitorType}
-                                                            targetVisits={report.summary.target_visits}
+                                                            requiredVisits={report.summary.required_visits}
                                                         />
                                                     ))
                                                 ) : (
                                                     <TableRow>
-                                                        <TableCell colSpan={7} className="h-24 text-center text-sm text-[#020659]/65">
+                                                        <TableCell colSpan={6} className="h-24 text-center text-sm text-[#020659]/65">
                                                             No matching records.
                                                         </TableCell>
                                                     </TableRow>
@@ -601,8 +576,8 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                             <section className="admin-surface rounded-lg border border-dashed border-[#040DBF]/20 bg-white/80 p-8 text-center">
                                 <h2 className="text-lg font-semibold text-[#010440]">Complete the report filters</h2>
                                 <p className="mt-2 text-sm text-[#020659]/70">
-                                    Choose the school year, date coverage, visitor type, status, and the required student or employee filter before
-                                    results appear.
+                                    Choose the school year, date coverage, visitor type, and the required student or employee filter before results
+                                    appear.
                                 </p>
                             </section>
                         )}
@@ -859,7 +834,7 @@ function MetricCard({ icon: Icon, label, value, detail }: { icon: typeof UsersRo
     );
 }
 
-function ReportRow({ row, visitorType, targetVisits }: { row: VisitReportRow; visitorType: VisitorType; targetVisits: number }) {
+function ReportRow({ row, visitorType, requiredVisits }: { row: VisitReportRow; visitorType: VisitorType; requiredVisits: number }) {
     const groupLabel = visitorType === 'student' ? [row.year_level, row.section].filter(Boolean).join(' - ') || '-' : row.department || '-';
     const GroupIcon = visitorType === 'student' ? GraduationCap : BriefcaseBusiness;
 
@@ -875,7 +850,7 @@ function ReportRow({ row, visitorType, targetVisits }: { row: VisitReportRow; vi
             </TableCell>
             <TableCell className="font-semibold text-[#010440]">
                 {row.visit_count}
-                <span className="font-normal text-[#020659]/60"> / {targetVisits}</span>
+                <span className="font-normal text-[#020659]/60"> / {requiredVisits}</span>
             </TableCell>
             <TableCell className="min-w-48">
                 <div className="flex items-center gap-3">
@@ -884,16 +859,6 @@ function ReportRow({ row, visitorType, targetVisits }: { row: VisitReportRow; vi
                 </div>
             </TableCell>
             <TableCell>{row.last_visit_at ?? '-'}</TableCell>
-            <TableCell>
-                <span
-                    className={cn(
-                        'rounded-lg px-2.5 py-1 text-xs font-semibold capitalize',
-                        row.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-600',
-                    )}
-                >
-                    {row.status}
-                </span>
-            </TableCell>
         </TableRow>
     );
 }

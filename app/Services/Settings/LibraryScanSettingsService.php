@@ -10,7 +10,7 @@ class LibraryScanSettingsService
     private const PATH = 'library-scan-settings.json';
 
     private const DEFAULTS = [
-        'repeat_scan_interval_minutes' => 60,
+        'repeat_scan_interval_hours' => 1,
         'scan_starts_at' => '00:00',
         'scan_ends_at' => '23:59',
         'success_modal_close_seconds' => 3,
@@ -23,7 +23,7 @@ class LibraryScanSettingsService
         $stored = $this->stored();
 
         return [
-            'repeat_scan_interval_minutes' => $this->positiveInt($stored, 'repeat_scan_interval_minutes'),
+            'repeat_scan_interval_hours' => $this->repeatScanHoursFromStored($stored),
             'scan_starts_at' => $this->normalizeTime((string) ($stored['scan_starts_at'] ?? config('library.scan.starts_at', self::DEFAULTS['scan_starts_at']))),
             'scan_ends_at' => $this->normalizeTime((string) ($stored['scan_ends_at'] ?? config('library.scan.ends_at', self::DEFAULTS['scan_ends_at']))),
             'success_modal_close_seconds' => $this->positiveInt($stored, 'success_modal_close_seconds'),
@@ -35,7 +35,7 @@ class LibraryScanSettingsService
     public function update(array $data): array
     {
         $settings = [
-            'repeat_scan_interval_minutes' => max(1, (int) $data['repeat_scan_interval_minutes']),
+            'repeat_scan_interval_hours' => max(1, (int) $data['repeat_scan_interval_hours']),
             'scan_starts_at' => $this->normalizeTime($data['scan_starts_at']),
             'scan_ends_at' => $this->normalizeTime($data['scan_ends_at']),
             'success_modal_close_seconds' => max(1, (int) $data['success_modal_close_seconds']),
@@ -48,9 +48,9 @@ class LibraryScanSettingsService
         return $settings;
     }
 
-    public function repeatScanIntervalMinutes(): int
+    public function repeatScanIntervalHours(): int
     {
-        return max(1, (int) $this->get()['repeat_scan_interval_minutes']);
+        return max(1, (int) $this->get()['repeat_scan_interval_hours']);
     }
 
     public function scanWindow(): array
@@ -68,7 +68,8 @@ class LibraryScanSettingsService
         $settings = $this->get();
 
         return [
-            'repeat_scan_interval_minutes' => $settings['repeat_scan_interval_minutes'],
+            'repeat_scan_interval_hours' => $settings['repeat_scan_interval_hours'],
+            'repeat_scan_interval_minutes' => $settings['repeat_scan_interval_hours'] * 60,
             'scan_starts_at' => $settings['scan_starts_at'],
             'scan_ends_at' => $settings['scan_ends_at'],
             'success_modal_close_seconds' => $settings['success_modal_close_seconds'],
@@ -85,7 +86,7 @@ class LibraryScanSettingsService
         if (! Storage::disk('local')->exists(self::PATH)) {
             return [
                 ...self::DEFAULTS,
-                'repeat_scan_interval_minutes' => (int) config('library.scan.repeat_scan_interval_minutes', self::DEFAULTS['repeat_scan_interval_minutes']),
+                'repeat_scan_interval_hours' => (int) config('library.scan.repeat_scan_interval_hours', self::DEFAULTS['repeat_scan_interval_hours']),
                 'scan_starts_at' => (string) config('library.scan.starts_at', self::DEFAULTS['scan_starts_at']),
                 'scan_ends_at' => (string) config('library.scan.ends_at', self::DEFAULTS['scan_ends_at']),
             ];
@@ -102,6 +103,19 @@ class LibraryScanSettingsService
     private function positiveInt(array $settings, string $key): int
     {
         return max(1, (int) ($settings[$key] ?? self::DEFAULTS[$key]));
+    }
+
+    private function repeatScanHoursFromStored(array $settings): int
+    {
+        if (isset($settings['repeat_scan_interval_hours'])) {
+            return max(1, (int) $settings['repeat_scan_interval_hours']);
+        }
+
+        if (isset($settings['repeat_scan_interval_minutes'])) {
+            return max(1, (int) ceil(((int) $settings['repeat_scan_interval_minutes']) / 60));
+        }
+
+        return self::DEFAULTS['repeat_scan_interval_hours'];
     }
 
     private function normalizeTime(string $value): string

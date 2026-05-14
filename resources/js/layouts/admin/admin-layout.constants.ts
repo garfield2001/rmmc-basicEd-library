@@ -1,8 +1,6 @@
 import { Activity, FileText, LayoutDashboard, UsersRound } from 'lucide-react';
 import type { AdminNavItem } from './admin-layout.types';
 
-export const sidebarAnimationStorageKey = 'rmmc-admin-sidebar-entered-v1';
-
 export const sidebarCollapsedStorageKey = 'rmmc-admin-sidebar-collapsed-v1';
 
 export const adminThemePreferenceStorageKey = 'rmmc-admin-theme-preference-v1';

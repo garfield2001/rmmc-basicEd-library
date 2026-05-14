@@ -24,13 +24,11 @@
                 <th>School ID</th>
                 <th>Name</th>
                 <th>Type</th>
-                <th>Status</th>
                 <th>Year Level</th>
                 <th>Section</th>
                 <th>Department</th>
                 <th>Visits</th>
-                <th>Minimum Met</th>
-                <th>Target Met</th>
+                <th>Required Met</th>
                 <th>Progress</th>
                 <th>Last Visit</th>
             </tr>
@@ -42,13 +40,11 @@
                     <td>{{ $row['school_id'] }}</td>
                     <td>{{ $row['name'] }}</td>
                     <td>{{ $row['type'] }}</td>
-                    <td>{{ $row['status'] }}</td>
                     <td>{{ $row['year_level'] }}</td>
                     <td>{{ $row['section'] }}</td>
                     <td>{{ $row['department'] }}</td>
                     <td>{{ $row['visit_count'] }}</td>
-                    <td>{{ $row['minimum_met'] ? 'Yes' : 'No' }}</td>
-                    <td>{{ $row['target_met'] ? 'Yes' : 'No' }}</td>
+                    <td>{{ $row['required_met'] ? 'Yes' : 'No' }}</td>
                     <td>{{ $row['progress_percent'] }}%</td>
                     <td>{{ $row['last_visit_at'] }}</td>
                 </tr>

@@ -71,8 +71,8 @@ class HandleInertiaRequests extends Middleware
             'name' => $schoolYear->name,
             'starts_at' => $schoolYear->starts_at?->toDateString(),
             'ends_at' => $schoolYear->ends_at?->toDateString(),
-            'minimum_visits' => $schoolYear->minimum_visits,
-            'target_visits' => $schoolYear->target_visits,
+            'student_required_visits' => $schoolYear->student_required_visits,
+            'employee_required_visits' => $schoolYear->employee_required_visits,
             'is_active' => $schoolYear->is_active,
         ];
     }

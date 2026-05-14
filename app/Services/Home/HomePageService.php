@@ -29,13 +29,14 @@ class HomePageService
             'scanSettings' => $this->scanSettings->toPageProps(),
 
             'metrics' => [
-                'students' => RegisteredVisitor::active()
+                'students' => RegisteredVisitor::query()
                     ->where('type', RegisteredVisitor::TYPE_STUDENT)
                     ->visitEligibleForSchoolYear($schoolYear?->id)
                     ->count(),
 
-                'employees' => RegisteredVisitor::active()
+                'employees' => RegisteredVisitor::query()
                     ->where('type', RegisteredVisitor::TYPE_EMPLOYEE)
+                    ->visitEligibleForSchoolYear($schoolYear?->id)
                     ->count(),
 
                 'visitsToday' => (clone $todayVisits)->count(),

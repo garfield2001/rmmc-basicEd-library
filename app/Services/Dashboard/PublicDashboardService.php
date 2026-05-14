@@ -21,11 +21,14 @@ class PublicDashboardService
         return [
             'schoolYear' => $schoolYear?->only(['id', 'name']),
             'metrics' => [
-                'students' => RegisteredVisitor::active()
+                'students' => RegisteredVisitor::query()
                     ->where('type', RegisteredVisitor::TYPE_STUDENT)
                     ->visitEligibleForSchoolYear($schoolYear?->id)
                     ->count(),
-                'employees' => RegisteredVisitor::active()->where('type', RegisteredVisitor::TYPE_EMPLOYEE)->count(),
+                'employees' => RegisteredVisitor::query()
+                    ->where('type', RegisteredVisitor::TYPE_EMPLOYEE)
+                    ->visitEligibleForSchoolYear($schoolYear?->id)
+                    ->count(),
                 'visitsToday' => (clone $todayVisitQuery)->count(),
                 'studentVisitsToday' => (clone $todayVisitQuery)
                     ->whereHas('visitor', fn (Builder $query) => $query->where('type', RegisteredVisitor::TYPE_STUDENT))

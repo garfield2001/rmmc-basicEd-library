@@ -5,7 +5,7 @@ import { RadioTower, Save } from 'lucide-react';
 import type { FormEventHandler } from 'react';
 
 export interface ScanSettings {
-    repeat_scan_interval_minutes: number;
+    repeat_scan_interval_hours: number;
     scan_starts_at: string;
     scan_ends_at: string;
     success_modal_close_seconds: number;
@@ -19,7 +19,7 @@ interface ScanSettingsFormProps {
 
 export function ScanSettingsForm({ settings }: ScanSettingsFormProps) {
     const { data, setData, patch, processing, errors } = useForm<ScanSettings>({
-        repeat_scan_interval_minutes: settings.repeat_scan_interval_minutes,
+        repeat_scan_interval_hours: settings.repeat_scan_interval_hours,
         scan_starts_at: settings.scan_starts_at,
         scan_ends_at: settings.scan_ends_at,
         success_modal_close_seconds: settings.success_modal_close_seconds,
@@ -47,12 +47,12 @@ export function ScanSettingsForm({ settings }: ScanSettingsFormProps) {
             <form onSubmit={submit} className="mt-6 grid gap-4 lg:grid-cols-3">
                 <NumberField
                     label="Repeat scan interval"
-                    suffix="minutes"
+                    suffix="hours"
                     min={1}
-                    max={1440}
-                    value={data.repeat_scan_interval_minutes}
-                    error={errors.repeat_scan_interval_minutes}
-                    onChange={(value) => setData('repeat_scan_interval_minutes', value)}
+                    max={24}
+                    value={data.repeat_scan_interval_hours}
+                    error={errors.repeat_scan_interval_hours}
+                    onChange={(value) => setData('repeat_scan_interval_hours', value)}
                 />
                 <TimeField
                     label="Scan opens"

@@ -4,8 +4,7 @@ namespace App\Services\SchoolYears;
 
 use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
-use App\Models\StudentRegistration;
-use App\Support\Academics\AcademicLevels;
+use App\Models\EmployeeProfile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -25,13 +24,13 @@ class SchoolYearService
                 'name' => $data['name'],
                 'starts_at' => $data['starts_at'],
                 'ends_at' => $data['ends_at'],
-                'minimum_visits' => $data['minimum_visits'],
-                'target_visits' => $data['target_visits'],
+                'student_required_visits' => $data['student_required_visits'],
+                'employee_required_visits' => $data['employee_required_visits'],
                 'is_active' => $makeActive,
             ]);
 
-            if ($previousActiveSchoolYear) {
-                $this->promoteStudents($previousActiveSchoolYear, $schoolYear);
+            if ($previousActiveSchoolYear && ($data['transfer_employees'] ?? false)) {
+                $this->transferEmployees($previousActiveSchoolYear, $schoolYear);
             }
 
             return $schoolYear;
@@ -52,8 +51,8 @@ class SchoolYearService
                 'name' => $data['name'],
                 'starts_at' => $data['starts_at'],
                 'ends_at' => $data['ends_at'],
-                'minimum_visits' => $data['minimum_visits'],
-                'target_visits' => $data['target_visits'],
+                'student_required_visits' => $data['student_required_visits'],
+                'employee_required_visits' => $data['employee_required_visits'],
                 'is_active' => $schoolYear->is_active,
             ]);
 
@@ -61,45 +60,40 @@ class SchoolYearService
         });
     }
 
-    private function promoteStudents(SchoolYear $fromSchoolYear, SchoolYear $toSchoolYear): int
+    private function transferEmployees(SchoolYear $fromSchoolYear, SchoolYear $toSchoolYear): int
     {
-        $promoted = 0;
+        $transferred = 0;
 
-        StudentRegistration::query()
+        EmployeeProfile::query()
             ->with('visitor:id,type')
             ->where('school_year_id', $fromSchoolYear->id)
             ->orderBy('id')
-            ->get()
-            ->each(function (StudentRegistration $studentRegistration) use ($toSchoolYear, &$promoted): void {
-                if ($studentRegistration->visitor?->type !== RegisteredVisitor::TYPE_STUDENT) {
+            ->each(function (EmployeeProfile $employeeProfile) use ($toSchoolYear, &$transferred): void {
+                if ($employeeProfile->visitor?->type !== RegisteredVisitor::TYPE_EMPLOYEE) {
                     return;
                 }
 
-                $nextYearLevel = AcademicLevels::nextAfter($studentRegistration->year_level);
-
-                if (! $nextYearLevel) {
-                    $studentRegistration->visitor?->delete();
-
-                    return;
-                }
-
-                $promotedStudentRegistration = StudentRegistration::query()->firstOrCreate(
+                $newEmployeeProfile = EmployeeProfile::query()->firstOrCreate(
                     [
-                        'registered_visitor_id' => $studentRegistration->registered_visitor_id,
+                        'registered_visitor_id' => $employeeProfile->registered_visitor_id,
                         'school_year_id' => $toSchoolYear->id,
                     ],
                     [
-                        'school_year_section_id' => null,
-                        'year_level' => $nextYearLevel,
-                        'section' => null,
+                        'school_id' => $employeeProfile->school_id,
+                        'rfid_uid' => $employeeProfile->rfid_uid,
+                        'first_name' => $employeeProfile->first_name,
+                        'middle_name' => $employeeProfile->middle_name,
+                        'last_name' => $employeeProfile->last_name,
+                        'photo' => $employeeProfile->photo,
+                        'department' => $employeeProfile->department,
                     ],
                 );
 
-                if ($promotedStudentRegistration->wasRecentlyCreated) {
-                    $promoted++;
+                if ($newEmployeeProfile->wasRecentlyCreated) {
+                    $transferred++;
                 }
             });
 
-        return $promoted;
+        return $transferred;
     }
 }

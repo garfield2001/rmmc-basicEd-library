@@ -35,15 +35,21 @@ export function IdentitySection({ data, errors, setData, inputClass, sectionClas
                         onChange={(event) => setData('rfid_uid', event.target.value)}
                         onKeyDown={(event) => event.key === 'Enter' && event.preventDefault()}
                         placeholder="Scan or enter RFID"
-                        className={inputClass}
+                        className={`${inputClass} ${isEditing ? 'cursor-not-allowed bg-zinc-100 text-zinc-500' : ''}`}
                         autoComplete="off"
                         autoFocus={!isEditing}
+                        disabled={isEditing}
                     />
                     {fieldError(errors.rfid_uid)}
                 </label>
                 <label className="text-sm font-medium text-[#010440]">
                     School ID
-                    <input value={data.school_id} onChange={(event) => setData('school_id', event.target.value)} className={inputClass} />
+                    <input
+                        value={data.school_id}
+                        onChange={(event) => setData('school_id', event.target.value)}
+                        className={`${inputClass} ${isEditing ? 'cursor-not-allowed bg-zinc-100 text-zinc-500' : ''}`}
+                        disabled={isEditing}
+                    />
                     {fieldError(errors.school_id)}
                 </label>
             </div>
@@ -145,17 +151,6 @@ export function DetailsSection({ data, errors, setData, inputClass, sectionClass
                     {fieldError(errors.photo_file)}
                 </label>
             </div>
-
-            <label className="mt-4 flex items-center gap-2 text-sm font-medium text-[#010440]">
-                <input
-                    type="checkbox"
-                    checked={data.is_active}
-                    onChange={(event) => setData('is_active', event.target.checked)}
-                    className="size-4 rounded border-[#040DBF]/20"
-                />
-                Active visitor
-            </label>
-            {fieldError(errors.is_active)}
         </section>
     );
 }

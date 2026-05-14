@@ -71,7 +71,7 @@ class LibraryVisitService
     {
         $normalizedLookup = $this->normalizeLookup($lookup);
 
-        $visitors = RegisteredVisitor::active()
+        $visitors = RegisteredVisitor::query()
             ->visitEligibleForSchoolYear($schoolYearId)
             ->get()
             ->filter(function (RegisteredVisitor $visitor) use ($normalizedLookup): bool {
@@ -90,7 +90,7 @@ class LibraryVisitService
             ->values();
 
         if ($visitors->isEmpty()) {
-            $visitors = RegisteredVisitor::active()
+            $visitors = RegisteredVisitor::query()
                 ->visitEligibleForSchoolYear($schoolYearId)
                 ->get()
                 ->filter(function (RegisteredVisitor $visitor) use ($normalizedLookup): bool {
@@ -115,12 +115,12 @@ class LibraryVisitService
 
         if ($visitors->count() > 1) {
             throw ValidationException::withMessages([
-                'rfid_uid' => 'Multiple active registered visitors match that search. Please use the RFID or school ID.',
+                'rfid_uid' => 'Multiple registered visitors match that search. Please use the RFID or school ID.',
             ]);
         }
 
         throw ValidationException::withMessages([
-            'rfid_uid' => 'No active registered visitor eligible for the active school year matches that RFID, name, or school ID.',
+            'rfid_uid' => 'No registered visitor eligible for the active school year matches that RFID, name, or school ID.',
         ]);
     }
 
@@ -162,27 +162,24 @@ class LibraryVisitService
 
     private function ensureVisitorCanRevisit(RegisteredVisitor $visitor, int $schoolYearId, Carbon $now): void
     {
-        $intervalMinutes = $this->scanSettings->repeatScanIntervalMinutes();
+        $intervalHours = $this->scanSettings->repeatScanIntervalHours();
         $lastVisit = $visitor->visits()
             ->where('school_year_id', $schoolYearId)
             ->latest('visited_at')
             ->first();
 
-        if (! $lastVisit || $lastVisit->visited_at->lte($now->copy()->subMinutes($intervalMinutes))) {
+        if (! $lastVisit || $lastVisit->visited_at->lte($now->copy()->subHours($intervalHours))) {
             return;
         }
 
         $nextAllowedAt = $lastVisit->visited_at
             ->copy()
-            ->addMinutes($intervalMinutes)
+            ->addHours($intervalHours)
             ->timezone(config('app.timezone'));
         $lastVisitAt = $lastVisit->visited_at
             ->copy()
             ->timezone(config('app.timezone'));
-        $intervalHours = (int) ($intervalMinutes / 60);
-        $intervalLabel = $intervalMinutes % 60 === 0
-            ? "{$intervalHours} ".str('hour')->plural($intervalHours)
-            : $intervalMinutes.' minutes';
+        $intervalLabel = "{$intervalHours} ".str('hour')->plural($intervalHours);
 
         throw ValidationException::withMessages([
             'rfid_uid' => "This ID was already scanned at {$lastVisitAt->format('g:i A')}. A new visit can be recorded after {$nextAllowedAt->format('g:i A')} because repeat scans are limited to once every {$intervalLabel}.",

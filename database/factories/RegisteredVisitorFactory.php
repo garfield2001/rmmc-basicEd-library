@@ -22,7 +22,6 @@ class RegisteredVisitorFactory extends Factory
             'middle_name' => fake()->optional(0.35)->lastName(),
             'last_name' => fake()->lastName(),
             'photo' => null,
-            'is_active' => true,
         ];
     }
 
@@ -39,13 +38,6 @@ class RegisteredVisitorFactory extends Factory
         return $this->state(fn (): array => [
             'type' => RegisteredVisitor::TYPE_EMPLOYEE,
             'school_id' => fake()->unique()->numerify('FAKE-EMP-#####'),
-        ]);
-    }
-
-    public function inactive(): static
-    {
-        return $this->state(fn (): array => [
-            'is_active' => false,
         ]);
     }
 

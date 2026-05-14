@@ -9,8 +9,6 @@ export interface RegisteredVisitorRow {
     name: string;
     photo: string | null;
     photo_url: string | null;
-    is_active: boolean;
-    deleted_at: string | null;
     group: string | null;
     student: {
         school_year_id: number;

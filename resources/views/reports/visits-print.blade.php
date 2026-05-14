@@ -90,7 +90,7 @@
         <section class="summary">
             <div><strong>{{ $report['summary']['visitors'] }}</strong><br>Visitors</div>
             <div><strong>{{ $report['summary']['total_visits'] }}</strong><br>Total visits</div>
-            <div><strong>{{ $report['summary']['met_target'] }}</strong><br>Met target</div>
+            <div><strong>{{ $report['summary']['met_required'] }}</strong><br>Met required</div>
             <div><strong>{{ $report['summary']['progress_percent'] }}%</strong><br>Overall progress</div>
         </section>
 
@@ -99,7 +99,6 @@
                 <tr>
                     <th>School ID</th>
                     <th>Name</th>
-                    <th>Status</th>
                     <th>Year level</th>
                     <th>Section</th>
                     <th>Department</th>
@@ -113,7 +112,6 @@
                     <tr>
                         <td>{{ $row['school_id'] }}</td>
                         <td>{{ $row['name'] }}</td>
-                        <td>{{ $row['status'] }}</td>
                         <td>{{ $row['year_level'] ?? '-' }}</td>
                         <td>{{ $row['section'] ?? '-' }}</td>
                         <td>{{ $row['department'] ?? '-' }}</td>

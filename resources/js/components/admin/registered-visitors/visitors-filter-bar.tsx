@@ -1,18 +1,16 @@
 import { SelectInput } from '@/components/ui/select-input';
-import { BriefcaseBusiness, GraduationCap, Search } from 'lucide-react';
+import { BriefcaseBusiness, GraduationCap } from 'lucide-react';
 
 type VisitorType = 'student' | 'employee';
 
 interface VisitorsFilterBarProps {
     activeType: VisitorType;
-    search: string;
     yearLevel: string;
     section: string;
     department: string;
     yearLevels: string[];
     sections: string[];
     departments: string[];
-    onSearchChange: (value: string) => void;
     onYearLevelChange: (value: string) => void;
     onSectionChange: (value: string) => void;
     onDepartmentChange: (value: string) => void;
@@ -21,14 +19,12 @@ interface VisitorsFilterBarProps {
 
 export function VisitorsFilterBar({
     activeType,
-    search,
     yearLevel,
     section,
     department,
     yearLevels,
     sections,
     departments,
-    onSearchChange,
     onYearLevelChange,
     onSectionChange,
     onDepartmentChange,
@@ -62,16 +58,6 @@ export function VisitorsFilterBar({
                 </div>
 
                 <div className="flex flex-1 flex-col gap-3 lg:max-w-3xl">
-                    <div className="relative flex-1">
-                        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
-                        <input
-                            value={search}
-                            onChange={(event) => onSearchChange(event.target.value)}
-                            placeholder={`Search ${activeType === 'student' ? 'students' : 'employees'}`}
-                            className="h-10 w-full rounded-lg border border-zinc-300 pr-3 pl-9 text-sm outline-none focus:border-zinc-500 focus:ring-4 focus:ring-zinc-100"
-                        />
-                    </div>
-
                     {activeType === 'student' ? (
                         <div className="grid gap-3 sm:grid-cols-2">
                             <FilterSelect value={yearLevel} options={yearLevels} placeholder="Select year level" onChange={onYearLevelChange} />

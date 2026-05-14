@@ -1,9 +1,9 @@
 import { type SharedData } from '@/types/shared';
 import { Link, router, usePage } from '@inertiajs/react';
-import { ArchiveRestore, ChevronDown, LogOut, Settings } from 'lucide-react';
+import { ChevronDown, LogOut, Settings } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-import { navItems, sidebarAnimationStorageKey } from './admin-layout.constants';
+import { navItems } from './admin-layout.constants';
 import type { AdminSidebarProps } from './admin-layout.types';
 import { AdminLogoMark } from './admin-logo-mark';
 
@@ -11,7 +11,6 @@ export function AdminSidebar({ active, collapsed, mobileOpen, onNavigate }: Admi
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const user = auth.user;
-    const currentUrl = page.url;
     const sidebarMotion = 'duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]';
     const sidebarColumns = collapsed ? 'grid-cols-[40px_minmax(0,1fr)] lg:grid-cols-[40px_0px]' : 'grid-cols-[40px_minmax(0,1fr)]';
     const sidebarRowWidth = collapsed ? 'w-full lg:w-10' : 'w-full';
@@ -19,19 +18,6 @@ export function AdminSidebar({ active, collapsed, mobileOpen, onNavigate }: Admi
     const sidebarLabel = `min-w-0 overflow-hidden transition-[opacity,transform] ${sidebarMotion} ${
         collapsed ? 'translate-x-0 opacity-100 lg:-translate-x-2 lg:opacity-0' : 'translate-x-0 opacity-100'
     }`;
-    const [shouldAnimate] = useState(() => {
-        if (typeof window === 'undefined') {
-            return false;
-        }
-
-        if (window.sessionStorage.getItem(sidebarAnimationStorageKey) === 'true') {
-            return false;
-        }
-
-        window.sessionStorage.setItem(sidebarAnimationStorageKey, 'true');
-
-        return true;
-    });
     const [adminMenuOpen, setAdminMenuOpen] = useState(false);
     const adminMenuRef = useRef<HTMLDivElement | null>(null);
     const adminTools = [
@@ -40,12 +26,6 @@ export function AdminSidebar({ active, collapsed, mobileOpen, onNavigate }: Admi
             href: '/admin/settings',
             icon: Settings,
             active: active === 'settings',
-        },
-        {
-            label: 'Archive',
-            href: '/admin/registered-visitors/archive',
-            icon: ArchiveRestore,
-            active: currentUrl.startsWith('/admin/registered-visitors/archive'),
         },
     ];
 
@@ -83,7 +63,7 @@ export function AdminSidebar({ active, collapsed, mobileOpen, onNavigate }: Admi
 
     return (
         <aside
-            className={`${shouldAnimate ? 'admin-sidebar-enter' : ''} admin-surface fixed inset-y-0 left-0 z-50 flex h-screen w-72 flex-col overflow-y-auto border-r border-[#040DBF]/10 bg-white/95 p-4 shadow-xl shadow-[#010440]/15 transition-[transform,width] ${sidebarMotion} ${
+            className={`admin-surface fixed inset-y-0 left-0 z-50 flex h-screen w-72 transform-gpu flex-col overflow-y-auto border-r border-[#040DBF]/10 bg-white/95 p-4 shadow-xl shadow-[#010440]/15 transition-[transform,width] ${sidebarMotion} will-change-transform ${collapsed ? 'lg:overflow-y-hidden' : ''} ${
                 mobileOpen ? 'translate-x-0' : '-translate-x-full'
             } lg:sticky lg:top-0 lg:z-auto lg:w-full lg:translate-x-0 lg:self-start lg:shadow-sm`}
         >
@@ -153,7 +133,7 @@ export function AdminSidebar({ active, collapsed, mobileOpen, onNavigate }: Admi
                 {adminMenuOpen && (
                     <div
                         className={`absolute bottom-full left-0 mb-2 rounded-lg border border-[#040DBF]/10 bg-white p-1 shadow-lg shadow-[#040DBF]/10 ${
-                            collapsed ? 'w-full lg:w-12' : 'w-full'
+                            collapsed ? 'w-full lg:w-11' : 'w-full'
                         }`}
                         role="menu"
                     >

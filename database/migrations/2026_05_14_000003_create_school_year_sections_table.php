@@ -14,7 +14,6 @@ return new class extends Migration
             $table->string('year_level', 50)->index();
             $table->string('name', 50);
             $table->timestamps();
-            $table->softDeletes();
 
             $table->unique(['school_year_id', 'year_level', 'name']);
         });

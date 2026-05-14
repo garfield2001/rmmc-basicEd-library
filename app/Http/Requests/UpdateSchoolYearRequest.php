@@ -23,8 +23,8 @@ class UpdateSchoolYearRequest extends FormRequest
             'name' => ['required', 'string', 'max:32', Rule::unique('school_years', 'name')->ignore($schoolYearId)],
             'starts_at' => ['required', 'date'],
             'ends_at' => ['required', 'date', 'after:starts_at'],
-            'minimum_visits' => ['required', 'integer', 'min:0', 'max:255'],
-            'target_visits' => ['required', 'integer', 'min:0', 'max:255', 'gte:minimum_visits'],
+            'student_required_visits' => ['required', 'integer', 'min:0', 'max:255'],
+            'employee_required_visits' => ['required', 'integer', 'min:0', 'max:255'],
         ];
     }
 
@@ -40,7 +40,7 @@ class UpdateSchoolYearRequest extends FormRequest
                 $startsAt = Carbon::parse($this->input('starts_at'))->toDateString();
                 $endsAt = Carbon::parse($this->input('ends_at'))->toDateString();
 
-                $overlappingSchoolYear = SchoolYear::withTrashed()
+                $overlappingSchoolYear = SchoolYear::query()
                     ->whereKeyNot($schoolYearId)
                     ->whereDate('starts_at', '<=', $endsAt)
                     ->whereDate('ends_at', '>=', $startsAt)

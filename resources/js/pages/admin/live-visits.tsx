@@ -3,6 +3,7 @@ import { LiveVisitScanner } from '@/components/admin/live-visits/live-visit-scan
 import { LiveVisitsTable } from '@/components/admin/live-visits/live-visits-table';
 import { useManilaClock } from '@/components/public/home/use-manila-clock';
 import { LatestVisitCard } from '@/components/visits/latest-visit-card';
+import { useRFIDScanListener } from '@/hooks/use-rfid-scan-listener';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
 import { csrfFetch } from '@/lib/http';
@@ -110,14 +111,24 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
             onFinish: () => {
                 setScanData('rfid_uid', '');
                 resetScan('rfid_uid');
-                scanInputRef.current?.focus();
             },
         });
     };
 
-    useEffect(() => {
-        scanInputRef.current?.focus();
-    }, []);
+    useRFIDScanListener({
+        enabled: !scanning,
+        onScanStart: () => setScanError(undefined),
+        onError: (errors) => {
+            setScanError(typeof errors.rfid_uid === 'string' ? errors.rfid_uid : 'Unable to record this visit.');
+        },
+        onFinish: () => {
+            router.reload({
+                only: ['visitMonitor'],
+                preserveScroll: true,
+                preserveState: true,
+            });
+        },
+    });
 
     useEffect(() => {
         const search = scanData.rfid_uid.trim();

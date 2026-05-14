@@ -39,7 +39,6 @@ export function LiveVisitScanner({ value, options, inputRef, processing, loading
                             onChange={onChange}
                             placeholder="Scan card or type name / school ID"
                             className="w-full"
-                            autoFocus
                         />
                         <Button type="submit" disabled={processing} className="h-11 shrink-0 bg-[#040DBF] px-5 text-white hover:bg-[#030A8C]">
                             <ScanLine className="size-4" />

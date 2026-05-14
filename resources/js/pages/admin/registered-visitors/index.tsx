@@ -1,5 +1,3 @@
-import { BulkStudentAssignmentPanel } from '@/components/admin/registered-visitors/bulk-student-assignment-panel';
-import { DeleteVisitorDialog } from '@/components/admin/registered-visitors/delete-visitor-dialog';
 import { VisitorFormModal } from '@/components/admin/registered-visitors/visitor-form-modal';
 import { VisitorsFilterBar } from '@/components/admin/registered-visitors/visitors-filter-bar';
 import { VisitorsTable } from '@/components/admin/registered-visitors/visitors-table';
@@ -10,7 +8,7 @@ import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
 import { type Paginated } from '@/types/pagination';
 import { type RegisteredVisitorRow } from '@/types/registered-visitors';
 import { Head, router } from '@inertiajs/react';
-import { ClipboardList, Plus, Upload } from 'lucide-react';
+import { Plus, Upload } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface VisitorsIndexProps {
@@ -45,9 +43,7 @@ export default function VisitorsIndex({ visitors, filters, filterOptions }: Visi
     const [tableLoading, setTableLoading] = useState(false);
     const [importing, setImporting] = useState(false);
     const [visitorFormOpen, setVisitorFormOpen] = useState(false);
-    const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
     const [selectedVisitor, setselectedVisitor] = useState<RegisteredVisitorRow | null>(null);
-    const [visitorToDelete, setVisitorToDelete] = useState<RegisteredVisitorRow | null>(null);
     const importInputRef = useRef<HTMLInputElement | null>(null);
     const loadingTimerRef = useRef<number | null>(null);
     const activeType: VisitorType = filters.type === 'employee' ? 'employee' : 'student';
@@ -266,32 +262,10 @@ export default function VisitorsIndex({ visitors, filters, filterOptions }: Visi
                             description="Manage RFID identities and active school-year details for students and employees."
                             actions={
                                 <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-                                    {activeType === 'student' ? (
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() => setAssignmentModalOpen(true)}
-                                            className="w-full sm:w-auto"
-                                        >
-                                            <ClipboardList className="size-4" />
-                                            Assign students
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            aria-hidden="true"
-                                            tabIndex={-1}
-                                            className="invisible w-full sm:w-auto"
-                                        >
-                                            <ClipboardList className="size-4" />
-                                            Assign students
-                                        </Button>
-                                    )}
                                     <input
                                         ref={importInputRef}
                                         type="file"
-                                        accept=".csv,.txt,.xls"
+                                        accept=".csv,.txt,.xls,.xlsx"
                                         className="hidden"
                                         onChange={(event) => importVisitors(event.target.files?.[0] ?? null)}
                                     />
@@ -315,49 +289,31 @@ export default function VisitorsIndex({ visitors, filters, filterOptions }: Visi
 
                         <VisitorsFilterBar
                             activeType={activeType}
-                            search={search}
                             yearLevel={yearLevel}
                             section={section}
                             department={department}
                             yearLevels={filterOptions.yearLevels}
                             sections={availableSections}
                             departments={filterOptions.departments}
-                            onSearchChange={setSearch}
                             onYearLevelChange={changeYearLevel}
                             onSectionChange={setSection}
                             onDepartmentChange={setDepartment}
                             onTypeChange={changeType}
                         />
 
-                        {activeType === 'student' && (
-                            <BulkStudentAssignmentPanel
-                                open={assignmentModalOpen}
-                                onOpenChange={setAssignmentModalOpen}
-                                onAssigned={() => setAssignmentModalOpen(false)}
-                            />
-                        )}
-
                         <VisitorsTable
                             visitors={visitors}
                             activeType={activeType}
+                            search={search}
                             rowsPerPage={perPage}
                             sort={sort}
                             direction={direction}
                             isLoading={tableLoading}
-                            copyFilters={{
-                                search: filters.search ?? '',
-                                type: activeType,
-                                year_level: filters.year_level ?? '',
-                                section: filters.year_level ? (filters.section ?? '') : '',
-                                department: filters.department ?? '',
-                                sort: filters.sort ?? 'created_at',
-                                direction: filters.direction ?? 'desc',
-                            }}
+                            onSearchChange={setSearch}
                             onRowsPerPageChange={setPerPage}
                             onSortChange={changeSort}
                             onSortClear={clearSort}
                             onEdit={openEditVisitor}
-                            onDelete={setVisitorToDelete}
                             onPrevious={() => visitPage(visitors.prev_page_url ?? visitors.links.find((link) => link.label.includes('Previous'))?.url)}
                             onNext={() => visitPage(visitors.next_page_url ?? visitors.links.find((link) => link.label.includes('Next'))?.url)}
                         />
@@ -368,11 +324,6 @@ export default function VisitorsIndex({ visitors, filters, filterOptions }: Visi
                         open={visitorFormOpen}
                         sectionsByYearLevel={filterOptions.sectionsByYearLevel}
                         onOpenChange={setVisitorFormOpen}
-                    />
-                    <DeleteVisitorDialog
-                        visitor={visitorToDelete}
-                        open={Boolean(visitorToDelete)}
-                        onOpenChange={(open) => !open && setVisitorToDelete(null)}
                     />
                 </AdminLayout>
             </main>

@@ -6,7 +6,7 @@ export interface SchoolYearSummary {
 export interface SchoolYearRow extends SchoolYearSummary {
     starts_at: string;
     ends_at: string;
-    minimum_visits: number;
-    target_visits: number;
+    student_required_visits: number;
+    employee_required_visits: number;
     is_active: boolean;
 }

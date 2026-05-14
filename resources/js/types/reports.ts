@@ -3,13 +3,11 @@ export interface VisitReportRow {
     school_id: string | null;
     name: string | null;
     type: string | null;
-    status: string;
     department: string | null;
     year_level: string | null;
     section: string | null;
     visit_count: number;
-    minimum_met: boolean;
-    target_met: boolean;
+    required_met: boolean;
     progress_percent: number;
     last_visit_at: string | null;
 }
@@ -19,8 +17,8 @@ export interface VisitReportSchoolYear {
     name: string;
     starts_at: string;
     ends_at: string;
-    minimum_visits: number;
-    target_visits: number;
+    student_required_visits: number;
+    employee_required_visits: number;
     is_active: boolean;
 }
 
@@ -30,7 +28,6 @@ export interface VisitReport {
         start_date: string;
         end_date: string;
         visitor_type: string | null;
-        visitor_status: string | null;
         year_level: string | null;
         section: string | null;
         department: string | null;
@@ -42,11 +39,9 @@ export interface VisitReport {
         total_visits: number;
         visited_visitors: number;
         unvisited_visitors: number;
-        met_minimum: number;
-        met_target: number;
+        met_required: number;
         average_visits: number;
-        minimum_visits: number;
-        target_visits: number;
+        required_visits: number;
         progress_percent: number;
     };
     rows: VisitReportRow[];

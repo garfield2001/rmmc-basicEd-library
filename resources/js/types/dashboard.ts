@@ -30,15 +30,34 @@ export interface ChartPoint {
     value: number;
 }
 
+export interface VisitTrendPoint {
+    label: string;
+    students: number;
+    employees: number;
+    total: number;
+}
+
+export interface RequiredProgressPoint {
+    label: 'Students' | 'Employees';
+    required: number;
+    visitors: number;
+    visits: number;
+    required_total: number;
+    met_required: number;
+    percent: number;
+}
+
 export interface AdminDashboard {
     schoolYear:
         | (SchoolYearSummary & {
-              minimum_visits?: number;
-              target_visits?: number;
+              starts_at?: string;
+              ends_at?: string;
+              student_required_visits?: number;
+              employee_required_visits?: number;
           })
         | null;
     metrics: {
-        activeVisitors: number;
+        registeredVisitors: number;
         studentRegistrations: number;
         visitsToday: number;
         employeeVisitors: number;
@@ -48,9 +67,10 @@ export interface AdminDashboard {
         employees: number;
     };
     charts: {
-        visitsByDay: ChartPoint[];
-        visitsByType: ChartPoint[];
+        visitsByDay: VisitTrendPoint[];
         studentVisitsByYearLevel: ChartPoint[];
+        studentVisitsBySection: ChartPoint[];
+        requiredProgress: RequiredProgressPoint[];
     };
 }
 

@@ -18,6 +18,7 @@ class HistoricalSchoolYearSeeder extends Seeder
 
         $this->seedPreviousStudentRecords($schoolYear);
         $this->seedCompletedGradeTenStudents($schoolYear);
+        $this->seedPreviousEmployeeProfiles($schoolYear);
         $this->seedHistoricalVisits($schoolYear);
     }
 
@@ -42,6 +43,7 @@ class HistoricalSchoolYearSeeder extends Seeder
                     ['school_year_id' => $schoolYear->id],
                     [
                         'school_year_section_id' => $schoolYearSection->id,
+                        ...$this->visitorSnapshot($visitor),
                         'year_level' => $yearLevel,
                         'section' => $section,
                     ],
@@ -63,7 +65,6 @@ class HistoricalSchoolYearSeeder extends Seeder
                     'middle_name' => null,
                     'last_name' => $student['last_name'],
                     'photo' => null,
-                    'is_active' => false,
                 ],
             );
 
@@ -71,20 +72,33 @@ class HistoricalSchoolYearSeeder extends Seeder
                 ['school_year_id' => $schoolYear->id],
                 [
                     'school_year_section_id' => $section->id,
+                    ...$this->visitorSnapshot($visitor),
                     'year_level' => 'Grade 10',
                     'section' => 'Rizal',
                 ],
             );
-
-            if (! $visitor->trashed()) {
-                $visitor->delete();
-            }
         }
+    }
+
+    private function seedPreviousEmployeeProfiles(SchoolYear $schoolYear): void
+    {
+        RegisteredVisitor::query()
+            ->where('type', RegisteredVisitor::TYPE_EMPLOYEE)
+            ->with('employee')
+            ->get()
+            ->each(function (RegisteredVisitor $visitor) use ($schoolYear): void {
+                $visitor->employeeProfiles()->updateOrCreate(
+                    ['school_year_id' => $schoolYear->id],
+                    $this->visitorSnapshot($visitor) + [
+                        'department' => $visitor->employee?->department ?? 'Unassigned',
+                    ],
+                );
+            });
     }
 
     private function seedHistoricalVisits(SchoolYear $schoolYear): void
     {
-        $students = RegisteredVisitor::withTrashed()
+        $students = RegisteredVisitor::query()
             ->where('type', RegisteredVisitor::TYPE_STUDENT)
             ->whereHas('studentRegistrations', fn ($query) => $query->forSchoolYear($schoolYear->id))
             ->orderBy('school_id')
@@ -117,6 +131,18 @@ class HistoricalSchoolYearSeeder extends Seeder
             'school_year_id' => $schoolYear->id,
             'visited_at' => $visitedAt,
         ]);
+    }
+
+    private function visitorSnapshot(RegisteredVisitor $visitor): array
+    {
+        return [
+            'school_id' => $visitor->school_id,
+            'rfid_uid' => $visitor->rfid_uid,
+            'first_name' => $visitor->first_name,
+            'middle_name' => $visitor->middle_name,
+            'last_name' => $visitor->last_name,
+            'photo' => $visitor->photo,
+        ];
     }
 
     private function section(SchoolYear $schoolYear, string $yearLevel, string $name): SchoolYearSection

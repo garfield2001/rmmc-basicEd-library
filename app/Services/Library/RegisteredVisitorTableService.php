@@ -8,9 +8,7 @@ use Illuminate\Http\Request;
 
 class RegisteredVisitorTableService
 {
-    public const COPY_COLUMNS = ['visitor', 'school_id', 'year_level', 'section', 'department', 'status'];
-
-    public const SORT_COLUMNS = ['name', 'school_id', 'year_level', 'section', 'department', 'status'];
+    public const SORT_COLUMNS = ['name', 'school_id', 'year_level', 'section', 'department'];
 
     public const ROW_OPTIONS = [5, 10, 30, 50, 100];
 
@@ -49,7 +47,7 @@ class RegisteredVisitorTableService
         return RegisteredVisitor::query()
             ->with([
                 'student' => fn ($query) => $query->forSchoolYear($activeSchoolYearId),
-                'employee',
+                'employee' => fn ($query) => $query->forSchoolYear($activeSchoolYearId),
             ])
             ->ofType($type)
             ->search($search)
@@ -68,8 +66,18 @@ class RegisteredVisitorTableService
                     });
             })
             ->when(
-                $type === RegisteredVisitor::TYPE_EMPLOYEE && $department,
-                fn (Builder $query) => $query->whereHas('employee', fn (Builder $query) => $query->where('department', $department)),
+                $type === RegisteredVisitor::TYPE_EMPLOYEE,
+                function (Builder $query) use ($activeSchoolYearId, $department): void {
+                    if (! $activeSchoolYearId) {
+                        $query->whereRaw('1 = 0');
+
+                        return;
+                    }
+
+                    $query->whereHas('employeeProfiles', fn (Builder $query) => $query
+                        ->forSchoolYear($activeSchoolYearId)
+                        ->when($department, fn (Builder $query) => $query->where('department', $department)));
+                },
             )
             ->select('registered_visitors.*');
     }
@@ -81,78 +89,21 @@ class RegisteredVisitorTableService
                 ->orderBy('registered_visitors.last_name', $direction)
                 ->orderBy('registered_visitors.first_name', $direction),
             'school_id' => $query->orderBy('registered_visitors.school_id', $direction),
-            'status' => $query->orderBy('registered_visitors.is_active', $direction),
             'year_level' => $this->sortByActiveStudentColumn($query, 'year_level', $direction, $activeSchoolYearId),
             'section' => $this->sortByActiveStudentColumn($query, 'section', $direction, $activeSchoolYearId),
-            'department' => $query
-                ->leftJoin('employee_profiles as visitor_employee_profiles', 'visitor_employee_profiles.registered_visitor_id', '=', 'registered_visitors.id')
-                ->orderBy('visitor_employee_profiles.department', $direction),
+            'department' => $activeSchoolYearId
+                ? $query
+                    ->leftJoin('employee_profiles as visitor_employee_profiles', function ($join) use ($activeSchoolYearId): void {
+                        $join
+                            ->on('visitor_employee_profiles.registered_visitor_id', '=', 'registered_visitors.id')
+                            ->where('visitor_employee_profiles.school_year_id', '=', $activeSchoolYearId);
+                    })
+                    ->orderBy('visitor_employee_profiles.department', $direction)
+                : $query->orderBy('registered_visitors.created_at', 'desc'),
             default => $query->orderBy('registered_visitors.created_at', 'desc'),
         };
 
         $query->orderBy('registered_visitors.id', 'desc');
-    }
-
-    /**
-     * @param  array<int, string>  $columns
-     * @return array{text: string, rowCount: int}
-     */
-    public function copyColumns(
-        array $columns,
-        string $type,
-        string $search,
-        string $yearLevel,
-        string $section,
-        string $department,
-        string $sort,
-        string $direction,
-        ?int $activeSchoolYearId,
-    ): array {
-        $query = $this->filteredQuery($type, $search, $yearLevel, $section, $activeSchoolYearId, $department);
-        $this->applySort($query, $sort, $direction, $activeSchoolYearId);
-
-        $rows = $query
-            ->get()
-            ->map(fn (RegisteredVisitor $visitor): array => collect($columns)
-                ->map(fn (string $column): string => $this->copyColumnValue($visitor, $column))
-                ->all());
-
-        $lines = $rows->map(fn (array $row): string => implode("\t", $row));
-
-        if (count($columns) > 1) {
-            $lines->prepend(implode("\t", collect($columns)->map(fn (string $column): string => $this->copyColumnLabel($column))->all()));
-        }
-
-        return [
-            'text' => $lines->implode("\n"),
-            'rowCount' => $rows->count(),
-        ];
-    }
-
-    private function copyColumnValue(RegisteredVisitor $visitor, string $column): string
-    {
-        return match ($column) {
-            'visitor' => $visitor->full_name,
-            'school_id' => $visitor->school_id,
-            'year_level' => $visitor->student?->year_level ?? '',
-            'section' => $visitor->student?->section ?? '',
-            'department' => $visitor->employee?->department ?? '',
-            'status' => $visitor->is_active ? 'Active' : 'Inactive',
-            default => '',
-        };
-    }
-
-    private function copyColumnLabel(string $column): string
-    {
-        return match ($column) {
-            'visitor' => 'Name',
-            'school_id' => 'School ID',
-            'year_level' => 'Year level',
-            'section' => 'Section',
-            'department' => 'Department',
-            'status' => 'Status',
-            default => $column,
-        };
     }
 
     private function sortByActiveStudentColumn(Builder $query, string $column, string $direction, ?int $activeSchoolYearId): void

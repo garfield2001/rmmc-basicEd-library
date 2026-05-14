@@ -17,11 +17,8 @@ return new class extends Migration
             $table->string('middle_name')->nullable();
             $table->string('last_name');
             $table->string('photo')->nullable();
-            $table->boolean('is_active')->default(true)->index();
             $table->timestamps();
-            $table->softDeletes();
 
-            $table->index(['type', 'is_active']);
             $table->index(['last_name', 'first_name']);
         });
     }

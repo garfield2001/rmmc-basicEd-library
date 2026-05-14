@@ -76,7 +76,7 @@ export function AdminLayout({ active, children }: AdminLayoutProps) {
                 {isMobileSidebarOpen && (
                     <button
                         type="button"
-                        className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[1px] lg:hidden"
+                        className="fixed inset-0 z-[45] bg-black/45 backdrop-blur-[1px] lg:hidden"
                         aria-label="Close sidebar"
                         onClick={() => setIsMobileSidebarOpen(false)}
                     />
@@ -144,10 +144,6 @@ function activePathFromSection(active: AdminLayoutProps['active']) {
 
     if (active === 'visitors') {
         return '/admin/registered-visitors';
-    }
-
-    if (active === 'archive') {
-        return '/admin/registered-visitors/archive';
     }
 
     return `/admin/${active}`;

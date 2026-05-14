@@ -24,20 +24,26 @@ class ReportController extends Controller
             'reportOptions' => [
                 'schoolYears' => SchoolYear::query()
                     ->orderByDesc('starts_at')
-                    ->get(['id', 'name', 'starts_at', 'ends_at', 'minimum_visits', 'target_visits', 'is_active'])
+                    ->get(['id', 'name', 'starts_at', 'ends_at', 'student_required_visits', 'employee_required_visits', 'is_active'])
                     ->map(fn (SchoolYear $schoolYear): array => [
                         'id' => $schoolYear->id,
                         'name' => $schoolYear->name,
                         'starts_at' => $schoolYear->starts_at->toDateString(),
                         'ends_at' => $schoolYear->ends_at->toDateString(),
-                        'minimum_visits' => $schoolYear->minimum_visits,
-                        'target_visits' => $schoolYear->target_visits,
+                        'student_required_visits' => $schoolYear->student_required_visits,
+                        'employee_required_visits' => $schoolYear->employee_required_visits,
                         'is_active' => $schoolYear->is_active,
                     ]),
                 'yearLevels' => AcademicLevels::options(),
                 'sectionsByYearLevel' => $sections->groupedByYearLevel($request->integer('school_year_id') ?: SchoolYear::active()->value('id')),
                 'sectionsBySchoolYear' => $sections->groupedBySchoolYear(),
-                'departments' => EmployeeProfile::query()->whereNotNull('department')->distinct()->orderBy('department')->pluck('department')->values(),
+                'departments' => EmployeeProfile::query()
+                    ->when($request->integer('school_year_id'), fn ($query, $schoolYearId) => $query->where('school_year_id', $schoolYearId))
+                    ->whereNotNull('department')
+                    ->distinct()
+                    ->orderBy('department')
+                    ->pluck('department')
+                    ->values(),
             ],
         ]);
     }
@@ -49,7 +55,7 @@ class ReportController extends Controller
         return response()->streamDownload(function () use ($report): void {
             $file = fopen('php://output', 'w');
 
-            fputcsv($file, ['School Year', 'School ID', 'Name', 'Type', 'Status', 'Year Level', 'Section', 'Department', 'Visits', 'Minimum Met', 'Target Met', 'Progress', 'Last Visit']);
+            fputcsv($file, ['School Year', 'School ID', 'Name', 'Type', 'Year Level', 'Section', 'Department', 'Visits', 'Required Met', 'Progress', 'Last Visit']);
 
             foreach ($report['rows'] as $row) {
                 fputcsv($file, [
@@ -57,13 +63,11 @@ class ReportController extends Controller
                     $row['school_id'],
                     $row['name'],
                     $row['type'],
-                    $row['status'],
                     $row['year_level'],
                     $row['section'],
                     $row['department'],
                     $row['visit_count'],
-                    $row['minimum_met'] ? 'Yes' : 'No',
-                    $row['target_met'] ? 'Yes' : 'No',
+                    $row['required_met'] ? 'Yes' : 'No',
                     $row['progress_percent'].'%',
                     $row['last_visit_at'],
                 ]);

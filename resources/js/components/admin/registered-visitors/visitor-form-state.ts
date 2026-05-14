@@ -9,7 +9,6 @@ export type VisitorFormData = {
     middle_name: string;
     last_name: string;
     photo_file: File | null;
-    is_active: boolean;
     year_level: string;
     section: string;
     department: string;
@@ -26,7 +25,7 @@ export const visitorFormSteps = [
     },
     {
         title: 'Details',
-        description: 'Student or employee details and account status.',
+        description: 'Student or employee details.',
     },
 ];
 
@@ -40,7 +39,6 @@ export function initialVisitorData(visitor: RegisteredVisitorRow | null): Visito
         middle_name: visitor?.middle_name ?? '',
         last_name: visitor?.last_name ?? '',
         photo_file: null,
-        is_active: visitor?.is_active ?? true,
         year_level: visitor?.student?.year_level ?? '',
         section: visitor?.student?.section ?? '',
         department: visitor?.employee?.department ?? '',
@@ -72,7 +70,7 @@ export function firstStepWithErrors(errors: Partial<Record<keyof VisitorFormData
         return 1;
     }
 
-    if (errors.year_level || errors.section || errors.department || errors.is_active) {
+    if (errors.year_level || errors.section || errors.department) {
         return 2;
     }
 

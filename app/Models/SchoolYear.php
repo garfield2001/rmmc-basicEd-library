@@ -6,19 +6,17 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SchoolYear extends Model
 {
     use HasFactory;
-    use SoftDeletes;
 
     protected $fillable = [
         'name',
         'starts_at',
         'ends_at',
-        'minimum_visits',
-        'target_visits',
+        'student_required_visits',
+        'employee_required_visits',
         'is_active',
     ];
 
@@ -27,8 +25,8 @@ class SchoolYear extends Model
         return [
             'starts_at' => 'date',
             'ends_at' => 'date',
-            'minimum_visits' => 'integer',
-            'target_visits' => 'integer',
+            'student_required_visits' => 'integer',
+            'employee_required_visits' => 'integer',
             'is_active' => 'boolean',
         ];
     }
@@ -41,6 +39,11 @@ class SchoolYear extends Model
     public function studentRegistrations(): HasMany
     {
         return $this->hasMany(StudentRegistration::class);
+    }
+
+    public function employeeProfiles(): HasMany
+    {
+        return $this->hasMany(EmployeeProfile::class);
     }
 
     public function sections(): HasMany

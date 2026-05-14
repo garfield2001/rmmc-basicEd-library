@@ -17,7 +17,6 @@ type VisitorFormData = {
     middle_name: string;
     last_name: string;
     photo_file: File | null;
-    is_active: boolean;
     year_level: string;
     section: string;
     department: string;
@@ -38,7 +37,6 @@ export default function VisitorForm({ visitor }: VisitorFormProps) {
         middle_name: visitor?.middle_name ?? '',
         last_name: visitor?.last_name ?? '',
         photo_file: null,
-        is_active: visitor?.is_active ?? true,
         year_level: visitor?.student?.year_level ?? '',
         section: visitor?.student?.section ?? '',
         department: visitor?.employee?.department ?? '',
@@ -175,6 +173,7 @@ export default function VisitorForm({ visitor }: VisitorFormProps) {
                                         className={inputClass}
                                         autoComplete="off"
                                         autoFocus={!isEditing}
+                                        disabled={isEditing}
                                     />
                                     {errors.rfid_uid && <p className="mt-1 text-xs text-red-600">{errors.rfid_uid}</p>}
                                 </label>
@@ -184,6 +183,7 @@ export default function VisitorForm({ visitor }: VisitorFormProps) {
                                         value={data.school_id}
                                         onChange={(event) => setData('school_id', event.target.value)}
                                         className={inputClass}
+                                        disabled={isEditing}
                                     />
                                     {errors.school_id && <p className="mt-1 text-xs text-red-600">{errors.school_id}</p>}
                                 </label>
@@ -265,15 +265,6 @@ export default function VisitorForm({ visitor }: VisitorFormProps) {
                                         </div>
                                     )}
                                 </div>
-                                <label className="flex items-center gap-2 pt-7 text-sm font-medium">
-                                    <input
-                                        type="checkbox"
-                                        checked={data.is_active}
-                                        onChange={(event) => setData('is_active', event.target.checked)}
-                                        className="size-4 rounded border-zinc-300"
-                                    />
-                                    Active visitor
-                                </label>
                             </div>
                         </section>
 

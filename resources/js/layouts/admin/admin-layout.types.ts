@@ -1,7 +1,7 @@
 import type { LayoutDashboard } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-export type AdminSection = 'dashboard' | 'live-visits' | 'visitors' | 'reports' | 'settings' | 'archive';
+export type AdminSection = 'dashboard' | 'live-visits' | 'visitors' | 'reports' | 'settings';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 

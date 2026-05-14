@@ -8,12 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RegisteredVisitor extends Model
 {
     use HasFactory;
-    use SoftDeletes;
 
     public const TYPE_STUDENT = 'student';
 
@@ -27,19 +25,11 @@ class RegisteredVisitor extends Model
         'middle_name',
         'last_name',
         'photo',
-        'is_active',
     ];
 
     protected $appends = [
         'full_name',
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'is_active' => 'boolean',
-        ];
-    }
 
     public function visits(): HasMany
     {
@@ -61,9 +51,9 @@ class RegisteredVisitor extends Model
         return $this->hasOne(EmployeeProfile::class);
     }
 
-    public function scopeActive(Builder $query): Builder
+    public function employeeProfiles(): HasMany
     {
-        return $query->where('is_active', true);
+        return $this->hasMany(EmployeeProfile::class);
     }
 
     public function scopeVisitEligibleForSchoolYear(Builder $query, ?int $schoolYearId): Builder
@@ -74,7 +64,11 @@ class RegisteredVisitor extends Model
 
         return $query->where(function (Builder $query) use ($schoolYearId): void {
             $query
-                ->where('type', self::TYPE_EMPLOYEE)
+                ->where(function (Builder $query) use ($schoolYearId): void {
+                    $query
+                        ->where('type', self::TYPE_EMPLOYEE)
+                        ->whereHas('employeeProfiles', fn (Builder $query) => $query->forSchoolYear($schoolYearId));
+                })
                 ->orWhere(function (Builder $query) use ($schoolYearId): void {
                     $query
                         ->where('type', self::TYPE_STUDENT)
