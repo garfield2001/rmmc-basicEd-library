@@ -4,36 +4,37 @@
     <meta charset="utf-8">
     <title>Library Progress Report</title>
     <style>
-        body { font-family: Arial, sans-serif; color: #111827; }
-        h1 { font-size: 22px; margin-bottom: 4px; }
+        @page { size: 8.5in 11in; margin: 0.55in; }
+        body { font-family: Arial, Helvetica, sans-serif; color: #111827; }
+        h1 { font-size: 20px; margin-bottom: 4px; }
         p { margin: 0 0 8px; color: #4b5563; }
-        .summary { margin: 16px 0; }
-        .summary td { font-weight: 700; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        th, td { border: 1px solid #d1d5db; padding: 7px; text-align: left; }
-        th { background: #f3f4f6; }
+        .meta { margin: 8px 0 16px; font-size: 12px; }
+        .meta strong { color: #111827; }
+        .summary { margin: 16px 0; border: 0; }
+        .summary td { border: 0; font-weight: 700; padding: 4px 16px 4px 0; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
+        th, td { border: 1px solid #d1d5db; padding: 6px; text-align: left; vertical-align: top; word-wrap: break-word; }
+        th { background: #eef2ff; color: #111827; font-weight: 700; }
+        .text-cell { mso-number-format: '\@'; }
     </style>
 </head>
 <body>
+    @php
+        $columns ??= [];
+    @endphp
+
     <h1>Library Progress Report</h1>
-    <p>{{ ucfirst($report['summary']['visitor_type']) }}s &middot; {{ $report['school_year']['name'] ?? 'No school year' }}</p>
-    <p>{{ $report['filters']['start_date'] }} to {{ $report['filters']['end_date'] }}</p>
+    <div class="meta">
+        <p><strong>School year:</strong> {{ $report['school_year']['name'] ?? 'No school year' }} &nbsp;&nbsp; <strong>Visitor type:</strong> {{ ucfirst($report['summary']['visitor_type']) }}s</p>
+        <p><strong>From</strong> {{ $report['filters']['start_date'] }} <strong>to</strong> {{ $report['filters']['end_date'] }}</p>
+    </div>
 
     <table class="summary">
         <tbody>
             <tr>
-                <th>Visitors</th>
-                <th>Total Visits</th>
-                <th>Met Required</th>
-                <th>Required Visits</th>
-                <th>Overall Progress</th>
-            </tr>
-            <tr>
-                <td>{{ $report['summary']['visitors'] }}</td>
-                <td>{{ $report['summary']['total_visits'] }}</td>
-                <td>{{ $report['summary']['met_required'] }}</td>
-                <td>{{ $report['summary']['required_visits'] }}</td>
-                <td>{{ $report['summary']['progress_percent'] }}%</td>
+                <td>Visitors: {{ $report['summary']['visitors'] }}</td>
+                <td>Total Visits: {{ $report['summary']['total_visits'] }}</td>
+                <td>Required Visits: {{ $report['summary']['required_visits'] }}</td>
             </tr>
         </tbody>
     </table>
@@ -41,33 +42,44 @@
     <table>
         <thead>
             <tr>
-                <th>School Year</th>
-                <th>School ID</th>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Year Level</th>
-                <th>Section</th>
-                <th>Department</th>
-                <th>Visits</th>
-                <th>Required Met</th>
-                <th>Progress</th>
-                <th>Last Visit</th>
+                @foreach ($columns as $column)
+                    <th style="width: {{ $column['width'] }}">{{ $column['label'] }}</th>
+                @endforeach
             </tr>
         </thead>
         <tbody>
             @foreach ($report['rows'] as $row)
                 <tr>
-                    <td>{{ $report['school_year']['name'] ?? '' }}</td>
-                    <td>{{ $row['school_id'] }}</td>
-                    <td>{{ $row['name'] }}</td>
-                    <td>{{ $row['type'] }}</td>
-                    <td>{{ $row['year_level'] }}</td>
-                    <td>{{ $row['section'] }}</td>
-                    <td>{{ $row['department'] }}</td>
-                    <td>{{ $row['visit_count'] }}</td>
-                    <td>{{ $row['required_met'] ? 'Yes' : 'No' }}</td>
-                    <td>{{ $row['progress_percent'] }}%</td>
-                    <td>{{ $row['last_visit_at'] }}</td>
+                    @foreach ($columns as $column)
+                        <td class="{{ in_array($column['key'], ['school_id', 'visits'], true) ? 'text-cell' : '' }}">
+                            @switch($column['key'])
+                                @case('school_year')
+                                    {{ $report['school_year']['name'] ?? '' }}
+                                    @break
+                                @case('school_id')
+                                    {{ $row['school_id'] }}
+                                    @break
+                                @case('name')
+                                    {{ $row['name'] }}
+                                    @break
+                                @case('year_section')
+                                    {{ collect([$row['year_level'] ?? null, $row['section'] ?? null])->filter()->implode(' - ') ?: '-' }}
+                                    @break
+                                @case('department')
+                                    {{ $row['department'] ?? '-' }}
+                                    @break
+                                @case('visits')
+                                    {{ $row['visit_count'] }} / {{ $report['summary']['required_visits'] }}
+                                    @break
+                                @case('excess_visits')
+                                    {{ $row['excess_visits'] ?? 0 }}
+                                    @break
+                                @case('progress')
+                                    {{ $row['progress_percent'] }}%
+                                    @break
+                            @endswitch
+                        </td>
+                    @endforeach
                 </tr>
             @endforeach
         </tbody>

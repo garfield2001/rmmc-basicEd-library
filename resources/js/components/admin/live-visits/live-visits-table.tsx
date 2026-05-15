@@ -151,7 +151,7 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
 
     return (
         <section className="admin-surface overflow-hidden rounded-lg border border-[#040DBF]/10 bg-white/95 shadow-sm">
-            <div className="flex flex-col gap-4 border-b border-[#040DBF]/10 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-4 border-b border-[#040DBF]/10 px-5 py-4 xl:flex-row xl:items-center xl:justify-between">
                 <div>
                     <div className="flex items-center gap-2">
                         <BarChart3 className="size-5 text-[#030A8C]" />
@@ -181,13 +181,13 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                             );
                         })}
                     </div>
-                    <div className="relative">
+                    <div className="relative w-full sm:w-96">
                         <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#030A8C]/50" />
                         <input
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
                             placeholder={visitTab === 'student' ? 'Search ID, name, section' : 'Search ID, name, department'}
-                            className="h-10 w-full rounded-lg border border-[#040DBF]/15 bg-white pr-3 pl-9 text-sm transition outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 sm:w-72"
+                            className="h-10 w-full rounded-lg border border-[#040DBF]/15 bg-white pr-3 pl-9 text-sm transition outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10"
                         />
                     </div>
                 </div>

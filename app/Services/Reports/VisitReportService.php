@@ -27,6 +27,14 @@ class VisitReportService
             ->with([
                 'employee' => fn ($query) => $query->forSchoolYear($schoolYearId),
                 'studentRegistrations' => fn ($query) => $query->forSchoolYear($schoolYearId),
+                'visits' => fn ($query) => $query
+                    ->select('id', 'registered_visitor_id', 'school_year_id', 'visited_at')
+                    ->whereBetween('visited_at', [
+                        $schoolYear?->starts_at?->copy()->startOfDay() ?? $startDate,
+                        $this->historyEndDate($endDate, $schoolYear),
+                    ])
+                    ->when($schoolYearId, fn ($query) => $query->where('school_year_id', $schoolYearId), fn ($query) => $query->whereRaw('1 = 0'))
+                    ->latest('visited_at'),
             ])
             ->withCount([
                 'visits as visits_count' => fn ($query) => $query
@@ -59,7 +67,6 @@ class VisitReportService
                         ->when($department, fn (Builder $query) => $query->where('department', $department)),
                 ), fn (Builder $query) => $query->whereRaw('1 = 0')),
             )
-            ->orderByDesc('visits_count')
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->get();
@@ -68,6 +75,7 @@ class VisitReportService
         $visitorCount = $visitors->count();
         $visitedVisitors = $visitors->where('visits_count', '>', 0)->count();
         $requiredVisitTotal = $visitorCount * $requiredVisits;
+        $excessVisits = $visitors->sum(fn (RegisteredVisitor $visitor): int => max(0, (int) $visitor->visits_count - $requiredVisits));
 
         return [
             'filters' => [
@@ -89,6 +97,7 @@ class VisitReportService
                 'met_required' => $requiredVisits > 0 ? $visitors->where('visits_count', '>=', $requiredVisits)->count() : 0,
                 'average_visits' => $visitorCount > 0 ? round($totalVisits / $visitorCount, 1) : 0,
                 'required_visits' => $requiredVisits,
+                'excess_visits' => $excessVisits,
                 'progress_percent' => $requiredVisitTotal > 0 ? min(100, round(($totalVisits / $requiredVisitTotal) * 100)) : 0,
             ],
             'rows' => $visitors->map(fn (RegisteredVisitor $visitor): array => $this->visitorRow($visitor, $requiredVisits))->values(),
@@ -151,10 +160,30 @@ class VisitReportService
             'year_level' => $visitor->type === RegisteredVisitor::TYPE_STUDENT ? $studentRegistration?->year_level : null,
             'section' => $visitor->type === RegisteredVisitor::TYPE_STUDENT ? $studentRegistration?->section : null,
             'visit_count' => (int) $visitor->visits_count,
+            'excess_visits' => max(0, (int) $visitor->visits_count - $requiredVisits),
             'required_met' => $requiredVisits > 0 && $visitor->visits_count >= $requiredVisits,
             'progress_percent' => $requiredVisits > 0 ? min(100, round(($visitor->visits_count / $requiredVisits) * 100)) : 0,
             'last_visit_at' => $visitor->last_visit_at ? Carbon::parse($visitor->last_visit_at)->format('Y-m-d H:i:s') : null,
+            'visits' => $visitor->visits
+                ->map(fn ($visit): array => [
+                    'id' => $visit->id,
+                    'visited_at' => $visit->visited_at?->toIso8601String(),
+                ])
+                ->values(),
         ];
+    }
+
+    private function historyEndDate(Carbon $reportEndDate, ?SchoolYear $schoolYear): Carbon
+    {
+        $today = now()->endOfDay();
+        $schoolYearEnd = $schoolYear?->ends_at?->copy()->endOfDay();
+        $endDate = $reportEndDate->copy();
+
+        if ($schoolYearEnd && $schoolYearEnd->lt($endDate)) {
+            $endDate = $schoolYearEnd;
+        }
+
+        return $today->lt($endDate) ? $today : $endDate;
     }
 
     private function snapshotName(mixed $snapshot, RegisteredVisitor $visitor): string

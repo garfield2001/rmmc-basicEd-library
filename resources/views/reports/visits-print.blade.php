@@ -6,8 +6,8 @@
         <title>Library Progress Report</title>
         <style>
             body {
-                color: #18181b;
-                font-family: Arial, sans-serif;
+                color: #111827;
+                font-family: Arial, Helvetica, sans-serif;
                 margin: 32px;
             }
 
@@ -23,30 +23,39 @@
                 margin: 0 0 6px;
             }
 
+            .report-meta {
+                color: #111827;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px 20px;
+                font-size: 14px;
+                font-weight: 700;
+                margin-top: 10px;
+            }
+
+            .report-range {
+                color: #52525b;
+                font-size: 13px;
+                margin-top: 6px;
+            }
+
             p {
                 color: #52525b;
                 margin: 0;
             }
 
             button {
-                background: #18181b;
+                align-items: center;
+                background: #040dbf;
                 border: 0;
                 border-radius: 8px;
                 color: #ffffff;
                 cursor: pointer;
                 display: inline-flex;
-                font-size: 14px;
-                padding: 10px 14px;
-                text-decoration: none;
-            }
-
-            a[role='button'] {
-                background: #18181b;
-                border-radius: 8px;
-                color: #ffffff;
-                display: inline-flex;
-                font-size: 14px;
-                padding: 10px 14px;
+                font-size: 13px;
+                font-weight: 700;
+                gap: 8px;
+                padding: 11px 16px;
                 text-decoration: none;
             }
 
@@ -59,6 +68,7 @@
             table {
                 border-collapse: collapse;
                 font-size: 12px;
+                table-layout: fixed;
                 width: 100%;
             }
 
@@ -67,10 +77,13 @@
                 border: 1px solid #d4d4d8;
                 padding: 8px;
                 text-align: left;
+                vertical-align: top;
+                word-wrap: break-word;
             }
 
             th {
-                background: #f4f4f5;
+                background: #eef2ff;
+                color: #111827;
             }
 
             .summary {
@@ -97,49 +110,78 @@
         </style>
     </head>
     <body>
+        @php
+            $isStudentReport = ($report['summary']['visitor_type'] ?? null) === 'student';
+            $columns = [
+                ['key' => 'school_id', 'label' => 'School ID', 'width' => '14%'],
+                ['key' => 'name', 'label' => 'Name', 'width' => '30%'],
+                $isStudentReport
+                    ? ['key' => 'year_section', 'label' => 'Year/Section', 'width' => '22%']
+                    : ['key' => 'department', 'label' => 'Department', 'width' => '24%'],
+                ['key' => 'visits', 'label' => 'Visits', 'width' => '13%'],
+                ['key' => 'excess_visits', 'label' => 'Excess', 'width' => '10%'],
+                ['key' => 'progress', 'label' => 'Progress', 'width' => '11%'],
+            ];
+        @endphp
+
         <header>
             <div>
                 <h1>Library Progress Report</h1>
-                <p>{{ ucfirst($report['summary']['visitor_type']) }}s &middot; {{ $report['school_year']['name'] ?? 'No school year' }}</p>
-                <p>{{ $report['filters']['start_date'] }} to {{ $report['filters']['end_date'] }}</p>
+                <div class="report-meta">
+                    <span>School year: {{ $report['school_year']['name'] ?? 'No school year' }}</span>
+                    <span>Visitor type: {{ ucfirst($report['summary']['visitor_type']) }}s</span>
+                </div>
+                <p class="report-range">From {{ $report['filters']['start_date'] }} to {{ $report['filters']['end_date'] }}</p>
             </div>
             <div class="actions">
-                <button onclick="window.print()">Print</button>
-                <a href="{{ $pdfUrl }}" role="button">Save PDF</a>
+                <button onclick="window.print()">Print report</button>
             </div>
         </header>
 
         <section class="summary">
             <div><strong>{{ $report['summary']['visitors'] }}</strong><br>Visitors</div>
             <div><strong>{{ $report['summary']['total_visits'] }}</strong><br>Total visits</div>
-            <div><strong>{{ $report['summary']['met_required'] }}</strong><br>Met required</div>
-            <div><strong>{{ $report['summary']['progress_percent'] }}%</strong><br>Overall progress</div>
+            <div><strong>{{ $report['summary']['required_visits'] }}</strong><br>Required visits</div>
         </section>
 
         <table>
             <thead>
                 <tr>
-                    <th>School ID</th>
-                    <th>Name</th>
-                    <th>Year level</th>
-                    <th>Section</th>
-                    <th>Department</th>
-                    <th>Visits</th>
-                    <th>Progress</th>
-                    <th>Last visit</th>
+                    @foreach ($columns as $column)
+                        <th style="width: {{ $column['width'] }}">{{ $column['label'] }}</th>
+                    @endforeach
                 </tr>
             </thead>
             <tbody>
                 @foreach ($report['rows'] as $row)
                     <tr>
-                        <td>{{ $row['school_id'] }}</td>
-                        <td>{{ $row['name'] }}</td>
-                        <td>{{ $row['year_level'] ?? '-' }}</td>
-                        <td>{{ $row['section'] ?? '-' }}</td>
-                        <td>{{ $row['department'] ?? '-' }}</td>
-                        <td>{{ $row['visit_count'] }}</td>
-                        <td>{{ $row['progress_percent'] }}%</td>
-                        <td>{{ $row['last_visit_at'] ?? '-' }}</td>
+                        @foreach ($columns as $column)
+                            <td>
+                                @switch($column['key'])
+                                    @case('school_id')
+                                        {{ $row['school_id'] }}
+                                        @break
+                                    @case('name')
+                                        {{ $row['name'] }}
+                                        @break
+                                    @case('year_section')
+                                        {{ collect([$row['year_level'] ?? null, $row['section'] ?? null])->filter()->implode(' - ') ?: '-' }}
+                                        @break
+                                    @case('department')
+                                        {{ $row['department'] ?? '-' }}
+                                        @break
+                                    @case('visits')
+                                        {{ $row['visit_count'] }} / {{ $report['summary']['required_visits'] }}
+                                        @break
+                                    @case('excess_visits')
+                                        {{ $row['excess_visits'] ?? 0 }}
+                                        @break
+                                    @case('progress')
+                                        {{ $row['progress_percent'] }}%
+                                        @break
+                                @endswitch
+                            </td>
+                        @endforeach
                     </tr>
                 @endforeach
             </tbody>

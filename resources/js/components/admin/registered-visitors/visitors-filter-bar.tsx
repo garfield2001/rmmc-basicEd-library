@@ -1,5 +1,4 @@
 import { SelectInput } from '@/components/ui/select-input';
-import { BriefcaseBusiness, GraduationCap } from 'lucide-react';
 
 type VisitorType = 'student' | 'employee';
 
@@ -14,7 +13,6 @@ interface VisitorsFilterBarProps {
     onYearLevelChange: (value: string) => void;
     onSectionChange: (value: string) => void;
     onDepartmentChange: (value: string) => void;
-    onTypeChange: (type: VisitorType) => void;
 }
 
 export function VisitorsFilterBar({
@@ -28,53 +26,26 @@ export function VisitorsFilterBar({
     onYearLevelChange,
     onSectionChange,
     onDepartmentChange,
-    onTypeChange,
 }: VisitorsFilterBarProps) {
-    const tabs = [
-        { label: 'Students', value: 'student' as const, icon: GraduationCap },
-        { label: 'Employees', value: 'employee' as const, icon: BriefcaseBusiness },
-    ];
-
     return (
-        <section className="min-h-30 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-            <div className="mx-auto flex max-w-4xl flex-col items-center gap-4 lg:flex-row lg:justify-center">
-                <div className="admin-segmented-tabs w-full sm:w-72">
-                    {tabs.map((tab) => {
-                        const Icon = tab.icon;
-                        const isActive = activeType === tab.value;
-
-                        return (
-                            <button
-                                key={tab.value}
-                                type="button"
-                                onClick={() => onTypeChange(tab.value)}
-                                className={`admin-segmented-tab ${isActive ? 'admin-segmented-tab-active' : ''}`}
-                            >
-                                <Icon className="size-4" />
-                                {tab.label}
-                            </button>
-                        );
-                    })}
-                </div>
-
-                <div className="flex w-full flex-col gap-3 lg:max-w-2xl">
-                    {activeType === 'student' ? (
-                        <div className="grid gap-3 sm:grid-cols-2">
-                            <FilterSelect value={yearLevel} options={yearLevels} placeholder="Select year level" onChange={onYearLevelChange} />
-                            <FilterSelect
-                                value={section}
-                                options={sections}
-                                placeholder={yearLevel ? 'Select section' : 'Choose year level first'}
-                                disabled={!yearLevel}
-                                onChange={onSectionChange}
-                            />
-                        </div>
-                    ) : (
-                        <div className="mx-auto grid w-full gap-3 sm:max-w-sm">
-                            <FilterSelect value={department} options={departments} placeholder="Select department" onChange={onDepartmentChange} />
-                        </div>
-                    )}
-                </div>
+        <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
+            <div className="mx-auto w-full max-w-2xl">
+                {activeType === 'student' ? (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <FilterSelect value={yearLevel} options={yearLevels} placeholder="Select year level" onChange={onYearLevelChange} />
+                        <FilterSelect
+                            value={section}
+                            options={sections}
+                            placeholder={yearLevel ? 'Select section' : 'Choose year level first'}
+                            disabled={!yearLevel}
+                            onChange={onSectionChange}
+                        />
+                    </div>
+                ) : (
+                    <div className="mx-auto grid w-full gap-3 sm:max-w-sm">
+                        <FilterSelect value={department} options={departments} placeholder="Select department" onChange={onDepartmentChange} />
+                    </div>
+                )}
             </div>
         </section>
     );

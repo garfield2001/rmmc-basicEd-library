@@ -46,7 +46,7 @@ function DialogOverlay({ className, ...props }: React.ComponentProps<'div'>) {
         <div
             aria-hidden="true"
             data-state="open"
-            className={cn('dialog-overlay fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px]', className)}
+            className={cn('dialog-overlay fixed inset-0 z-[80] bg-black/55 backdrop-blur-md', className)}
             {...props}
         />
     );
@@ -58,7 +58,7 @@ function DialogContent({ className, children, ...props }: React.ComponentProps<t
             <DialogOverlay />
             <DialogPrimitive.Content
                 className={cn(
-                    'dialog-content fixed top-1/2 left-1/2 z-50 grid w-[calc(100%-2rem)] max-w-lg gap-4 rounded-xl border border-zinc-200 bg-white p-6 shadow-lg',
+                    'dialog-content fixed top-1/2 left-1/2 z-[90] grid w-[calc(100%-2rem)] max-w-lg gap-4 rounded-xl border border-zinc-200 bg-white p-6 shadow-lg',
                     className,
                 )}
                 {...props}

@@ -7,9 +7,14 @@ export interface VisitReportRow {
     year_level: string | null;
     section: string | null;
     visit_count: number;
+    excess_visits: number;
     required_met: boolean;
     progress_percent: number;
     last_visit_at: string | null;
+    visits: {
+        id: number;
+        visited_at: string | null;
+    }[];
 }
 
 export interface VisitReportSchoolYear {
@@ -42,6 +47,7 @@ export interface VisitReport {
         met_required: number;
         average_visits: number;
         required_visits: number;
+        excess_visits: number;
         progress_percent: number;
     };
     rows: VisitReportRow[];

@@ -1,12 +1,13 @@
 import { VisitorAvatar } from '@/components/ui/visitor-avatar';
 import { PaginationControls, type RowsPerPageOption } from '@/components/ui/pagination-controls';
+import { SelectInput } from '@/components/ui/select-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { VirtualTableSpacerRow } from '@/components/ui/virtual-table-spacer-row';
 import { useViewportHeight, useWindowVirtualRows } from '@/hooks/use-window-virtual-rows';
 import { cn } from '@/lib/utils';
 import type { Paginated } from '@/types/pagination';
 import type { RegisteredVisitorRow } from '@/types/registered-visitors';
-import { ArrowDown, ArrowUp, ChevronsUpDown, Pencil, RotateCcw, Search } from 'lucide-react';
+import { ArrowDown, ArrowUp, BriefcaseBusiness, ChevronsUpDown, GraduationCap, Pencil, RotateCcw, Search } from 'lucide-react';
 import { useMemo, useRef } from 'react';
 
 type VisitorType = 'student' | 'employee';
@@ -24,11 +25,21 @@ interface VisitorsTableProps {
     visitors: Paginated<RegisteredVisitorRow>;
     activeType: VisitorType;
     search: string;
+    yearLevel: string;
+    section: string;
+    department: string;
+    yearLevels: string[];
+    sections: string[];
+    departments: string[];
     rowsPerPage: RowsPerPageOption;
     sort: string;
     direction: SortDirection;
     isLoading?: boolean;
     onSearchChange: (value: string) => void;
+    onTypeChange: (type: VisitorType) => void;
+    onYearLevelChange: (value: string) => void;
+    onSectionChange: (value: string) => void;
+    onDepartmentChange: (value: string) => void;
     onRowsPerPageChange: (rows: RowsPerPageOption) => void;
     onSortChange: (column: string) => void;
     onSortClear: () => void;
@@ -41,11 +52,21 @@ export function VisitorsTable({
     visitors,
     activeType,
     search,
+    yearLevel,
+    section,
+    department,
+    yearLevels,
+    sections,
+    departments,
     rowsPerPage,
     sort,
     direction,
     isLoading = false,
     onSearchChange,
+    onTypeChange,
+    onYearLevelChange,
+    onSectionChange,
+    onDepartmentChange,
     onRowsPerPageChange,
     onSortChange,
     onSortClear,
@@ -81,29 +102,86 @@ export function VisitorsTable({
         containerRef: tableBodyRef,
     });
     const displayedVisitors = usesVirtualRows ? visitors.data.slice(virtualRows.startIndex, virtualRows.endIndex) : visitors.data;
+    const visitorTabs = [
+        { label: 'Students', value: 'student' as const, icon: GraduationCap },
+        { label: 'Employees', value: 'employee' as const, icon: BriefcaseBusiness },
+    ];
 
     return (
         <div className="relative rounded-xl border border-zinc-200 bg-white shadow-sm" aria-busy={isLoading}>
-            <div className="flex min-h-16 flex-col gap-3 border-b border-zinc-200 bg-zinc-50 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="relative w-full sm:max-w-sm">
-                    <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
-                    <input
-                        value={search}
-                        onChange={(event) => onSearchChange(event.target.value)}
-                        placeholder={`Search ${activeType === 'student' ? 'students' : 'employees'}`}
-                        className="h-10 w-full rounded-lg border border-zinc-300 bg-white pr-3 pl-9 text-sm outline-none transition focus:border-zinc-500 focus:ring-4 focus:ring-zinc-100"
-                    />
+            <div className="space-y-4 border-b border-zinc-200 bg-zinc-50 px-5 py-4">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <GraduationCap className="size-5 text-[#030A8C]" />
+                        <h2 className="text-lg font-semibold tracking-normal text-[#010440]">
+                            {activeType === 'student' ? 'Registered students' : 'Registered employees'}
+                        </h2>
+                    </div>
+                    <p className="mt-1 text-sm text-[#020659]/70">
+                        {activeType === 'student'
+                            ? 'Rows are sorted to keep the highest grade levels, including Grade 10, easy to scan.'
+                            : 'Rows are grouped by active employee details for the selected school year.'}
+                    </p>
                 </div>
-                {sort !== 'created_at' && (
-                    <button
-                        type="button"
-                        onClick={onSortClear}
-                        className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm sm:w-auto"
-                    >
-                        <RotateCcw className="size-4" />
-                        Clear sort
-                    </button>
-                )}
+                <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                        <div className="admin-segmented-tabs w-full sm:w-72">
+                            {visitorTabs.map((tab) => {
+                                const Icon = tab.icon;
+                                const isActive = activeType === tab.value;
+
+                                return (
+                                    <button
+                                        key={tab.value}
+                                        type="button"
+                                        onClick={() => onTypeChange(tab.value)}
+                                        className={`admin-segmented-tab ${isActive ? 'admin-segmented-tab-active' : ''}`}
+                                    >
+                                        <Icon className="size-4" />
+                                        {tab.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        {activeType === 'student' ? (
+                            <div className="grid gap-3 sm:grid-cols-2 lg:w-[26rem]">
+                                <FilterSelect value={yearLevel} options={yearLevels} placeholder="Select year level" onChange={onYearLevelChange} />
+                                <FilterSelect
+                                    value={section}
+                                    options={sections}
+                                    placeholder={yearLevel ? 'Choose section' : 'Choose year level first'}
+                                    disabled={!yearLevel}
+                                    onChange={onSectionChange}
+                                />
+                            </div>
+                        ) : (
+                            <div className="lg:w-64">
+                                <FilterSelect value={department} options={departments} placeholder="Select department" onChange={onDepartmentChange} />
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                        <div className="relative w-full sm:w-96">
+                            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
+                            <input
+                                value={search}
+                                onChange={(event) => onSearchChange(event.target.value)}
+                                placeholder={`Search ${activeType === 'student' ? 'students' : 'employees'}`}
+                                className="h-10 w-full rounded-lg border border-zinc-300 bg-white pr-3 pl-9 text-sm outline-none transition focus:border-zinc-500 focus:ring-4 focus:ring-zinc-100"
+                            />
+                        </div>
+                        {sort !== 'created_at' && (
+                            <button
+                                type="button"
+                                onClick={onSortClear}
+                                className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm sm:w-auto"
+                            >
+                                <RotateCcw className="size-4" />
+                                Clear sort
+                            </button>
+                        )}
+                    </div>
+                </div>
             </div>
             <div className="overflow-x-auto">
                 <Table className={activeType === 'student' ? 'min-w-170' : 'min-w-140'}>
@@ -160,6 +238,36 @@ export function VisitorsTable({
                 onNext={onNext}
             />
         </div>
+    );
+}
+
+function FilterSelect({
+    value,
+    options,
+    placeholder,
+    disabled = false,
+    onChange,
+}: {
+    value: string;
+    options: string[];
+    placeholder: string;
+    disabled?: boolean;
+    onChange: (value: string) => void;
+}) {
+    return (
+        <SelectInput
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            disabled={disabled}
+            className="border-zinc-300 bg-white text-zinc-700 focus:border-zinc-500 focus:ring-zinc-100"
+        >
+            <option value="">{placeholder}</option>
+            {options.map((option) => (
+                <option key={option} value={option}>
+                    {option}
+                </option>
+            ))}
+        </SelectInput>
     );
 }
 

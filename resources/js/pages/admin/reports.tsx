@@ -1,9 +1,11 @@
 import { ReportExportActions } from '@/components/admin/reports/report-export-actions';
 import { Button } from '@/components/ui/button';
 import { formatDisplayDate } from '@/components/ui/date-input';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { SelectInput } from '@/components/ui/select-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { VisitorAvatar } from '@/components/ui/visitor-avatar';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
 import { cn } from '@/lib/utils';
@@ -15,7 +17,6 @@ import {
     ArrowUp,
     BriefcaseBusiness,
     CalendarDays,
-    CheckCircle2,
     ChevronsUpDown,
     GraduationCap,
     RotateCcw,
@@ -33,7 +34,7 @@ type VisitorType = 'student' | 'employee';
 type VisitorTypeFilter = '' | VisitorType;
 type DateRangeMode = '' | 'school_year' | 'custom';
 type AllFilterValue = '__all__';
-type ReportSortColumn = 'school_id' | 'name' | 'group' | 'visit_count' | 'progress_percent' | 'last_visit_at';
+type ReportSortColumn = 'school_id' | 'name' | 'group' | 'visit_count' | 'progress_percent';
 type SortDirection = 'asc' | 'desc';
 
 interface ReportQuery {
@@ -47,7 +48,6 @@ interface ReportQuery {
 }
 
 const rowsPerPage = 10;
-const skeletonDelayMs = 350;
 const allFilterValue: AllFilterValue = '__all__';
 
 export default function Reports({ report, reportOptions }: ReportsProps) {
@@ -71,8 +71,8 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
     const [sortColumn, setSortColumn] = useState<ReportSortColumn | null>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
     const [showResultsSkeleton, setShowResultsSkeleton] = useState(false);
+    const [selectedVisitor, setSelectedVisitor] = useState<VisitReportRow | null>(null);
     const didMountRef = useRef(false);
-    const skeletonTimerRef = useRef<number | null>(null);
 
     const selectedSchoolYear = useMemo(
         () => reportOptions.schoolYears.find((schoolYear) => String(schoolYear.id) === schoolYearId) ?? null,
@@ -140,6 +140,12 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
     }, [queryString]);
 
     useEffect(() => {
+        if (hasReportResults) {
+            setShowResultsSkeleton(false);
+        }
+    }, [hasReportResults]);
+
+    useEffect(() => {
         if (visitorType !== 'student' || !section || section === allFilterValue || availableSections.includes(section)) {
             return;
         }
@@ -154,43 +160,23 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
         }
 
         if (!reportCanFetch) {
-            if (skeletonTimerRef.current) {
-                window.clearTimeout(skeletonTimerRef.current);
-                skeletonTimerRef.current = null;
-            }
-
             setShowResultsSkeleton(false);
 
             return;
         }
 
         const timeout = window.setTimeout(() => {
+            setShowResultsSkeleton(true);
             router.get('/admin/reports', cleanQuery(query), {
                 only: ['report'],
                 preserveScroll: true,
                 preserveState: true,
                 replace: true,
-                onStart: () => {
-                    skeletonTimerRef.current = window.setTimeout(() => setShowResultsSkeleton(true), skeletonDelayMs);
-                },
-                onFinish: () => {
-                    if (skeletonTimerRef.current) {
-                        window.clearTimeout(skeletonTimerRef.current);
-                        skeletonTimerRef.current = null;
-                    }
-
-                    setShowResultsSkeleton(false);
-                },
             });
         }, 550);
 
         return () => {
             window.clearTimeout(timeout);
-
-            if (skeletonTimerRef.current) {
-                window.clearTimeout(skeletonTimerRef.current);
-                skeletonTimerRef.current = null;
-            }
         };
     }, [query, reportCanFetch]);
 
@@ -442,13 +428,13 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                         icon={Activity}
                                         label="Visits recorded"
                                         value={report.summary.total_visits}
-                                        detail={`${report.summary.average_visits} average`}
+                                        detail={`${report.summary.average_visits} average, ${report.summary.required_visits} target`}
                                     />
                                     <MetricCard
-                                        icon={CheckCircle2}
-                                        label="Met required"
-                                        value={report.summary.met_required}
-                                        detail={`${report.summary.required_visits} required visits`}
+                                        icon={Target}
+                                        label="Excess visits"
+                                        value={report.summary.excess_visits}
+                                        detail="Visits beyond the required target"
                                     />
                                     <MetricCard
                                         icon={Target}
@@ -462,9 +448,9 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                         <div>
                                             <h2 className="text-lg font-semibold tracking-normal text-[#010440]">
-                                                {report.school_year?.name ?? selectedSchoolYear?.name ?? 'No school year selected'}
+                                                School year: {report.school_year?.name ?? selectedSchoolYear?.name ?? 'No school year selected'}
                                             </h2>
-                                            <p className="mt-1 text-sm text-[#020659]/70">{dateRangeSummary}</p>
+                                            <p className="mt-1 text-sm text-[#020659]/70">From {dateRangeSummary}</p>
                                         </div>
                                         <div className="min-w-64">
                                             <div className="flex items-center justify-between gap-3 text-sm">
@@ -493,7 +479,7 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                         )}
                                     </div>
                                     <div className="overflow-x-auto">
-                                        <Table className="min-w-220">
+                                        <Table className="min-w-180">
                                             <TableHeader className="bg-[#f6f8ff]">
                                                 <TableRow>
                                                     <ReportSortableHead
@@ -512,7 +498,7 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                                     />
                                                     <ReportSortableHead
                                                         column="group"
-                                                        label={visitorType === 'student' ? 'Year and section' : 'Department'}
+                                                        label={visitorType === 'student' ? 'Year/section' : 'Department'}
                                                         sort={sortColumn}
                                                         direction={sortDirection}
                                                         onSortChange={changeSort}
@@ -531,13 +517,6 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                                         direction={sortDirection}
                                                         onSortChange={changeSort}
                                                     />
-                                                    <ReportSortableHead
-                                                        column="last_visit_at"
-                                                        label="Last visit"
-                                                        sort={sortColumn}
-                                                        direction={sortDirection}
-                                                        onSortChange={changeSort}
-                                                    />
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
@@ -548,11 +527,12 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                                             row={row}
                                                             visitorType={visitorType}
                                                             requiredVisits={report.summary.required_visits}
+                                                            onSelect={() => setSelectedVisitor(row)}
                                                         />
                                                     ))
                                                 ) : (
                                                     <TableRow>
-                                                        <TableCell colSpan={6} className="h-24 text-center text-sm text-[#020659]/65">
+                                                        <TableCell colSpan={5} className="h-24 text-center text-sm text-[#020659]/65">
                                                             No matching records.
                                                         </TableCell>
                                                     </TableRow>
@@ -581,6 +561,18 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                             </section>
                         )}
                     </div>
+
+                    <VisitorVisitHistoryModal
+                        visitor={selectedVisitor}
+                        visitorType={visitorType}
+                        report={report}
+                        open={Boolean(selectedVisitor)}
+                        onOpenChange={(open) => {
+                            if (!open) {
+                                setSelectedVisitor(null);
+                            }
+                        }}
+                    />
                 </AdminLayout>
             </main>
         </>
@@ -833,12 +825,32 @@ function MetricCard({ icon: Icon, label, value, detail }: { icon: typeof UsersRo
     );
 }
 
-function ReportRow({ row, visitorType, requiredVisits }: { row: VisitReportRow; visitorType: VisitorType; requiredVisits: number }) {
+function ReportRow({
+    row,
+    visitorType,
+    requiredVisits,
+    onSelect,
+}: {
+    row: VisitReportRow;
+    visitorType: VisitorType;
+    requiredVisits: number;
+    onSelect: () => void;
+}) {
     const groupLabel = visitorType === 'student' ? [row.year_level, row.section].filter(Boolean).join(' - ') || '-' : row.department || '-';
     const GroupIcon = visitorType === 'student' ? GraduationCap : BriefcaseBusiness;
 
     return (
-        <TableRow>
+        <TableRow
+            onClick={onSelect}
+            tabIndex={0}
+            onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onSelect();
+                }
+            }}
+            className="cursor-pointer focus-visible:bg-[#f6f8ff] focus-visible:outline-none"
+        >
             <TableCell className="font-medium text-[#010440]">{row.school_id}</TableCell>
             <TableCell>{row.name}</TableCell>
             <TableCell>
@@ -850,6 +862,7 @@ function ReportRow({ row, visitorType, requiredVisits }: { row: VisitReportRow; 
             <TableCell className="font-semibold text-[#010440]">
                 {row.visit_count}
                 <span className="font-normal text-[#020659]/60"> / {requiredVisits}</span>
+                {row.excess_visits > 0 && <span className="ml-2 rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">+{row.excess_visits}</span>}
             </TableCell>
             <TableCell className="min-w-48">
                 <div className="flex items-center gap-3">
@@ -857,9 +870,130 @@ function ReportRow({ row, visitorType, requiredVisits }: { row: VisitReportRow; 
                     <span className="w-10 text-right text-sm font-medium text-[#020659]">{row.progress_percent}%</span>
                 </div>
             </TableCell>
-            <TableCell>{row.last_visit_at ?? '-'}</TableCell>
         </TableRow>
     );
+}
+
+function VisitorVisitHistoryModal({
+    visitor,
+    visitorType,
+    report,
+    open,
+    onOpenChange,
+}: {
+    visitor: VisitReportRow | null;
+    visitorType: VisitorTypeFilter;
+    report: VisitReport | null;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+}) {
+    const visits = visitor?.visits ?? [];
+    const historyEnd = report ? historyEndDate(report.filters.end_date, report.school_year) : null;
+    const groupLabel =
+        visitorType === 'student'
+            ? [visitor?.year_level, visitor?.section].filter(Boolean).join(' - ')
+            : visitor?.department;
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-3xl">
+                <DialogHeader>
+                    <div className="flex items-center gap-3 pr-8">
+                        <VisitorAvatar name={visitor?.name ?? 'Visitor'} />
+                        <div className="min-w-0">
+                            <DialogTitle className="truncate text-2xl text-[#010440]">{visitor?.name ?? 'Visitor details'}</DialogTitle>
+                            <DialogDescription>
+                                {visitor?.school_id ?? 'No school ID'}{groupLabel ? ` - ${groupLabel}` : ''}
+                            </DialogDescription>
+                        </div>
+                    </div>
+                </DialogHeader>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                    <VisitDetailCard label="Type" value={visitorType === 'employee' ? 'Employee' : 'Student'} />
+                    <VisitDetailCard
+                        label="Total visits"
+                        value={`${visitor?.visit_count ?? 0}${visitor && visitor.excess_visits > 0 ? ` (+${visitor.excess_visits})` : ''}`}
+                    />
+                    <VisitDetailCard label="Progress" value={`${visitor?.progress_percent ?? 0}%`} />
+                </div>
+
+                <section className="rounded-lg border border-[#040DBF]/10">
+                    <div className="border-b border-[#040DBF]/10 bg-[#f6f8ff] px-4 py-3">
+                        <h3 className="font-semibold text-[#010440]">Visit history</h3>
+                        <p className="mt-1 text-sm text-[#020659]/70">
+                            {report?.school_year?.name ?? 'School year'} from {report ? formatDisplayDate(report.school_year?.starts_at ?? report.filters.start_date) : '-'} to{' '}
+                            {historyEnd ? formatDisplayDate(historyEnd) : '-'}.
+                        </p>
+                    </div>
+
+                    {visits.length > 0 ? (
+                        <div className="max-h-[22rem] overflow-y-auto overscroll-contain">
+                            <Table>
+                                <TableHeader className="bg-white">
+                                    <TableRow>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>Time</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {visits.map((visit) => {
+                                        const visitedAt = parseVisitDate(visit.visited_at);
+
+                                        return (
+                                            <TableRow key={visit.id}>
+                                                <TableCell className="font-medium text-[#010440]">
+                                                    {visitedAt ? formatDisplayDate(toReportIsoDate(visitedAt)) : '-'}
+                                                </TableCell>
+                                                <TableCell className="text-[#020659]/70">
+                                                    {visitedAt
+                                                        ? visitedAt.toLocaleTimeString([], {
+                                                              hour: '2-digit',
+                                                              minute: '2-digit',
+                                                          })
+                                                        : '-'}
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    ) : (
+                        <div className="px-4 py-10 text-center text-sm text-[#020659]/70">No visits recorded for this school-year period.</div>
+                    )}
+                </section>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function VisitDetailCard({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff] p-4">
+            <p className="text-xs font-semibold tracking-[0.12em] text-[#030A8C] uppercase">{label}</p>
+            <p className="mt-2 text-lg font-semibold text-[#010440]">{value}</p>
+        </div>
+    );
+}
+
+function historyEndDate(reportEndDate: string, schoolYear: VisitReportSchoolYear | null) {
+    const endDate = parseReportIsoDate(reportEndDate) ?? new Date();
+    const schoolYearEnd = parseReportIsoDate(schoolYear?.ends_at);
+    const today = startOfReportDay(new Date());
+    const cappedSchoolYearEnd = schoolYearEnd && schoolYearEnd < endDate ? schoolYearEnd : endDate;
+
+    return today < cappedSchoolYearEnd ? toReportIsoDate(today) : toReportIsoDate(cappedSchoolYearEnd);
+}
+
+function parseVisitDate(value: string | null) {
+    if (!value) {
+        return null;
+    }
+
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime()) ? null : date;
 }
 
 function ReportSortableHead({
@@ -970,17 +1104,17 @@ function ReportResultsSkeleton() {
             </section>
 
             <section className="admin-page-loading-surface overflow-hidden">
-                <div className="grid min-w-250 grid-cols-7 gap-4 border-b border-[#040DBF]/10 bg-[#f6f8ff]/70 px-5 py-4">
-                    {Array.from({ length: 7 }).map((_, index) => (
+                <div className="grid min-w-180 grid-cols-5 gap-4 border-b border-[#040DBF]/10 bg-[#f6f8ff]/70 px-5 py-4">
+                    {Array.from({ length: 5 }).map((_, index) => (
                         <span key={index} className="admin-page-loading-line h-3 w-20 max-w-full" />
                     ))}
                 </div>
                 {Array.from({ length: 7 }).map((_, rowIndex) => (
                     <div
                         key={rowIndex}
-                        className="grid min-h-16 min-w-250 grid-cols-7 items-center gap-4 border-b border-[#040DBF]/10 px-5 py-3 last:border-b-0"
+                        className="grid min-h-16 min-w-180 grid-cols-5 items-center gap-4 border-b border-[#040DBF]/10 px-5 py-3 last:border-b-0"
                     >
-                        {Array.from({ length: 7 }).map((_, columnIndex) => (
+                        {Array.from({ length: 5 }).map((_, columnIndex) => (
                             <span
                                 key={columnIndex}
                                 className={`admin-page-loading-line h-3 ${columnIndex % 3 === 0 ? 'w-24' : columnIndex % 3 === 1 ? 'w-16' : 'w-32'} max-w-full`}

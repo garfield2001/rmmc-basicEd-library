@@ -4,17 +4,17 @@ namespace App\Support\Reports;
 
 class SimpleVisitReportPdf
 {
-    private const PAGE_WIDTH = 595;
+    private const PAGE_WIDTH = 612;
 
-    private const PAGE_HEIGHT = 842;
+    private const PAGE_HEIGHT = 792;
 
-    private const LEFT_MARGIN = 40;
+    private const LEFT_MARGIN = 36;
 
-    private const TOP_MARGIN = 802;
+    private const TOP_MARGIN = 748;
 
     private const LINE_HEIGHT = 13;
 
-    private const LINES_PER_PAGE = 55;
+    private const LINES_PER_PAGE = 52;
 
     public function make(array $report): string
     {
@@ -30,34 +30,35 @@ class SimpleVisitReportPdf
         $visitorType = ucfirst((string) ($report['summary']['visitor_type'] ?? 'visitor')).'s';
         $period = ($report['filters']['start_date'] ?? '').' to '.($report['filters']['end_date'] ?? '');
         $summary = $report['summary'];
+        $isStudent = ($summary['visitor_type'] ?? null) === 'student';
+        $groupHeader = $isStudent ? 'Year/section' : 'Department';
 
         $lines = [
             'Library Progress Report',
-            $visitorType.' - '.$schoolYear,
-            'Period: '.$period,
+            'School year: '.$schoolYear.'    Visitor type: '.$visitorType,
+            'From '.$period,
             '',
             'Visitors: '.$summary['visitors'].
                 '    Total visits: '.$summary['total_visits'].
-                '    Met required: '.$summary['met_required'].
-                '    Overall progress: '.$summary['progress_percent'].'%',
+                '    Required visits: '.$summary['required_visits'],
             '',
-            sprintf('%-14s %-30s %-22s %8s %10s %-18s', 'School ID', 'Name', 'Group', 'Visits', 'Progress', 'Last visit'),
-            str_repeat('-', 110),
+            sprintf('%-13s  %-28s  %-22s  %-9s  %-6s  %-8s', 'School ID', 'Name', $groupHeader, 'Visits', 'Excess', 'Progress'),
+            str_repeat('-', 96),
         ];
 
         foreach ($report['rows'] as $row) {
-            $group = $row['type'] === 'student'
-                ? trim(($row['year_level'] ?? '').' '.($row['section'] ?? ''))
+            $group = $isStudent
+                ? trim(($row['year_level'] ?? '').' / '.($row['section'] ?? ''), ' /')
                 : ($row['department'] ?? '');
 
             $lines[] = sprintf(
-                '%-14s %-30s %-22s %8s %10s %-18s',
-                $this->fit($row['school_id'] ?? '-', 14),
-                $this->fit($row['name'] ?? '-', 30),
+                '%-13s  %-28s  %-22s  %-9s  %-6s  %-8s',
+                $this->fit($row['school_id'] ?? '-', 13),
+                $this->fit($row['name'] ?? '-', 28),
                 $this->fit($group ?: '-', 22),
-                (string) $row['visit_count'],
+                $this->fit($row['visit_count'].' / '.$summary['required_visits'], 9),
+                (string) ($row['excess_visits'] ?? 0),
                 $row['progress_percent'].'%',
-                $this->fit($row['last_visit_at'] ?? '-', 18),
             );
         }
 

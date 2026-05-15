@@ -56,24 +56,21 @@ class ReportController extends Controller
 
         return response()->streamDownload(function () use ($report): void {
             $file = fopen('php://output', 'w');
+            $columns = $this->exportColumns($report);
 
             fwrite($file, "\xEF\xBB\xBF");
-            fputcsv($file, ['School Year', 'School ID', 'Name', 'Type', 'Year Level', 'Section', 'Department', 'Visits', 'Required Met', 'Progress', 'Last Visit']);
+            fputcsv($file, ['School year: '.($report['school_year']['name'] ?? 'No school year'), 'Visitor type: '.ucfirst((string) ($report['summary']['visitor_type'] ?? 'visitor')).'s']);
+            fputcsv($file, ['From '.$report['filters']['start_date'].' to '.$report['filters']['end_date']]);
+            fputcsv($file, [
+                'Visitors: '.$report['summary']['visitors'],
+                'Total Visits: '.$report['summary']['total_visits'],
+                'Required Visits: '.$report['summary']['required_visits'],
+            ]);
+            fputcsv($file, []);
+            fputcsv($file, array_column($columns, 'label'));
 
             foreach ($report['rows'] as $row) {
-                fputcsv($file, [
-                    $report['school_year']['name'] ?? null,
-                    $row['school_id'],
-                    $row['name'],
-                    $row['type'],
-                    $row['year_level'],
-                    $row['section'],
-                    $row['department'],
-                    $row['visit_count'],
-                    $row['required_met'] ? 'Yes' : 'No',
-                    $row['progress_percent'].'%',
-                    $row['last_visit_at'],
-                ]);
+                fputcsv($file, $this->exportRow($columns, $report, $row));
             }
 
             fclose($file);
@@ -89,6 +86,7 @@ class ReportController extends Controller
         return response()
             ->view('reports.visits-export-table', [
                 'report' => $report,
+                'columns' => $this->exportColumns($report),
             ])
             ->header('Content-Type', 'application/vnd.ms-excel; charset=UTF-8')
             ->header('Content-Disposition', 'attachment; filename="'.$this->exportFilename($report, 'xls').'"');
@@ -101,6 +99,7 @@ class ReportController extends Controller
         return response()
             ->view('reports.visits-export-table', [
                 'report' => $report,
+                'columns' => $this->exportColumns($report),
             ])
             ->header('Content-Type', 'application/msword; charset=UTF-8')
             ->header('Content-Disposition', 'attachment; filename="'.$this->exportFilename($report, 'doc').'"');
@@ -119,8 +118,40 @@ class ReportController extends Controller
     {
         return response()->view('reports.visits-print', [
             'report' => $reports->getData($request->validated()),
-            'pdfUrl' => route('admin.reports.visits.pdf', $request->query()),
         ]);
+    }
+
+    private function exportColumns(array $report): array
+    {
+        $isStudent = ($report['summary']['visitor_type'] ?? null) === 'student';
+
+        return array_values(array_filter([
+            ['key' => 'school_id', 'label' => 'School ID', 'width' => '82pt'],
+            ['key' => 'name', 'label' => 'Name', 'width' => '150pt'],
+            $isStudent
+                ? ['key' => 'year_section', 'label' => 'Year/Section', 'width' => '110pt']
+                : ['key' => 'department', 'label' => 'Department', 'width' => '130pt'],
+            ['key' => 'visits', 'label' => 'Visits', 'width' => '64pt'],
+            ['key' => 'excess_visits', 'label' => 'Excess', 'width' => '58pt'],
+            ['key' => 'progress', 'label' => 'Progress', 'width' => '64pt'],
+        ]));
+    }
+
+    private function exportRow(array $columns, array $report, array $row): array
+    {
+        return array_map(function (array $column) use ($report, $row): string|int|null {
+            return match ($column['key']) {
+                'school_year' => $report['school_year']['name'] ?? null,
+                'school_id' => $row['school_id'],
+                'name' => $row['name'],
+                'year_section' => trim(collect([$row['year_level'] ?? null, $row['section'] ?? null])->filter()->implode(' - ')) ?: null,
+                'department' => $row['department'],
+                'visits' => $row['visit_count'].' / '.($report['summary']['required_visits'] ?? 0),
+                'excess_visits' => $row['excess_visits'] ?? 0,
+                'progress' => $row['progress_percent'].'%',
+                default => null,
+            };
+        }, $columns);
     }
 
     private function exportFilename(array $report, string $extension): string

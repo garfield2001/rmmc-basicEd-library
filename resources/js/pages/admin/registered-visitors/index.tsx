@@ -1,5 +1,4 @@
 import { VisitorFormModal } from '@/components/admin/registered-visitors/visitor-form-modal';
-import { VisitorsFilterBar } from '@/components/admin/registered-visitors/visitors-filter-bar';
 import { VisitorsTable } from '@/components/admin/registered-visitors/visitors-table';
 import { Button } from '@/components/ui/button';
 import type { RowsPerPageOption } from '@/components/ui/pagination-controls';
@@ -287,29 +286,25 @@ export default function VisitorsIndex({ visitors, filters, filterOptions }: Visi
                             }
                         />
 
-                        <VisitorsFilterBar
+                        <VisitorsTable
+                            visitors={visitors}
                             activeType={activeType}
+                            search={search}
                             yearLevel={yearLevel}
                             section={section}
                             department={department}
                             yearLevels={filterOptions.yearLevels}
                             sections={availableSections}
                             departments={filterOptions.departments}
-                            onYearLevelChange={changeYearLevel}
-                            onSectionChange={setSection}
-                            onDepartmentChange={setDepartment}
-                            onTypeChange={changeType}
-                        />
-
-                        <VisitorsTable
-                            visitors={visitors}
-                            activeType={activeType}
-                            search={search}
                             rowsPerPage={perPage}
                             sort={sort}
                             direction={direction}
                             isLoading={tableLoading}
                             onSearchChange={setSearch}
+                            onTypeChange={changeType}
+                            onYearLevelChange={changeYearLevel}
+                            onSectionChange={setSection}
+                            onDepartmentChange={setDepartment}
                             onRowsPerPageChange={setPerPage}
                             onSortChange={changeSort}
                             onSortClear={clearSort}

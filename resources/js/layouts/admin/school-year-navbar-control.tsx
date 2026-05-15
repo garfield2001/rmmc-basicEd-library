@@ -7,7 +7,8 @@ import { useForm, usePage } from '@inertiajs/react';
 import { AlertTriangle, CalendarClock, CheckCircle2, Pencil, Plus, Save } from 'lucide-react';
 import type React from 'react';
 import type { FormEventHandler } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface SchoolYearForm {
     [key: string]: string | number | boolean;
@@ -32,21 +33,90 @@ export function SchoolYearNavbarControl() {
     const { schoolYear, schoolYears } = usePage<SharedData>().props;
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [previewOpen, setPreviewOpen] = useState(false);
+    const [canPortal, setCanPortal] = useState(false);
+    const [previewPosition, setPreviewPosition] = useState({ top: 0, right: 0 });
+    const triggerRef = useRef<HTMLDivElement | null>(null);
+    const closeTimerRef = useRef<number | null>(null);
+
+    useEffect(() => {
+        setCanPortal(true);
+    }, []);
+
+    useEffect(() => {
+        if (!previewOpen) {
+            return;
+        }
+
+        const updatePosition = () => {
+            const rect = triggerRef.current?.getBoundingClientRect();
+
+            if (!rect) {
+                return;
+            }
+
+            setPreviewPosition({
+                top: rect.bottom + 8,
+                right: Math.max(16, window.innerWidth - rect.right),
+            });
+        };
+
+        updatePosition();
+        window.addEventListener('resize', updatePosition);
+        window.addEventListener('scroll', updatePosition, true);
+
+        return () => {
+            window.removeEventListener('resize', updatePosition);
+            window.removeEventListener('scroll', updatePosition, true);
+        };
+    }, [previewOpen]);
+
+    useEffect(() => {
+        return () => {
+            if (closeTimerRef.current) {
+                window.clearTimeout(closeTimerRef.current);
+            }
+        };
+    }, []);
+
+    const openPreview = () => {
+        if (closeTimerRef.current) {
+            window.clearTimeout(closeTimerRef.current);
+            closeTimerRef.current = null;
+        }
+
+        setPreviewOpen(true);
+    };
+
+    const closePreviewSoon = () => {
+        if (closeTimerRef.current) {
+            window.clearTimeout(closeTimerRef.current);
+        }
+
+        closeTimerRef.current = window.setTimeout(() => {
+            setPreviewOpen(false);
+            closeTimerRef.current = null;
+        }, 120);
+    };
 
     return (
         <>
-            {previewOpen && !detailsOpen && (
-                <div className="pointer-events-none fixed inset-0 z-[45] bg-[#010440]/10 backdrop-blur-[3px] transition" aria-hidden="true" />
-            )}
+            {canPortal &&
+                previewOpen &&
+                !detailsOpen &&
+                createPortal(<SchoolYearPreviewOverlay position={previewPosition} schoolYear={schoolYear} onOpen={openPreview} onClose={closePreviewSoon} onDetailsOpen={() => {
+                    setPreviewOpen(false);
+                    setDetailsOpen(true);
+                }} />, document.body)}
 
             <div
-                className="group relative z-[50]"
-                onMouseEnter={() => setPreviewOpen(true)}
-                onMouseLeave={() => setPreviewOpen(false)}
-                onFocus={() => setPreviewOpen(true)}
+                ref={triggerRef}
+                className="group relative z-[60]"
+                onMouseEnter={openPreview}
+                onMouseLeave={closePreviewSoon}
+                onFocus={openPreview}
                 onBlur={(event) => {
                     if (!event.currentTarget.contains(event.relatedTarget)) {
-                        setPreviewOpen(false);
+                        closePreviewSoon();
                     }
                 }}
             >
@@ -64,43 +134,60 @@ export function SchoolYearNavbarControl() {
                     <span className="admin-school-year-value px-3 font-semibold text-[#010440]">{schoolYear?.name ?? 'Not configured'}</span>
                 </button>
 
-                <div className="pointer-events-none absolute top-full right-0 z-[60] w-80 pt-2 opacity-0 transition group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100">
-                    <div className="admin-school-year-popover rounded-lg border border-[#040DBF]/10 bg-white p-4 text-sm shadow-xl shadow-[#040DBF]/10">
-                        <div className="flex items-start gap-3">
-                            <span className="admin-school-year-popover-icon flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#f6f8ff] text-[#040DBF]">
-                                <CalendarClock className="size-5" />
-                            </span>
-                            <div className="min-w-0">
-                                <p className="font-semibold text-[#010440]">{schoolYear?.name ?? 'No active school year'}</p>
-                                <p className="mt-1 text-xs leading-5 text-[#020659]/70">
-                                    {schoolYear
-                                        ? `${formatDisplayDate(schoolYear.starts_at)} to ${formatDisplayDate(schoolYear.ends_at)}`
-                                        : 'Add a school year before logging student visits.'}
-                                </p>
-                            </div>
-                        </div>
-                        {schoolYear && (
-                            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                                <MiniStat label="Students" value={schoolYear.student_required_visits} />
-                                <MiniStat label="Employees" value={schoolYear.employee_required_visits} />
-                            </div>
-                        )}
-                        <Button
-                            type="button"
-                            size="sm"
-                            className="mt-4 w-full"
-                            onClick={() => {
-                                setPreviewOpen(false);
-                                setDetailsOpen(true);
-                            }}
-                        >
-                            More details
-                        </Button>
-                    </div>
-                </div>
             </div>
 
             <SchoolYearDetailsDialog open={detailsOpen} schoolYears={schoolYears} onOpenChange={setDetailsOpen} />
+        </>
+    );
+}
+
+function SchoolYearPreviewOverlay({
+    position,
+    schoolYear,
+    onOpen,
+    onClose,
+    onDetailsOpen,
+}: {
+    position: { top: number; right: number };
+    schoolYear: SharedData['schoolYear'];
+    onOpen: () => void;
+    onClose: () => void;
+    onDetailsOpen: () => void;
+}) {
+    return (
+        <>
+            <div className="pointer-events-none fixed inset-0 z-[55] bg-[#010440]/10 backdrop-blur-[3px] transition" aria-hidden="true" />
+            <div
+                className="fixed z-[70] w-80"
+                style={{ top: position.top, right: position.right }}
+                onMouseEnter={onOpen}
+                onMouseLeave={onClose}
+            >
+                <div className="admin-school-year-popover rounded-lg border border-[#040DBF]/10 bg-white p-4 text-sm shadow-xl shadow-[#040DBF]/10">
+                    <div className="flex items-start gap-3">
+                        <span className="admin-school-year-popover-icon flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#f6f8ff] text-[#040DBF]">
+                            <CalendarClock className="size-5" />
+                        </span>
+                        <div className="min-w-0">
+                            <p className="font-semibold text-[#010440]">{schoolYear?.name ?? 'No active school year'}</p>
+                            <p className="mt-1 text-xs leading-5 text-[#020659]/70">
+                                {schoolYear
+                                    ? `${formatDisplayDate(schoolYear.starts_at)} to ${formatDisplayDate(schoolYear.ends_at)}`
+                                    : 'Add a school year before logging student visits.'}
+                            </p>
+                        </div>
+                    </div>
+                    {schoolYear && (
+                        <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                            <MiniStat label="Students" value={schoolYear.student_required_visits} />
+                            <MiniStat label="Employees" value={schoolYear.employee_required_visits} />
+                        </div>
+                    )}
+                    <Button type="button" size="sm" className="mt-4 w-full" onClick={onDetailsOpen}>
+                        More details
+                    </Button>
+                </div>
+            </div>
         </>
     );
 }
