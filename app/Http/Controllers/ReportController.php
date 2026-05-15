@@ -8,7 +8,9 @@ use App\Models\SchoolYear;
 use App\Services\Reports\VisitReportService;
 use App\Services\SchoolYears\SchoolYearSectionService;
 use App\Support\Academics\AcademicLevels;
+use App\Support\Reports\SimpleVisitReportPdf;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -55,6 +57,7 @@ class ReportController extends Controller
         return response()->streamDownload(function () use ($report): void {
             $file = fopen('php://output', 'w');
 
+            fwrite($file, "\xEF\xBB\xBF");
             fputcsv($file, ['School Year', 'School ID', 'Name', 'Type', 'Year Level', 'Section', 'Department', 'Visits', 'Required Met', 'Progress', 'Last Visit']);
 
             foreach ($report['rows'] as $row) {
@@ -74,35 +77,59 @@ class ReportController extends Controller
             }
 
             fclose($file);
-        }, 'library-visits.csv', [
-            'Content-Type' => 'text/csv',
+        }, $this->exportFilename($report, 'csv'), [
+            'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
     }
 
     public function exportExcel(ReportFilterRequest $request, VisitReportService $reports): HttpResponse
     {
+        $report = $reports->getData($request->validated());
+
         return response()
             ->view('reports.visits-export-table', [
-                'report' => $reports->getData($request->validated()),
+                'report' => $report,
             ])
-            ->header('Content-Type', 'application/vnd.ms-excel')
-            ->header('Content-Disposition', 'attachment; filename="library-visits.xls"');
+            ->header('Content-Type', 'application/vnd.ms-excel; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="'.$this->exportFilename($report, 'xls').'"');
     }
 
     public function exportWord(ReportFilterRequest $request, VisitReportService $reports): HttpResponse
     {
+        $report = $reports->getData($request->validated());
+
         return response()
             ->view('reports.visits-export-table', [
-                'report' => $reports->getData($request->validated()),
+                'report' => $report,
             ])
-            ->header('Content-Type', 'application/msword')
-            ->header('Content-Disposition', 'attachment; filename="library-visits.doc"');
+            ->header('Content-Type', 'application/msword; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="'.$this->exportFilename($report, 'doc').'"');
+    }
+
+    public function exportPdf(ReportFilterRequest $request, VisitReportService $reports, SimpleVisitReportPdf $pdf): HttpResponse
+    {
+        $report = $reports->getData($request->validated());
+
+        return response($pdf->make($report))
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'attachment; filename="'.$this->exportFilename($report, 'pdf').'"');
     }
 
     public function print(ReportFilterRequest $request, VisitReportService $reports): HttpResponse
     {
         return response()->view('reports.visits-print', [
             'report' => $reports->getData($request->validated()),
+            'pdfUrl' => route('admin.reports.visits.pdf', $request->query()),
         ]);
+    }
+
+    private function exportFilename(array $report, string $extension): string
+    {
+        $schoolYear = Str::slug($report['school_year']['name'] ?? 'no-school-year');
+        $visitorType = Str::slug($report['summary']['visitor_type'] ?? 'visitors');
+        $startDate = $report['filters']['start_date'] ?? 'start';
+        $endDate = $report['filters']['end_date'] ?? 'end';
+
+        return "library-visits-{$schoolYear}-{$visitorType}-{$startDate}-to-{$endDate}.{$extension}";
     }
 }

@@ -6,7 +6,9 @@
     <style>
         body { font-family: Arial, sans-serif; color: #111827; }
         h1 { font-size: 22px; margin-bottom: 4px; }
-        p { margin: 0 0 16px; color: #4b5563; }
+        p { margin: 0 0 8px; color: #4b5563; }
+        .summary { margin: 16px 0; }
+        .summary td { font-weight: 700; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th, td { border: 1px solid #d1d5db; padding: 7px; text-align: left; }
         th { background: #f3f4f6; }
@@ -14,8 +16,27 @@
 </head>
 <body>
     <h1>Library Progress Report</h1>
-    <p>{{ ucfirst($report['summary']['visitor_type']) }}s · {{ $report['school_year']['name'] ?? 'No school year' }}</p>
+    <p>{{ ucfirst($report['summary']['visitor_type']) }}s &middot; {{ $report['school_year']['name'] ?? 'No school year' }}</p>
     <p>{{ $report['filters']['start_date'] }} to {{ $report['filters']['end_date'] }}</p>
+
+    <table class="summary">
+        <tbody>
+            <tr>
+                <th>Visitors</th>
+                <th>Total Visits</th>
+                <th>Met Required</th>
+                <th>Required Visits</th>
+                <th>Overall Progress</th>
+            </tr>
+            <tr>
+                <td>{{ $report['summary']['visitors'] }}</td>
+                <td>{{ $report['summary']['total_visits'] }}</td>
+                <td>{{ $report['summary']['met_required'] }}</td>
+                <td>{{ $report['summary']['required_visits'] }}</td>
+                <td>{{ $report['summary']['progress_percent'] }}%</td>
+            </tr>
+        </tbody>
+    </table>
 
     <table>
         <thead>

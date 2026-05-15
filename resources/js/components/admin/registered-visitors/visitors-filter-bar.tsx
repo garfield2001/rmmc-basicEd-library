@@ -37,8 +37,8 @@ export function VisitorsFilterBar({
 
     return (
         <section className="min-h-30 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div className="admin-segmented-tabs">
+            <div className="mx-auto flex max-w-4xl flex-col items-center gap-4 lg:flex-row lg:justify-center">
+                <div className="admin-segmented-tabs w-full sm:w-72">
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = activeType === tab.value;
@@ -57,7 +57,7 @@ export function VisitorsFilterBar({
                     })}
                 </div>
 
-                <div className="flex flex-1 flex-col gap-3 lg:max-w-3xl">
+                <div className="flex w-full flex-col gap-3 lg:max-w-2xl">
                     {activeType === 'student' ? (
                         <div className="grid gap-3 sm:grid-cols-2">
                             <FilterSelect value={yearLevel} options={yearLevels} placeholder="Select year level" onChange={onYearLevelChange} />
@@ -70,7 +70,7 @@ export function VisitorsFilterBar({
                             />
                         </div>
                     ) : (
-                        <div className="grid gap-3">
+                        <div className="mx-auto grid w-full gap-3 sm:max-w-sm">
                             <FilterSelect value={department} options={departments} placeholder="Select department" onChange={onDepartmentChange} />
                         </div>
                     )}

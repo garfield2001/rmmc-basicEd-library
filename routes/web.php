@@ -8,8 +8,8 @@ use App\Http\Controllers\AdminSettingsController;
 use App\Http\Controllers\AdminVisitMonitorController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\RegisteredVisitorController;
 use App\Http\Controllers\LibraryVisitController;
+use App\Http\Controllers\RegisteredVisitorController;
 use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
@@ -45,5 +45,6 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('admin/reports/visits.csv', [ReportController::class, 'exportCsv'])->name('admin.reports.visits.csv');
     Route::get('admin/reports/visits.xls', [ReportController::class, 'exportExcel'])->name('admin.reports.visits.xls');
     Route::get('admin/reports/visits.doc', [ReportController::class, 'exportWord'])->name('admin.reports.visits.doc');
+    Route::get('admin/reports/visits.pdf', [ReportController::class, 'exportPdf'])->name('admin.reports.visits.pdf');
     Route::get('admin/reports/visits/print', [ReportController::class, 'print'])->name('admin.reports.visits.print');
 });

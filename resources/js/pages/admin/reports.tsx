@@ -1,3 +1,4 @@
+import { ReportExportActions } from '@/components/admin/reports/report-export-actions';
 import { Button } from '@/components/ui/button';
 import { formatDisplayDate } from '@/components/ui/date-input';
 import { PaginationControls } from '@/components/ui/pagination-controls';
@@ -16,11 +17,7 @@ import {
     CalendarDays,
     CheckCircle2,
     ChevronsUpDown,
-    Download,
-    FileSpreadsheet,
-    FileText,
     GraduationCap,
-    Printer,
     RotateCcw,
     Target,
     UsersRound,
@@ -130,6 +127,7 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
     const excelUrl = `/admin/reports/visits.xls${queryString ? `?${queryString}` : ''}`;
     const wordUrl = `/admin/reports/visits.doc${queryString ? `?${queryString}` : ''}`;
     const csvUrl = `/admin/reports/visits.csv${queryString ? `?${queryString}` : ''}`;
+    const pdfUrl = `/admin/reports/visits.pdf${queryString ? `?${queryString}` : ''}`;
     const printUrl = `/admin/reports/visits/print${queryString ? `?${queryString}` : ''}`;
 
     useEffect(() => {
@@ -480,12 +478,13 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
 
                                 <section className="admin-surface overflow-hidden rounded-lg border border-[#040DBF]/10 bg-white/95 shadow-sm">
                                     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#040DBF]/10 bg-[#f6f8ff] px-5 py-3">
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <ExportButton href={excelUrl} label="Excel" icon={FileSpreadsheet} />
-                                            <ExportButton href={wordUrl} label="Word" icon={FileText} />
-                                            <ExportButton href={csvUrl} label="CSV" icon={Download} />
-                                            <ExportButton href={printUrl} label="Print" icon={Printer} external />
-                                        </div>
+                                        <ReportExportActions
+                                            excelUrl={excelUrl}
+                                            wordUrl={wordUrl}
+                                            csvUrl={csvUrl}
+                                            pdfUrl={pdfUrl}
+                                            printUrl={printUrl}
+                                        />
                                         {sortColumn && (
                                             <Button type="button" variant="outline" size="sm" onClick={clearSort}>
                                                 <RotateCcw className="size-4" />
@@ -929,17 +928,6 @@ function ProgressBar({ value, className }: { value: number; className?: string }
         <div className={cn('h-2 overflow-hidden rounded-full bg-[#040DBF]/10', className)}>
             <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
         </div>
-    );
-}
-
-function ExportButton({ href, label, icon: Icon, external = false }: { href: string; label: string; icon: typeof Download; external?: boolean }) {
-    return (
-        <Button asChild variant="outline" size="sm">
-            <a href={href} target={external ? '_blank' : undefined} rel={external ? 'noreferrer' : undefined}>
-                <Icon className="size-4" />
-                {label}
-            </a>
-        </Button>
     );
 }
 

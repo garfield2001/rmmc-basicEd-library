@@ -36,11 +36,11 @@ export function SchoolYearNavbarControl() {
     return (
         <>
             {previewOpen && !detailsOpen && (
-                <div className="pointer-events-none fixed inset-0 z-30 bg-[#010440]/10 backdrop-blur-[3px] transition lg:block" aria-hidden="true" />
+                <div className="pointer-events-none fixed inset-0 z-[45] bg-[#010440]/10 backdrop-blur-[3px] transition" aria-hidden="true" />
             )}
 
             <div
-                className="group relative z-40"
+                className="group relative z-[50]"
                 onMouseEnter={() => setPreviewOpen(true)}
                 onMouseLeave={() => setPreviewOpen(false)}
                 onFocus={() => setPreviewOpen(true)}
@@ -64,7 +64,7 @@ export function SchoolYearNavbarControl() {
                     <span className="admin-school-year-value px-3 font-semibold text-[#010440]">{schoolYear?.name ?? 'Not configured'}</span>
                 </button>
 
-                <div className="pointer-events-none absolute top-full right-0 z-50 w-80 pt-2 opacity-0 transition group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100">
+                <div className="pointer-events-none absolute top-full right-0 z-[60] w-80 pt-2 opacity-0 transition group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100">
                     <div className="admin-school-year-popover rounded-lg border border-[#040DBF]/10 bg-white p-4 text-sm shadow-xl shadow-[#040DBF]/10">
                         <div className="flex items-start gap-3">
                             <span className="admin-school-year-popover-icon flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#f6f8ff] text-[#040DBF]">

@@ -34,7 +34,26 @@
                 border-radius: 8px;
                 color: #ffffff;
                 cursor: pointer;
+                display: inline-flex;
+                font-size: 14px;
                 padding: 10px 14px;
+                text-decoration: none;
+            }
+
+            a[role='button'] {
+                background: #18181b;
+                border-radius: 8px;
+                color: #ffffff;
+                display: inline-flex;
+                font-size: 14px;
+                padding: 10px 14px;
+                text-decoration: none;
+            }
+
+            .actions {
+                display: flex;
+                gap: 8px;
+                justify-content: flex-end;
             }
 
             table {
@@ -67,7 +86,7 @@
             }
 
             @media print {
-                button {
+                .actions {
                     display: none;
                 }
 
@@ -84,7 +103,10 @@
                 <p>{{ ucfirst($report['summary']['visitor_type']) }}s &middot; {{ $report['school_year']['name'] ?? 'No school year' }}</p>
                 <p>{{ $report['filters']['start_date'] }} to {{ $report['filters']['end_date'] }}</p>
             </div>
-            <button onclick="window.print()">Print / Save as PDF</button>
+            <div class="actions">
+                <button onclick="window.print()">Print</button>
+                <a href="{{ $pdfUrl }}" role="button">Save PDF</a>
+            </div>
         </header>
 
         <section class="summary">
