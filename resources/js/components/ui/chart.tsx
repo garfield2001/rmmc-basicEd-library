@@ -10,6 +10,16 @@ export type ChartConfig = Record<
     }
 >;
 
+type ChartTooltipPayloadItem = {
+    dataKey?: string | number;
+    name?: string | number;
+    color?: string;
+    value?: string | number;
+    payload?: {
+        fill?: string;
+    };
+};
+
 const ChartContext = React.createContext<{ config: ChartConfig } | null>(null);
 
 function useChart() {
@@ -35,9 +45,9 @@ function ChartContainer({
 }) {
     const uniqueId = React.useId();
     const chartId = `chart-${id ?? uniqueId.replace(/:/g, '')}`;
-    const chartVars = Object.entries(config).reduce<React.CSSProperties>((styles, [key, item]) => {
+    const chartVars = Object.entries(config).reduce<Record<string, string>>((styles, [key, item]) => {
         if (item.color) {
-            styles[`--color-${key}` as keyof React.CSSProperties] = item.color;
+            styles[`--color-${key}`] = item.color;
         }
 
         return styles;
@@ -68,7 +78,11 @@ function ChartTooltipContent({
     label,
     className,
     hideLabel = false,
-}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> & {
+}: {
+    active?: boolean;
+    payload?: ChartTooltipPayloadItem[];
+    label?: React.ReactNode;
+    className?: string;
     hideLabel?: boolean;
 }) {
     const { config } = useChart();

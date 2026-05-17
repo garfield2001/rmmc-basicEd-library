@@ -2,9 +2,9 @@
 
 namespace App\Services\SchoolYears;
 
+use App\Models\EmployeeProfile;
 use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
-use App\Models\EmployeeProfile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

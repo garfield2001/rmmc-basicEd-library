@@ -1,4 +1,4 @@
-import { Activity, FileText, LayoutDashboard, UsersRound } from 'lucide-react';
+import { Activity, FileText, History, LayoutDashboard, UsersRound } from 'lucide-react';
 import type { AdminNavItem } from './admin-layout.types';
 
 export const sidebarCollapsedStorageKey = 'rmmc-admin-sidebar-collapsed-v1';
@@ -19,6 +19,12 @@ export const navItems: AdminNavItem[] = [
         label: 'Live Visits',
         href: '/admin/live-visits',
         icon: Activity,
+    },
+    {
+        key: 'visits-history',
+        label: 'Visits History',
+        href: '/admin/visits-history',
+        icon: History,
     },
     {
         key: 'visitors',

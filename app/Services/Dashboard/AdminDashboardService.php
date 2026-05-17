@@ -40,17 +40,22 @@ class AdminDashboardService
                 'employees' => $employeeVisitors,
             ],
             'charts' => [
-                'visitsByDay' => $this->visitsByDay($schoolYear?->id),
+                'visitsByDay' => [
+                    'last7' => $this->visitsByDay($schoolYear?->id, 7),
+                    'last14' => $this->visitsByDay($schoolYear?->id, 14),
+                    'lastMonth' => $this->visitsByDay($schoolYear?->id, 30),
+                ],
                 'studentVisitsByYearLevel' => $this->studentVisitsByYearLevel($schoolYear?->id),
                 'studentVisitsBySection' => $this->studentVisitsBySection($schoolYear?->id),
+                'employeeVisitsByDepartment' => $this->employeeVisitsByDepartment($schoolYear?->id),
                 'requiredProgress' => $this->requiredProgress($schoolYear),
             ],
         ];
     }
 
-    private function visitsByDay(?int $schoolYearId): array
+    private function visitsByDay(?int $schoolYearId, int $days): array
     {
-        $start = now()->subDays(13)->startOfDay();
+        $start = now()->subDays($days - 1)->startOfDay();
         $visits = LibraryVisit::query()
             ->with('visitor:id,type')
             ->where('visited_at', '>=', $start)
@@ -58,9 +63,9 @@ class AdminDashboardService
             ->get()
             ->groupBy(fn (LibraryVisit $visit): string => $visit->visited_at->toDateString());
 
-        return collect(range(0, 13))
-            ->map(function (int $daysAgo) use ($visits): array {
-                $date = now()->subDays(13 - $daysAgo);
+        return collect(range(0, $days - 1))
+            ->map(function (int $daysAgo) use ($visits, $days): array {
+                $date = now()->subDays(($days - 1) - $daysAgo);
                 $dailyVisits = $visits->get($date->toDateString(), collect());
                 $studentVisits = $dailyVisits->filter(fn (LibraryVisit $visit): bool => $visit->visitor?->type === RegisteredVisitor::TYPE_STUDENT)->count();
                 $employeeVisits = $dailyVisits->filter(fn (LibraryVisit $visit): bool => $visit->visitor?->type === RegisteredVisitor::TYPE_EMPLOYEE)->count();
@@ -94,7 +99,6 @@ class AdminDashboardService
             ])
             ->sortByDesc('value')
             ->values()
-            ->take(6)
             ->all();
     }
 
@@ -116,7 +120,31 @@ class AdminDashboardService
             ])
             ->sortByDesc('value')
             ->values()
-            ->take(8)
+            ->all();
+    }
+
+    private function employeeVisitsByDepartment(?int $schoolYearId): array
+    {
+        /** @var Collection<int, LibraryVisit> $visits */
+        $visits = LibraryVisit::query()
+            ->with('visitor.employeeProfiles')
+            ->when($schoolYearId, fn ($query) => $query->where('school_year_id', $schoolYearId), fn ($query) => $query->whereRaw('1 = 0'))
+            ->whereHas('visitor', fn ($query) => $query->where('type', RegisteredVisitor::TYPE_EMPLOYEE))
+            ->get();
+
+        return $visits
+            ->groupBy(function (LibraryVisit $visit): string {
+                $employeeProfile = $visit->visitor?->employeeProfiles
+                    ?->firstWhere('school_year_id', $visit->school_year_id);
+
+                return $employeeProfile?->department ?? 'Unassigned';
+            })
+            ->map(fn (Collection $group, string $label): array => [
+                'label' => $label,
+                'value' => $group->count(),
+            ])
+            ->sortByDesc('value')
+            ->values()
             ->all();
     }
 

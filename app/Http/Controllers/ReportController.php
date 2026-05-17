@@ -127,13 +127,13 @@ class ReportController extends Controller
 
         return array_values(array_filter([
             ['key' => 'school_id', 'label' => 'School ID', 'width' => '82pt'],
-            ['key' => 'name', 'label' => 'Name', 'width' => '150pt'],
+            ['key' => 'name', 'label' => 'Name', 'width' => '180pt'],
             $isStudent
-                ? ['key' => 'year_section', 'label' => 'Year/Section', 'width' => '110pt']
-                : ['key' => 'department', 'label' => 'Department', 'width' => '130pt'],
-            ['key' => 'visits', 'label' => 'Visits', 'width' => '64pt'],
+                ? ['key' => 'year_section', 'label' => 'Year/Section', 'width' => '150pt']
+                : ['key' => 'department', 'label' => 'Department', 'width' => '150pt'],
+            ['key' => 'visits', 'label' => 'Visits', 'width' => '72pt'],
             ['key' => 'excess_visits', 'label' => 'Excess', 'width' => '58pt'],
-            ['key' => 'progress', 'label' => 'Progress', 'width' => '64pt'],
+            ['key' => 'progress', 'label' => 'Progress', 'width' => '72pt'],
         ]));
     }
 
@@ -144,7 +144,7 @@ class ReportController extends Controller
                 'school_year' => $report['school_year']['name'] ?? null,
                 'school_id' => $row['school_id'],
                 'name' => $row['name'],
-                'year_section' => trim(collect([$row['year_level'] ?? null, $row['section'] ?? null])->filter()->implode(' - ')) ?: null,
+                'year_section' => ($row['year_section_label'] ?? trim(collect([$row['year_level'] ?? null, $row['section'] ?? null])->filter()->implode(' - '))) ?: null,
                 'department' => $row['department'],
                 'visits' => $row['visit_count'].' / '.($report['summary']['required_visits'] ?? 0),
                 'excess_visits' => $row['excess_visits'] ?? 0,

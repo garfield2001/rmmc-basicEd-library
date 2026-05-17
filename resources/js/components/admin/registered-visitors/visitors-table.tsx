@@ -1,13 +1,13 @@
-import { VisitorAvatar } from '@/components/ui/visitor-avatar';
 import { PaginationControls, type RowsPerPageOption } from '@/components/ui/pagination-controls';
 import { SelectInput } from '@/components/ui/select-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { VirtualTableSpacerRow } from '@/components/ui/virtual-table-spacer-row';
+import { VisitorAvatar } from '@/components/ui/visitor-avatar';
 import { useViewportHeight, useWindowVirtualRows } from '@/hooks/use-window-virtual-rows';
 import { cn } from '@/lib/utils';
 import type { Paginated } from '@/types/pagination';
 import type { RegisteredVisitorRow } from '@/types/registered-visitors';
-import { ArrowDown, ArrowUp, BriefcaseBusiness, ChevronsUpDown, GraduationCap, Pencil, RotateCcw, Search } from 'lucide-react';
+import { AlertTriangle, ArrowDown, ArrowUp, BriefcaseBusiness, ChevronsUpDown, GraduationCap, Pencil, RotateCcw, Search, X } from 'lucide-react';
 import { useMemo, useRef } from 'react';
 
 type VisitorType = 'student' | 'employee';
@@ -46,6 +46,7 @@ interface VisitorsTableProps {
     onEdit: (visitor: RegisteredVisitorRow) => void;
     onPrevious: () => void;
     onNext: () => void;
+    onPageChange: (page: number) => void;
 }
 
 export function VisitorsTable({
@@ -73,6 +74,7 @@ export function VisitorsTable({
     onEdit,
     onPrevious,
     onNext,
+    onPageChange,
 }: VisitorsTableProps) {
     const currentPage = visitors.meta?.current_page ?? visitors.current_page ?? 1;
     const totalPages = visitors.meta?.last_page ?? visitors.last_page ?? 1;
@@ -109,7 +111,7 @@ export function VisitorsTable({
 
     return (
         <div className="relative rounded-xl border border-zinc-200 bg-white shadow-sm" aria-busy={isLoading}>
-            <div className="space-y-4 border-b border-zinc-200 bg-zinc-50 px-5 py-4">
+            <div className="space-y-3 border-b border-zinc-200 bg-zinc-50 px-4 py-3 sm:px-5">
                 <div>
                     <div className="flex items-center gap-2">
                         <GraduationCap className="size-5 text-[#030A8C]" />
@@ -123,9 +125,9 @@ export function VisitorsTable({
                             : 'Rows are grouped by active employee details for the selected school year.'}
                     </p>
                 </div>
-                <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-                        <div className="admin-segmented-tabs w-full sm:w-72">
+                <div className="space-y-3">
+                    <div className="grid gap-3 lg:grid-cols-[minmax(12rem,18rem)_minmax(0,1fr)] lg:items-center">
+                        <div className="admin-segmented-tabs w-full">
                             {visitorTabs.map((tab) => {
                                 const Icon = tab.icon;
                                 const isActive = activeType === tab.value;
@@ -144,31 +146,46 @@ export function VisitorsTable({
                             })}
                         </div>
                         {activeType === 'student' ? (
-                            <div className="grid gap-3 sm:grid-cols-2 lg:w-[26rem]">
-                                <FilterSelect value={yearLevel} options={yearLevels} placeholder="Select year level" onChange={onYearLevelChange} />
+                            <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+                                <FilterSelect value={yearLevel} options={yearLevels} placeholder="All year levels" onChange={onYearLevelChange} />
                                 <FilterSelect
                                     value={section}
                                     options={sections}
-                                    placeholder={yearLevel ? 'Choose section' : 'Choose year level first'}
+                                    placeholder={yearLevel ? 'All sections' : 'Choose year level first'}
                                     disabled={!yearLevel}
                                     onChange={onSectionChange}
                                 />
                             </div>
                         ) : (
-                            <div className="lg:w-64">
-                                <FilterSelect value={department} options={departments} placeholder="Select department" onChange={onDepartmentChange} />
+                            <div className="min-w-0">
+                                <FilterSelect
+                                    value={department}
+                                    options={departments}
+                                    placeholder="Select department"
+                                    onChange={onDepartmentChange}
+                                />
                             </div>
                         )}
                     </div>
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                        <div className="relative w-full sm:w-96">
+                    <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                        <div className="relative min-w-0">
                             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
                             <input
                                 value={search}
                                 onChange={(event) => onSearchChange(event.target.value)}
                                 placeholder={`Search ${activeType === 'student' ? 'students' : 'employees'}`}
-                                className="h-10 w-full rounded-lg border border-zinc-300 bg-white pr-3 pl-9 text-sm outline-none transition focus:border-zinc-500 focus:ring-4 focus:ring-zinc-100"
+                                className="h-10 w-full rounded-lg border border-zinc-300 bg-white pr-9 pl-9 text-sm transition outline-none focus:border-zinc-500 focus:ring-4 focus:ring-zinc-100"
                             />
+                            {search && (
+                                <button
+                                    type="button"
+                                    onClick={() => onSearchChange('')}
+                                    className="absolute top-1/2 right-2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700"
+                                    title="Clear search"
+                                >
+                                    <X className="size-4" />
+                                </button>
+                            )}
                         </div>
                         {sort !== 'created_at' && (
                             <button
@@ -187,11 +204,23 @@ export function VisitorsTable({
                 <Table className={activeType === 'student' ? 'min-w-170' : 'min-w-140'}>
                     <TableHeader className="bg-zinc-50">
                         <TableRow>
-                            <SortableHead column="name" label={activeType === 'student' ? 'Student' : 'Employee'} sort={sort} direction={direction} onSortChange={onSortChange} />
+                            <SortableHead
+                                column="name"
+                                label={activeType === 'student' ? 'Student' : 'Employee'}
+                                sort={sort}
+                                direction={direction}
+                                onSortChange={onSortChange}
+                            />
                             <SortableHead column="school_id" label="School ID" sort={sort} direction={direction} onSortChange={onSortChange} />
                             {activeType === 'student' ? (
                                 <>
-                                    <SortableHead column="year_level" label="Year level" sort={sort} direction={direction} onSortChange={onSortChange} />
+                                    <SortableHead
+                                        column="year_level"
+                                        label="Year level"
+                                        sort={sort}
+                                        direction={direction}
+                                        onSortChange={onSortChange}
+                                    />
                                     <SortableHead column="section" label="Section" sort={sort} direction={direction} onSortChange={onSortChange} />
                                 </>
                             ) : (
@@ -202,7 +231,11 @@ export function VisitorsTable({
                     </TableHeader>
                     <TableBody ref={tableBodyRef}>
                         {isLoading ? (
-                            <LoadingRows columns={columns} activeType={activeType} rowCount={rowsPerPage === 'all' ? 10 : Math.min(rowsPerPage, 10)} />
+                            <LoadingRows
+                                columns={columns}
+                                activeType={activeType}
+                                rowCount={rowsPerPage === 'all' ? 10 : Math.min(rowsPerPage, 10)}
+                            />
                         ) : visitors.data.length > 0 ? (
                             <>
                                 {usesVirtualRows && virtualRows.paddingTop > 0 && (
@@ -236,6 +269,7 @@ export function VisitorsTable({
                 onRowsPerPageChange={onRowsPerPageChange}
                 onPrevious={onPrevious}
                 onNext={onNext}
+                onPageChange={onPageChange}
             />
         </div>
     );
@@ -277,7 +311,7 @@ function VisitorDataRow({ visitor, activeType, onEdit }: { visitor: RegisteredVi
             <TableCell>
                 <VisitorIdentity visitor={visitor} />
             </TableCell>
-            <TableCell className="font-medium">{visitor.school_id}</TableCell>
+            <TableCell className="font-medium">{visitor.school_id || '-'}</TableCell>
             {activeType === 'student' ? (
                 <>
                     <TableCell className="text-zinc-500">{visitor.student?.year_level || '-'}</TableCell>
@@ -288,7 +322,7 @@ function VisitorDataRow({ visitor, activeType, onEdit }: { visitor: RegisteredVi
             )}
             <TableCell>
                 <div className="flex justify-end">
-                    <ActionButton label="Edit visitor" icon={Pencil} onClick={onEdit} />
+                    <ActionButton label={activeType === 'student' ? 'Edit student details' : 'Edit employee details'} icon={Pencil} onClick={onEdit} />
                 </div>
             </TableCell>
         </TableRow>
@@ -370,7 +404,15 @@ function VisitorIdentity({ visitor }: { visitor: RegisteredVisitorRow }) {
     return (
         <div className="flex items-center gap-3">
             <VisitorAvatar name={visitor.name} src={visitor.photo_url} />
-            <p className="min-w-0 font-medium">{visitor.name}</p>
+            <div className="min-w-0">
+                <p className="min-w-0 font-medium">{visitor.name}</p>
+                {visitor.duplicate_count > 0 && (
+                    <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                        <AlertTriangle className="size-3" />
+                        {visitor.duplicate_count} duplicate{visitor.duplicate_count === 1 ? '' : 's'} to merge
+                    </p>
+                )}
+            </div>
         </div>
     );
 }

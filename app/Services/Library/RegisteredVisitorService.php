@@ -5,6 +5,7 @@ namespace App\Services\Library;
 use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use App\Services\SchoolYears\SchoolYearSectionService;
+use App\Support\Names\PersonName;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -15,7 +16,10 @@ class RegisteredVisitorService
 {
     private const PHOTO_DISK = 'visitor_photos';
 
-    public function __construct(private readonly SchoolYearSectionService $sections) {}
+    public function __construct(
+        private readonly SchoolYearSectionService $sections,
+        private readonly RegisteredVisitorDuplicateService $duplicates,
+    ) {}
 
     public function create(array $data): RegisteredVisitor
     {
@@ -32,8 +36,6 @@ class RegisteredVisitorService
     public function update(RegisteredVisitor $visitor, array $data): RegisteredVisitor
     {
         return DB::transaction(function () use ($visitor, $data): RegisteredVisitor {
-            $data['rfid_uid'] = $visitor->rfid_uid;
-            $data['school_id'] = $visitor->school_id;
             $newPhoto = $this->storePhoto($data['photo_file'] ?? null);
 
             if ($newPhoto) {
@@ -45,6 +47,23 @@ class RegisteredVisitorService
 
             $visitor->update($this->visitorData($data));
             $this->syncDetails($visitor, $data);
+            $visitor = $visitor->refresh();
+            $schoolYear = SchoolYear::active()->first();
+            $duplicates = $this->duplicates->unresolvedCandidatesFor($visitor, $schoolYear?->id);
+
+            if ($this->hasIdentifier($visitor) && $duplicates->isNotEmpty()) {
+                if (! ($data['confirm_merge_duplicates'] ?? false)) {
+                    throw ValidationException::withMessages([
+                        'confirm_merge_duplicates' => "This visitor has {$duplicates->count()} unresolved duplicate profile(s). Confirm merge to keep this visitor and delete the duplicate placeholder records.",
+                    ]);
+                }
+
+                $mergedCount = $this->duplicates->mergeInto($visitor, $duplicates);
+
+                if ($mergedCount > 0) {
+                    session()->flash('success', "Visitor updated and {$mergedCount} duplicate profile(s) were merged.");
+                }
+            }
 
             return $visitor->load(['student', 'employee']);
         });
@@ -53,12 +72,12 @@ class RegisteredVisitorService
     private function visitorData(array $data): array
     {
         return [
-            'rfid_uid' => $data['rfid_uid'],
-            'school_id' => $data['school_id'],
+            'rfid_uid' => $this->nullableText($data['rfid_uid'] ?? null),
+            'school_id' => $this->nullableText($data['school_id'] ?? null),
             'type' => $data['type'],
-            'first_name' => $data['first_name'],
-            'middle_name' => $data['middle_name'] ?? null,
-            'last_name' => $data['last_name'],
+            'first_name' => PersonName::requiredPart($data['first_name'] ?? ''),
+            'middle_name' => PersonName::part($data['middle_name'] ?? null),
+            'last_name' => PersonName::requiredPart($data['last_name'] ?? ''),
             'photo' => $data['photo'] ?? null,
         ];
     }
@@ -142,5 +161,17 @@ class RegisteredVisitorService
             'last_name' => $visitor->last_name,
             'photo' => $visitor->photo,
         ];
+    }
+
+    private function nullableText(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        return $value !== '' ? $value : null;
+    }
+
+    private function hasIdentifier(RegisteredVisitor $visitor): bool
+    {
+        return filled($visitor->rfid_uid) || filled($visitor->school_id);
     }
 }

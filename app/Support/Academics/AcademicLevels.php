@@ -50,4 +50,23 @@ class AcademicLevels
 
         return self::options()[$rank + 1] ?? null;
     }
+
+    public static function shortLabel(?string $yearLevel): ?string
+    {
+        return match ($yearLevel) {
+            'Kindergarten 1' => 'Kinder 1',
+            'Kindergarten 2' => 'Kinder 2',
+            'Grade 1' => 'Gr 1',
+            'Grade 2' => 'Gr 2',
+            'Grade 3' => 'Gr 3',
+            'Grade 4' => 'Gr 4',
+            'Grade 5' => 'Gr 5',
+            'Grade 6' => 'Gr 6',
+            'Grade 7' => 'Gr 7',
+            'Grade 8' => 'Gr 8',
+            'Grade 9' => 'Gr 9',
+            'Grade 10' => 'Gr 10',
+            default => $yearLevel,
+        };
+    }
 }

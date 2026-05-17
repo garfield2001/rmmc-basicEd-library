@@ -4,7 +4,7 @@ import { type RegisteredVisitorRow } from '@/types/registered-visitors';
 import { useForm } from '@inertiajs/react';
 import { useEffect, useRef, useState, type FormEventHandler } from 'react';
 import { DetailsSection, IdentitySection, ProfileSection } from './visitor-form-sections';
-import { firstStepWithErrors, initialVisitorData, isStepComplete, visitorFormSteps, stepHasErrors, type VisitorFormData } from './visitor-form-state';
+import { firstStepWithErrors, initialVisitorData, isStepComplete, stepHasErrors, visitorFormSteps, type VisitorFormData } from './visitor-form-state';
 
 interface VisitorFormModalProps {
     visitor: RegisteredVisitorRow | null;
@@ -17,14 +17,16 @@ export function VisitorFormModal({ visitor, open, sectionsByYearLevel, onOpenCha
     const isEditing = Boolean(visitor);
     const [step, setStep] = useState(0);
     const [attemptedStep, setAttemptedStep] = useState<number | null>(null);
+    const [confirmMergeOpen, setConfirmMergeOpen] = useState(false);
     const scanBuffer = useRef('');
     const scanTimer = useRef<number | null>(null);
-    const { data, setData, post, processing, errors, clearErrors, reset } = useForm<VisitorFormData>(initialVisitorData(visitor));
+    const { data, setData, post, processing, errors, clearErrors, reset, transform } = useForm<VisitorFormData>(initialVisitorData(visitor));
     const inputClass =
         'mt-2 h-10 w-full rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm text-[#010440] outline-none transition focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10';
     const sectionClass = isEditing ? 'rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff] p-4' : 'space-y-4';
     const currentStepComplete = isStepComplete(step, data);
     const currentStepHasErrors = stepHasErrors(step, errors);
+    const editTitle = visitor?.type === 'employee' ? 'Edit employee details' : 'Edit student details';
 
     useEffect(() => {
         if (!open) {
@@ -33,6 +35,7 @@ export function VisitorFormModal({ visitor, open, sectionsByYearLevel, onOpenCha
 
         setStep(0);
         setAttemptedStep(null);
+        setConfirmMergeOpen(false);
         clearErrors();
         reset();
         setData(initialVisitorData(visitor));
@@ -110,6 +113,42 @@ export function VisitorFormModal({ visitor, open, sectionsByYearLevel, onOpenCha
         clearErrors(field);
     };
 
+    const submitVisitor = (confirmMerge = false) => {
+        const options = {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                setConfirmMergeOpen(false);
+                onOpenChange(false);
+            },
+            onError: (formErrors: Partial<Record<keyof VisitorFormData | 'confirm_merge_duplicates', string>>) => {
+                if (typeof formErrors.confirm_merge_duplicates === 'string') {
+                    setConfirmMergeOpen(true);
+                    return;
+                }
+
+                const errorStep = firstStepWithErrors(formErrors as Partial<Record<keyof VisitorFormData, string>>);
+
+                if (errorStep !== null) {
+                    setStep(errorStep);
+                    setAttemptedStep(errorStep);
+                }
+            },
+        };
+
+        transform((formData) => ({
+            ...formData,
+            confirm_merge_duplicates: confirmMerge || formData.confirm_merge_duplicates,
+        }));
+
+        if (visitor) {
+            post(`/admin/registered-visitors/${visitor.id}`, options);
+            return;
+        }
+
+        post('/admin/registered-visitors', options);
+    };
+
     const submit: FormEventHandler = (event) => {
         event.preventDefault();
 
@@ -134,31 +173,7 @@ export function VisitorFormModal({ visitor, open, sectionsByYearLevel, onOpenCha
             return;
         }
 
-        const options = {
-            forceFormData: true,
-            preserveScroll: true,
-            onSuccess: () => {
-                if (!visitor) {
-                    onOpenChange(false);
-                }
-            },
-            onError: (formErrors) => {
-                const errorStep = firstStepWithErrors(formErrors as Partial<Record<keyof VisitorFormData, string>>);
-
-                if (errorStep !== null) {
-                    setStep(errorStep);
-                    setAttemptedStep(errorStep);
-                }
-            },
-        };
-
-        if (visitor) {
-            onOpenChange(false);
-            post(`/admin/registered-visitors/${visitor.id}`, options);
-            return;
-        }
-
-        post('/admin/registered-visitors', options);
+        submitVisitor();
     };
 
     const close = (nextOpen: boolean) => {
@@ -177,10 +192,10 @@ export function VisitorFormModal({ visitor, open, sectionsByYearLevel, onOpenCha
                         event.preventDefault();
                     }
                 }}
-                className={`max-h-[calc(100vh-2rem)] overflow-y-auto ${isEditing ? 'sm:max-w-4xl' : 'sm:max-w-3xl'}`}
+                className={`max-h-[calc(100dvh-2rem)] overflow-y-auto pb-8 ${isEditing ? 'top-4 ![translate:-50%_0] sm:max-w-4xl' : 'sm:max-w-3xl'}`}
             >
                 <DialogHeader>
-                    <DialogTitle className="text-2xl text-[#010440]">{isEditing ? 'Edit visitor' : 'Add visitor'}</DialogTitle>
+                    <DialogTitle className="text-2xl text-[#010440]">{isEditing ? editTitle : 'Add visitor'}</DialogTitle>
                     <DialogDescription>
                         {isEditing
                             ? "Review or update this visitor's library profile and active details."
@@ -243,6 +258,12 @@ export function VisitorFormModal({ visitor, open, sectionsByYearLevel, onOpenCha
                         </p>
                     )}
 
+                    {isEditing && errors.confirm_merge_duplicates && (
+                        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
+                            {errors.confirm_merge_duplicates}
+                        </p>
+                    )}
+
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => close(false)} disabled={processing}>
                             Cancel
@@ -266,6 +287,34 @@ export function VisitorFormModal({ visitor, open, sectionsByYearLevel, onOpenCha
                     </DialogFooter>
                 </form>
             </DialogContent>
+
+            <Dialog open={confirmMergeOpen} onOpenChange={(nextOpen) => !processing && setConfirmMergeOpen(nextOpen)}>
+                <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl text-[#010440]">Merge duplicate profiles?</DialogTitle>
+                        <DialogDescription>
+                            This visitor now has a usable RFID or school ID. Keep this record, move any visit history here, and delete unresolved
+                            duplicate placeholder records behind the scenes.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => setConfirmMergeOpen(false)} disabled={processing}>
+                            Review first
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                setData('confirm_merge_duplicates', true);
+                                clearErrors('confirm_merge_duplicates');
+                                submitVisitor(true);
+                            }}
+                            disabled={processing}
+                        >
+                            {processing ? 'Merging...' : 'Merge duplicates'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </Dialog>
     );
 }

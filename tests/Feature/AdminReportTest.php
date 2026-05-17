@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\EmployeeProfile;
-use App\Models\RegisteredVisitor;
 use App\Models\LibraryVisit;
+use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use App\Models\StudentRegistration;
 use App\Models\User;
@@ -94,7 +94,7 @@ class AdminReportTest extends TestCase
 
         $this->actingAs(User::factory()->create(['role' => 'admin']))
             ->patch('/admin/scan-settings', [
-                'repeat_scan_interval_minutes' => 90,
+                'repeat_scan_interval_hours' => 2,
                 'scan_starts_at' => '07:30',
                 'scan_ends_at' => '18:00',
                 'success_modal_close_seconds' => 4,
@@ -108,7 +108,8 @@ class AdminReportTest extends TestCase
         $this->actingAs(User::factory()->create(['role' => 'admin']))
             ->get('/admin/settings')
             ->assertInertia(fn (Assert $page) => $page
-                ->where('scanSettings.repeat_scan_interval_minutes', 90)
+                ->where('scanSettings.repeat_scan_interval_hours', 2)
+                ->where('scanSettings.repeat_scan_interval_minutes', 120)
                 ->where('scanSettings.scan_starts_at', '07:30')
                 ->where('scanSettings.scan_ends_at', '18:00')
                 ->where('scanSettings.success_modal_close_seconds', 4)
@@ -156,8 +157,8 @@ class AdminReportTest extends TestCase
             'name' => '2026-2027',
             'starts_at' => '2026-06-01',
             'ends_at' => '2027-03-31',
-            'minimum_visits' => 2,
-            'target_visits' => 3,
+            'student_required_visits' => 2,
+            'employee_required_visits' => 3,
         ]);
         $student = RegisteredVisitor::factory()->student()->create([
             'school_id' => 'STU-001',
@@ -199,7 +200,7 @@ class AdminReportTest extends TestCase
                 ->where('report.summary.visitor_type', 'student')
                 ->where('report.summary.visitors', 1)
                 ->where('report.summary.total_visits', 2)
-                ->where('report.summary.met_minimum', 1)
+                ->where('report.summary.met_required', 1)
                 ->where('report.rows.0.type', RegisteredVisitor::TYPE_STUDENT)
                 ->where('report.rows.0.school_id', 'STU-001')
                 ->where('report.rows.0.visit_count', 2));
@@ -229,8 +230,8 @@ class AdminReportTest extends TestCase
             'name' => '2026-2027',
             'starts_at' => '2026-06-01',
             'ends_at' => '2027-03-31',
-            'minimum_visits' => 2,
-            'target_visits' => 3,
+            'student_required_visits' => 2,
+            'employee_required_visits' => 3,
         ]);
         $employee = RegisteredVisitor::factory()->employee()->create([
             'school_id' => 'EMP-RESET',

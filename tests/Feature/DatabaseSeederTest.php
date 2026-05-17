@@ -7,12 +7,37 @@ use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use App\Models\StudentRegistration;
 use App\Models\User;
+use Database\Seeders\CurrentSchoolYear;
+use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class DatabaseSeederTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_user_seeder_creates_admin_login_credentials(): void
+    {
+        $this->seed(UserSeeder::class);
+
+        $admin = User::query()->where('email', 'admin@gmail.com')->firstOrFail();
+
+        $this->assertSame('RMMC Library Admin', $admin->name);
+        $this->assertSame('admin', $admin->role);
+        $this->assertTrue(Hash::check('password', $admin->password));
+    }
+
+    public function test_current_school_year_seeder_creates_active_school_year(): void
+    {
+        $this->seed(CurrentSchoolYear::class);
+
+        $schoolYear = SchoolYear::query()->where('name', '2026-2027')->firstOrFail();
+
+        $this->assertSame('2026-05-01', $schoolYear->starts_at->toDateString());
+        $this->assertSame('2027-03-07', $schoolYear->ends_at->toDateString());
+        $this->assertTrue($schoolYear->is_active);
+    }
 
     public function test_database_seeder_creates_manual_and_factory_registered_visitors_without_unique_conflicts(): void
     {

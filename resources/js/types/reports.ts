@@ -6,6 +6,7 @@ export interface VisitReportRow {
     department: string | null;
     year_level: string | null;
     section: string | null;
+    year_section_label: string | null;
     visit_count: number;
     excess_visits: number;
     required_met: boolean;

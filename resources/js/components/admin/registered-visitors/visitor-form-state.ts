@@ -4,6 +4,7 @@ export type VisitorFormData = {
     _method: string;
     rfid_uid: string;
     school_id: string;
+    confirm_merge_duplicates: boolean;
     type: 'student' | 'employee';
     first_name: string;
     middle_name: string;
@@ -34,6 +35,7 @@ export function initialVisitorData(visitor: RegisteredVisitorRow | null): Visito
         _method: visitor ? 'put' : 'post',
         rfid_uid: visitor?.rfid_uid ?? '',
         school_id: visitor?.school_id ?? '',
+        confirm_merge_duplicates: false,
         type: visitor?.type ?? 'student',
         first_name: visitor?.first_name ?? '',
         middle_name: visitor?.middle_name ?? '',
@@ -47,7 +49,7 @@ export function initialVisitorData(visitor: RegisteredVisitorRow | null): Visito
 
 export function isStepComplete(step: number, data: VisitorFormData): boolean {
     if (step === 0) {
-        return data.rfid_uid.trim().length > 0 && data.school_id.trim().length > 0;
+        return data.type.trim().length > 0;
     }
 
     if (step === 1) {
@@ -62,7 +64,7 @@ export function isStepComplete(step: number, data: VisitorFormData): boolean {
 }
 
 export function firstStepWithErrors(errors: Partial<Record<keyof VisitorFormData, string>>): number | null {
-    if (errors.rfid_uid || errors.school_id || errors.type) {
+    if (errors.rfid_uid || errors.school_id || errors.type || errors.confirm_merge_duplicates) {
         return 0;
     }
 

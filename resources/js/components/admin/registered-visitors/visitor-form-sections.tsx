@@ -35,38 +35,34 @@ export function IdentitySection({ data, errors, setData, inputClass, sectionClas
                         onChange={(event) => setData('rfid_uid', event.target.value)}
                         onKeyDown={(event) => event.key === 'Enter' && event.preventDefault()}
                         placeholder="Scan or enter RFID"
-                        className={`${inputClass} ${isEditing ? 'cursor-not-allowed bg-zinc-100 text-zinc-500' : ''}`}
+                        className={inputClass}
                         autoComplete="off"
                         autoFocus={!isEditing}
-                        disabled={isEditing}
                     />
                     {fieldError(errors.rfid_uid)}
                 </label>
                 <label className="text-sm font-medium text-[#010440]">
                     School ID
-                    <input
-                        value={data.school_id}
-                        onChange={(event) => setData('school_id', event.target.value)}
-                        className={`${inputClass} ${isEditing ? 'cursor-not-allowed bg-zinc-100 text-zinc-500' : ''}`}
-                        disabled={isEditing}
-                    />
+                    <input value={data.school_id} onChange={(event) => setData('school_id', event.target.value)} className={inputClass} />
                     {fieldError(errors.school_id)}
                 </label>
             </div>
 
-            <div className="mt-4 text-sm font-medium text-[#010440]">
-                Visitor type
-                <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                    <TypeButton active={data.type === 'student'} icon={GraduationCap} label="Student" onClick={() => onTypeChange('student')} />
-                    <TypeButton
-                        active={data.type === 'employee'}
-                        icon={BriefcaseBusiness}
-                        label="employee"
-                        onClick={() => onTypeChange('employee')}
-                    />
+            {!isEditing && (
+                <div className="mt-4 text-sm font-medium text-[#010440]">
+                    Visitor type
+                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                        <TypeButton active={data.type === 'student'} icon={GraduationCap} label="Student" onClick={() => onTypeChange('student')} />
+                        <TypeButton
+                            active={data.type === 'employee'}
+                            icon={BriefcaseBusiness}
+                            label="employee"
+                            onClick={() => onTypeChange('employee')}
+                        />
+                    </div>
+                    {fieldError(errors.type)}
                 </div>
-                {fieldError(errors.type)}
-            </div>
+            )}
         </section>
     );
 }

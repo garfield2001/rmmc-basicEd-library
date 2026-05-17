@@ -1,7 +1,7 @@
 export interface RegisteredVisitorRow {
     id: number;
-    rfid_uid: string;
-    school_id: string;
+    rfid_uid: string | null;
+    school_id: string | null;
     type: 'student' | 'employee';
     first_name: string;
     middle_name: string | null;
@@ -10,6 +10,7 @@ export interface RegisteredVisitorRow {
     photo: string | null;
     photo_url: string | null;
     group: string | null;
+    duplicate_count: number;
     student: {
         school_year_id: number;
         school_year_section_id: number | null;
@@ -19,6 +20,32 @@ export interface RegisteredVisitorRow {
     employee: {
         department: string;
     } | null;
+}
+
+export interface RegisteredVisitorImportPreviewMember {
+    status: 'create' | 'rfid';
+    type: 'student' | 'employee';
+    name: string;
+    matched_name: string | null;
+    school_id: string | null;
+    rfid_uid: string | null;
+    year_level: string | null;
+    section: string | null;
+    department: string | null;
+}
+
+export interface RegisteredVisitorImportPreview {
+    file_name: string;
+    total_rows: number;
+    importable_count: number;
+    skipped_count: number;
+    create_count: number;
+    update_count: number;
+    members: RegisteredVisitorImportPreviewMember[];
+    skipped: {
+        name: string;
+        reason: string;
+    }[];
 }
 
 export interface StudentAssignmentPreview {

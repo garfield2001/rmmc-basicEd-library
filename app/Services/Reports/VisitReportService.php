@@ -5,6 +5,7 @@ namespace App\Services\Reports;
 use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use App\Models\StudentRegistration;
+use App\Support\Academics\AcademicLevels;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -159,6 +160,7 @@ class VisitReportService
             'department' => $visitor->type === RegisteredVisitor::TYPE_EMPLOYEE ? $employeeProfile?->department : null,
             'year_level' => $visitor->type === RegisteredVisitor::TYPE_STUDENT ? $studentRegistration?->year_level : null,
             'section' => $visitor->type === RegisteredVisitor::TYPE_STUDENT ? $studentRegistration?->section : null,
+            'year_section_label' => $visitor->type === RegisteredVisitor::TYPE_STUDENT ? $this->studentYearSectionLabel($studentRegistration) : null,
             'visit_count' => (int) $visitor->visits_count,
             'excess_visits' => max(0, (int) $visitor->visits_count - $requiredVisits),
             'required_met' => $requiredVisits > 0 && $visitor->visits_count >= $requiredVisits,
@@ -197,6 +199,18 @@ class VisitReportService
             : null;
 
         return trim(collect([$snapshot->first_name, $middleInitial, $snapshot->last_name])->filter()->implode(' '));
+    }
+
+    private function studentYearSectionLabel(?StudentRegistration $registration): ?string
+    {
+        if (! $registration) {
+            return null;
+        }
+
+        return trim(collect([
+            AcademicLevels::shortLabel($registration->year_level),
+            $registration->section,
+        ])->filter()->implode(' - ')) ?: null;
     }
 
     private function schoolYearData(SchoolYear $schoolYear): array

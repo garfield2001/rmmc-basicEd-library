@@ -33,6 +33,7 @@ class LibraryVisitService
         $this->ensureSchoolYearIsOpen($schoolYear, $now);
 
         $visitor = $this->resolveVisitor($RFIDUid, $schoolYear->id);
+        $this->ensureVisitorHasRFID($visitor);
         $this->ensureVisitorCanRevisit($visitor, $schoolYear->id, $now);
 
         $visit = LibraryVisit::create([
@@ -78,9 +79,9 @@ class LibraryVisitService
                 $values = [
                     $visitor->rfid_uid,
                     $visitor->school_id,
-                    $visitor->first_name,
-                    $visitor->last_name,
                     $visitor->full_name,
+                    trim(collect([$visitor->first_name, $visitor->middle_name, $visitor->last_name])->filter()->implode(' ')),
+                    trim(collect([$visitor->first_name, $visitor->last_name])->filter()->implode(' ')),
                 ];
 
                 return collect($values)
@@ -97,9 +98,9 @@ class LibraryVisitService
                     $values = [
                         $visitor->rfid_uid,
                         $visitor->school_id,
-                        $visitor->first_name,
-                        $visitor->last_name,
                         $visitor->full_name,
+                        trim(collect([$visitor->first_name, $visitor->middle_name, $visitor->last_name])->filter()->implode(' ')),
+                        trim(collect([$visitor->first_name, $visitor->last_name])->filter()->implode(' ')),
                     ];
 
                     return collect($values)
@@ -120,7 +121,18 @@ class LibraryVisitService
         }
 
         throw ValidationException::withMessages([
-            'rfid_uid' => 'No registered visitor eligible for the active school year matches that RFID, name, or school ID.',
+            'rfid_uid' => 'No registered visitor eligible for the active school year matches that RFID, school ID, or name.',
+        ]);
+    }
+
+    private function ensureVisitorHasRFID(RegisteredVisitor $visitor): void
+    {
+        if ($visitor->rfid_uid) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'rfid_uid' => "{$visitor->full_name} is registered but has no RFID yet. Add their RFID before recording a library visit.",
         ]);
     }
 

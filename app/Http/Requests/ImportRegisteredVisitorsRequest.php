@@ -31,8 +31,8 @@ class ImportRegisteredVisitorsRequest extends FormRequest
 
                 $extension = strtolower($file->getClientOriginalExtension());
 
-                if (! in_array($extension, ['csv', 'txt', 'xls', 'xlsx'], true)) {
-                    $validator->errors()->add('visitors_file', 'Upload a CSV or Excel file.');
+                if (! in_array($extension, ['csv', 'txt', 'tsv', 'xls', 'xlsx', 'xlsm', 'docx', 'pdf'], true)) {
+                    $validator->errors()->add('visitors_file', 'Upload a CSV, Excel, Word, or PDF roster file.');
                 }
             },
         ];

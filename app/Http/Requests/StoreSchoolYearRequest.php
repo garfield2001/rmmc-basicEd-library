@@ -38,7 +38,6 @@ class StoreSchoolYearRequest extends FormRequest
 
                 $startsAt = Carbon::parse($this->input('starts_at'))->toDateString();
                 $endsAt = Carbon::parse($this->input('ends_at'))->toDateString();
-
                 $overlappingSchoolYear = SchoolYear::query()
                     ->whereDate('starts_at', '<=', $endsAt)
                     ->whereDate('ends_at', '>=', $startsAt)
@@ -52,18 +51,37 @@ class StoreSchoolYearRequest extends FormRequest
 
                     return;
                 }
+
+                $latestSchoolYear = SchoolYear::query()
+                    ->orderByDesc('ends_at')
+                    ->first();
+
+                if ($latestSchoolYear && Carbon::parse($startsAt)->lte($latestSchoolYear->ends_at)) {
+                    $validator->errors()->add(
+                        'starts_at',
+                        "The next school year must start after {$latestSchoolYear->name} ends ({$this->displayDate($latestSchoolYear->ends_at)}).",
+                    );
+                }
             },
         ];
     }
 
     protected function prepareForValidation(): void
     {
-        if (! $this->filled('starts_at') || ! $this->filled('ends_at')) {
+        $startsAt = $this->parseDateInput($this->input('starts_at'));
+        $endsAt = $this->parseDateInput($this->input('ends_at'));
+
+        $this->merge([
+            'starts_at' => $startsAt?->toDateString() ?? $this->input('starts_at'),
+            'ends_at' => $endsAt?->toDateString() ?? $this->input('ends_at'),
+        ]);
+
+        if (! $startsAt || ! $endsAt) {
             return;
         }
 
         $this->merge([
-            'name' => Carbon::parse($this->input('starts_at'))->year.'-'.Carbon::parse($this->input('ends_at'))->year,
+            'name' => $startsAt->year.'-'.$endsAt->year,
             'make_active' => true,
         ]);
     }
@@ -71,5 +89,30 @@ class StoreSchoolYearRequest extends FormRequest
     private function displayDate(Carbon $date): string
     {
         return $date->format('M-d-Y');
+    }
+
+    private function parseDateInput(mixed $value): ?Carbon
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        $normalized = preg_replace('/\s+/', ' ', str_replace(',', ' ', $value)) ?: $value;
+
+        if (preg_match('/^(\d{1,2})\s+(\d{1,2})\s+(\d{4})$/', $normalized, $matches)) {
+            try {
+                return Carbon::createFromFormat('!m/d/Y', "{$matches[1]}/{$matches[2]}/{$matches[3]}");
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        try {
+            return Carbon::parse($normalized);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

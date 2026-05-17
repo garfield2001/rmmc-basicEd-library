@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\LibraryVisit;
 use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use App\Models\StudentRegistration;
@@ -61,6 +62,7 @@ class AdminRegisteredVisitorTest extends TestCase
     public function test_admin_can_create_employee_registered_visitor(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
+        SchoolYear::factory()->active()->create();
 
         $response = $this->actingAs($admin)->post('/admin/registered-visitors', [
             'rfid_uid' => '2000000101',
@@ -79,6 +81,33 @@ class AdminRegisteredVisitorTest extends TestCase
         ]);
         $this->assertDatabaseHas('employee_profiles', [
             'department' => 'Faculty',
+        ]);
+    }
+
+    public function test_admin_can_create_visitor_without_rfid_or_school_id(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $schoolYear = SchoolYear::factory()->active()->create();
+
+        $this->actingAs($admin)->post('/admin/registered-visitors', [
+            'rfid_uid' => '',
+            'school_id' => '',
+            'type' => RegisteredVisitor::TYPE_STUDENT,
+            'first_name' => 'Juan',
+            'last_name' => 'Dela Cruz',
+            'year_level' => 'Grade 5',
+            'section' => 'Rizal',
+        ])->assertRedirect('/admin/registered-visitors?type=student');
+
+        $visitor = RegisteredVisitor::query()->where('first_name', 'Juan')->where('last_name', 'Dela Cruz')->firstOrFail();
+
+        $this->assertNull($visitor->rfid_uid);
+        $this->assertNull($visitor->school_id);
+        $this->assertDatabaseHas('student_registrations', [
+            'registered_visitor_id' => $visitor->id,
+            'school_year_id' => $schoolYear->id,
+            'year_level' => 'Grade 5',
+            'section' => 'Rizal',
         ]);
     }
 
@@ -159,245 +188,104 @@ class AdminRegisteredVisitorTest extends TestCase
             );
     }
 
-    public function test_admin_can_copy_filtered_registered_visitor_columns_across_all_matching_rows(): void
+    public function test_duplicate_unresolved_visitors_are_hidden_until_identifier_merge(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $schoolYear = SchoolYear::factory()->active()->create();
-        $matchingStudents = RegisteredVisitor::factory()
-            ->student()
-            ->count(3)
-            ->sequence(
-                ['school_id' => '2609010003'],
-                ['school_id' => '2609010001'],
-                ['school_id' => '2609010002'],
-            )
-            ->create();
-        $otherStudent = RegisteredVisitor::factory()->student()->create(['school_id' => '2609010004']);
-
-        $matchingStudents->each(function (RegisteredVisitor $student) use ($schoolYear): void {
-            StudentRegistration::factory()->create([
-                'registered_visitor_id' => $student->id,
-                'school_year_id' => $schoolYear->id,
-                'year_level' => 'Grade 5',
-                'section' => 'Rizal',
-            ]);
-        });
-
-        StudentRegistration::factory()->create([
-            'registered_visitor_id' => $otherStudent->id,
-            'school_year_id' => $schoolYear->id,
-            'year_level' => 'Grade 6',
-            'section' => 'Rizal',
+        $first = RegisteredVisitor::factory()->student()->create([
+            'rfid_uid' => null,
+            'school_id' => null,
+            'first_name' => 'Maria',
+            'middle_name' => null,
+            'last_name' => 'Santos',
         ]);
-
-        $this->actingAs($admin)->postJson('/admin/registered-visitors/copy-columns', [
-            'type' => RegisteredVisitor::TYPE_STUDENT,
-            'columns' => ['school_id'],
-            'year_level' => 'Grade 5',
-            'sort' => 'school_id',
-            'direction' => 'asc',
-        ])
-            ->assertOk()
-            ->assertJsonPath('rowCount', 3)
-            ->assertJsonPath('text', "2609010001\n2609010002\n2609010003");
-    }
-
-    public function test_admin_can_view_restore_export_and_permanently_delete_archived_registered_visitor(): void
-    {
-        $admin = User::factory()->create(['role' => 'admin']);
-        $schoolYear = SchoolYear::factory()->active()->create();
-        $visitor = RegisteredVisitor::factory()->student()->create([
-            'school_id' => '2609010001',
-            'first_name' => 'Juan',
+        $second = RegisteredVisitor::factory()->student()->create([
+            'rfid_uid' => null,
+            'school_id' => null,
+            'first_name' => 'Maria',
+            'middle_name' => null,
             'last_name' => 'Santos',
         ]);
 
-        StudentRegistration::factory()->create([
-            'registered_visitor_id' => $visitor->id,
-            'school_year_id' => $schoolYear->id,
-            'year_level' => 'Grade 5',
-            'section' => 'Rizal',
-        ]);
-
-        $visitor->delete();
-
-        $this->actingAs($admin)->get('/admin/registered-visitors/archive?type=student')
-            ->assertOk()
-            ->assertInertia(fn ($page) => $page
-                ->component('admin/registered-visitors/archive')
-                ->where('visitors.data.0.school_id', '2609010001')
-            );
-
-        $this->actingAs($admin)->get('/admin/registered-visitors/archive/export?type=student')
-            ->assertOk()
-            ->assertHeader('Content-Type', 'application/vnd.ms-excel');
-
-        $this->actingAs($admin)->patch("/admin/registered-visitors/archive/{$visitor->id}/restore")
-            ->assertRedirect('/admin/registered-visitors/archive?type=student');
-        $this->assertNotSoftDeleted('registered_visitors', ['id' => $visitor->id]);
-
-        $visitor->delete();
-
-        $this->actingAs($admin)->delete("/admin/registered-visitors/archive/{$visitor->id}")
-            ->assertRedirect('/admin/registered-visitors/archive');
-        $this->assertDatabaseMissing('registered_visitors', ['id' => $visitor->id]);
-    }
-
-    public function test_archive_can_filter_archived_students_by_school_year(): void
-    {
-        $admin = User::factory()->create(['role' => 'admin']);
-        $oldSchoolYear = SchoolYear::factory()->create([
-            'name' => '2025-2026',
-            'starts_at' => '2025-06-01',
-            'ends_at' => '2026-03-31',
-        ]);
-        $activeSchoolYear = SchoolYear::factory()->active()->create([
-            'name' => '2026-2027',
-            'starts_at' => '2026-06-01',
-            'ends_at' => '2027-03-31',
-        ]);
-        $oldArchivedStudent = RegisteredVisitor::factory()->student()->create(['school_id' => '2609010001']);
-        $activeArchivedStudent = RegisteredVisitor::factory()->student()->create(['school_id' => '2609010002']);
-
-        StudentRegistration::factory()->create([
-            'registered_visitor_id' => $oldArchivedStudent->id,
-            'school_year_id' => $oldSchoolYear->id,
-            'year_level' => 'Grade 10',
-            'section' => 'Mabini',
-        ]);
-        StudentRegistration::factory()->create([
-            'registered_visitor_id' => $activeArchivedStudent->id,
-            'school_year_id' => $activeSchoolYear->id,
-            'year_level' => 'Grade 5',
-            'section' => 'Rizal',
-        ]);
-
-        $oldArchivedStudent->delete();
-        $activeArchivedStudent->delete();
-
-        $this->actingAs($admin)->get("/admin/registered-visitors/archive?type=student&school_year_id={$oldSchoolYear->id}")
-            ->assertOk()
-            ->assertInertia(fn ($page) => $page
-                ->where('visitors.data.0.school_id', '2609010001')
-                ->where('visitors.data.0.student.year_level', 'Grade 10')
-                ->missing('visitors.data.1')
-            );
-    }
-
-    public function test_restoring_archived_graduate_returns_student_to_active_school_year(): void
-    {
-        $admin = User::factory()->create(['role' => 'admin']);
-        $oldSchoolYear = SchoolYear::factory()->create([
-            'name' => '2025-2026',
-            'starts_at' => '2025-06-01',
-            'ends_at' => '2026-03-31',
-        ]);
-        $activeSchoolYear = SchoolYear::factory()->active()->create([
-            'name' => '2026-2027',
-            'starts_at' => '2026-06-01',
-            'ends_at' => '2027-03-31',
-        ]);
-        $visitor = RegisteredVisitor::factory()->student()->create();
-
-        StudentRegistration::factory()->create([
-            'registered_visitor_id' => $visitor->id,
-            'school_year_id' => $oldSchoolYear->id,
-            'year_level' => 'Grade 10',
-            'section' => 'Mabini',
-        ]);
-
-        $visitor->delete();
-
-        $this->actingAs($admin)->patch("/admin/registered-visitors/archive/{$visitor->id}/restore")
-            ->assertRedirect('/admin/registered-visitors/archive?type=student');
-
-        $this->assertNotSoftDeleted('registered_visitors', ['id' => $visitor->id]);
-        $this->assertDatabaseHas('student_registrations', [
-            'registered_visitor_id' => $visitor->id,
-            'school_year_id' => $activeSchoolYear->id,
-            'year_level' => 'Grade 10',
-            'section' => null,
-            'school_year_section_id' => null,
-        ]);
-    }
-
-    public function test_admin_can_bulk_delete_and_export_delete_archived_registered_visitors(): void
-    {
-        $admin = User::factory()->create(['role' => 'admin']);
-        $schoolYear = SchoolYear::factory()->active()->create();
-        $visitors = RegisteredVisitor::factory()->student()->count(3)->create();
-
-        $visitors->each(function (RegisteredVisitor $visitor) use ($schoolYear): void {
-            StudentRegistration::factory()->create([
-                'registered_visitor_id' => $visitor->id,
-                'school_year_id' => $schoolYear->id,
-                'year_level' => 'Grade 5',
-                'section' => 'Rizal',
-            ]);
-            $visitor->delete();
-        });
-
-        $this->actingAs($admin)->delete('/admin/registered-visitors/archive/bulk', [
-            'visitor_ids' => $visitors->take(2)->pluck('id')->all(),
-            'type' => RegisteredVisitor::TYPE_STUDENT,
-        ])->assertRedirect('/admin/registered-visitors/archive?type=student');
-
-        $this->assertDatabaseMissing('registered_visitors', ['id' => $visitors[0]->id]);
-        $this->assertDatabaseMissing('registered_visitors', ['id' => $visitors[1]->id]);
-        $this->assertSoftDeleted('registered_visitors', ['id' => $visitors[2]->id]);
-
-        $this->actingAs($admin)->get('/admin/registered-visitors/archive/export?type=student&delete_after_export=1')
-            ->assertOk()
-            ->assertHeader('Content-Type', 'application/vnd.ms-excel');
-
-        $this->assertDatabaseMissing('registered_visitors', ['id' => $visitors[2]->id]);
-    }
-
-    public function test_admin_can_bulk_archive_registered_visitors(): void
-    {
-        $admin = User::factory()->create(['role' => 'admin']);
-        $visitors = RegisteredVisitor::factory()->employee()->count(3)->create();
-
-        $this->actingAs($admin)->delete('/admin/registered-visitors/bulk', [
-            'visitor_ids' => $visitors->take(2)->pluck('id')->all(),
-            'type' => RegisteredVisitor::TYPE_EMPLOYEE,
-        ])->assertRedirect('/admin/registered-visitors?type=employee');
-
-        $this->assertSoftDeleted('registered_visitors', ['id' => $visitors[0]->id]);
-        $this->assertSoftDeleted('registered_visitors', ['id' => $visitors[1]->id]);
-        $this->assertNotSoftDeleted('registered_visitors', ['id' => $visitors[2]->id]);
-    }
-
-    public function test_admin_can_bulk_archive_all_filtered_registered_visitors(): void
-    {
-        $admin = User::factory()->create(['role' => 'admin']);
-        $schoolYear = SchoolYear::factory()->active()->create();
-        $matchingStudents = RegisteredVisitor::factory()->student()->count(3)->create();
-        $otherStudent = RegisteredVisitor::factory()->student()->create();
-
-        $matchingStudents->each(function (RegisteredVisitor $student) use ($schoolYear): void {
+        foreach ([$first, $second] as $student) {
             StudentRegistration::factory()->create([
                 'registered_visitor_id' => $student->id,
                 'school_year_id' => $schoolYear->id,
                 'year_level' => 'Grade 5',
                 'section' => 'Rizal',
             ]);
-        });
-        StudentRegistration::factory()->create([
-            'registered_visitor_id' => $otherStudent->id,
-            'school_year_id' => $schoolYear->id,
-            'year_level' => 'Grade 6',
-            'section' => 'Rizal',
+        }
+
+        $this->actingAs($admin)->get('/admin/registered-visitors?type=student&per_page=all')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('admin/registered-visitors/index')
+                ->has('visitors.data', 1)
+                ->where('visitors.data.0.id', $first->id)
+                ->where('visitors.data.0.duplicate_count', 1)
+            );
+    }
+
+    public function test_admin_confirms_merge_when_identifier_is_added_to_duplicate_group(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $schoolYear = SchoolYear::factory()->active()->create();
+        $keeper = RegisteredVisitor::factory()->student()->create([
+            'rfid_uid' => null,
+            'school_id' => null,
+            'first_name' => 'Maria',
+            'middle_name' => null,
+            'last_name' => 'Santos',
+        ]);
+        $duplicate = RegisteredVisitor::factory()->student()->create([
+            'rfid_uid' => null,
+            'school_id' => null,
+            'first_name' => 'Maria',
+            'middle_name' => null,
+            'last_name' => 'Santos',
         ]);
 
-        $this->actingAs($admin)->delete('/admin/registered-visitors/bulk', [
-            'select_all' => true,
+        foreach ([$keeper, $duplicate] as $student) {
+            StudentRegistration::factory()->create([
+                'registered_visitor_id' => $student->id,
+                'school_year_id' => $schoolYear->id,
+                'year_level' => 'Grade 5',
+                'section' => 'Rizal',
+            ]);
+        }
+
+        $visit = LibraryVisit::factory()->create([
+            'registered_visitor_id' => $duplicate->id,
+            'school_year_id' => $schoolYear->id,
+        ]);
+
+        $payload = [
+            'rfid_uid' => '1000000999',
+            'school_id' => '',
             'type' => RegisteredVisitor::TYPE_STUDENT,
+            'first_name' => 'Maria',
+            'middle_name' => '',
+            'last_name' => 'Santos',
             'year_level' => 'Grade 5',
+            'section' => 'Rizal',
+        ];
+
+        $this->actingAs($admin)->put("/admin/registered-visitors/{$keeper->id}", $payload)
+            ->assertSessionHasErrors('confirm_merge_duplicates');
+
+        $this->assertNull($keeper->refresh()->rfid_uid);
+        $this->assertDatabaseHas('registered_visitors', ['id' => $duplicate->id]);
+
+        $this->actingAs($admin)->put("/admin/registered-visitors/{$keeper->id}", $payload + [
+            'confirm_merge_duplicates' => true,
         ])->assertRedirect('/admin/registered-visitors?type=student');
 
-        $matchingStudents->each(fn (RegisteredVisitor $student) => $this->assertSoftDeleted('registered_visitors', ['id' => $student->id]));
-        $this->assertNotSoftDeleted('registered_visitors', ['id' => $otherStudent->id]);
+        $this->assertSame('1000000999', $keeper->refresh()->rfid_uid);
+        $this->assertDatabaseMissing('registered_visitors', ['id' => $duplicate->id]);
+        $this->assertDatabaseHas('library_visits', [
+            'id' => $visit->id,
+            'registered_visitor_id' => $keeper->id,
+        ]);
     }
 
     public function test_non_admin_can_not_access_registered_visitor_management(): void

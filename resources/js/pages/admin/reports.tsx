@@ -1,11 +1,9 @@
 import { ReportExportActions } from '@/components/admin/reports/report-export-actions';
 import { Button } from '@/components/ui/button';
-import { formatDisplayDate } from '@/components/ui/date-input';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DateInput, formatDisplayDate } from '@/components/ui/date-input';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { SelectInput } from '@/components/ui/select-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { VisitorAvatar } from '@/components/ui/visitor-avatar';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
 import { cn } from '@/lib/utils';
@@ -16,7 +14,6 @@ import {
     ArrowDown,
     ArrowUp,
     BriefcaseBusiness,
-    CalendarDays,
     ChevronsUpDown,
     GraduationCap,
     RotateCcw,
@@ -38,6 +35,7 @@ type ReportSortColumn = 'school_id' | 'name' | 'group' | 'visit_count' | 'progre
 type SortDirection = 'asc' | 'desc';
 
 interface ReportQuery {
+    [key: string]: string;
     school_year_id: string;
     start_date: string;
     end_date: string;
@@ -71,7 +69,6 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
     const [sortColumn, setSortColumn] = useState<ReportSortColumn | null>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
     const [showResultsSkeleton, setShowResultsSkeleton] = useState(false);
-    const [selectedVisitor, setSelectedVisitor] = useState<VisitReportRow | null>(null);
     const didMountRef = useRef(false);
 
     const selectedSchoolYear = useMemo(
@@ -525,9 +522,8 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                                         <ReportRow
                                                             key={row.id}
                                                             row={row}
-                                                            visitorType={visitorType}
+                                                            visitorType={visitorType as VisitorType}
                                                             requiredVisits={report.summary.required_visits}
-                                                            onSelect={() => setSelectedVisitor(row)}
                                                         />
                                                     ))
                                                 ) : (
@@ -548,31 +544,23 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                                         total={sortedRows.length}
                                         onPrevious={() => setCurrentPage((page) => Math.max(1, page - 1))}
                                         onNext={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                                        onPageChange={(page) => setCurrentPage(Math.min(totalPages, Math.max(1, page)))}
                                     />
                                 </section>
                             </>
                         ) : (
                             <section className="admin-surface rounded-lg border border-dashed border-[#040DBF]/20 bg-white/80 p-8 text-center">
-                                <h2 className="text-lg font-semibold text-[#010440]">Complete the report filters</h2>
+                                <h2 className="text-lg font-semibold text-[#010440]">
+                                    {reportCanFetch ? 'No report results' : 'Complete the report filters'}
+                                </h2>
                                 <p className="mt-2 text-sm text-[#020659]/70">
-                                    Choose the school year, date coverage, visitor type, and the required student or employee filter before results
-                                    appear.
+                                    {reportCanFetch
+                                        ? 'No visitors matched the selected school year, date range, and filters.'
+                                        : 'Choose the school year, date coverage, visitor type, and the required student or employee filter before results appear.'}
                                 </p>
                             </section>
                         )}
                     </div>
-
-                    <VisitorVisitHistoryModal
-                        visitor={selectedVisitor}
-                        visitorType={visitorType}
-                        report={report}
-                        open={Boolean(selectedVisitor)}
-                        onOpenChange={(open) => {
-                            if (!open) {
-                                setSelectedVisitor(null);
-                            }
-                        }}
-                    />
                 </AdminLayout>
             </main>
         </>
@@ -592,218 +580,23 @@ function CustomDateRangePicker({
     max: string;
     onChange: (startDate: string, endDate: string) => void;
 }) {
-    const wrapperRef = useRef<HTMLSpanElement>(null);
-    const minDate = useMemo(() => parseReportIsoDate(min), [min]);
-    const maxDate = useMemo(() => parseReportIsoDate(max), [max]);
-    const selectedStartDate = useMemo(() => parseReportIsoDate(startDate), [startDate]);
-    const selectedEndDate = useMemo(() => parseReportIsoDate(endDate), [endDate]);
-    const [isOpen, setIsOpen] = useState(false);
-    const [startVisibleMonth, setStartVisibleMonth] = useState(() =>
-        startOfReportMonth(clampReportDate(selectedStartDate ?? minDate ?? new Date(), minDate, maxDate)),
-    );
-    const [endVisibleMonth, setEndVisibleMonth] = useState(() =>
-        startOfReportMonth(clampReportDate(selectedEndDate ?? selectedStartDate ?? minDate ?? new Date(), selectedStartDate ?? minDate, maxDate)),
-    );
-    const startYearOptions = useMemo(() => buildReportYearOptions(minDate, maxDate, startVisibleMonth), [maxDate, minDate, startVisibleMonth]);
-    const endYearOptions = useMemo(
-        () => buildReportYearOptions(selectedStartDate ?? minDate, maxDate, endVisibleMonth),
-        [endVisibleMonth, maxDate, minDate, selectedStartDate],
-    );
-
-    useEffect(() => {
-        setStartVisibleMonth(startOfReportMonth(clampReportDate(selectedStartDate ?? minDate ?? new Date(), minDate, maxDate)));
-    }, [maxDate, minDate, selectedStartDate]);
-
-    useEffect(() => {
-        setEndVisibleMonth(
-            startOfReportMonth(clampReportDate(selectedEndDate ?? selectedStartDate ?? minDate ?? new Date(), selectedStartDate ?? minDate, maxDate)),
-        );
-    }, [maxDate, minDate, selectedEndDate, selectedStartDate]);
-
-    useEffect(() => {
-        if (!isOpen) {
-            return;
-        }
-
-        const closeOnOutsideClick = (event: MouseEvent) => {
-            if (wrapperRef.current?.contains(event.target as Node)) {
-                return;
-            }
-
-            setIsOpen(false);
-        };
-
-        document.addEventListener('mousedown', closeOnOutsideClick);
-
-        return () => document.removeEventListener('mousedown', closeOnOutsideClick);
-    }, [isOpen]);
-
-    const selectStartDate = (date: Date) => {
-        if (!isReportDateInRange(date, minDate, maxDate)) {
-            return;
-        }
-
-        const nextStartDate = toReportIsoDate(date);
-        const nextEndDate = endDate && endDate >= nextStartDate ? endDate : '';
-
-        onChange(nextStartDate, nextEndDate);
-
-        if (!nextEndDate) {
-            setEndVisibleMonth(startOfReportMonth(clampReportDate(date, minDate, maxDate)));
-        }
+    const updateStartDate = (nextStartDate: string) => {
+        onChange(nextStartDate, endDate && nextStartDate && endDate >= nextStartDate ? endDate : '');
     };
 
-    const selectEndDate = (date: Date) => {
-        const endMinDate = selectedStartDate ?? minDate;
-
-        if (!selectedStartDate || !isReportDateInRange(date, endMinDate, maxDate)) {
-            return;
-        }
-
-        onChange(startDate, toReportIsoDate(date));
-    };
-
-    const moveStartMonth = (month: number, year: number) => {
-        setStartVisibleMonth(
-            startOfReportMonth(clampReportDate(new Date(year, month, 1), reportMonthStartLimit(minDate), reportMonthStartLimit(maxDate))),
-        );
-    };
-
-    const moveEndMonth = (month: number, year: number) => {
-        setEndVisibleMonth(
-            startOfReportMonth(
-                clampReportDate(new Date(year, month, 1), reportMonthStartLimit(selectedStartDate ?? minDate), reportMonthStartLimit(maxDate)),
-            ),
-        );
+    const updateEndDate = (nextEndDate: string) => {
+        onChange(startDate, nextEndDate);
     };
 
     return (
-        <span ref={wrapperRef} className="relative mt-2 block w-full">
-            <button
-                type="button"
-                onClick={() => setIsOpen((open) => !open)}
-                className="flex h-12 w-full items-center justify-between gap-3 rounded-lg border border-[#040DBF]/15 bg-white px-4 text-left text-sm font-medium text-[#010440] transition outline-none hover:border-[#040DBF]/30 focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10"
-                aria-expanded={isOpen}
-            >
-                <span className={cn(startDate || endDate ? 'text-[#010440]' : 'text-[#020659]/55')}>{summarizeDateRange(startDate, endDate)}</span>
-                <CalendarDays className="size-4 shrink-0 text-[#030A8C]" />
-            </button>
-
-            {isOpen && (
-                <span className="absolute right-0 z-50 mt-2 block w-[min(42rem,calc(100vw-2rem))] rounded-lg border border-[#040DBF]/15 bg-white p-4 text-[#010440] shadow-xl">
-                    <span className="grid gap-4 md:grid-cols-2">
-                        <CompactCalendar
-                            label="Start date"
-                            selectedDate={selectedStartDate}
-                            visibleMonth={startVisibleMonth}
-                            minDate={minDate}
-                            maxDate={maxDate}
-                            yearOptions={startYearOptions}
-                            onMoveMonth={moveStartMonth}
-                            onSelectDate={selectStartDate}
-                        />
-                        <CompactCalendar
-                            label="End date"
-                            hint={selectedStartDate ? undefined : 'Choose a start date first.'}
-                            selectedDate={selectedEndDate}
-                            visibleMonth={endVisibleMonth}
-                            minDate={selectedStartDate ?? minDate}
-                            maxDate={maxDate}
-                            yearOptions={endYearOptions}
-                            onMoveMonth={moveEndMonth}
-                            onSelectDate={selectEndDate}
-                        />
-                    </span>
-                </span>
+        <span className="mt-2 grid w-full gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+            <DateInput value={startDate} min={min} max={max} onChange={updateStartDate} placeholder="Start date" />
+            <DateInput value={endDate} min={startDate || min} max={max} onChange={updateEndDate} placeholder="End date" disabled={!startDate} />
+            {(startDate || endDate) && (
+                <Button type="button" variant="outline" size="sm" onClick={() => onChange('', '')} className="h-10 justify-center">
+                    Clear
+                </Button>
             )}
-        </span>
-    );
-}
-
-function CompactCalendar({
-    label,
-    hint,
-    selectedDate,
-    visibleMonth,
-    minDate,
-    maxDate,
-    yearOptions,
-    onMoveMonth,
-    onSelectDate,
-}: {
-    label: string;
-    hint?: string;
-    selectedDate: Date | null;
-    visibleMonth: Date;
-    minDate: Date | null;
-    maxDate: Date | null;
-    yearOptions: number[];
-    onMoveMonth: (month: number, year: number) => void;
-    onSelectDate: (date: Date) => void;
-}) {
-    const calendarDays = useMemo(() => buildReportCalendarDays(visibleMonth), [visibleMonth]);
-
-    return (
-        <span className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#010440]">{label}</span>
-            <span className="grid grid-cols-[minmax(0,1fr)_6rem] gap-2">
-                <select
-                    value={visibleMonth.getMonth()}
-                    onChange={(event) => onMoveMonth(Number(event.target.value), visibleMonth.getFullYear())}
-                    className="h-10 rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm font-medium outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10"
-                >
-                    {reportMonthOptions.map((month) => (
-                        <option
-                            key={month.value}
-                            value={month.value}
-                            disabled={!isReportMonthInRange(month.value, visibleMonth.getFullYear(), minDate, maxDate)}
-                        >
-                            {month.label}
-                        </option>
-                    ))}
-                </select>
-                <select
-                    value={visibleMonth.getFullYear()}
-                    onChange={(event) => onMoveMonth(visibleMonth.getMonth(), Number(event.target.value))}
-                    className="h-10 rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm font-medium outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10"
-                >
-                    {yearOptions.map((year) => (
-                        <option key={year} value={year}>
-                            {year}
-                        </option>
-                    ))}
-                </select>
-            </span>
-            {hint && <span className="mt-2 block rounded-md bg-[#f6f8ff] px-3 py-2 text-xs font-medium text-[#020659]/70">{hint}</span>}
-
-            <span className="mt-3 grid grid-cols-7 gap-y-1 text-center text-sm">
-                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
-                    <span key={day} className="py-1 font-semibold text-[#020659]/70">
-                        {day}
-                    </span>
-                ))}
-                {calendarDays.map((day) => {
-                    const isCurrentMonth = day.getMonth() === visibleMonth.getMonth();
-                    const isSelected = selectedDate ? isSameReportDay(day, selectedDate) : false;
-                    const isDisabled = !isReportDateInRange(day, minDate, maxDate);
-
-                    return (
-                        <button
-                            key={`${label}-${toReportIsoDate(day)}`}
-                            type="button"
-                            disabled={isDisabled}
-                            onClick={() => onSelectDate(day)}
-                            className={cn(
-                                'mx-auto flex size-8 items-center justify-center rounded-md font-medium transition disabled:cursor-not-allowed disabled:text-[#020659]/25',
-                                isCurrentMonth ? 'text-[#010440]' : 'text-[#020659]/40',
-                                isSelected ? 'bg-[#040DBF] text-white hover:bg-[#030A8C] disabled:bg-[#040DBF]/45' : 'hover:bg-[#f6f8ff]',
-                            )}
-                        >
-                            {String(day.getDate()).padStart(2, '0')}
-                        </button>
-                    );
-                })}
-            </span>
         </span>
     );
 }
@@ -816,7 +609,7 @@ function MetricCard({ icon: Icon, label, value, detail }: { icon: typeof UsersRo
                     <p className="text-sm font-medium text-[#030A8C]">{label}</p>
                     <p className="mt-3 text-4xl font-semibold tracking-normal text-[#010440]">{value.toLocaleString()}</p>
                 </div>
-                <span className="inline-flex size-10 items-center justify-center rounded-lg bg-[#040DBF]/10 text-[#040DBF]">
+                <span className="admin-icon-badge inline-flex size-10 items-center justify-center rounded-lg bg-[#040DBF]/10 text-[#040DBF]">
                     <Icon className="size-5" />
                 </span>
             </div>
@@ -829,33 +622,21 @@ function ReportRow({
     row,
     visitorType,
     requiredVisits,
-    onSelect,
 }: {
     row: VisitReportRow;
     visitorType: VisitorType;
     requiredVisits: number;
-    onSelect: () => void;
 }) {
-    const groupLabel = visitorType === 'student' ? [row.year_level, row.section].filter(Boolean).join(' - ') || '-' : row.department || '-';
+    const groupLabel = visitorType === 'student' ? row.year_section_label || [row.year_level, row.section].filter(Boolean).join(' - ') || '-' : row.department || '-';
     const GroupIcon = visitorType === 'student' ? GraduationCap : BriefcaseBusiness;
 
     return (
-        <TableRow
-            onClick={onSelect}
-            tabIndex={0}
-            onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    onSelect();
-                }
-            }}
-            className="cursor-pointer focus-visible:bg-[#f6f8ff] focus-visible:outline-none"
-        >
+        <TableRow>
             <TableCell className="font-medium text-[#010440]">{row.school_id}</TableCell>
             <TableCell>{row.name}</TableCell>
             <TableCell>
                 <span className="inline-flex items-center gap-2">
-                    <GroupIcon className="size-4 text-[#040DBF]" />
+                    <GroupIcon className="report-table-icon size-4 text-[#040DBF]" />
                     {groupLabel}
                 </span>
             </TableCell>
@@ -872,128 +653,6 @@ function ReportRow({
             </TableCell>
         </TableRow>
     );
-}
-
-function VisitorVisitHistoryModal({
-    visitor,
-    visitorType,
-    report,
-    open,
-    onOpenChange,
-}: {
-    visitor: VisitReportRow | null;
-    visitorType: VisitorTypeFilter;
-    report: VisitReport | null;
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-}) {
-    const visits = visitor?.visits ?? [];
-    const historyEnd = report ? historyEndDate(report.filters.end_date, report.school_year) : null;
-    const groupLabel =
-        visitorType === 'student'
-            ? [visitor?.year_level, visitor?.section].filter(Boolean).join(' - ')
-            : visitor?.department;
-
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-3xl">
-                <DialogHeader>
-                    <div className="flex items-center gap-3 pr-8">
-                        <VisitorAvatar name={visitor?.name ?? 'Visitor'} />
-                        <div className="min-w-0">
-                            <DialogTitle className="truncate text-2xl text-[#010440]">{visitor?.name ?? 'Visitor details'}</DialogTitle>
-                            <DialogDescription>
-                                {visitor?.school_id ?? 'No school ID'}{groupLabel ? ` - ${groupLabel}` : ''}
-                            </DialogDescription>
-                        </div>
-                    </div>
-                </DialogHeader>
-
-                <div className="grid gap-3 sm:grid-cols-3">
-                    <VisitDetailCard label="Type" value={visitorType === 'employee' ? 'Employee' : 'Student'} />
-                    <VisitDetailCard
-                        label="Total visits"
-                        value={`${visitor?.visit_count ?? 0}${visitor && visitor.excess_visits > 0 ? ` (+${visitor.excess_visits})` : ''}`}
-                    />
-                    <VisitDetailCard label="Progress" value={`${visitor?.progress_percent ?? 0}%`} />
-                </div>
-
-                <section className="rounded-lg border border-[#040DBF]/10">
-                    <div className="border-b border-[#040DBF]/10 bg-[#f6f8ff] px-4 py-3">
-                        <h3 className="font-semibold text-[#010440]">Visit history</h3>
-                        <p className="mt-1 text-sm text-[#020659]/70">
-                            {report?.school_year?.name ?? 'School year'} from {report ? formatDisplayDate(report.school_year?.starts_at ?? report.filters.start_date) : '-'} to{' '}
-                            {historyEnd ? formatDisplayDate(historyEnd) : '-'}.
-                        </p>
-                    </div>
-
-                    {visits.length > 0 ? (
-                        <div className="max-h-[22rem] overflow-y-auto overscroll-contain">
-                            <Table>
-                                <TableHeader className="bg-white">
-                                    <TableRow>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Time</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {visits.map((visit) => {
-                                        const visitedAt = parseVisitDate(visit.visited_at);
-
-                                        return (
-                                            <TableRow key={visit.id}>
-                                                <TableCell className="font-medium text-[#010440]">
-                                                    {visitedAt ? formatDisplayDate(toReportIsoDate(visitedAt)) : '-'}
-                                                </TableCell>
-                                                <TableCell className="text-[#020659]/70">
-                                                    {visitedAt
-                                                        ? visitedAt.toLocaleTimeString([], {
-                                                              hour: '2-digit',
-                                                              minute: '2-digit',
-                                                          })
-                                                        : '-'}
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    ) : (
-                        <div className="px-4 py-10 text-center text-sm text-[#020659]/70">No visits recorded for this school-year period.</div>
-                    )}
-                </section>
-            </DialogContent>
-        </Dialog>
-    );
-}
-
-function VisitDetailCard({ label, value }: { label: string; value: string }) {
-    return (
-        <div className="rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff] p-4">
-            <p className="text-xs font-semibold tracking-[0.12em] text-[#030A8C] uppercase">{label}</p>
-            <p className="mt-2 text-lg font-semibold text-[#010440]">{value}</p>
-        </div>
-    );
-}
-
-function historyEndDate(reportEndDate: string, schoolYear: VisitReportSchoolYear | null) {
-    const endDate = parseReportIsoDate(reportEndDate) ?? new Date();
-    const schoolYearEnd = parseReportIsoDate(schoolYear?.ends_at);
-    const today = startOfReportDay(new Date());
-    const cappedSchoolYearEnd = schoolYearEnd && schoolYearEnd < endDate ? schoolYearEnd : endDate;
-
-    return today < cappedSchoolYearEnd ? toReportIsoDate(today) : toReportIsoDate(cappedSchoolYearEnd);
-}
-
-function parseVisitDate(value: string | null) {
-    if (!value) {
-        return null;
-    }
-
-    const date = new Date(value);
-
-    return Number.isNaN(date.getTime()) ? null : date;
 }
 
 function ReportSortableHead({
@@ -1043,7 +702,7 @@ function sortReportRows(
 
 function reportSortValue(row: VisitReportRow, column: ReportSortColumn, visitorType: VisitorTypeFilter) {
     if (column === 'group') {
-        return visitorType === 'student' ? [row.year_level, row.section].filter(Boolean).join(' ') : (row.department ?? '');
+        return visitorType === 'student' ? (row.year_section_label ?? [row.year_level, row.section].filter(Boolean).join(' ')) : (row.department ?? '');
     }
 
     return row[column] ?? '';
@@ -1127,12 +786,6 @@ function ReportResultsSkeleton() {
     );
 }
 
-const reportMonthFormatter = new Intl.DateTimeFormat('en-US', { month: 'long' });
-const reportMonthOptions = Array.from({ length: 12 }, (_, month) => ({
-    value: month,
-    label: reportMonthFormatter.format(new Date(2026, month, 1)),
-}));
-
 function inferDateRangeMode(schoolYear: VisitReportSchoolYear | null, startDate: string, endDate: string): DateRangeMode {
     const bounds = getSchoolYearBounds(schoolYear);
 
@@ -1180,105 +833,4 @@ function summarizeDateRange(startDate: string, endDate: string) {
 
 function dateOnly(value: VisitReportSchoolYear['starts_at']) {
     return value.slice(0, 10);
-}
-
-function parseReportIsoDate(value?: string) {
-    if (!value) {
-        return null;
-    }
-
-    const [year, month, day] = value.split('-').map(Number);
-
-    if (!year || !month || !day) {
-        return null;
-    }
-
-    const date = new Date(year, month - 1, day);
-
-    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
-        return null;
-    }
-
-    return date;
-}
-
-function startOfReportMonth(date: Date) {
-    return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
-function reportMonthStartLimit(date: Date | null) {
-    return date ? startOfReportMonth(date) : null;
-}
-
-function buildReportCalendarDays(month: Date) {
-    const firstVisibleDay = new Date(month.getFullYear(), month.getMonth(), 1 - month.getDay());
-
-    return Array.from(
-        { length: 42 },
-        (_, index) => new Date(firstVisibleDay.getFullYear(), firstVisibleDay.getMonth(), firstVisibleDay.getDate() + index),
-    );
-}
-
-function buildReportYearOptions(minDate: Date | null, maxDate: Date | null, visibleMonth: Date) {
-    const firstYear = minDate?.getFullYear() ?? visibleMonth.getFullYear();
-    const lastYear = maxDate?.getFullYear() ?? visibleMonth.getFullYear();
-
-    return Array.from({ length: lastYear - firstYear + 1 }, (_, index) => firstYear + index);
-}
-
-function isReportDateInRange(date: Date, minDate: Date | null, maxDate: Date | null) {
-    const candidate = startOfReportDay(date);
-
-    if (minDate && candidate < startOfReportDay(minDate)) {
-        return false;
-    }
-
-    if (maxDate && candidate > startOfReportDay(maxDate)) {
-        return false;
-    }
-
-    return true;
-}
-
-function isReportMonthInRange(month: number, year: number, minDate: Date | null, maxDate: Date | null) {
-    const monthStart = new Date(year, month, 1);
-    const monthEnd = new Date(year, month + 1, 0);
-
-    if (minDate && monthEnd < startOfReportMonth(minDate)) {
-        return false;
-    }
-
-    if (maxDate && monthStart > startOfReportMonth(maxDate)) {
-        return false;
-    }
-
-    return true;
-}
-
-function clampReportDate(date: Date, minDate: Date | null, maxDate: Date | null) {
-    if (minDate && date < minDate) {
-        return new Date(minDate);
-    }
-
-    if (maxDate && date > maxDate) {
-        return new Date(maxDate);
-    }
-
-    return new Date(date);
-}
-
-function startOfReportDay(date: Date) {
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-function isSameReportDay(first: Date, second: Date) {
-    return first.getFullYear() === second.getFullYear() && first.getMonth() === second.getMonth() && first.getDate() === second.getDate();
-}
-
-function toReportIsoDate(date: Date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
 }

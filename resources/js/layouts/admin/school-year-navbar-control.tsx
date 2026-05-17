@@ -14,8 +14,8 @@ interface SchoolYearForm {
     [key: string]: string | number | boolean;
     starts_at: string;
     ends_at: string;
-    student_required_visits: number;
-    employee_required_visits: number;
+    student_required_visits: number | '';
+    employee_required_visits: number | '';
     transfer_employees: boolean;
     confirmed_transition: boolean;
 }
@@ -23,8 +23,8 @@ interface SchoolYearForm {
 const emptySchoolYearForm: SchoolYearForm = {
     starts_at: '',
     ends_at: '',
-    student_required_visits: 4,
-    employee_required_visits: 4,
+    student_required_visits: '',
+    employee_required_visits: '',
     transfer_employees: false,
     confirmed_transition: false,
 };
@@ -41,6 +41,13 @@ export function SchoolYearNavbarControl() {
     useEffect(() => {
         setCanPortal(true);
     }, []);
+
+    useEffect(() => {
+        if (!schoolYear) {
+            setPreviewOpen(false);
+            setDetailsOpen(true);
+        }
+    }, [schoolYear]);
 
     useEffect(() => {
         if (!previewOpen) {
@@ -103,10 +110,19 @@ export function SchoolYearNavbarControl() {
             {canPortal &&
                 previewOpen &&
                 !detailsOpen &&
-                createPortal(<SchoolYearPreviewOverlay position={previewPosition} schoolYear={schoolYear} onOpen={openPreview} onClose={closePreviewSoon} onDetailsOpen={() => {
-                    setPreviewOpen(false);
-                    setDetailsOpen(true);
-                }} />, document.body)}
+                createPortal(
+                    <SchoolYearPreviewOverlay
+                        position={previewPosition}
+                        schoolYear={schoolYear}
+                        onOpen={openPreview}
+                        onClose={closePreviewSoon}
+                        onDetailsOpen={() => {
+                            setPreviewOpen(false);
+                            setDetailsOpen(true);
+                        }}
+                    />,
+                    document.body,
+                )}
 
             <div
                 ref={triggerRef}
@@ -133,10 +149,14 @@ export function SchoolYearNavbarControl() {
                     </span>
                     <span className="admin-school-year-value px-3 font-semibold text-[#010440]">{schoolYear?.name ?? 'Not configured'}</span>
                 </button>
-
             </div>
 
-            <SchoolYearDetailsDialog open={detailsOpen} schoolYears={schoolYears} onOpenChange={setDetailsOpen} />
+            <SchoolYearDetailsDialog
+                open={detailsOpen}
+                schoolYears={schoolYears}
+                onOpenChange={setDetailsOpen}
+                requireActiveSchoolYear={!schoolYear}
+            />
         </>
     );
 }
@@ -157,12 +177,7 @@ function SchoolYearPreviewOverlay({
     return (
         <>
             <div className="pointer-events-none fixed inset-0 z-[55] bg-[#010440]/10 backdrop-blur-[3px] transition" aria-hidden="true" />
-            <div
-                className="fixed z-[70] w-80"
-                style={{ top: position.top, right: position.right }}
-                onMouseEnter={onOpen}
-                onMouseLeave={onClose}
-            >
+            <div className="fixed z-[70] w-80" style={{ top: position.top, right: position.right }} onMouseEnter={onOpen} onMouseLeave={onClose}>
                 <div className="admin-school-year-popover rounded-lg border border-[#040DBF]/10 bg-white p-4 text-sm shadow-xl shadow-[#040DBF]/10">
                     <div className="flex items-start gap-3">
                         <span className="admin-school-year-popover-icon flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#f6f8ff] text-[#040DBF]">
@@ -184,7 +199,7 @@ function SchoolYearPreviewOverlay({
                         </div>
                     )}
                     <Button type="button" size="sm" className="mt-4 w-full" onClick={onDetailsOpen}>
-                        More details
+                        Transition to new school year
                     </Button>
                 </div>
             </div>
@@ -196,28 +211,34 @@ function SchoolYearDetailsDialog({
     open,
     schoolYears,
     onOpenChange,
+    requireActiveSchoolYear,
 }: {
     open: boolean;
     schoolYears: SchoolYearRow[];
     onOpenChange: (open: boolean) => void;
+    requireActiveSchoolYear: boolean;
 }) {
     const activeSchoolYear = useMemo(() => schoolYears.find((schoolYear) => schoolYear.is_active) ?? null, [schoolYears]);
+    const previousSchoolYear = activeSchoolYear ?? schoolYears[0] ?? null;
+    const hasPreviousSchoolYear = Boolean(previousSchoolYear);
     const [editingSchoolYearId, setEditingSchoolYearId] = useState<number | null>(null);
     const { data, setData, post, patch, processing, errors, reset, clearErrors } = useForm<SchoolYearForm>({
         ...emptySchoolYearForm,
-        student_required_visits: activeSchoolYear?.student_required_visits ?? emptySchoolYearForm.student_required_visits,
-        employee_required_visits: activeSchoolYear?.employee_required_visits ?? emptySchoolYearForm.employee_required_visits,
     });
     const editingSchoolYear = schoolYears.find((schoolYear) => schoolYear.id === editingSchoolYearId) ?? null;
     const transitionYearStart = new Date().getFullYear();
     const transitionYearEnd = transitionYearStart + 5;
 
     useEffect(() => {
+        if (!open) {
+            setEditingSchoolYearId(null);
+
+            return;
+        }
+
         if (open && !editingSchoolYearId) {
             setData({
                 ...emptySchoolYearForm,
-                student_required_visits: activeSchoolYear?.student_required_visits ?? emptySchoolYearForm.student_required_visits,
-                employee_required_visits: activeSchoolYear?.employee_required_visits ?? emptySchoolYearForm.employee_required_visits,
                 transfer_employees: false,
             });
             clearErrors();
@@ -229,8 +250,6 @@ function SchoolYearDetailsDialog({
         reset();
         setData({
             ...emptySchoolYearForm,
-            student_required_visits: activeSchoolYear?.student_required_visits ?? emptySchoolYearForm.student_required_visits,
-            employee_required_visits: activeSchoolYear?.employee_required_visits ?? emptySchoolYearForm.employee_required_visits,
             transfer_employees: false,
         });
         clearErrors();
@@ -259,9 +278,7 @@ function SchoolYearDetailsDialog({
         const options = {
             preserveScroll: true,
             onSuccess: () => {
-                if (!editingSchoolYearId) {
-                    beginCreate();
-                }
+                onOpenChange(false);
             },
         };
 
@@ -274,11 +291,17 @@ function SchoolYearDetailsDialog({
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={(nextOpen) => (requireActiveSchoolYear && !nextOpen ? undefined : onOpenChange(nextOpen))}>
             <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-4xl" onOpenAutoFocus={(event) => event.preventDefault()}>
                 <DialogHeader>
-                    <DialogTitle className="text-2xl text-[#010440]">School year details</DialogTitle>
-                    <DialogDescription>Transition to the next school year, review historical years, and edit visit targets.</DialogDescription>
+                    <DialogTitle className="text-2xl text-[#010440]">
+                        {requireActiveSchoolYear ? 'Create a school year' : 'School year details'}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {requireActiveSchoolYear
+                            ? 'Create the first school year before using the library system.'
+                            : 'Transition to the next school year, review historical years, and edit visit targets.'}
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_21rem]">
@@ -286,12 +309,18 @@ function SchoolYearDetailsDialog({
                         <div className="mb-4 flex items-center justify-between gap-3">
                             <div>
                                 <h3 className="font-semibold text-[#010440]">
-                                    {editingSchoolYear ? 'Edit school year' : 'Transition to new school year'}
+                                    {editingSchoolYear
+                                        ? 'Edit school year'
+                                        : hasPreviousSchoolYear
+                                          ? 'Transition to new school year'
+                                          : 'Create a school year'}
                                 </h3>
                                 <p className="text-sm text-[#020659]/70">
                                     {editingSchoolYear
                                         ? editingSchoolYear.name
-                                        : 'The name is generated from the start and end year, and this action cannot be reverted.'}
+                                        : hasPreviousSchoolYear
+                                          ? 'The name is generated from the start and end year, and this action cannot be reverted.'
+                                          : 'The name is generated from the start and end year.'}
                                 </p>
                             </div>
                             {editingSchoolYear && (
@@ -309,6 +338,8 @@ function SchoolYearDetailsDialog({
                                     onChange={(value) => setData('starts_at', value)}
                                     className="mt-2"
                                     openOnFocus={false}
+                                    placeholder="mm/dd/yyyy"
+                                    min={editingSchoolYear ? undefined : previousSchoolYear?.ends_at}
                                     yearWindowStart={editingSchoolYear ? undefined : transitionYearStart}
                                     yearWindowEnd={editingSchoolYear ? undefined : transitionYearEnd}
                                 />
@@ -319,16 +350,23 @@ function SchoolYearDetailsDialog({
                                     onChange={(value) => setData('ends_at', value)}
                                     className="mt-2"
                                     openOnFocus={false}
+                                    placeholder="mm/dd/yyyy"
+                                    min={editingSchoolYear ? data.starts_at || undefined : data.starts_at || previousSchoolYear?.ends_at}
                                     yearWindowStart={editingSchoolYear ? undefined : transitionYearStart}
                                     yearWindowEnd={editingSchoolYear ? undefined : transitionYearEnd}
                                 />
                             </Field>
+                            <p className="sm:col-span-2 -mt-2 text-xs leading-5 text-[#020659]/70">
+                                You can type dates like March 6 2027, March 6, 2027, or 03/06/2027. Numeric dates add slashes while typing.
+                            </p>
                             <Field label="Required student visits" error={errors.student_required_visits}>
                                 <input
                                     type="number"
                                     min="0"
                                     value={data.student_required_visits}
-                                    onChange={(event) => setData('student_required_visits', Number(event.target.value))}
+                                    onChange={(event) =>
+                                        setData('student_required_visits', event.target.value === '' ? '' : Number(event.target.value))
+                                    }
                                     className={inputClass}
                                 />
                             </Field>
@@ -337,13 +375,15 @@ function SchoolYearDetailsDialog({
                                     type="number"
                                     min="0"
                                     value={data.employee_required_visits}
-                                    onChange={(event) => setData('employee_required_visits', Number(event.target.value))}
+                                    onChange={(event) =>
+                                        setData('employee_required_visits', event.target.value === '' ? '' : Number(event.target.value))
+                                    }
                                     className={inputClass}
                                 />
                             </Field>
                         </div>
 
-                        {!editingSchoolYear && (
+                        {!editingSchoolYear && hasPreviousSchoolYear && (
                             <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
                                 <div className="flex gap-2">
                                     <AlertTriangle className="mt-0.5 size-4 shrink-0" />
@@ -367,6 +407,20 @@ function SchoolYearDetailsDialog({
                                         checked={Boolean(data.confirmed_transition)}
                                         onChange={(event) => setData('confirmed_transition', event.target.checked)}
                                         className="size-4 rounded border-amber-300"
+                                    />
+                                    I understand this is a one-way school-year transition.
+                                </label>
+                            </div>
+                        )}
+
+                        {!editingSchoolYear && !hasPreviousSchoolYear && (
+                            <div className="mt-4 rounded-lg border border-[#040DBF]/10 bg-white p-3 text-sm text-[#020659]/75">
+                                <label className="flex items-center gap-2 font-medium text-[#010440]">
+                                    <input
+                                        type="checkbox"
+                                        checked={Boolean(data.confirmed_transition)}
+                                        onChange={(event) => setData('confirmed_transition', event.target.checked)}
+                                        className="size-4 rounded border-[#040DBF]/20"
                                     />
                                     I understand this is a one-way school-year transition.
                                 </label>

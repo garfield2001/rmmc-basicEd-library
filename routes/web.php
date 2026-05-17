@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminProfileController;
 use App\Http\Controllers\AdminScanSettingsController;
 use App\Http\Controllers\AdminSchoolYearController;
 use App\Http\Controllers\AdminSettingsController;
+use App\Http\Controllers\AdminVisitHistoryController;
 use App\Http\Controllers\AdminVisitMonitorController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\HomeController;
@@ -31,6 +32,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('admin', AdminDashboardController::class)->name('admin.dashboard');
     Route::get('admin/live-visits/scan-targets', [AdminVisitMonitorController::class, 'scanTargets'])->name('admin.live-visits.scan-targets');
     Route::get('admin/live-visits', AdminVisitMonitorController::class)->name('admin.live-visits');
+    Route::get('admin/visits-history', AdminVisitHistoryController::class)->name('admin.visits-history');
     Route::get('admin/settings', AdminSettingsController::class)->name('admin.settings');
     Route::patch('admin/profile', [AdminProfileController::class, 'update'])->name('admin.profile.update');
     Route::patch('admin/scan-settings', [AdminScanSettingsController::class, 'update'])->name('admin.scan-settings.update');
@@ -38,6 +40,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::patch('admin/school-years/{schoolYear}', [AdminSchoolYearController::class, 'update'])->name('admin.school-years.update');
     Route::patch('admin/school-years/{schoolYear}/activate', [AdminSchoolYearController::class, 'activate'])->name('admin.school-years.activate');
 
+    Route::post('admin/registered-visitors/import/preview', [RegisteredVisitorController::class, 'importPreview'])->name('admin.registered-visitors.import.preview');
     Route::post('admin/registered-visitors/import', [RegisteredVisitorController::class, 'import'])->name('admin.registered-visitors.import');
     Route::resource('admin/registered-visitors', RegisteredVisitorController::class)->except(['show', 'destroy'])->names('admin.registered-visitors');
 

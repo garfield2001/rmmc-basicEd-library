@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::create('registered_visitors', function (Blueprint $table): void {
             $table->id();
-            $table->string('rfid_uid', 10)->unique();
-            $table->string('school_id')->unique();
+            $table->string('rfid_uid', 10)->nullable()->unique();
+            $table->string('school_id')->nullable()->unique();
             $table->string('type', 24)->index();
             $table->string('first_name');
             $table->string('middle_name')->nullable();

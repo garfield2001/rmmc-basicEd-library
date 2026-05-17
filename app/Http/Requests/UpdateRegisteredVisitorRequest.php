@@ -15,11 +15,11 @@ class UpdateRegisteredVisitorRequest extends FormRequest
 
     public function rules(): array
     {
-        $visitorId = $this->route('visitor')?->id;
+        $visitorId = $this->route('registered_visitor')?->id;
 
         return [
-            'rfid_uid' => ['required', 'string', 'regex:/^\d{10}$/', Rule::unique('registered_visitors', 'rfid_uid')->ignore($visitorId)],
-            'school_id' => ['required', 'string', 'max:255', Rule::unique('registered_visitors', 'school_id')->ignore($visitorId)],
+            'rfid_uid' => ['nullable', 'string', 'regex:/^\d{10}$/', Rule::unique('registered_visitors', 'rfid_uid')->ignore($visitorId)],
+            'school_id' => ['nullable', 'string', 'max:255', Rule::unique('registered_visitors', 'school_id')->ignore($visitorId)],
             'type' => ['required', Rule::in([RegisteredVisitor::TYPE_STUDENT, RegisteredVisitor::TYPE_EMPLOYEE])],
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
@@ -28,6 +28,7 @@ class UpdateRegisteredVisitorRequest extends FormRequest
             'year_level' => ['required_if:type,student', 'nullable', 'string', 'max:255'],
             'section' => ['nullable', 'string', 'max:255'],
             'department' => ['required_if:type,employee', 'nullable', 'string', 'max:255'],
+            'confirm_merge_duplicates' => ['sometimes', 'boolean'],
         ];
     }
 

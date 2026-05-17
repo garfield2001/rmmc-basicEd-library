@@ -12,6 +12,8 @@ class RegisteredVisitorTableService
 
     public const ROW_OPTIONS = [5, 10, 30, 50, 100];
 
+    public function __construct(private readonly RegisteredVisitorDuplicateService $duplicates) {}
+
     public function typeOption(string $type): string
     {
         return in_array($type, [RegisteredVisitor::TYPE_STUDENT, RegisteredVisitor::TYPE_EMPLOYEE], true)
@@ -63,7 +65,7 @@ class RegisteredVisitorTableService
                         ->forSchoolYear($activeSchoolYearId)
                         ->when($yearLevel, fn (Builder $query) => $query->where('year_level', $yearLevel))
                         ->when($section, fn (Builder $query) => $query->where('section', $section));
-                    });
+                });
             })
             ->when(
                 $type === RegisteredVisitor::TYPE_EMPLOYEE,
@@ -79,6 +81,7 @@ class RegisteredVisitorTableService
                         ->when($department, fn (Builder $query) => $query->where('department', $department)));
                 },
             )
+            ->tap(fn (Builder $query) => $this->duplicates->applyCanonicalFilter($query, $type, $activeSchoolYearId))
             ->select('registered_visitors.*');
     }
 

@@ -2,19 +2,23 @@
 
 namespace App\Support\Reports;
 
+use App\Support\Academics\AcademicLevels;
+
 class SimpleVisitReportPdf
 {
-    private const PAGE_WIDTH = 612;
+    private const PAGE_WIDTH = 792;
 
-    private const PAGE_HEIGHT = 792;
+    private const PAGE_HEIGHT = 612;
 
     private const LEFT_MARGIN = 36;
 
-    private const TOP_MARGIN = 748;
+    private const TOP_MARGIN = 568;
 
-    private const LINE_HEIGHT = 13;
+    private const LINE_HEIGHT = 15;
 
-    private const LINES_PER_PAGE = 52;
+    private const LINES_PER_PAGE = 35;
+
+    private const TABLE_WIDTH = 720;
 
     public function make(array $report): string
     {
@@ -34,24 +38,23 @@ class SimpleVisitReportPdf
         $groupHeader = $isStudent ? 'Year/section' : 'Department';
 
         $lines = [
-            'Library Progress Report',
-            'School year: '.$schoolYear.'    Visitor type: '.$visitorType,
-            'From '.$period,
-            '',
-            'Visitors: '.$summary['visitors'].
+            $this->line('Library Progress Report', 'title'),
+            $this->line('School year: '.$schoolYear.'    Visitor type: '.$visitorType),
+            $this->line('From '.$period),
+            $this->line(''),
+            $this->line('Visitors: '.$summary['visitors'].
                 '    Total visits: '.$summary['total_visits'].
-                '    Required visits: '.$summary['required_visits'],
-            '',
-            sprintf('%-13s  %-28s  %-22s  %-9s  %-6s  %-8s', 'School ID', 'Name', $groupHeader, 'Visits', 'Excess', 'Progress'),
-            str_repeat('-', 96),
+                '    Required visits: '.$summary['required_visits']),
+            $this->line(''),
+            $this->line(sprintf('%-13s  %-28s  %-22s  %-9s  %-6s  %-8s', 'School ID', 'Name', $groupHeader, 'Visits', 'Excess', 'Progress'), 'tableHeader'),
         ];
 
-        foreach ($report['rows'] as $row) {
+        foreach ($report['rows'] as $rowIndex => $row) {
             $group = $isStudent
-                ? trim(($row['year_level'] ?? '').' / '.($row['section'] ?? ''), ' /')
+                ? ($row['year_section_label'] ?? trim(collect([AcademicLevels::shortLabel($row['year_level'] ?? null), $row['section'] ?? null])->filter()->implode(' - ')))
                 : ($row['department'] ?? '');
 
-            $lines[] = sprintf(
+            $lines[] = $this->line(sprintf(
                 '%-13s  %-28s  %-22s  %-9s  %-6s  %-8s',
                 $this->fit($row['school_id'] ?? '-', 13),
                 $this->fit($row['name'] ?? '-', 28),
@@ -59,7 +62,7 @@ class SimpleVisitReportPdf
                 $this->fit($row['visit_count'].' / '.$summary['required_visits'], 9),
                 (string) ($row['excess_visits'] ?? 0),
                 $row['progress_percent'].'%',
-            );
+            ), 'tableRow', $rowIndex);
         }
 
         return $lines;
@@ -98,13 +101,29 @@ class SimpleVisitReportPdf
 
     private function pageContent(array $lines): string
     {
-        $content = "BT\n/F1 10 Tf\n".self::LINE_HEIGHT." TL\n".self::LEFT_MARGIN.' '.self::TOP_MARGIN." Td\n";
+        $content = '';
+        $y = self::TOP_MARGIN;
 
         foreach ($lines as $line) {
-            $content .= '('.$this->escapePdfText($line).") Tj\nT*\n";
+            $kind = $line['kind'] ?? 'body';
+            $fontSize = $kind === 'title' ? 18 : 12;
+            $lineHeight = $kind === 'title' ? 22 : self::LINE_HEIGHT;
+
+            if ($kind === 'tableHeader') {
+                $content .= $this->fillRect(self::LEFT_MARGIN - 4, $y - 4, self::TABLE_WIDTH + 8, self::LINE_HEIGHT, [0.91, 0.94, 0.99]);
+            }
+
+            if ($kind === 'tableRow') {
+                $rowIndex = (int) ($line['rowIndex'] ?? 0);
+                $color = $rowIndex % 2 === 0 ? [1, 1, 1] : [0.97, 0.98, 0.99];
+                $content .= $this->fillRect(self::LEFT_MARGIN - 4, $y - 4, self::TABLE_WIDTH + 8, self::LINE_HEIGHT, $color);
+            }
+
+            $content .= "BT\n0 0 0 rg\n/F1 {$fontSize} Tf\n".self::LEFT_MARGIN.' '.$y.' Td\n('.$this->escapePdfText($line['text']).") Tj\nET\n";
+            $y -= $lineHeight;
         }
 
-        return $content.'ET';
+        return $content;
     }
 
     private function serializePdf(array $objects): string
@@ -145,5 +164,31 @@ class SimpleVisitReportPdf
         }
 
         return substr($value, 0, max(0, $width - 3)).'...';
+    }
+
+    private function line(string $text, string $kind = 'body', ?int $rowIndex = null): array
+    {
+        return array_filter([
+            'text' => $text,
+            'kind' => $kind,
+            'rowIndex' => $rowIndex,
+        ], fn ($value): bool => $value !== null);
+    }
+
+    /**
+     * @param  array{0: float|int, 1: float|int, 2: float|int}  $rgb
+     */
+    private function fillRect(float $x, float $y, float $width, float $height, array $rgb): string
+    {
+        return sprintf(
+            "q\n%.3F %.3F %.3F rg\n%.2F %.2F %.2F %.2F re f\nQ\n",
+            $rgb[0],
+            $rgb[1],
+            $rgb[2],
+            $x,
+            $y,
+            $width,
+            $height,
+        );
     }
 }

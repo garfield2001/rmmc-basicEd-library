@@ -6,6 +6,7 @@ use App\Http\Requests\ImportRegisteredVisitorsRequest;
 use App\Http\Requests\StoreRegisteredVisitorRequest;
 use App\Http\Requests\UpdateRegisteredVisitorRequest;
 use App\Http\Resources\RegisteredVisitorResource;
+use App\Models\EmployeeProfile;
 use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use App\Services\Library\RegisteredVisitorImportService;
@@ -13,6 +14,7 @@ use App\Services\Library\RegisteredVisitorService;
 use App\Services\Library\RegisteredVisitorTableService;
 use App\Services\SchoolYears\SchoolYearSectionService;
 use App\Support\Academics\AcademicLevels;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -81,29 +83,33 @@ class RegisteredVisitorController extends Controller
 
     public function import(ImportRegisteredVisitorsRequest $request, RegisteredVisitorImportService $imports): RedirectResponse
     {
-        $summary = $imports->import($request->file('visitors_file'));
+        $imports->import($request->file('visitors_file'));
 
-        return back()->with(
-            'success',
-            "Import finished: {$summary['created']} created, {$summary['updated']} updated, {$summary['visits']} visits added, {$summary['skipped']} skipped.",
-        );
+        return back()->with('success', 'Import successful.');
     }
 
-    public function edit(RegisteredVisitor $visitor): Response
+    public function importPreview(ImportRegisteredVisitorsRequest $request, RegisteredVisitorImportService $imports): JsonResponse
+    {
+        return response()->json([
+            'preview' => $imports->preview($request->file('visitors_file')),
+        ]);
+    }
+
+    public function edit(RegisteredVisitor $registeredVisitor): Response
     {
         $activeSchoolYearId = SchoolYear::active()->value('id');
 
         return Inertia::render('admin/registered-visitors/form', [
-            'visitor' => RegisteredVisitorResource::make($visitor->load([
+            'visitor' => RegisteredVisitorResource::make($registeredVisitor->load([
                 'student' => fn ($query) => $query->forSchoolYear($activeSchoolYearId),
                 'employee',
             ]))->resolve(request()),
         ]);
     }
 
-    public function update(UpdateRegisteredVisitorRequest $request, RegisteredVisitor $visitor, RegisteredVisitorService $visitors): RedirectResponse
+    public function update(UpdateRegisteredVisitorRequest $request, RegisteredVisitor $registeredVisitor, RegisteredVisitorService $visitors): RedirectResponse
     {
-        $visitor = $visitors->update($visitor, $request->validated());
+        $visitor = $visitors->update($registeredVisitor, $request->validated());
 
         return redirect()->route('admin.registered-visitors.index', ['type' => $visitor->type])->with('success', 'registered visitor has been updated.');
     }
@@ -118,7 +124,7 @@ class RegisteredVisitorController extends Controller
 
     private function departmentOptions(?int $schoolYearId)
     {
-        return \App\Models\EmployeeProfile::query()
+        return EmployeeProfile::query()
             ->when($schoolYearId, fn ($query) => $query->where('school_year_id', $schoolYearId), fn ($query) => $query->whereRaw('1 = 0'))
             ->distinct()
             ->orderBy('department')
@@ -126,5 +132,4 @@ class RegisteredVisitorController extends Controller
             ->filter()
             ->values();
     }
-
 }

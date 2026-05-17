@@ -3,6 +3,9 @@
 namespace App\Http\Resources;
 
 use App\Models\RegisteredVisitor;
+use App\Models\SchoolYear;
+use App\Services\Library\RegisteredVisitorDuplicateService;
+use App\Support\Names\PersonName;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -19,13 +22,16 @@ class RegisteredVisitorResource extends JsonResource
             'rfid_uid' => $this->rfid_uid,
             'school_id' => $this->school_id,
             'type' => $this->type,
-            'first_name' => $this->first_name,
-            'middle_name' => $this->middle_name,
-            'last_name' => $this->last_name,
+            'first_name' => PersonName::requiredPart($this->first_name),
+            'middle_name' => PersonName::part($this->middle_name),
+            'last_name' => PersonName::requiredPart($this->last_name),
             'name' => $this->full_name,
             'photo' => $this->photo,
             'photo_url' => $this->photo ? asset('visitor-photos/'.$this->photo) : null,
             'group' => $this->group,
+            'duplicate_count' => app(RegisteredVisitorDuplicateService::class)
+                ->unresolvedCandidatesFor($this->resource, SchoolYear::active()->value('id'))
+                ->count(),
             'student' => $this->whenLoaded('student', fn (): ?array => $this->student ? [
                 'school_year_id' => $this->student->school_year_id,
                 'school_year_section_id' => $this->student->school_year_section_id,

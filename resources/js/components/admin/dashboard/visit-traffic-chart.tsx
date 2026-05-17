@@ -14,9 +14,9 @@ const trafficChartConfig = {
     },
 } satisfies ChartConfig;
 
-export function VisitTrafficChart({ data }: { data: VisitTrendPoint[] }) {
+export function VisitTrafficChart({ data, emptyMessage = 'No visits have been recorded for this period.' }: { data: VisitTrendPoint[]; emptyMessage?: string }) {
     if (!data.some((point) => point.total > 0)) {
-        return <EmptyChartState message="No visits have been recorded in the last 14 days." />;
+        return <EmptyChartState message={emptyMessage} />;
     }
 
     return (

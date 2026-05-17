@@ -1,6 +1,7 @@
 import { LiveVisitMetrics } from '@/components/admin/live-visits/live-visit-metrics';
 import { LiveVisitScanner } from '@/components/admin/live-visits/live-visit-scanner';
 import { LiveVisitsTable } from '@/components/admin/live-visits/live-visits-table';
+import { VisitDetailsModal } from '@/components/admin/visits/visit-details-modal';
 import { useManilaClock } from '@/components/public/home/use-manila-clock';
 import { LatestVisitCard } from '@/components/visits/latest-visit-card';
 import { useRFIDScanListener } from '@/hooks/use-rfid-scan-listener';
@@ -34,6 +35,7 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
     const [scanError, setScanError] = useState<string | undefined>();
     const [scanTargets, setScanTargets] = useState<ScanTarget[]>(visitMonitor.scanTargets ?? []);
     const [loadingScanTargets, setLoadingScanTargets] = useState(false);
+    const [selectedVisit, setSelectedVisit] = useState<DashboardVisit | null>(null);
     const lastVisit = liveVisitMonitor.todayVisits[0];
     const { formattedManilaTime } = useManilaClock();
     const {
@@ -46,13 +48,22 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
         rfid_uid: '',
     });
     const scanTargetOptions = useMemo(() => {
-        return scanTargets.map((target) => ({
-            value: target.RFIDUid,
-            label: target.name,
-            meta: `${target.schoolId} - ${target.type}${target.detail ? ` - ${target.detail}` : ''}`,
-            idTerms: [target.RFIDUid, target.schoolId, ...target.schoolId.split(/[^a-zA-Z0-9]+/)].filter((term): term is string => Boolean(term)),
-            textTerms: [target.name, target.firstName, target.lastName, target.type, target.detail].filter((term): term is string => Boolean(term)),
-        }));
+        return scanTargets.map((target) => {
+            const scanValue = target.RFIDUid ?? target.schoolId ?? target.name;
+            const schoolId = target.schoolId ?? 'No school ID';
+
+            return {
+                value: scanValue,
+                label: target.name,
+                meta: `${schoolId} - ${target.type}${target.detail ? ` - ${target.detail}` : ''}`,
+                idTerms: [target.RFIDUid, target.schoolId, ...(target.schoolId ?? '').split(/[^a-zA-Z0-9]+/)].filter((term): term is string =>
+                    Boolean(term),
+                ),
+                textTerms: [target.name, target.firstName, target.lastName, target.type, target.detail].filter((term): term is string =>
+                    Boolean(term),
+                ),
+            };
+        });
     }, [scanTargets]);
 
     useEffect(() => {
@@ -67,8 +78,6 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
 
             router.reload({
                 only: ['visitMonitor'],
-                preserveScroll: true,
-                preserveState: true,
             });
         }, liveVisitPollMs);
 
@@ -124,8 +133,6 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
         onFinish: () => {
             router.reload({
                 only: ['visitMonitor'],
-                preserveScroll: true,
-                preserveState: true,
             });
         },
     });
@@ -212,8 +219,18 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
                             visits={liveVisitMonitor.todayVisits}
                             studentCount={liveVisitMonitor.metrics.studentVisitsToday}
                             employeeCount={liveVisitMonitor.metrics.employeeVisitsToday}
+                            onVisitSelect={setSelectedVisit}
                         />
                     </div>
+                    <VisitDetailsModal
+                        visit={selectedVisit}
+                        open={Boolean(selectedVisit)}
+                        onOpenChange={(open) => {
+                            if (!open) {
+                                setSelectedVisit(null);
+                            }
+                        }}
+                    />
                 </AdminLayout>
             </main>
         </>

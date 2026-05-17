@@ -2,9 +2,10 @@
 
 namespace App\Services\Dashboard;
 
-use App\Models\RegisteredVisitor;
 use App\Models\LibraryVisit;
+use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
+use App\Support\Academics\AcademicLevels;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
@@ -50,6 +51,85 @@ class AdminVisitMonitorService
                 ->get()
                 ->map(fn (LibraryVisit $visit): array => $this->visitData($visit)),
             'scanTargets' => [],
+        ];
+    }
+
+    public function getHistoryData(): array
+    {
+        $activeSchoolYear = SchoolYear::active()->first();
+        $activeSchoolYearId = $activeSchoolYear?->id;
+        $visitors = RegisteredVisitor::query()
+            ->visitEligibleForSchoolYear($activeSchoolYearId)
+            ->with([
+                'student' => fn ($query) => $query
+                    ->select(
+                        'student_registrations.id',
+                        'student_registrations.registered_visitor_id',
+                        'student_registrations.school_year_id',
+                        'student_registrations.year_level',
+                        'student_registrations.section',
+                    )
+                    ->forSchoolYear($activeSchoolYearId),
+                'employee' => fn ($query) => $query
+                    ->select('id', 'registered_visitor_id', 'school_year_id', 'department')
+                    ->forSchoolYear($activeSchoolYearId),
+                'visits' => fn ($query) => $query
+                    ->select('id', 'registered_visitor_id', 'school_year_id', 'visited_at')
+                    ->when($activeSchoolYearId, fn ($query) => $query->where('school_year_id', $activeSchoolYearId), fn ($query) => $query->whereRaw('1 = 0'))
+                    ->latest('visited_at'),
+            ])
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->get()
+            ->map(fn (RegisteredVisitor $visitor): array => $this->visitorHistoryData($visitor));
+
+        $studentVisitors = $visitors->where('type', RegisteredVisitor::TYPE_STUDENT);
+        $employeeVisitors = $visitors->where('type', RegisteredVisitor::TYPE_EMPLOYEE);
+        $yearLevelsInUse = $studentVisitors
+            ->pluck('yearLevel')
+            ->filter()
+            ->unique()
+            ->values();
+
+        return [
+            'schoolYear' => $activeSchoolYear ? [
+                'id' => $activeSchoolYear->id,
+                'name' => $activeSchoolYear->name,
+                'starts_at' => $activeSchoolYear->starts_at->toDateString(),
+                'ends_at' => $activeSchoolYear->ends_at->toDateString(),
+            ] : null,
+            'metrics' => [
+                'visitors' => $visitors->count(),
+                'studentVisitors' => $studentVisitors->count(),
+                'employeeVisitors' => $employeeVisitors->count(),
+                'visits' => $visitors->sum(fn (array $visitor): int => count($visitor['visits'])),
+                'studentVisits' => $studentVisitors->sum(fn (array $visitor): int => count($visitor['visits'])),
+                'employeeVisits' => $employeeVisitors->sum(fn (array $visitor): int => count($visitor['visits'])),
+            ],
+            'filters' => [
+                'yearLevels' => collect(AcademicLevels::options())
+                    ->filter(fn (string $yearLevel): bool => $yearLevelsInUse->contains($yearLevel))
+                    ->values()
+                    ->all(),
+                'sectionsByYearLevel' => $studentVisitors
+                    ->groupBy('yearLevel')
+                    ->map(fn ($group) => $group
+                        ->pluck('section')
+                        ->filter()
+                        ->unique()
+                        ->sort(fn (string $first, string $second): int => strnatcasecmp($first, $second))
+                        ->values()
+                        ->all())
+                    ->all(),
+                'departments' => $employeeVisitors
+                    ->pluck('department')
+                    ->filter()
+                    ->unique()
+                    ->sort(fn (string $first, string $second): int => strnatcasecmp($first, $second))
+                    ->values()
+                    ->all(),
+            ],
+            'visitors' => $visitors,
         ];
     }
 
@@ -120,6 +200,27 @@ class AdminVisitMonitorService
                 'department' => $visit->visitor?->employee?->department,
                 'photoUrl' => $visit->visitor?->photo ? asset('visitor-photos/'.$visit->visitor->photo) : null,
             ],
+        ];
+    }
+
+    private function visitorHistoryData(RegisteredVisitor $visitor): array
+    {
+        return [
+            'id' => $visitor->id,
+            'schoolId' => $visitor->school_id,
+            'name' => $visitor->full_name,
+            'type' => $visitor->type,
+            'yearLevel' => $visitor->student?->year_level,
+            'section' => $visitor->student?->section,
+            'department' => $visitor->employee?->department,
+            'photoUrl' => $visitor->photo ? asset('visitor-photos/'.$visitor->photo) : null,
+            'visits' => $visitor->visits
+                ->map(fn (LibraryVisit $visit): array => [
+                    'id' => $visit->id,
+                    'visitedAt' => $visit->visited_at?->toIso8601String(),
+                ])
+                ->values()
+                ->all(),
         ];
     }
 

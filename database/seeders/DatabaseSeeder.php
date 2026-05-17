@@ -8,7 +8,6 @@ use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use App\Models\SchoolYearSection;
 use App\Models\StudentRegistration;
-use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
 
@@ -25,28 +24,19 @@ class DatabaseSeeder extends Seeder
             EmployeeProfile::truncate();
             RegisteredVisitor::truncate();
             SchoolYear::truncate();
-            User::truncate();
         } finally {
             Schema::enableForeignKeyConstraints();
         }
 
         RegisteredVisitorSeeder::resetUsedRFIDs();
 
-        User::create([
-            'name' => 'RMMC Library Admin',
-            'email' => 'admin@gmail.com',
-            'password' => 'password',
-            'role' => 'admin',
-        ]);
-
         $this->call([
+            UserSeeder::class,
             SchoolYearSeeder::class,
             StudentSeeder::class,
             EmployeeSeeder::class,
             HistoricalSchoolYearSeeder::class,
             CurrentSchoolYearVisitSeeder::class,
         ]);
-
-        $this->command?->info('Admin login: admin@gmail.com / password');
     }
 }

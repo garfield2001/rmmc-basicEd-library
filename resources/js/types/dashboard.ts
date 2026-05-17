@@ -16,8 +16,8 @@ export interface DashboardVisit {
 
 export interface ScanTarget {
     id: number;
-    RFIDUid: string;
-    schoolId: string;
+    RFIDUid: string | null;
+    schoolId: string | null;
     name: string;
     firstName: string;
     lastName: string;
@@ -36,6 +36,8 @@ export interface VisitTrendPoint {
     employees: number;
     total: number;
 }
+
+export type VisitTrafficRange = 'last7' | 'last14' | 'lastMonth';
 
 export interface RequiredProgressPoint {
     label: 'Students' | 'Employees';
@@ -67,9 +69,10 @@ export interface AdminDashboard {
         employees: number;
     };
     charts: {
-        visitsByDay: VisitTrendPoint[];
+        visitsByDay: Record<VisitTrafficRange, VisitTrendPoint[]>;
         studentVisitsByYearLevel: ChartPoint[];
         studentVisitsBySection: ChartPoint[];
+        employeeVisitsByDepartment: ChartPoint[];
         requiredProgress: RequiredProgressPoint[];
     };
 }
@@ -82,4 +85,46 @@ export interface AdminVisitMonitor {
     };
     todayVisits: DashboardVisit[];
     scanTargets: ScanTarget[];
+}
+
+export interface AdminVisitHistory {
+    schoolYear:
+        | {
+              id: number;
+              name: string;
+              starts_at: string;
+              ends_at: string;
+          }
+        | null;
+    metrics: {
+        visitors: number;
+        studentVisitors: number;
+        employeeVisitors: number;
+        visits: number;
+        studentVisits: number;
+        employeeVisits: number;
+    };
+    filters: {
+        yearLevels: string[];
+        sectionsByYearLevel: Record<string, string[]>;
+        departments: string[];
+    };
+    visitors: VisitHistoryVisitor[];
+}
+
+export interface VisitHistoryVisit {
+    id: number;
+    visitedAt: string | null;
+}
+
+export interface VisitHistoryVisitor {
+    id: number;
+    schoolId: string | null;
+    name: string | null;
+    type: 'student' | 'employee' | null;
+    yearLevel: string | null;
+    section: string | null;
+    department: string | null;
+    photoUrl: string | null;
+    visits: VisitHistoryVisit[];
 }

@@ -93,6 +93,12 @@ export function DateInput({
             return;
         }
 
+        if (draftValue.trim() === '') {
+            onChange('');
+            setIsEditing(false);
+            return;
+        }
+
         const parsedDate = parseTypedDate(draftValue);
 
         if (parsedDate) {
@@ -116,7 +122,7 @@ export function DateInput({
                     name={name}
                     type="text"
                     disabled={disabled}
-                    inputMode="numeric"
+                    inputMode="text"
                     placeholder={placeholder}
                     value={inputValue}
                     onFocus={(event) => {
@@ -125,7 +131,7 @@ export function DateInput({
                         setIsOpen(openOnFocus);
                         event.currentTarget.select();
                     }}
-                    onChange={(event) => setDraftValue(event.target.value)}
+                    onChange={(event) => setDraftValue(formatDraftInput(event.target.value, draftValue))}
                     onBlur={(event) => {
                         if (wrapperRef.current?.contains(event.relatedTarget as Node | null)) {
                             return;
@@ -142,6 +148,7 @@ export function DateInput({
                 />
                 <button
                     type="button"
+                    tabIndex={-1}
                     disabled={disabled}
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => setIsOpen((open) => !open)}
@@ -190,6 +197,10 @@ export function DateInput({
                             const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
                             const isDisabled = !isDateInRange(day, minDate, maxDate);
 
+                            if (!isCurrentMonth) {
+                                return <span key={toIsoDate(day)} className="mx-auto size-8" aria-hidden="true" />;
+                            }
+
                             return (
                                 <button
                                     key={toIsoDate(day)}
@@ -198,7 +209,7 @@ export function DateInput({
                                     onClick={() => chooseDate(day)}
                                     className={cn(
                                         'mx-auto flex size-8 items-center justify-center rounded-md font-medium transition disabled:cursor-not-allowed disabled:text-[#020659]/25',
-                                        isCurrentMonth ? 'text-[#010440]' : 'text-[#020659]/45',
+                                        'text-[#010440]',
                                         isSelected ? 'bg-[#040DBF] text-white hover:bg-[#030A8C] disabled:bg-[#040DBF]/45' : 'hover:bg-[#f6f8ff]',
                                     )}
                                 >
@@ -246,13 +257,60 @@ function parseTypedDate(value: string) {
         return isoDate;
     }
 
-    const match = trimmedValue.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+    const normalizedValue = trimmedValue
+        .replace(/,/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
 
-    if (!match) {
+    const match = normalizedValue.match(/^(\d{1,2})[\/\-\s](\d{1,2})[\/\-\s](\d{4})$/);
+
+    if (match) {
+        return validDate(Number(match[3]), Number(match[1]), Number(match[2]));
+    }
+
+    const monthNameMatch = normalizedValue.match(/^([a-zA-Z]+)\s+(\d{1,2})\s+(\d{4})$/);
+
+    if (!monthNameMatch) {
         return null;
     }
 
-    return validDate(Number(match[3]), Number(match[1]), Number(match[2]));
+    const month = monthIndex(monthNameMatch[1]);
+
+    return month ? validDate(Number(monthNameMatch[3]), month, Number(monthNameMatch[2])) : null;
+}
+
+function formatDraftInput(value: string, previousValue: string) {
+    if (value.length < previousValue.length || /[a-zA-Z]/.test(value)) {
+        return value;
+    }
+
+    return value
+        .replace(/^(\d{1,2})\s$/, '$1/')
+        .replace(/^(\d{1,2})\/(\d{1,2})\s$/, '$1/$2/')
+        .replace(/^(\d{1,2})\s+(\d{1,2})$/, '$1/$2')
+        .replace(/^(\d{1,2})\s+(\d{1,2})\s+/, '$1/$2/');
+}
+
+function monthIndex(value: string) {
+    const normalized = value.toLowerCase();
+    const months = [
+        ['january', 'jan'],
+        ['february', 'feb'],
+        ['march', 'mar'],
+        ['april', 'apr'],
+        ['may'],
+        ['june', 'jun'],
+        ['july', 'jul'],
+        ['august', 'aug'],
+        ['september', 'sep', 'sept'],
+        ['october', 'oct'],
+        ['november', 'nov'],
+        ['december', 'dec'],
+    ];
+
+    const index = months.findIndex((aliases) => aliases.includes(normalized));
+
+    return index >= 0 ? index + 1 : null;
 }
 
 function validDate(year: number, month: number, day: number) {

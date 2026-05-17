@@ -8,6 +8,7 @@
             body {
                 color: #111827;
                 font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
                 margin: 32px;
             }
 
@@ -19,7 +20,7 @@
             }
 
             h1 {
-                font-size: 24px;
+                font-size: 18px;
                 margin: 0 0 6px;
             }
 
@@ -28,14 +29,14 @@
                 display: flex;
                 flex-wrap: wrap;
                 gap: 8px 20px;
-                font-size: 14px;
+                font-size: 12px;
                 font-weight: 700;
                 margin-top: 10px;
             }
 
             .report-range {
                 color: #52525b;
-                font-size: 13px;
+                font-size: 12px;
                 margin-top: 6px;
             }
 
@@ -78,12 +79,16 @@
                 padding: 8px;
                 text-align: left;
                 vertical-align: top;
-                word-wrap: break-word;
+                white-space: nowrap;
             }
 
             th {
-                background: #eef2ff;
+                background: #e8eefc;
                 color: #111827;
+            }
+
+            tbody tr:nth-child(even) td {
+                background: #f8fafc;
             }
 
             .summary {
@@ -114,13 +119,13 @@
             $isStudentReport = ($report['summary']['visitor_type'] ?? null) === 'student';
             $columns = [
                 ['key' => 'school_id', 'label' => 'School ID', 'width' => '14%'],
-                ['key' => 'name', 'label' => 'Name', 'width' => '30%'],
+                ['key' => 'name', 'label' => 'Name', 'width' => '32%'],
                 $isStudentReport
-                    ? ['key' => 'year_section', 'label' => 'Year/Section', 'width' => '22%']
+                    ? ['key' => 'year_section', 'label' => 'Year/Section', 'width' => '24%']
                     : ['key' => 'department', 'label' => 'Department', 'width' => '24%'],
-                ['key' => 'visits', 'label' => 'Visits', 'width' => '13%'],
-                ['key' => 'excess_visits', 'label' => 'Excess', 'width' => '10%'],
-                ['key' => 'progress', 'label' => 'Progress', 'width' => '11%'],
+                ['key' => 'visits', 'label' => 'Visits', 'width' => '11%'],
+                ['key' => 'excess_visits', 'label' => 'Excess', 'width' => '9%'],
+                ['key' => 'progress', 'label' => 'Progress', 'width' => '10%'],
             ];
         @endphp
 
@@ -165,7 +170,7 @@
                                         {{ $row['name'] }}
                                         @break
                                     @case('year_section')
-                                        {{ collect([$row['year_level'] ?? null, $row['section'] ?? null])->filter()->implode(' - ') ?: '-' }}
+                                        {{ ($row['year_section_label'] ?? collect([$row['year_level'] ?? null, $row['section'] ?? null])->filter()->implode(' - ')) ?: '-' }}
                                         @break
                                     @case('department')
                                         {{ $row['department'] ?? '-' }}

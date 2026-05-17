@@ -534,6 +534,14 @@
         background-color: rgb(30 41 59 / 0.58) !important;
     }
 
+    html[data-admin-theme='dark'] .admin-theme-root tbody tr:nth-child(even):not(:hover) {
+        background-color: rgb(15 23 42 / 0.28) !important;
+    }
+
+    html[data-admin-theme='dark'] .admin-theme-root .report-table-icon {
+        color: #93c5fd !important;
+    }
+
     html[data-admin-theme='dark'] .admin-theme-root :is(button, a)[class*='bg-white'],
     html[data-admin-theme='dark'] .admin-theme-root :is(button, a)[class*='hover:bg-zinc-100']:hover,
     html[data-admin-theme='dark'] .admin-theme-root :is(button, a)[class*='hover:bg-white']:hover {
@@ -634,6 +642,18 @@
     html[data-admin-theme='dark'] .admin-theme-root [data-chart] .recharts-tooltip-cursor {
         fill: rgb(96 165 250 / 0.08) !important;
         stroke: rgb(96 165 250 / 0.2) !important;
+    }
+
+    html[data-admin-theme='dark'] .admin-theme-root [data-chart] .recharts-active-bar,
+    html[data-admin-theme='dark'] .admin-theme-root [data-chart] .recharts-active-shape {
+        filter: brightness(1.08);
+    }
+
+    html[data-admin-theme='dark'] .admin-theme-root [data-chart] :is(.recharts-tooltip-wrapper [class*='bg-white']) {
+        border-color: rgb(96 165 250 / 0.24) !important;
+        background-color: rgb(15 23 42 / 0.98) !important;
+        color: #e5edff !important;
+        box-shadow: 0 18px 44px rgb(0 0 0 / 0.34) !important;
     }
 
     html[data-admin-theme='dark'] .admin-icon-badge,
@@ -755,6 +775,19 @@
 
     html[data-admin-theme='dark'] .toast-enter :is(.text-zinc-500, .text-zinc-400) {
         color: #b9c8ff !important;
+    }
+
+    html[data-admin-theme='dark'] .toast-enter :is(.text-red-950, [class*='text-[#010440]']) {
+        color: #f8fbff !important;
+    }
+
+    html[data-admin-theme='dark'] .toast-enter :is(.text-red-800, .text-red-500, [class*='text-[#020659]'], [class*='text-[#030A8C]']) {
+        color: #b9c8ff !important;
+    }
+
+    html[data-admin-theme='dark'] .toast-enter button:hover {
+        background-color: rgb(30 41 59 / 0.92) !important;
+        color: #ffffff !important;
     }
 
     html[data-admin-theme='dark'] .admin-page-loading-surface {

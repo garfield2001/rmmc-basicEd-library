@@ -19,6 +19,7 @@ class HistoricalSchoolYearSeeder extends Seeder
         $this->seedPreviousStudentRecords($schoolYear);
         $this->seedCompletedGradeTenStudents($schoolYear);
         $this->seedPreviousEmployeeProfiles($schoolYear);
+        $this->seedPreviousEmployeeProfiles($schoolYear);
         $this->seedHistoricalVisits($schoolYear);
     }
 
@@ -100,7 +101,7 @@ class HistoricalSchoolYearSeeder extends Seeder
     {
         $students = RegisteredVisitor::query()
             ->where('type', RegisteredVisitor::TYPE_STUDENT)
-            ->whereHas('studentRegistrations', fn ($query) => $query->forSchoolYear($schoolYear->id))
+            ->whereHas('studentRegistrations', fn($query) => $query->forSchoolYear($schoolYear->id))
             ->orderBy('school_id')
             ->limit(55)
             ->get();

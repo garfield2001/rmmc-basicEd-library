@@ -1,10 +1,11 @@
 import { VisitorAvatar } from '@/components/ui/visitor-avatar';
 import { PaginationControls, type RowsPerPageOption } from '@/components/ui/pagination-controls';
+import { SelectInput } from '@/components/ui/select-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { VirtualTableSpacerRow } from '@/components/ui/virtual-table-spacer-row';
 import { useViewportHeight, useWindowVirtualRows } from '@/hooks/use-window-virtual-rows';
 import type { DashboardVisit } from '@/types/dashboard';
-import { ArrowDown, ArrowUp, BarChart3, BriefcaseBusiness, ChevronsUpDown, GraduationCap, Search } from 'lucide-react';
+import { ArrowDown, ArrowUp, BarChart3, BriefcaseBusiness, ChevronsUpDown, GraduationCap, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 type VisitTab = 'student' | 'employee';
@@ -15,24 +16,36 @@ interface LiveVisitsTableProps {
     visits: DashboardVisit[];
     studentCount: number;
     employeeCount: number;
+    mode?: 'live' | 'history';
+    onVisitSelect?: (visit: DashboardVisit) => void;
 }
 
 const defaultVisitsPerPage = 5;
 const virtualRowHeight = 73;
 const virtualOverscan = 8;
 
-function formatVisitTime(visit: DashboardVisit) {
-    return visit.visitedAt
-        ? new Date(visit.visitedAt).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-          })
-        : 'Pending';
+function formatVisitTime(visit: DashboardVisit, mode: 'live' | 'history') {
+    if (!visit.visitedAt) {
+        return 'Pending';
+    }
+
+    const visitedAt = new Date(visit.visitedAt);
+
+    if (mode === 'history') {
+        return visitedAt.toLocaleDateString([], { month: 'short', day: '2-digit', year: 'numeric' });
+    }
+
+    return visitedAt.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
 }
 
-export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVisitsTableProps) {
+export function LiveVisitsTable({ visits, studentCount, employeeCount, mode = 'live', onVisitSelect }: LiveVisitsTableProps) {
     const [visitTab, setVisitTab] = useState<VisitTab>('student');
     const [search, setSearch] = useState('');
+    const [yearLevel, setYearLevel] = useState('');
+    const [section, setSection] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState<RowsPerPageOption>(defaultVisitsPerPage);
     const [isPaging, setIsPaging] = useState(false);
@@ -44,6 +57,13 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
         { label: 'Students', value: 'student', count: studentCount, icon: GraduationCap },
         { label: 'Employees', value: 'employee', count: employeeCount, icon: BriefcaseBusiness },
     ];
+    const yearLevelOptions = useMemo(() => uniqueVisitValues(visits, 'yearLevel'), [visits]);
+    const sectionOptions = useMemo(() => {
+        return uniqueVisitValues(
+            visits.filter((visit) => !yearLevel || visit.visitor.yearLevel === yearLevel),
+            'section',
+        );
+    }, [visits, yearLevel]);
     const filteredVisits = useMemo(() => {
         const normalizedSearch = search.trim().toLowerCase();
 
@@ -60,9 +80,14 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                 .join(' ')
                 .toLowerCase();
 
-            return visit.visitor.type === visitTab && (!normalizedSearch || searchable.includes(normalizedSearch));
+            return (
+                visit.visitor.type === visitTab &&
+                (visitTab !== 'student' || !yearLevel || visit.visitor.yearLevel === yearLevel) &&
+                (visitTab !== 'student' || !section || visit.visitor.section === section) &&
+                (!normalizedSearch || searchable.includes(normalizedSearch))
+            );
         });
-    }, [search, visitTab, visits]);
+    }, [search, section, visitTab, visits, yearLevel]);
     const sortedVisits = useMemo(
         () => sortLiveVisits(filteredVisits, sortColumn, sortDirection),
         [filteredVisits, sortColumn, sortDirection],
@@ -83,15 +108,26 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [search, visitTab, rowsPerPage]);
+    }, [search, visitTab, rowsPerPage, yearLevel, section]);
 
     useEffect(() => {
+        if (mode !== 'live') {
+            return;
+        }
+
         const newestVisitType = visits[0]?.visitor.type;
 
         if (newestVisitType === 'student' || newestVisitType === 'employee') {
             setVisitTab(newestVisitType);
         }
-    }, [visits]);
+    }, [mode, visits]);
+
+    useEffect(() => {
+        if (visitTab === 'employee') {
+            setYearLevel('');
+            setSection('');
+        }
+    }, [visitTab]);
 
     useEffect(() => {
         setCurrentPage((page) => Math.min(page, totalPages));
@@ -135,6 +171,17 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
         setRowsPerPage(nextRowsPerPage);
     };
 
+    const changeYearLevel = (value: string) => {
+        setYearLevel(value);
+        setSection('');
+        setSearch('');
+    };
+
+    const changeSection = (value: string) => {
+        setSection(value);
+        setSearch('');
+    };
+
     const changeSort = (column: SortColumn) => {
         setSortColumn((currentColumn) => {
             if (currentColumn === column) {
@@ -151,18 +198,28 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
 
     return (
         <section className="admin-surface overflow-hidden rounded-lg border border-[#040DBF]/10 bg-white/95 shadow-sm">
-            <div className="flex flex-col gap-4 border-b border-[#040DBF]/10 px-5 py-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="space-y-4 border-b border-[#040DBF]/10 px-5 py-4">
                 <div>
                     <div className="flex items-center gap-2">
                         <BarChart3 className="size-5 text-[#030A8C]" />
                         <h2 className="text-lg font-semibold tracking-normal text-[#010440]">
-                            {visitTab === 'student' ? 'Student visits today' : 'Employee visits today'}
+                            {mode === 'history'
+                                ? visitTab === 'student'
+                                    ? 'Student visit history'
+                                    : 'Employee visit history'
+                                : visitTab === 'student'
+                                  ? 'Student visits today'
+                                  : 'Employee visits today'}
                         </h2>
                     </div>
-                    <p className="mt-1 text-sm text-[#020659]/70">Latest RFID scans for the selected tab are shown first.</p>
+                    <p className="mt-1 text-sm text-[#020659]/70">
+                        {mode === 'history'
+                            ? 'Visits from the active school year are shown newest first.'
+                            : 'Latest RFID scans for the selected tab are shown first.'}
+                    </p>
                 </div>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <div className="admin-segmented-tabs order-1 sm:order-none">
+                <div className="space-y-3">
+                    <div className="admin-segmented-tabs w-full sm:w-fit">
                         {visitTabs.map((tab) => {
                             const Icon = tab.icon;
                             const isActive = visitTab === tab.value;
@@ -172,7 +229,7 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                                     key={tab.value}
                                     type="button"
                                     onClick={() => setVisitTab(tab.value)}
-                                    className={`admin-segmented-tab h-8 px-3 text-xs ${isActive ? 'admin-segmented-tab-active' : ''}`}
+                                    className={`admin-segmented-tab ${isActive ? 'admin-segmented-tab-active' : ''}`}
                                 >
                                     <Icon className="size-3.5" />
                                     {tab.label}
@@ -181,14 +238,36 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                             );
                         })}
                     </div>
-                    <div className="relative w-full sm:w-96">
+                    {visitTab === 'student' && (
+                        <div className="grid gap-3 sm:grid-cols-2 xl:max-w-3xl">
+                            <FilterSelect value={yearLevel} options={yearLevelOptions} placeholder="All year levels" onChange={changeYearLevel} />
+                            <FilterSelect
+                                value={section}
+                                options={sectionOptions}
+                                placeholder={yearLevel ? 'All sections' : 'Choose year level first'}
+                                disabled={!yearLevel}
+                                onChange={changeSection}
+                            />
+                        </div>
+                    )}
+                    <div className="relative w-full xl:max-w-3xl">
                         <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#030A8C]/50" />
                         <input
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
                             placeholder={visitTab === 'student' ? 'Search ID, name, section' : 'Search ID, name, department'}
-                            className="h-10 w-full rounded-lg border border-[#040DBF]/15 bg-white pr-3 pl-9 text-sm transition outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10"
+                            className="h-10 w-full rounded-lg border border-[#040DBF]/15 bg-white pr-9 pl-9 text-sm transition outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10"
                         />
+                        {search && (
+                            <button
+                                type="button"
+                                onClick={() => setSearch('')}
+                                className="absolute top-1/2 right-2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-[#030A8C]/50 transition hover:bg-[#040DBF]/5 hover:text-[#010440]"
+                                title="Clear search"
+                            >
+                                <X className="size-4" />
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -197,7 +276,13 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                 <Table className={visitTab === 'student' ? 'min-w-[760px]' : 'min-w-[640px]'}>
                     <TableHeader className="bg-[#f6f8ff]">
                         <TableRow>
-                            <SortableHead column="visitedAt" label="Time" sort={sortColumn} direction={sortDirection} onSortChange={changeSort} />
+                            <SortableHead
+                                column="visitedAt"
+                                label={mode === 'history' ? 'Date' : 'Time'}
+                                sort={sortColumn}
+                                direction={sortDirection}
+                                onSortChange={changeSort}
+                            />
                             <SortableHead column="schoolId" label="ID" sort={sortColumn} direction={sortDirection} onSortChange={changeSort} />
                             <SortableHead column="name" label="Name" sort={sortColumn} direction={sortDirection} onSortChange={changeSort} />
                             {visitTab === 'student' ? (
@@ -219,8 +304,23 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                                     <VirtualTableSpacerRow height={virtualRows.paddingTop} colSpan={visitTab === 'student' ? 5 : 4} />
                                 )}
                                 {visibleVisits.map((visit) => (
-                                    <TableRow key={visit.id}>
-                                        <TableCell className="text-[#030A8C]">{formatVisitTime(visit)}</TableCell>
+                                    <TableRow
+                                        key={visit.id}
+                                        onClick={onVisitSelect ? () => onVisitSelect(visit) : undefined}
+                                        tabIndex={onVisitSelect ? 0 : undefined}
+                                        onKeyDown={
+                                            onVisitSelect
+                                                ? (event) => {
+                                                      if (event.key === 'Enter' || event.key === ' ') {
+                                                          event.preventDefault();
+                                                          onVisitSelect(visit);
+                                                      }
+                                                  }
+                                                : undefined
+                                        }
+                                        className={onVisitSelect ? 'cursor-pointer focus-visible:bg-[#f6f8ff] focus-visible:outline-none' : undefined}
+                                    >
+                                        <TableCell className="text-[#030A8C]">{formatVisitTime(visit, mode)}</TableCell>
                                         <TableCell className="font-medium">{visit.visitor.schoolId}</TableCell>
                                         <TableCell>
                                             <VisitVisitorCell visit={visit} />
@@ -243,12 +343,18 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                             <TableRow>
                                 <TableCell colSpan={visitTab === 'student' ? 5 : 4} className="px-5 py-14 text-center">
                                     <p className="font-medium text-[#010440]">
-                                        {visits.length > 0 ? 'No records match the selected filter' : 'No RFID visits recorded today'}
+                                        {visits.length > 0
+                                            ? 'No records match the selected filter'
+                                            : mode === 'history'
+                                              ? 'No visits recorded in the active school year'
+                                              : 'No RFID visits recorded today'}
                                     </p>
                                     <p className="mt-2 text-sm text-[#020659]/70">
                                         {visits.length > 0
                                             ? 'Try another filter or search term.'
-                                            : 'Scanned student and employee visits will appear here.'}
+                                            : mode === 'history'
+                                              ? 'Active school-year visit history will appear here after visitors scan in.'
+                                              : 'Scanned student and employee visits will appear here.'}
                                     </p>
                                 </TableCell>
                             </TableRow>
@@ -268,8 +374,44 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount }: LiveVis
                 onRowsPerPageChange={changeRowsPerPage}
                 onPrevious={() => changePage(Math.max(1, currentPage - 1))}
                 onNext={() => changePage(Math.min(totalPages, currentPage + 1))}
+                onPageChange={changePage}
             />
         </section>
+    );
+}
+
+function uniqueVisitValues(visits: DashboardVisit[], key: 'yearLevel' | 'section'): string[] {
+    return [...new Set(visits.map((visit) => visit.visitor[key]).filter((value): value is string => Boolean(value)))]
+        .sort((first, second) => first.localeCompare(second, undefined, { numeric: true, sensitivity: 'base' }));
+}
+
+function FilterSelect({
+    value,
+    options,
+    placeholder,
+    disabled = false,
+    onChange,
+}: {
+    value: string;
+    options: string[];
+    placeholder: string;
+    disabled?: boolean;
+    onChange: (value: string) => void;
+}) {
+    return (
+        <SelectInput
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            disabled={disabled}
+            className="border-[#040DBF]/15 bg-white text-[#020659] focus:border-[#040DBF] focus:ring-[#040DBF]/10"
+        >
+            <option value="">{placeholder}</option>
+            {options.map((option) => (
+                <option key={option} value={option}>
+                    {option}
+                </option>
+            ))}
+        </SelectInput>
     );
 }
 

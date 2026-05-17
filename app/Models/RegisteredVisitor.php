@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Names\PersonName;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -109,9 +110,9 @@ class RegisteredVisitor extends Model
                 : null;
 
             return trim(collect([
-                $this->first_name,
+                PersonName::part($this->first_name),
                 $middleInitial,
-                $this->last_name,
+                PersonName::part($this->last_name),
             ])->filter()->implode(' '));
         });
     }
