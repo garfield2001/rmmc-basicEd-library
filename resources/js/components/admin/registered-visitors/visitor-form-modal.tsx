@@ -1,13 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { type RegisteredVisitorRow } from '@/types/registered-visitors';
+import { type LibraryMemberRow } from '@/types/registered-visitors';
 import { useForm } from '@inertiajs/react';
 import { useEffect, useRef, useState, type FormEventHandler } from 'react';
 import { DetailsSection, IdentitySection, ProfileSection } from './visitor-form-sections';
 import { firstStepWithErrors, initialVisitorData, isStepComplete, stepHasErrors, visitorFormSteps, type VisitorFormData } from './visitor-form-state';
 
 interface VisitorFormModalProps {
-    visitor: RegisteredVisitorRow | null;
+    visitor: LibraryMemberRow | null;
     open: boolean;
     sectionsByYearLevel: Record<string, string[]>;
     onOpenChange: (open: boolean) => void;

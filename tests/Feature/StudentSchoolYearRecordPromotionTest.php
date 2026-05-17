@@ -2,15 +2,15 @@
 
 namespace Tests\Feature;
 
-use App\Models\EmployeeProfile;
-use App\Models\RegisteredVisitor;
+use App\Models\EmployeeSchoolYearRecord;
+use App\Models\LibraryMember;
 use App\Models\SchoolYear;
-use App\Models\StudentRegistration;
+use App\Models\StudentSchoolYearRecord;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class StudentRegistrationPromotionTest extends TestCase
+class StudentSchoolYearRecordPromotionTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -22,31 +22,31 @@ class StudentRegistrationPromotionTest extends TestCase
             'starts_at' => '2025-06-01',
             'ends_at' => '2026-03-31',
         ]);
-        $kindergartenOne = RegisteredVisitor::factory()->student()->create();
-        $kindergartenTwo = RegisteredVisitor::factory()->student()->create();
-        $gradeSix = RegisteredVisitor::factory()->student()->create();
-        $gradeTen = RegisteredVisitor::factory()->student()->create();
+        $kindergartenOne = LibraryMember::factory()->student()->create();
+        $kindergartenTwo = LibraryMember::factory()->student()->create();
+        $gradeSix = LibraryMember::factory()->student()->create();
+        $gradeTen = LibraryMember::factory()->student()->create();
 
-        StudentRegistration::factory()->create([
-            'registered_visitor_id' => $kindergartenOne->id,
+        StudentSchoolYearRecord::factory()->create([
+            'library_member_id' => $kindergartenOne->id,
             'school_year_id' => $sourceSchoolYear->id,
             'year_level' => 'Kindergarten 1',
             'section' => 'Aguinaldo',
         ]);
-        StudentRegistration::factory()->create([
-            'registered_visitor_id' => $kindergartenTwo->id,
+        StudentSchoolYearRecord::factory()->create([
+            'library_member_id' => $kindergartenTwo->id,
             'school_year_id' => $sourceSchoolYear->id,
             'year_level' => 'Kindergarten 2',
             'section' => 'Bonifacio',
         ]);
-        StudentRegistration::factory()->create([
-            'registered_visitor_id' => $gradeSix->id,
+        StudentSchoolYearRecord::factory()->create([
+            'library_member_id' => $gradeSix->id,
             'school_year_id' => $sourceSchoolYear->id,
             'year_level' => 'Grade 6',
             'section' => 'Rizal',
         ]);
-        StudentRegistration::factory()->create([
-            'registered_visitor_id' => $gradeTen->id,
+        StudentSchoolYearRecord::factory()->create([
+            'library_member_id' => $gradeTen->id,
             'school_year_id' => $sourceSchoolYear->id,
             'year_level' => 'Grade 10',
             'section' => 'Mabini',
@@ -61,11 +61,11 @@ class StudentRegistrationPromotionTest extends TestCase
 
         $targetSchoolYear = SchoolYear::query()->where('name', '2026-2027')->firstOrFail();
 
-        $this->assertSame(0, StudentRegistration::query()->where('school_year_id', $targetSchoolYear->id)->count());
-        $this->assertDatabaseHas('registered_visitors', ['id' => $kindergartenOne->id]);
-        $this->assertDatabaseHas('registered_visitors', ['id' => $kindergartenTwo->id]);
-        $this->assertDatabaseHas('registered_visitors', ['id' => $gradeSix->id]);
-        $this->assertDatabaseHas('registered_visitors', ['id' => $gradeTen->id]);
+        $this->assertSame(0, StudentSchoolYearRecord::query()->where('school_year_id', $targetSchoolYear->id)->count());
+        $this->assertDatabaseHas('library_members', ['id' => $kindergartenOne->id]);
+        $this->assertDatabaseHas('library_members', ['id' => $kindergartenTwo->id]);
+        $this->assertDatabaseHas('library_members', ['id' => $gradeSix->id]);
+        $this->assertDatabaseHas('library_members', ['id' => $gradeTen->id]);
     }
 
     public function test_admin_can_choose_to_transfer_employees_when_creating_active_school_year(): void
@@ -76,13 +76,13 @@ class StudentRegistrationPromotionTest extends TestCase
             'starts_at' => '2025-06-01',
             'ends_at' => '2026-03-31',
         ]);
-        $employee = RegisteredVisitor::factory()->employee()->create([
+        $employee = LibraryMember::factory()->employee()->create([
             'first_name' => 'Ana',
             'last_name' => 'Reyes',
         ]);
 
-        EmployeeProfile::factory()->create([
-            'registered_visitor_id' => $employee->id,
+        EmployeeSchoolYearRecord::factory()->create([
+            'library_member_id' => $employee->id,
             'school_year_id' => $sourceSchoolYear->id,
             'department' => 'Faculty',
         ]);
@@ -97,8 +97,8 @@ class StudentRegistrationPromotionTest extends TestCase
 
         $targetSchoolYear = SchoolYear::query()->where('name', '2026-2027')->firstOrFail();
 
-        $this->assertDatabaseHas('employee_profiles', [
-            'registered_visitor_id' => $employee->id,
+        $this->assertDatabaseHas('employee_school_year_records', [
+            'library_member_id' => $employee->id,
             'school_year_id' => $targetSchoolYear->id,
             'department' => 'Faculty',
         ]);

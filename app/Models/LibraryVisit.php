@@ -11,7 +11,7 @@ class LibraryVisit extends Model
     use HasFactory;
 
     protected $fillable = [
-        'registered_visitor_id',
+        'library_member_id',
         'school_year_id',
         'visited_at',
     ];
@@ -25,7 +25,7 @@ class LibraryVisit extends Model
 
     public function visitor(): BelongsTo
     {
-        return $this->belongsTo(RegisteredVisitor::class, 'registered_visitor_id');
+        return $this->belongsTo(LibraryMember::class, 'library_member_id');
     }
 
     public function schoolYear(): BelongsTo

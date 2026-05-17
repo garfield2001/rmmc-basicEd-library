@@ -141,7 +141,7 @@ export function DateInput({
                         setIsOpen(false);
                     }}
                     className={cn(
-                        'h-10 w-full rounded-lg border border-[#040DBF]/15 bg-white pr-10 pl-3 text-sm text-[#010440] outline-none transition placeholder:text-[#020659]/45 focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 disabled:cursor-not-allowed disabled:opacity-60',
+                        'h-10 w-full rounded-lg border border-[#040DBF]/15 bg-white pr-12 pl-3 text-sm text-[#010440] outline-none transition placeholder:text-[#020659]/45 focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 disabled:cursor-not-allowed disabled:opacity-60',
                         className,
                     )}
                     aria-label={name ?? id ?? 'Date'}
@@ -152,7 +152,7 @@ export function DateInput({
                     disabled={disabled}
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => setIsOpen((open) => !open)}
-                    className="absolute top-1/2 right-2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-[#020659]/65 hover:bg-[#f6f8ff] disabled:cursor-not-allowed"
+                    className="absolute top-1/2 right-2.5 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-[#020659]/65 hover:bg-[#f6f8ff] disabled:cursor-not-allowed"
                     aria-label="Open calendar"
                 >
                     <CalendarDays className="size-4" />
@@ -262,7 +262,7 @@ function parseTypedDate(value: string) {
         .replace(/\s+/g, ' ')
         .trim();
 
-    const match = normalizedValue.match(/^(\d{1,2})[\/\-\s](\d{1,2})[\/\-\s](\d{4})$/);
+    const match = normalizedValue.match(/^(\d{1,2})[/\-\s](\d{1,2})[/\-\s](\d{4})$/);
 
     if (match) {
         return validDate(Number(match[3]), Number(match[1]), Number(match[2]));

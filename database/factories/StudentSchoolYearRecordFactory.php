@@ -2,19 +2,19 @@
 
 namespace Database\Factories;
 
-use App\Models\RegisteredVisitor;
+use App\Models\LibraryMember;
 use App\Models\SchoolYear;
 use App\Models\SchoolYearSection;
-use App\Models\StudentRegistration;
+use App\Models\StudentSchoolYearRecord;
 use App\Support\Academics\AcademicLevels;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<StudentRegistration>
+ * @extends Factory<StudentSchoolYearRecord>
  */
-class StudentRegistrationFactory extends Factory
+class StudentSchoolYearRecordFactory extends Factory
 {
-    protected $model = StudentRegistration::class;
+    protected $model = StudentSchoolYearRecord::class;
 
     public function definition(): array
     {
@@ -23,7 +23,7 @@ class StudentRegistrationFactory extends Factory
         $sectionName = fake()->randomElement(['Aguinaldo', 'Bonifacio', 'Del Pilar', 'Jacinto', 'Mabini', 'Rizal']);
 
         return [
-            'registered_visitor_id' => RegisteredVisitor::factory()->student(),
+            'library_member_id' => LibraryMember::factory()->student(),
             'school_year_id' => $schoolYearId,
             'school_year_section_id' => SchoolYearSection::query()->firstOrCreate([
                 'school_year_id' => $schoolYearId,

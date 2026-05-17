@@ -2,8 +2,8 @@
 
 namespace App\Services\Home;
 
+use App\Models\LibraryMember;
 use App\Models\LibraryVisit;
-use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use App\Services\Settings\LibraryScanSettingsService;
 use Illuminate\Database\Eloquent\Builder;
@@ -29,13 +29,13 @@ class HomePageService
             'scanSettings' => $this->scanSettings->toPageProps(),
 
             'metrics' => [
-                'students' => RegisteredVisitor::query()
-                    ->where('type', RegisteredVisitor::TYPE_STUDENT)
+                'students' => LibraryMember::query()
+                    ->where('type', LibraryMember::TYPE_STUDENT)
                     ->visitEligibleForSchoolYear($schoolYear?->id)
                     ->count(),
 
-                'employees' => RegisteredVisitor::query()
-                    ->where('type', RegisteredVisitor::TYPE_EMPLOYEE)
+                'employees' => LibraryMember::query()
+                    ->where('type', LibraryMember::TYPE_EMPLOYEE)
                     ->visitEligibleForSchoolYear($schoolYear?->id)
                     ->count(),
 
@@ -43,13 +43,13 @@ class HomePageService
 
                 'studentVisitsToday' => (clone $todayVisits)
                     ->whereHas('visitor', function (Builder $query): void {
-                        $query->where('type', RegisteredVisitor::TYPE_STUDENT);
+                        $query->where('type', LibraryMember::TYPE_STUDENT);
                     })
                     ->count(),
 
                 'employeeVisitsToday' => (clone $todayVisits)
                     ->whereHas('visitor', function (Builder $query): void {
-                        $query->where('type', RegisteredVisitor::TYPE_EMPLOYEE);
+                        $query->where('type', LibraryMember::TYPE_EMPLOYEE);
                     })
                     ->count(),
             ],

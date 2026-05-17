@@ -36,14 +36,14 @@ class SchoolYear extends Model
         return $this->hasMany(LibraryVisit::class);
     }
 
-    public function studentRegistrations(): HasMany
+    public function studentSchoolYearRecords(): HasMany
     {
-        return $this->hasMany(StudentRegistration::class);
+        return $this->hasMany(StudentSchoolYearRecord::class);
     }
 
-    public function employeeProfiles(): HasMany
+    public function employeeSchoolYearRecords(): HasMany
     {
-        return $this->hasMany(EmployeeProfile::class);
+        return $this->hasMany(EmployeeSchoolYearRecord::class);
     }
 
     public function sections(): HasMany

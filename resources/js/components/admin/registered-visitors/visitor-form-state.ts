@@ -1,4 +1,4 @@
-import type { RegisteredVisitorRow } from '@/types/registered-visitors';
+import type { LibraryMemberRow } from '@/types/registered-visitors';
 
 export type VisitorFormData = {
     _method: string;
@@ -30,7 +30,7 @@ export const visitorFormSteps = [
     },
 ];
 
-export function initialVisitorData(visitor: RegisteredVisitorRow | null): VisitorFormData {
+export function initialVisitorData(visitor: LibraryMemberRow | null): VisitorFormData {
     return {
         _method: visitor ? 'put' : 'post',
         rfid_uid: visitor?.rfid_uid ?? '',

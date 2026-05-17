@@ -8,9 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('student_registrations', function (Blueprint $table): void {
+        // Historical filename retained so existing installs do not rerun this migration after the schema rename.
+        Schema::create('student_school_year_records', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('registered_visitor_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('library_member_id')->constrained()->cascadeOnDelete();
             $table->foreignId('school_year_id')->constrained()->cascadeOnDelete();
             $table->foreignId('school_year_section_id')->nullable()->constrained('school_year_sections')->nullOnDelete();
             $table->string('school_id')->nullable()->index();
@@ -23,13 +24,14 @@ return new class extends Migration
             $table->string('section', 50)->nullable()->index();
             $table->timestamps();
 
-            $table->unique(['registered_visitor_id', 'school_year_id'], 'student_registration_year_unique');
-            $table->index(['school_year_id', 'year_level', 'section'], 'student_registration_group_index');
+            $table->unique(['library_member_id', 'school_year_id'], 'student_school_year_record_unique');
+            $table->index(['school_year_id', 'year_level', 'section'], 'student_school_year_record_group_index');
         });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('student_school_year_records');
         Schema::dropIfExists('student_registrations');
     }
 };

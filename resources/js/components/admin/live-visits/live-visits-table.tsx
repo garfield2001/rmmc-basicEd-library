@@ -1,16 +1,22 @@
-import { VisitorAvatar } from '@/components/ui/visitor-avatar';
+import {
+    defaultVisitsPerPage,
+    formatVisitTime,
+    sortLiveVisits,
+    uniqueVisitValues,
+    virtualOverscan,
+    virtualRowHeight,
+    type SortColumn,
+    type SortDirection,
+    type VisitTab,
+} from '@/components/admin/live-visits/live-visits-table-helpers';
+import { FilterSelect, LiveVisitLoadingRows, SortableHead, VisitVisitorCell } from '@/components/admin/live-visits/live-visits-table-ui';
 import { PaginationControls, type RowsPerPageOption } from '@/components/ui/pagination-controls';
-import { SelectInput } from '@/components/ui/select-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { VirtualTableSpacerRow } from '@/components/ui/virtual-table-spacer-row';
 import { useViewportHeight, useWindowVirtualRows } from '@/hooks/use-window-virtual-rows';
 import type { DashboardVisit } from '@/types/dashboard';
-import { ArrowDown, ArrowUp, BarChart3, BriefcaseBusiness, ChevronsUpDown, GraduationCap, Search, X } from 'lucide-react';
+import { BarChart3, BriefcaseBusiness, GraduationCap, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-
-type VisitTab = 'student' | 'employee';
-type SortColumn = 'visitedAt' | 'schoolId' | 'name' | 'group';
-type SortDirection = 'asc' | 'desc';
 
 interface LiveVisitsTableProps {
     visits: DashboardVisit[];
@@ -18,27 +24,6 @@ interface LiveVisitsTableProps {
     employeeCount: number;
     mode?: 'live' | 'history';
     onVisitSelect?: (visit: DashboardVisit) => void;
-}
-
-const defaultVisitsPerPage = 5;
-const virtualRowHeight = 73;
-const virtualOverscan = 8;
-
-function formatVisitTime(visit: DashboardVisit, mode: 'live' | 'history') {
-    if (!visit.visitedAt) {
-        return 'Pending';
-    }
-
-    const visitedAt = new Date(visit.visitedAt);
-
-    if (mode === 'history') {
-        return visitedAt.toLocaleDateString([], { month: 'short', day: '2-digit', year: 'numeric' });
-    }
-
-    return visitedAt.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-    });
 }
 
 export function LiveVisitsTable({ visits, studentCount, employeeCount, mode = 'live', onVisitSelect }: LiveVisitsTableProps) {
@@ -88,10 +73,7 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount, mode = 'l
             );
         });
     }, [search, section, visitTab, visits, yearLevel]);
-    const sortedVisits = useMemo(
-        () => sortLiveVisits(filteredVisits, sortColumn, sortDirection),
-        [filteredVisits, sortColumn, sortDirection],
-    );
+    const sortedVisits = useMemo(() => sortLiveVisits(filteredVisits, sortColumn, sortDirection), [filteredVisits, sortColumn, sortDirection]);
     const viewportHeight = useViewportHeight();
     const onePageRowCapacity = Math.max(1, Math.floor(viewportHeight / virtualRowHeight));
     const totalPages = rowsPerPage === 'all' ? 1 : Math.max(1, Math.ceil(sortedVisits.length / rowsPerPage));
@@ -287,11 +269,23 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount, mode = 'l
                             <SortableHead column="name" label="Name" sort={sortColumn} direction={sortDirection} onSortChange={changeSort} />
                             {visitTab === 'student' ? (
                                 <>
-                                    <SortableHead column="group" label="Year level" sort={sortColumn} direction={sortDirection} onSortChange={changeSort} />
+                                    <SortableHead
+                                        column="group"
+                                        label="Year level"
+                                        sort={sortColumn}
+                                        direction={sortDirection}
+                                        onSortChange={changeSort}
+                                    />
                                     <TableHead>Section</TableHead>
                                 </>
                             ) : (
-                                <SortableHead column="group" label="Department" sort={sortColumn} direction={sortDirection} onSortChange={changeSort} />
+                                <SortableHead
+                                    column="group"
+                                    label="Department"
+                                    sort={sortColumn}
+                                    direction={sortDirection}
+                                    onSortChange={changeSort}
+                                />
                             )}
                         </TableRow>
                     </TableHeader>
@@ -377,135 +371,5 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount, mode = 'l
                 onPageChange={changePage}
             />
         </section>
-    );
-}
-
-function uniqueVisitValues(visits: DashboardVisit[], key: 'yearLevel' | 'section'): string[] {
-    return [...new Set(visits.map((visit) => visit.visitor[key]).filter((value): value is string => Boolean(value)))]
-        .sort((first, second) => first.localeCompare(second, undefined, { numeric: true, sensitivity: 'base' }));
-}
-
-function FilterSelect({
-    value,
-    options,
-    placeholder,
-    disabled = false,
-    onChange,
-}: {
-    value: string;
-    options: string[];
-    placeholder: string;
-    disabled?: boolean;
-    onChange: (value: string) => void;
-}) {
-    return (
-        <SelectInput
-            value={value}
-            onChange={(event) => onChange(event.target.value)}
-            disabled={disabled}
-            className="border-[#040DBF]/15 bg-white text-[#020659] focus:border-[#040DBF] focus:ring-[#040DBF]/10"
-        >
-            <option value="">{placeholder}</option>
-            {options.map((option) => (
-                <option key={option} value={option}>
-                    {option}
-                </option>
-            ))}
-        </SelectInput>
-    );
-}
-
-function SortableHead({
-    column,
-    label,
-    sort,
-    direction,
-    onSortChange,
-}: {
-    column: SortColumn;
-    label: string;
-    sort: SortColumn;
-    direction: SortDirection;
-    onSortChange: (column: SortColumn) => void;
-}) {
-    const active = sort === column;
-    const Icon = active ? (direction === 'asc' ? ArrowUp : ArrowDown) : ChevronsUpDown;
-
-    return (
-        <TableHead>
-            <button type="button" onClick={() => onSortChange(column)} className="inline-flex items-center gap-1.5 hover:text-[#010440]">
-                {label}
-                <Icon className="size-3.5" />
-            </button>
-        </TableHead>
-    );
-}
-
-function sortLiveVisits(visits: DashboardVisit[], column: SortColumn, direction: SortDirection) {
-    return [...visits].sort((first, second) => {
-        const firstValue = sortValue(first, column);
-        const secondValue = sortValue(second, column);
-        const comparison = compareValues(firstValue, secondValue);
-
-        return direction === 'asc' ? comparison : comparison * -1;
-    });
-}
-
-function sortValue(visit: DashboardVisit, column: SortColumn) {
-    if (column === 'visitedAt') {
-        return visit.visitedAt ? new Date(visit.visitedAt).getTime() : 0;
-    }
-
-    if (column === 'schoolId') {
-        return visit.visitor.schoolId ?? '';
-    }
-
-    if (column === 'name') {
-        return visit.visitor.name ?? '';
-    }
-
-    return visit.visitor.type === 'student'
-        ? [visit.visitor.yearLevel, visit.visitor.section].filter(Boolean).join(' ')
-        : (visit.visitor.department ?? '');
-}
-
-function compareValues(first: string | number, second: string | number) {
-    if (typeof first === 'number' && typeof second === 'number') {
-        return first - second;
-    }
-
-    return String(first).localeCompare(String(second), undefined, { numeric: true, sensitivity: 'base' });
-}
-
-function LiveVisitLoadingRows({ columns }: { columns: number }) {
-    return (
-        <>
-            {Array.from({ length: 5 }).map((_, rowIndex) => (
-                <TableRow key={rowIndex} className="hover:bg-transparent">
-                    {Array.from({ length: columns }).map((_, columnIndex) => (
-                        <TableCell key={columnIndex}>
-                            <span
-                                className={`admin-page-loading-line h-3 ${
-                                    columnIndex === 2 ? 'w-36' : columnIndex % 2 === 0 ? 'w-20' : 'w-28'
-                                } max-w-full`}
-                            />
-                        </TableCell>
-                    ))}
-                </TableRow>
-            ))}
-        </>
-    );
-}
-
-function VisitVisitorCell({ visit }: { visit: DashboardVisit }) {
-    return (
-        <div className="flex items-center gap-3">
-            <VisitorAvatar
-                name={visit.visitor.name}
-                src={visit.visitor.photoUrl}
-                className="live-visit-avatar bg-[#eef2ff] text-[#030A8C]/70 ring-1 ring-[#040DBF]/10"
-            />
-            <span>{visit.visitor.name}</span>
-        </div>
     );
 }

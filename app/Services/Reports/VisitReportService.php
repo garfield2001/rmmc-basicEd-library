@@ -2,9 +2,9 @@
 
 namespace App\Services\Reports;
 
-use App\Models\RegisteredVisitor;
+use App\Models\LibraryMember;
 use App\Models\SchoolYear;
-use App\Models\StudentRegistration;
+use App\Models\StudentSchoolYearRecord;
 use App\Support\Academics\AcademicLevels;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -17,19 +17,19 @@ class VisitReportService
         $schoolYear = $this->resolveSchoolYear($filters);
         [$startDate, $endDate] = $this->resolveDateRange($filters, $schoolYear);
         $schoolYearId = $schoolYear?->id;
-        $visitorType = $filters['visitor_type'] ?? RegisteredVisitor::TYPE_STUDENT;
+        $visitorType = $filters['visitor_type'] ?? LibraryMember::TYPE_STUDENT;
         $yearLevel = $filters['year_level'] ?? null;
         $section = $filters['section'] ?? null;
         $department = $filters['department'] ?? null;
         $requiredVisits = $this->requiredVisitsForType($schoolYear, $visitorType);
 
-        /** @var Collection<int, RegisteredVisitor> $visitors */
-        $visitors = RegisteredVisitor::query()
+        /** @var Collection<int, LibraryMember> $visitors */
+        $visitors = LibraryMember::query()
             ->with([
                 'employee' => fn ($query) => $query->forSchoolYear($schoolYearId),
-                'studentRegistrations' => fn ($query) => $query->forSchoolYear($schoolYearId),
+                'studentSchoolYearRecords' => fn ($query) => $query->forSchoolYear($schoolYearId),
                 'visits' => fn ($query) => $query
-                    ->select('id', 'registered_visitor_id', 'school_year_id', 'visited_at')
+                    ->select('id', 'library_member_id', 'school_year_id', 'visited_at')
                     ->whereBetween('visited_at', [
                         $schoolYear?->starts_at?->copy()->startOfDay() ?? $startDate,
                         $this->historyEndDate($endDate, $schoolYear),
@@ -49,10 +49,10 @@ class VisitReportService
             ], 'visited_at')
             ->where('type', $visitorType)
             ->when(
-                $visitorType === RegisteredVisitor::TYPE_STUDENT,
+                $visitorType === LibraryMember::TYPE_STUDENT,
                 fn (Builder $query) => $query
                     ->when($schoolYearId, fn (Builder $query) => $query->whereHas(
-                        'studentRegistrations',
+                        'studentSchoolYearRecords',
                         fn (Builder $query) => $query
                             ->forSchoolYear($schoolYearId)
                             ->when($yearLevel, fn (Builder $query) => $query->where('year_level', $yearLevel))
@@ -60,9 +60,9 @@ class VisitReportService
                     ), fn (Builder $query) => $query->whereRaw('1 = 0')),
             )
             ->when(
-                $visitorType === RegisteredVisitor::TYPE_EMPLOYEE,
+                $visitorType === LibraryMember::TYPE_EMPLOYEE,
                 fn (Builder $query) => $query->when($schoolYearId, fn (Builder $query) => $query->whereHas(
-                    'employeeProfiles',
+                    'employeeSchoolYearRecords',
                     fn (Builder $query) => $query
                         ->forSchoolYear($schoolYearId)
                         ->when($department, fn (Builder $query) => $query->where('department', $department)),
@@ -76,7 +76,7 @@ class VisitReportService
         $visitorCount = $visitors->count();
         $visitedVisitors = $visitors->where('visits_count', '>', 0)->count();
         $requiredVisitTotal = $visitorCount * $requiredVisits;
-        $excessVisits = $visitors->sum(fn (RegisteredVisitor $visitor): int => max(0, (int) $visitor->visits_count - $requiredVisits));
+        $excessVisits = $visitors->sum(fn (LibraryMember $visitor): int => max(0, (int) $visitor->visits_count - $requiredVisits));
 
         return [
             'filters' => [
@@ -84,9 +84,9 @@ class VisitReportService
                 'start_date' => $startDate->toDateString(),
                 'end_date' => $endDate->toDateString(),
                 'visitor_type' => $visitorType,
-                'year_level' => $visitorType === RegisteredVisitor::TYPE_STUDENT ? $yearLevel : null,
-                'section' => $visitorType === RegisteredVisitor::TYPE_STUDENT ? $section : null,
-                'department' => $visitorType === RegisteredVisitor::TYPE_EMPLOYEE ? $department : null,
+                'year_level' => $visitorType === LibraryMember::TYPE_STUDENT ? $yearLevel : null,
+                'section' => $visitorType === LibraryMember::TYPE_STUDENT ? $section : null,
+                'department' => $visitorType === LibraryMember::TYPE_EMPLOYEE ? $department : null,
             ],
             'school_year' => $schoolYear ? $this->schoolYearData($schoolYear) : null,
             'summary' => [
@@ -101,7 +101,7 @@ class VisitReportService
                 'excess_visits' => $excessVisits,
                 'progress_percent' => $requiredVisitTotal > 0 ? min(100, round(($totalVisits / $requiredVisitTotal) * 100)) : 0,
             ],
-            'rows' => $visitors->map(fn (RegisteredVisitor $visitor): array => $this->visitorRow($visitor, $requiredVisits))->values(),
+            'rows' => $visitors->map(fn (LibraryMember $visitor): array => $this->visitorRow($visitor, $requiredVisits))->values(),
         ];
     }
 
@@ -141,26 +141,26 @@ class VisitReportService
         return [$startDate, $endDate];
     }
 
-    private function studentRegistrationForVisitor(RegisteredVisitor $visitor): ?StudentRegistration
+    private function studentRegistrationForVisitor(LibraryMember $visitor): ?StudentSchoolYearRecord
     {
-        return $visitor->studentRegistrations->first();
+        return $visitor->studentSchoolYearRecords->first();
     }
 
-    private function visitorRow(RegisteredVisitor $visitor, int $requiredVisits): array
+    private function visitorRow(LibraryMember $visitor, int $requiredVisits): array
     {
         $studentRegistration = $this->studentRegistrationForVisitor($visitor);
         $employeeProfile = $visitor->employee;
-        $snapshot = $visitor->type === RegisteredVisitor::TYPE_STUDENT ? $studentRegistration : $employeeProfile;
+        $snapshot = $visitor->type === LibraryMember::TYPE_STUDENT ? $studentRegistration : $employeeProfile;
 
         return [
             'id' => $visitor->id,
             'school_id' => $snapshot?->school_id ?? $visitor->school_id,
             'name' => $this->snapshotName($snapshot, $visitor),
             'type' => $visitor->type,
-            'department' => $visitor->type === RegisteredVisitor::TYPE_EMPLOYEE ? $employeeProfile?->department : null,
-            'year_level' => $visitor->type === RegisteredVisitor::TYPE_STUDENT ? $studentRegistration?->year_level : null,
-            'section' => $visitor->type === RegisteredVisitor::TYPE_STUDENT ? $studentRegistration?->section : null,
-            'year_section_label' => $visitor->type === RegisteredVisitor::TYPE_STUDENT ? $this->studentYearSectionLabel($studentRegistration) : null,
+            'department' => $visitor->type === LibraryMember::TYPE_EMPLOYEE ? $employeeProfile?->department : null,
+            'year_level' => $visitor->type === LibraryMember::TYPE_STUDENT ? $studentRegistration?->year_level : null,
+            'section' => $visitor->type === LibraryMember::TYPE_STUDENT ? $studentRegistration?->section : null,
+            'year_section_label' => $visitor->type === LibraryMember::TYPE_STUDENT ? $this->studentYearSectionLabel($studentRegistration) : null,
             'visit_count' => (int) $visitor->visits_count,
             'excess_visits' => max(0, (int) $visitor->visits_count - $requiredVisits),
             'required_met' => $requiredVisits > 0 && $visitor->visits_count >= $requiredVisits,
@@ -188,7 +188,7 @@ class VisitReportService
         return $today->lt($endDate) ? $today : $endDate;
     }
 
-    private function snapshotName(mixed $snapshot, RegisteredVisitor $visitor): string
+    private function snapshotName(mixed $snapshot, LibraryMember $visitor): string
     {
         if (! $snapshot?->first_name || ! $snapshot?->last_name) {
             return $visitor->full_name;
@@ -201,7 +201,7 @@ class VisitReportService
         return trim(collect([$snapshot->first_name, $middleInitial, $snapshot->last_name])->filter()->implode(' '));
     }
 
-    private function studentYearSectionLabel(?StudentRegistration $registration): ?string
+    private function studentYearSectionLabel(?StudentSchoolYearRecord $registration): ?string
     {
         if (! $registration) {
             return null;
@@ -232,7 +232,7 @@ class VisitReportService
             return 0;
         }
 
-        return $visitorType === RegisteredVisitor::TYPE_EMPLOYEE
+        return $visitorType === LibraryMember::TYPE_EMPLOYEE
             ? $schoolYear->employee_required_visits
             : $schoolYear->student_required_visits;
     }

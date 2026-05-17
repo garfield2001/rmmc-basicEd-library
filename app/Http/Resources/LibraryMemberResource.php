@@ -2,15 +2,15 @@
 
 namespace App\Http\Resources;
 
-use App\Models\RegisteredVisitor;
+use App\Models\LibraryMember;
 use App\Models\SchoolYear;
-use App\Services\Library\RegisteredVisitorDuplicateService;
+use App\Services\Library\LibraryMemberDuplicateService;
 use App\Support\Names\PersonName;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin RegisteredVisitor */
-class RegisteredVisitorResource extends JsonResource
+/** @mixin LibraryMember */
+class LibraryMemberResource extends JsonResource
 {
     /**
      * @return array<string, mixed>
@@ -29,7 +29,7 @@ class RegisteredVisitorResource extends JsonResource
             'photo' => $this->photo,
             'photo_url' => $this->photo ? asset('visitor-photos/'.$this->photo) : null,
             'group' => $this->group,
-            'duplicate_count' => app(RegisteredVisitorDuplicateService::class)
+            'duplicate_count' => app(LibraryMemberDuplicateService::class)
                 ->unresolvedCandidatesFor($this->resource, SchoolYear::active()->value('id'))
                 ->count(),
             'student' => $this->whenLoaded('student', fn (): ?array => $this->student ? [

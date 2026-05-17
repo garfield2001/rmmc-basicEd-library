@@ -6,7 +6,7 @@ import { VisitorAvatar } from '@/components/ui/visitor-avatar';
 import { useViewportHeight, useWindowVirtualRows } from '@/hooks/use-window-virtual-rows';
 import { cn } from '@/lib/utils';
 import type { Paginated } from '@/types/pagination';
-import type { RegisteredVisitorRow } from '@/types/registered-visitors';
+import type { LibraryMemberRow } from '@/types/registered-visitors';
 import { AlertTriangle, ArrowDown, ArrowUp, BriefcaseBusiness, ChevronsUpDown, GraduationCap, Pencil, RotateCcw, Search, X } from 'lucide-react';
 import { useMemo, useRef } from 'react';
 
@@ -22,7 +22,7 @@ interface ColumnOption {
 }
 
 interface VisitorsTableProps {
-    visitors: Paginated<RegisteredVisitorRow>;
+    visitors: Paginated<LibraryMemberRow>;
     activeType: VisitorType;
     search: string;
     yearLevel: string;
@@ -43,7 +43,7 @@ interface VisitorsTableProps {
     onRowsPerPageChange: (rows: RowsPerPageOption) => void;
     onSortChange: (column: string) => void;
     onSortClear: () => void;
-    onEdit: (visitor: RegisteredVisitorRow) => void;
+    onEdit: (visitor: LibraryMemberRow) => void;
     onPrevious: () => void;
     onNext: () => void;
     onPageChange: (page: number) => void;
@@ -305,7 +305,7 @@ function FilterSelect({
     );
 }
 
-function VisitorDataRow({ visitor, activeType, onEdit }: { visitor: RegisteredVisitorRow; activeType: VisitorType; onEdit: () => void }) {
+function VisitorDataRow({ visitor, activeType, onEdit }: { visitor: LibraryMemberRow; activeType: VisitorType; onEdit: () => void }) {
     return (
         <TableRow>
             <TableCell>
@@ -400,7 +400,7 @@ function SortableHead({
     );
 }
 
-function VisitorIdentity({ visitor }: { visitor: RegisteredVisitorRow }) {
+function VisitorIdentity({ visitor }: { visitor: LibraryMemberRow }) {
     return (
         <div className="flex items-center gap-3">
             <VisitorAvatar name={visitor.name} src={visitor.photo_url} />

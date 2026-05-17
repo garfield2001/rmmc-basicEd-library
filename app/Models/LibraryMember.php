@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class RegisteredVisitor extends Model
+class LibraryMember extends Model
 {
     use HasFactory;
 
@@ -39,22 +39,22 @@ class RegisteredVisitor extends Model
 
     public function student(): HasOne
     {
-        return $this->hasOne(StudentRegistration::class)->latestOfMany('school_year_id');
+        return $this->hasOne(StudentSchoolYearRecord::class)->latestOfMany('school_year_id');
     }
 
-    public function studentRegistrations(): HasMany
+    public function studentSchoolYearRecords(): HasMany
     {
-        return $this->hasMany(StudentRegistration::class);
+        return $this->hasMany(StudentSchoolYearRecord::class);
     }
 
     public function employee(): HasOne
     {
-        return $this->hasOne(EmployeeProfile::class);
+        return $this->hasOne(EmployeeSchoolYearRecord::class);
     }
 
-    public function employeeProfiles(): HasMany
+    public function employeeSchoolYearRecords(): HasMany
     {
-        return $this->hasMany(EmployeeProfile::class);
+        return $this->hasMany(EmployeeSchoolYearRecord::class);
     }
 
     public function scopeVisitEligibleForSchoolYear(Builder $query, ?int $schoolYearId): Builder
@@ -68,12 +68,12 @@ class RegisteredVisitor extends Model
                 ->where(function (Builder $query) use ($schoolYearId): void {
                     $query
                         ->where('type', self::TYPE_EMPLOYEE)
-                        ->whereHas('employeeProfiles', fn (Builder $query) => $query->forSchoolYear($schoolYearId));
+                        ->whereHas('employeeSchoolYearRecords', fn (Builder $query) => $query->forSchoolYear($schoolYearId));
                 })
                 ->orWhere(function (Builder $query) use ($schoolYearId): void {
                     $query
                         ->where('type', self::TYPE_STUDENT)
-                        ->whereHas('studentRegistrations', fn (Builder $query) => $query->forSchoolYear($schoolYearId));
+                        ->whereHas('studentSchoolYearRecords', fn (Builder $query) => $query->forSchoolYear($schoolYearId));
                 });
         });
     }

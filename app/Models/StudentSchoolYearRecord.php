@@ -7,14 +7,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class StudentRegistration extends Model
+class StudentSchoolYearRecord extends Model
 {
     use HasFactory;
 
     protected static function booted(): void
     {
-        static::creating(function (StudentRegistration $registration): void {
-            $visitor = $registration->visitor ?: RegisteredVisitor::query()->find($registration->registered_visitor_id);
+        static::creating(function (StudentSchoolYearRecord $registration): void {
+            $visitor = $registration->visitor ?: LibraryMember::query()->find($registration->library_member_id);
 
             if (! $visitor) {
                 return;
@@ -30,7 +30,7 @@ class StudentRegistration extends Model
     }
 
     protected $fillable = [
-        'registered_visitor_id',
+        'library_member_id',
         'school_year_id',
         'school_year_section_id',
         'school_id',
@@ -45,7 +45,7 @@ class StudentRegistration extends Model
 
     public function visitor(): BelongsTo
     {
-        return $this->belongsTo(RegisteredVisitor::class, 'registered_visitor_id');
+        return $this->belongsTo(LibraryMember::class, 'library_member_id');
     }
 
     public function schoolYear(): BelongsTo

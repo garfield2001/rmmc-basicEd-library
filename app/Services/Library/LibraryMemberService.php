@@ -2,7 +2,7 @@
 
 namespace App\Services\Library;
 
-use App\Models\RegisteredVisitor;
+use App\Models\LibraryMember;
 use App\Models\SchoolYear;
 use App\Services\SchoolYears\SchoolYearSectionService;
 use App\Support\Names\PersonName;
@@ -12,20 +12,20 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
-class RegisteredVisitorService
+class LibraryMemberService
 {
     private const PHOTO_DISK = 'visitor_photos';
 
     public function __construct(
         private readonly SchoolYearSectionService $sections,
-        private readonly RegisteredVisitorDuplicateService $duplicates,
+        private readonly LibraryMemberDuplicateService $duplicates,
     ) {}
 
-    public function create(array $data): RegisteredVisitor
+    public function create(array $data): LibraryMember
     {
-        return DB::transaction(function () use ($data): RegisteredVisitor {
+        return DB::transaction(function () use ($data): LibraryMember {
             $data['photo'] = $this->storePhoto($data['photo_file'] ?? null);
-            $visitor = RegisteredVisitor::create($this->visitorData($data));
+            $visitor = LibraryMember::create($this->visitorData($data));
 
             $this->syncDetails($visitor, $data);
 
@@ -33,9 +33,9 @@ class RegisteredVisitorService
         });
     }
 
-    public function update(RegisteredVisitor $visitor, array $data): RegisteredVisitor
+    public function update(LibraryMember $visitor, array $data): LibraryMember
     {
-        return DB::transaction(function () use ($visitor, $data): RegisteredVisitor {
+        return DB::transaction(function () use ($visitor, $data): LibraryMember {
             $newPhoto = $this->storePhoto($data['photo_file'] ?? null);
 
             if ($newPhoto) {
@@ -103,9 +103,9 @@ class RegisteredVisitorService
         Storage::disk(self::PHOTO_DISK)->delete($fileName);
     }
 
-    private function syncDetails(RegisteredVisitor $visitor, array $data): void
+    private function syncDetails(LibraryMember $visitor, array $data): void
     {
-        if ($data['type'] === RegisteredVisitor::TYPE_STUDENT) {
+        if ($data['type'] === LibraryMember::TYPE_STUDENT) {
             $schoolYear = $this->activeSchoolYearOrFail();
             $sectionName = trim((string) ($data['section'] ?? ''));
             $section = $sectionName !== ''
@@ -118,7 +118,7 @@ class RegisteredVisitorService
         }
 
         $schoolYear = $this->activeSchoolYearOrFail();
-        $visitor->employeeProfiles()->updateOrCreate(
+        $visitor->employeeSchoolYearRecords()->updateOrCreate(
             ['school_year_id' => $schoolYear->id],
             $this->visitorSnapshot($visitor) + ['department' => $data['department']],
         );
@@ -139,9 +139,9 @@ class RegisteredVisitorService
 
     private function assignStudentDetails(int $visitorId, int $schoolYearId, string $yearLevel, ?int $sectionId, ?string $sectionName): void
     {
-        $visitor = RegisteredVisitor::query()->findOrFail($visitorId);
+        $visitor = LibraryMember::query()->findOrFail($visitorId);
 
-        $visitor->studentRegistrations()->updateOrCreate(
+        $visitor->studentSchoolYearRecords()->updateOrCreate(
             ['school_year_id' => $schoolYearId],
             $this->visitorSnapshot($visitor) + [
                 'school_year_section_id' => $sectionId,
@@ -151,7 +151,7 @@ class RegisteredVisitorService
         );
     }
 
-    private function visitorSnapshot(RegisteredVisitor $visitor): array
+    private function visitorSnapshot(LibraryMember $visitor): array
     {
         return [
             'school_id' => $visitor->school_id,
@@ -170,7 +170,7 @@ class RegisteredVisitorService
         return $value !== '' ? $value : null;
     }
 
-    private function hasIdentifier(RegisteredVisitor $visitor): bool
+    private function hasIdentifier(LibraryMember $visitor): bool
     {
         return filled($visitor->rfid_uid) || filled($visitor->school_id);
     }

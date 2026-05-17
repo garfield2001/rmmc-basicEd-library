@@ -1,0 +1,102 @@
+import { formatDisplayDate } from '@/components/ui/date-input';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { VisitorAvatar } from '@/components/ui/visitor-avatar';
+import type { VisitHistoryVisit, VisitHistoryVisitor } from '@/types/dashboard';
+import { CalendarClock, History, type LucideIcon } from 'lucide-react';
+import { formatVisitDateTime, groupLabel, parseVisitDate, summarizeDateRange, toLocalIsoDate } from './visit-history-helpers';
+
+interface VisitorHistoryModalProps {
+    visitor: VisitHistoryVisitor | null;
+    visits: VisitHistoryVisit[];
+    startDate: string;
+    endDate: string;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+}
+
+export function VisitorHistoryModal({ visitor, visits, startDate, endDate, open, onOpenChange }: VisitorHistoryModalProps) {
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-3xl">
+                <DialogHeader>
+                    <div className="flex items-center gap-3 pr-8">
+                        <VisitorAvatar
+                            name={visitor?.name ?? 'Visitor'}
+                            src={visitor?.photoUrl}
+                            className="live-visit-avatar bg-[#eef2ff] text-[#030A8C]/70 ring-1 ring-[#040DBF]/10"
+                        />
+                        <div className="min-w-0">
+                            <DialogTitle className="truncate text-2xl text-[#010440]">{visitor?.name ?? 'Visitor details'}</DialogTitle>
+                            <DialogDescription>
+                                {visitor?.schoolId ?? 'No school ID'}
+                                {visitor ? ` - ${groupLabel(visitor)}` : ''}
+                            </DialogDescription>
+                        </div>
+                    </div>
+                </DialogHeader>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                    <ModalStat icon={History} label="Total visits" value={visits.length.toLocaleString()} />
+                    <ModalStat icon={CalendarClock} label="First visit" value={formatVisitDateTime(visits.at(-1)?.visitedAt)} />
+                    <ModalStat icon={CalendarClock} label="Last visit" value={formatVisitDateTime(visits[0]?.visitedAt)} />
+                </div>
+
+                <section className="overflow-hidden rounded-lg border border-[#040DBF]/10">
+                    <div className="border-b border-[#040DBF]/10 bg-[#f6f8ff] px-4 py-3">
+                        <h3 className="font-semibold text-[#010440]">Visit log</h3>
+                        <p className="mt-1 text-sm text-[#020659]/70">{summarizeDateRange(startDate, endDate)}</p>
+                    </div>
+
+                    {visits.length > 0 ? (
+                        <div className="max-h-[24rem] overflow-y-auto overscroll-contain">
+                            <Table>
+                                <TableHeader className="sticky top-0 z-10 bg-white">
+                                    <TableRow>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>Time</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {visits.map((visit) => {
+                                        const visitedAt = parseVisitDate(visit.visitedAt);
+
+                                        return (
+                                            <TableRow key={visit.id}>
+                                                <TableCell className="font-medium text-[#010440]">
+                                                    {visitedAt ? formatDisplayDate(toLocalIsoDate(visitedAt)) : '-'}
+                                                </TableCell>
+                                                <TableCell className="text-[#020659]/70">
+                                                    {visitedAt
+                                                        ? visitedAt.toLocaleTimeString([], {
+                                                              hour: '2-digit',
+                                                              minute: '2-digit',
+                                                          })
+                                                        : '-'}
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    ) : (
+                        <div className="px-4 py-10 text-center text-sm text-[#020659]/70">No visits recorded in the selected date coverage.</div>
+                    )}
+                </section>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function ModalStat({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
+    return (
+        <div className="rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff] p-4">
+            <span className="admin-icon-badge inline-flex size-9 items-center justify-center rounded-lg bg-[#040DBF]/10 text-[#040DBF]">
+                <Icon className="size-4" />
+            </span>
+            <p className="mt-3 text-xs font-semibold tracking-[0.12em] text-[#030A8C] uppercase">{label}</p>
+            <p className="mt-1 text-base font-semibold text-[#010440]">{value}</p>
+        </div>
+    );
+}

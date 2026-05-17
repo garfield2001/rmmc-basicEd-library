@@ -118,13 +118,13 @@ export function AdminSidebar({ active, collapsed, mobileOpen, onNavigate }: Admi
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#f6f8ff] text-sm font-semibold text-[#030A8C]">
                         {(user?.name ?? 'A').trim().charAt(0).toUpperCase()}
                     </span>
-                    <span className={`${sidebarLabel} flex min-w-0 flex-1 items-center justify-between pl-3`}>
+                    <span className={`${sidebarLabel} grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_1.5rem] items-center gap-2 pl-3 pr-1`}>
                         <span className="min-w-0 leading-5">
                             <span className="block truncate text-xs font-semibold text-[#010440]">{user?.name}</span>
                             <span className="block truncate text-xs text-[#030A8C] capitalize">{user?.role}</span>
                         </span>
                         <ChevronDown
-                            className={`ml-2 size-4 shrink-0 transition-transform duration-200 ${adminMenuOpen ? 'rotate-180' : ''}`}
+                            className={`mx-auto size-4 shrink-0 transition-transform duration-200 ${adminMenuOpen ? 'rotate-180' : ''}`}
                             aria-hidden="true"
                         />
                     </span>

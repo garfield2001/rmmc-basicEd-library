@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Support\Academics\AcademicLevels;
 
-class StudentSeeder extends RegisteredVisitorSeeder
+class StudentSeeder extends LibraryMemberSeeder
 {
     public function run(): void
     {
@@ -14,7 +14,7 @@ class StudentSeeder extends RegisteredVisitorSeeder
 
     /**
      * Add real school student details here.
-     * Shared visitor data, including RFID, lives in RegisteredVisitorSeeder.
+     * Shared visitor data, including RFID, lives in LibraryMemberSeeder.
      * Factory students are added separately after this list.
      *
      * @return array<int, array<string, mixed>>

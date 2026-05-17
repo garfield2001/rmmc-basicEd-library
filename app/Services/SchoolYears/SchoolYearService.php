@@ -2,8 +2,8 @@
 
 namespace App\Services\SchoolYears;
 
-use App\Models\EmployeeProfile;
-use App\Models\RegisteredVisitor;
+use App\Models\EmployeeSchoolYearRecord;
+use App\Models\LibraryMember;
 use App\Models\SchoolYear;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -64,18 +64,18 @@ class SchoolYearService
     {
         $transferred = 0;
 
-        EmployeeProfile::query()
+        EmployeeSchoolYearRecord::query()
             ->with('visitor:id,type')
             ->where('school_year_id', $fromSchoolYear->id)
             ->orderBy('id')
-            ->each(function (EmployeeProfile $employeeProfile) use ($toSchoolYear, &$transferred): void {
-                if ($employeeProfile->visitor?->type !== RegisteredVisitor::TYPE_EMPLOYEE) {
+            ->each(function (EmployeeSchoolYearRecord $employeeProfile) use ($toSchoolYear, &$transferred): void {
+                if ($employeeProfile->visitor?->type !== LibraryMember::TYPE_EMPLOYEE) {
                     return;
                 }
 
-                $newEmployeeProfile = EmployeeProfile::query()->firstOrCreate(
+                $newEmployeeSchoolYearRecord = EmployeeSchoolYearRecord::query()->firstOrCreate(
                     [
-                        'registered_visitor_id' => $employeeProfile->registered_visitor_id,
+                        'library_member_id' => $employeeProfile->library_member_id,
                         'school_year_id' => $toSchoolYear->id,
                     ],
                     [
@@ -89,7 +89,7 @@ class SchoolYearService
                     ],
                 );
 
-                if ($newEmployeeProfile->wasRecentlyCreated) {
+                if ($newEmployeeSchoolYearRecord->wasRecentlyCreated) {
                     $transferred++;
                 }
             });

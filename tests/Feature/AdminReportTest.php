@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Models\EmployeeProfile;
+use App\Models\EmployeeSchoolYearRecord;
+use App\Models\LibraryMember;
 use App\Models\LibraryVisit;
-use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
-use App\Models\StudentRegistration;
+use App\Models\StudentSchoolYearRecord;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
@@ -52,13 +52,13 @@ class AdminReportTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $schoolYear = SchoolYear::factory()->active()->create();
 
-        RegisteredVisitor::factory()
+        LibraryMember::factory()
             ->student()
             ->count(12)
             ->create(['last_name' => 'Santos'])
-            ->each(function (RegisteredVisitor $visitor) use ($schoolYear): void {
-                StudentRegistration::factory()->create([
-                    'registered_visitor_id' => $visitor->id,
+            ->each(function (LibraryMember $visitor) use ($schoolYear): void {
+                StudentSchoolYearRecord::factory()->create([
+                    'library_member_id' => $visitor->id,
                     'school_year_id' => $schoolYear->id,
                     'year_level' => 'Grade 5',
                     'section' => 'Rizal',
@@ -68,7 +68,7 @@ class AdminReportTest extends TestCase
         $this->actingAs($admin)->getJson('/admin/live-visits/scan-targets?search=Santos')
             ->assertOk()
             ->assertJsonCount(8, 'targets')
-            ->assertJsonPath('targets.0.type', RegisteredVisitor::TYPE_STUDENT);
+            ->assertJsonPath('targets.0.type', LibraryMember::TYPE_STUDENT);
     }
 
     public function test_authenticated_user_can_view_settings(): void
@@ -126,20 +126,20 @@ class AdminReportTest extends TestCase
             'ends_at' => '2027-03-31',
             'is_active' => true,
         ]);
-        $visitor = RegisteredVisitor::create([
+        $visitor = LibraryMember::create([
             'rfid_uid' => '300001',
             'school_id' => 'EMP-001',
-            'type' => RegisteredVisitor::TYPE_EMPLOYEE,
+            'type' => LibraryMember::TYPE_EMPLOYEE,
             'first_name' => 'Ana',
             'last_name' => 'Reyes',
         ]);
-        EmployeeProfile::create([
-            'registered_visitor_id' => $visitor->id,
+        EmployeeSchoolYearRecord::create([
+            'library_member_id' => $visitor->id,
             'department' => 'Faculty',
         ]);
 
         LibraryVisit::create([
-            'registered_visitor_id' => $visitor->id,
+            'library_member_id' => $visitor->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => now(),
         ]);
@@ -160,34 +160,34 @@ class AdminReportTest extends TestCase
             'student_required_visits' => 2,
             'employee_required_visits' => 3,
         ]);
-        $student = RegisteredVisitor::factory()->student()->create([
+        $student = LibraryMember::factory()->student()->create([
             'school_id' => 'STU-001',
             'first_name' => 'Ben',
             'last_name' => 'Santos',
         ]);
-        $employee = RegisteredVisitor::factory()->employee()->create([
+        $employee = LibraryMember::factory()->employee()->create([
             'school_id' => 'EMP-001',
             'first_name' => 'Ana',
             'last_name' => 'Reyes',
         ]);
 
-        StudentRegistration::factory()->create([
-            'registered_visitor_id' => $student->id,
+        StudentSchoolYearRecord::factory()->create([
+            'library_member_id' => $student->id,
             'school_year_id' => $schoolYear->id,
             'year_level' => 'Grade 5',
             'section' => 'Rizal',
         ]);
-        EmployeeProfile::factory()->create([
-            'registered_visitor_id' => $employee->id,
+        EmployeeSchoolYearRecord::factory()->create([
+            'library_member_id' => $employee->id,
             'department' => 'Faculty',
         ]);
         LibraryVisit::factory()->count(2)->create([
-            'registered_visitor_id' => $student->id,
+            'library_member_id' => $student->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => '2026-08-01 09:00:00',
         ]);
         LibraryVisit::factory()->create([
-            'registered_visitor_id' => $employee->id,
+            'library_member_id' => $employee->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => '2026-08-01 10:00:00',
         ]);
@@ -201,7 +201,7 @@ class AdminReportTest extends TestCase
                 ->where('report.summary.visitors', 1)
                 ->where('report.summary.total_visits', 2)
                 ->where('report.summary.met_required', 1)
-                ->where('report.rows.0.type', RegisteredVisitor::TYPE_STUDENT)
+                ->where('report.rows.0.type', LibraryMember::TYPE_STUDENT)
                 ->where('report.rows.0.school_id', 'STU-001')
                 ->where('report.rows.0.visit_count', 2));
 
@@ -212,7 +212,7 @@ class AdminReportTest extends TestCase
                 ->where('report.summary.visitor_type', 'employee')
                 ->where('report.summary.visitors', 1)
                 ->where('report.summary.total_visits', 1)
-                ->where('report.rows.0.type', RegisteredVisitor::TYPE_EMPLOYEE)
+                ->where('report.rows.0.type', LibraryMember::TYPE_EMPLOYEE)
                 ->where('report.rows.0.school_id', 'EMP-001')
                 ->where('report.rows.0.visit_count', 1));
     }
@@ -233,18 +233,18 @@ class AdminReportTest extends TestCase
             'student_required_visits' => 2,
             'employee_required_visits' => 3,
         ]);
-        $employee = RegisteredVisitor::factory()->employee()->create([
+        $employee = LibraryMember::factory()->employee()->create([
             'school_id' => 'EMP-RESET',
             'first_name' => 'Lara',
             'last_name' => 'Cruz',
         ]);
 
-        EmployeeProfile::factory()->create([
-            'registered_visitor_id' => $employee->id,
+        EmployeeSchoolYearRecord::factory()->create([
+            'library_member_id' => $employee->id,
             'department' => 'Faculty',
         ]);
         LibraryVisit::factory()->count(2)->create([
-            'registered_visitor_id' => $employee->id,
+            'library_member_id' => $employee->id,
             'school_year_id' => $previousSchoolYear->id,
             'visited_at' => '2025-08-01 09:00:00',
         ]);

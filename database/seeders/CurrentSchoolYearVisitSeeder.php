@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\LibraryMember;
 use App\Models\LibraryVisit;
-use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -20,14 +20,14 @@ class CurrentSchoolYearVisitSeeder extends Seeder
 
     private function seedStudentVisits(SchoolYear $schoolYear): void
     {
-        RegisteredVisitor::query()
-            ->where('type', RegisteredVisitor::TYPE_STUDENT)
-            ->whereHas('studentRegistrations', fn ($query) => $query->forSchoolYear($schoolYear->id))
+        LibraryMember::query()
+            ->where('type', LibraryMember::TYPE_STUDENT)
+            ->whereHas('studentSchoolYearRecords', fn ($query) => $query->forSchoolYear($schoolYear->id))
             ->with('student')
             ->orderBy('school_id')
             ->limit(180)
             ->get()
-            ->each(function (RegisteredVisitor $visitor, int $index) use ($schoolYear): void {
+            ->each(function (LibraryMember $visitor, int $index) use ($schoolYear): void {
                 $baseVisits = 1 + ($index % 4);
 
                 for ($visitNumber = 0; $visitNumber < $baseVisits; $visitNumber++) {
@@ -53,13 +53,13 @@ class CurrentSchoolYearVisitSeeder extends Seeder
 
     private function seedEmployeeVisits(SchoolYear $schoolYear): void
     {
-        RegisteredVisitor::query()
-            ->where('type', RegisteredVisitor::TYPE_EMPLOYEE)
-            ->whereHas('employeeProfiles', fn ($query) => $query->forSchoolYear($schoolYear->id))
+        LibraryMember::query()
+            ->where('type', LibraryMember::TYPE_EMPLOYEE)
+            ->whereHas('employeeSchoolYearRecords', fn ($query) => $query->forSchoolYear($schoolYear->id))
             ->orderBy('school_id')
             ->limit(55)
             ->get()
-            ->each(function (RegisteredVisitor $visitor, int $index) use ($schoolYear): void {
+            ->each(function (LibraryMember $visitor, int $index) use ($schoolYear): void {
                 $baseVisits = 1 + ($index % 3);
 
                 for ($visitNumber = 0; $visitNumber < $baseVisits; $visitNumber++) {
@@ -75,10 +75,10 @@ class CurrentSchoolYearVisitSeeder extends Seeder
             });
     }
 
-    private function visit(RegisteredVisitor $visitor, SchoolYear $schoolYear, Carbon $visitedAt): void
+    private function visit(LibraryMember $visitor, SchoolYear $schoolYear, Carbon $visitedAt): void
     {
         LibraryVisit::query()->firstOrCreate([
-            'registered_visitor_id' => $visitor->id,
+            'library_member_id' => $visitor->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => $visitedAt,
         ]);

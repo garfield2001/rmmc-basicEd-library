@@ -2,15 +2,15 @@
 
 namespace App\Services\Library;
 
-use App\Models\EmployeeProfile;
+use App\Models\EmployeeSchoolYearRecord;
+use App\Models\LibraryMember;
 use App\Models\LibraryVisit;
-use App\Models\RegisteredVisitor;
-use App\Models\StudentRegistration;
+use App\Models\StudentSchoolYearRecord;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-class RegisteredVisitorDuplicateService
+class LibraryMemberDuplicateService
 {
     public function applyCanonicalFilter(Builder $query, string $type, ?int $schoolYearId): void
     {
@@ -20,23 +20,23 @@ class RegisteredVisitorDuplicateService
 
         $query->where(function (Builder $query) use ($type, $schoolYearId): void {
             $query
-                ->where(fn (Builder $query) => $this->whereHasIdentifier($query, 'registered_visitors'))
+                ->where(fn (Builder $query) => $this->whereHasIdentifier($query, 'library_members'))
                 ->orWhereNotExists(function ($query) use ($type, $schoolYearId): void {
                     $query
                         ->selectRaw('1')
-                        ->from('registered_visitors as duplicate_visitors')
-                        ->whereColumn('duplicate_visitors.type', 'registered_visitors.type')
-                        ->whereColumn('duplicate_visitors.first_name', 'registered_visitors.first_name')
-                        ->whereColumn('duplicate_visitors.last_name', 'registered_visitors.last_name')
-                        ->whereRaw("coalesce(duplicate_visitors.middle_name, '') = coalesce(registered_visitors.middle_name, '')")
-                        ->whereColumn('duplicate_visitors.id', '!=', 'registered_visitors.id')
+                        ->from('library_members as duplicate_visitors')
+                        ->whereColumn('duplicate_visitors.type', 'library_members.type')
+                        ->whereColumn('duplicate_visitors.first_name', 'library_members.first_name')
+                        ->whereColumn('duplicate_visitors.last_name', 'library_members.last_name')
+                        ->whereRaw("coalesce(duplicate_visitors.middle_name, '') = coalesce(library_members.middle_name, '')")
+                        ->whereColumn('duplicate_visitors.id', '!=', 'library_members.id')
                         ->where(function ($query): void {
                             $query
                                 ->where(fn ($query) => $this->whereHasIdentifier($query, 'duplicate_visitors'))
-                                ->orWhereColumn('duplicate_visitors.id', '<', 'registered_visitors.id');
+                                ->orWhereColumn('duplicate_visitors.id', '<', 'library_members.id');
                         })
                         ->when(
-                            $type === RegisteredVisitor::TYPE_STUDENT,
+                            $type === LibraryMember::TYPE_STUDENT,
                             fn ($query) => $this->whereSameActiveStudentGroup($query, $schoolYearId),
                             fn ($query) => $this->whereSameActiveEmployeeGroup($query, $schoolYearId),
                         );
@@ -45,23 +45,23 @@ class RegisteredVisitorDuplicateService
     }
 
     /**
-     * @return Collection<int, RegisteredVisitor>
+     * @return Collection<int, LibraryMember>
      */
-    public function unresolvedCandidatesFor(RegisteredVisitor $visitor, ?int $schoolYearId): Collection
+    public function unresolvedCandidatesFor(LibraryMember $visitor, ?int $schoolYearId): Collection
     {
         if (! $schoolYearId) {
             return collect();
         }
 
-        return RegisteredVisitor::query()
+        return LibraryMember::query()
             ->whereKeyNot($visitor->id)
             ->where('type', $visitor->type)
             ->where('first_name', $visitor->first_name)
             ->where('last_name', $visitor->last_name)
-            ->where(fn (Builder $query) => $this->whereMissingIdentifier($query, 'registered_visitors'))
+            ->where(fn (Builder $query) => $this->whereMissingIdentifier($query, 'library_members'))
             ->whereRaw("coalesce(middle_name, '') = ?", [$visitor->middle_name ?? ''])
             ->when(
-                $visitor->type === RegisteredVisitor::TYPE_STUDENT,
+                $visitor->type === LibraryMember::TYPE_STUDENT,
                 fn (Builder $query) => $this->whereSameStudentGroupAsVisitor($query, $visitor, $schoolYearId),
                 fn (Builder $query) => $this->whereSameEmployeeGroupAsVisitor($query, $visitor, $schoolYearId),
             )
@@ -69,19 +69,19 @@ class RegisteredVisitorDuplicateService
             ->get();
     }
 
-    public function mergeInto(RegisteredVisitor $keeper, Collection $duplicates): int
+    public function mergeInto(LibraryMember $keeper, Collection $duplicates): int
     {
         $merged = 0;
 
         DB::transaction(function () use ($keeper, $duplicates, &$merged): void {
             foreach ($duplicates as $duplicate) {
-                if (! $duplicate instanceof RegisteredVisitor || $duplicate->is($keeper)) {
+                if (! $duplicate instanceof LibraryMember || $duplicate->is($keeper)) {
                     continue;
                 }
 
                 LibraryVisit::query()
-                    ->where('registered_visitor_id', $duplicate->id)
-                    ->update(['registered_visitor_id' => $keeper->id]);
+                    ->where('library_member_id', $duplicate->id)
+                    ->update(['library_member_id' => $keeper->id]);
 
                 $duplicate->delete();
                 $merged++;
@@ -119,13 +119,13 @@ class RegisteredVisitorDuplicateService
         $query->whereExists(function ($query) use ($schoolYearId): void {
             $query
                 ->selectRaw('1')
-                ->from('student_registrations as current_student')
-                ->join('student_registrations as duplicate_student', function ($join) use ($schoolYearId): void {
+                ->from('student_school_year_records as current_student')
+                ->join('student_school_year_records as duplicate_student', function ($join) use ($schoolYearId): void {
                     $join
-                        ->on('duplicate_student.registered_visitor_id', '=', 'duplicate_visitors.id')
+                        ->on('duplicate_student.library_member_id', '=', 'duplicate_visitors.id')
                         ->where('duplicate_student.school_year_id', '=', $schoolYearId);
                 })
-                ->whereColumn('current_student.registered_visitor_id', 'registered_visitors.id')
+                ->whereColumn('current_student.library_member_id', 'library_members.id')
                 ->where('current_student.school_year_id', $schoolYearId)
                 ->whereColumn('current_student.year_level', 'duplicate_student.year_level')
                 ->whereRaw("coalesce(current_student.section, '') = coalesce(duplicate_student.section, '')");
@@ -137,22 +137,22 @@ class RegisteredVisitorDuplicateService
         $query->whereExists(function ($query) use ($schoolYearId): void {
             $query
                 ->selectRaw('1')
-                ->from('employee_profiles as current_employee')
-                ->join('employee_profiles as duplicate_employee', function ($join) use ($schoolYearId): void {
+                ->from('employee_school_year_records as current_employee')
+                ->join('employee_school_year_records as duplicate_employee', function ($join) use ($schoolYearId): void {
                     $join
-                        ->on('duplicate_employee.registered_visitor_id', '=', 'duplicate_visitors.id')
+                        ->on('duplicate_employee.library_member_id', '=', 'duplicate_visitors.id')
                         ->where('duplicate_employee.school_year_id', '=', $schoolYearId);
                 })
-                ->whereColumn('current_employee.registered_visitor_id', 'registered_visitors.id')
+                ->whereColumn('current_employee.library_member_id', 'library_members.id')
                 ->where('current_employee.school_year_id', $schoolYearId)
                 ->whereColumn('current_employee.department', 'duplicate_employee.department');
         });
     }
 
-    private function whereSameStudentGroupAsVisitor(Builder $query, RegisteredVisitor $visitor, int $schoolYearId): void
+    private function whereSameStudentGroupAsVisitor(Builder $query, LibraryMember $visitor, int $schoolYearId): void
     {
-        $student = StudentRegistration::query()
-            ->where('registered_visitor_id', $visitor->id)
+        $student = StudentSchoolYearRecord::query()
+            ->where('library_member_id', $visitor->id)
             ->where('school_year_id', $schoolYearId)
             ->first();
 
@@ -162,16 +162,16 @@ class RegisteredVisitorDuplicateService
             return;
         }
 
-        $query->whereHas('studentRegistrations', fn (Builder $query) => $query
+        $query->whereHas('studentSchoolYearRecords', fn (Builder $query) => $query
             ->forSchoolYear($schoolYearId)
             ->where('year_level', $student->year_level)
             ->when($student->section, fn (Builder $query) => $query->where('section', $student->section), fn (Builder $query) => $query->whereNull('section')));
     }
 
-    private function whereSameEmployeeGroupAsVisitor(Builder $query, RegisteredVisitor $visitor, int $schoolYearId): void
+    private function whereSameEmployeeGroupAsVisitor(Builder $query, LibraryMember $visitor, int $schoolYearId): void
     {
-        $employee = EmployeeProfile::query()
-            ->where('registered_visitor_id', $visitor->id)
+        $employee = EmployeeSchoolYearRecord::query()
+            ->where('library_member_id', $visitor->id)
             ->where('school_year_id', $schoolYearId)
             ->first();
 
@@ -181,7 +181,7 @@ class RegisteredVisitorDuplicateService
             return;
         }
 
-        $query->whereHas('employeeProfiles', fn (Builder $query) => $query
+        $query->whereHas('employeeSchoolYearRecords', fn (Builder $query) => $query
             ->forSchoolYear($schoolYearId)
             ->where('department', $employee->department));
     }

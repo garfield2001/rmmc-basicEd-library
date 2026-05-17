@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ReportFilterRequest;
-use App\Models\EmployeeProfile;
+use App\Models\EmployeeSchoolYearRecord;
 use App\Models\SchoolYear;
 use App\Services\Reports\VisitReportService;
 use App\Services\SchoolYears\SchoolYearSectionService;
@@ -39,7 +39,7 @@ class ReportController extends Controller
                 'yearLevels' => AcademicLevels::options(),
                 'sectionsByYearLevel' => $sections->groupedByYearLevel($request->integer('school_year_id') ?: SchoolYear::active()->value('id')),
                 'sectionsBySchoolYear' => $sections->groupedBySchoolYear(),
-                'departments' => EmployeeProfile::query()
+                'departments' => EmployeeSchoolYearRecord::query()
                     ->when($request->integer('school_year_id'), fn ($query, $schoolYearId) => $query->where('school_year_id', $schoolYearId))
                     ->whereNotNull('department')
                     ->distinct()

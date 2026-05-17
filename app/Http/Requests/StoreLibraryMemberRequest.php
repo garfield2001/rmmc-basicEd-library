@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests;
 
-use App\Models\RegisteredVisitor;
+use App\Models\LibraryMember;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreRegisteredVisitorRequest extends FormRequest
+class StoreLibraryMemberRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -16,9 +16,9 @@ class StoreRegisteredVisitorRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'rfid_uid' => ['nullable', 'string', 'regex:/^\d{10}$/', 'unique:registered_visitors,rfid_uid'],
-            'school_id' => ['nullable', 'string', 'max:255', 'unique:registered_visitors,school_id'],
-            'type' => ['required', Rule::in([RegisteredVisitor::TYPE_STUDENT, RegisteredVisitor::TYPE_EMPLOYEE])],
+            'rfid_uid' => ['nullable', 'string', 'regex:/^\d{10}$/', 'unique:library_members,rfid_uid'],
+            'school_id' => ['nullable', 'string', 'max:255', 'unique:library_members,school_id'],
+            'type' => ['required', Rule::in([LibraryMember::TYPE_STUDENT, LibraryMember::TYPE_EMPLOYEE])],
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],

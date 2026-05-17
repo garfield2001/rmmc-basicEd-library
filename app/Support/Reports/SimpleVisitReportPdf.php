@@ -106,8 +106,12 @@ class SimpleVisitReportPdf
 
         foreach ($lines as $line) {
             $kind = $line['kind'] ?? 'body';
-            $fontSize = $kind === 'title' ? 18 : 12;
-            $lineHeight = $kind === 'title' ? 22 : self::LINE_HEIGHT;
+            $fontSize = match ($kind) {
+                'title' => 18,
+                'tableHeader', 'tableRow' => 10,
+                default => 12,
+            };
+            $lineHeight = $kind === 'title' ? 22 : ($kind === 'tableHeader' || $kind === 'tableRow' ? 14 : self::LINE_HEIGHT);
 
             if ($kind === 'tableHeader') {
                 $content .= $this->fillRect(self::LEFT_MARGIN - 4, $y - 4, self::TABLE_WIDTH + 8, self::LINE_HEIGHT, [0.91, 0.94, 0.99]);

@@ -4,17 +4,17 @@
     <meta charset="utf-8">
     <title>Library Progress Report</title>
     <style>
-        @page { size: 11in 8.5in; margin: 0.45in; }
-        body { font-family: Arial, Helvetica, sans-serif; color: #111827; font-size: 12px; }
-        h1 { font-size: 18px; margin-bottom: 4px; }
-        p { margin: 0 0 8px; color: #4b5563; font-size: 12px; }
-        .meta { margin: 8px 0 16px; font-size: 12px; }
+        @page { size: 11in 8.5in; margin: 0.6in; }
+        body { font-family: Arial, Helvetica, sans-serif; color: #111827; font-size: 12pt; }
+        h1 { font-size: 18pt; margin-bottom: 6pt; }
+        p { margin: 0 0 8pt; color: #4b5563; font-size: 12pt; }
+        .meta { margin: 8pt 0 16pt; font-size: 12pt; }
         .meta strong { color: #111827; }
-        .summary { margin: 16px 0; border: 0; }
-        .summary td { border: 0; font-size: 12px; font-weight: 700; padding: 4px 18px 4px 0; white-space: nowrap; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
-        th, td { border: 1px solid #d1d5db; padding: 7px 8px; text-align: left; vertical-align: middle; white-space: nowrap; mso-number-format: '\@'; }
-        th { background: #e8eefc; color: #111827; font-size: 12px; font-weight: 700; }
+        .summary { margin: 16pt 0; border: 0; }
+        .summary td { border: 0; font-size: 12pt; font-weight: 700; padding: 4pt 18pt 4pt 0; white-space: nowrap; }
+        table { width: 98%; border-collapse: collapse; font-size: 12pt; table-layout: fixed; }
+        th, td { border: 1px solid #d1d5db; padding: 7pt 8pt; text-align: left; vertical-align: middle; white-space: nowrap; mso-number-format: '\@'; }
+        th { background: #e8eefc; color: #111827; font-size: 12pt; font-weight: 700; }
         tbody tr:nth-child(even) td { background: #f8fafc; }
         tbody tr:nth-child(odd) td { background: #ffffff; }
         .text-cell { mso-number-format: '\@'; }

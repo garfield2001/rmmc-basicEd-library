@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests;
 
-use App\Models\RegisteredVisitor;
+use App\Models\LibraryMember;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateRegisteredVisitorRequest extends FormRequest
+class UpdateLibraryMemberRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -18,9 +18,9 @@ class UpdateRegisteredVisitorRequest extends FormRequest
         $visitorId = $this->route('registered_visitor')?->id;
 
         return [
-            'rfid_uid' => ['nullable', 'string', 'regex:/^\d{10}$/', Rule::unique('registered_visitors', 'rfid_uid')->ignore($visitorId)],
-            'school_id' => ['nullable', 'string', 'max:255', Rule::unique('registered_visitors', 'school_id')->ignore($visitorId)],
-            'type' => ['required', Rule::in([RegisteredVisitor::TYPE_STUDENT, RegisteredVisitor::TYPE_EMPLOYEE])],
+            'rfid_uid' => ['nullable', 'string', 'regex:/^\d{10}$/', Rule::unique('library_members', 'rfid_uid')->ignore($visitorId)],
+            'school_id' => ['nullable', 'string', 'max:255', Rule::unique('library_members', 'school_id')->ignore($visitorId)],
+            'type' => ['required', Rule::in([LibraryMember::TYPE_STUDENT, LibraryMember::TYPE_EMPLOYEE])],
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],

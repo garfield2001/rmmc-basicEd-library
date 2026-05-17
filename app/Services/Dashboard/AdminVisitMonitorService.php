@@ -2,8 +2,8 @@
 
 namespace App\Services\Dashboard;
 
+use App\Models\LibraryMember;
 use App\Models\LibraryVisit;
-use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use App\Support\Academics\AcademicLevels;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,10 +23,10 @@ class AdminVisitMonitorService
             'metrics' => [
                 'visitsToday' => (clone $todayVisitQuery)->count(),
                 'studentVisitsToday' => (clone $todayVisitQuery)
-                    ->whereHas('visitor', fn (Builder $query) => $query->where('type', RegisteredVisitor::TYPE_STUDENT))
+                    ->whereHas('visitor', fn (Builder $query) => $query->where('type', LibraryMember::TYPE_STUDENT))
                     ->count(),
                 'employeeVisitsToday' => (clone $todayVisitQuery)
-                    ->whereHas('visitor', fn (Builder $query) => $query->where('type', RegisteredVisitor::TYPE_EMPLOYEE))
+                    ->whereHas('visitor', fn (Builder $query) => $query->where('type', LibraryMember::TYPE_EMPLOYEE))
                     ->count(),
             ],
             'todayVisits' => LibraryVisit::query()
@@ -34,15 +34,15 @@ class AdminVisitMonitorService
                     'visitor:id,school_id,type,first_name,middle_name,last_name,photo',
                     'visitor.student' => fn ($query) => $query
                         ->select(
-                            'student_registrations.id',
-                            'student_registrations.registered_visitor_id',
-                            'student_registrations.school_year_id',
-                            'student_registrations.year_level',
-                            'student_registrations.section',
+                            'student_school_year_records.id',
+                            'student_school_year_records.library_member_id',
+                            'student_school_year_records.school_year_id',
+                            'student_school_year_records.year_level',
+                            'student_school_year_records.section',
                         )
                         ->forSchoolYear($activeSchoolYearId),
                     'visitor.employee' => fn ($query) => $query
-                        ->select('id', 'registered_visitor_id', 'school_year_id', 'department')
+                        ->select('id', 'library_member_id', 'school_year_id', 'department')
                         ->forSchoolYear($activeSchoolYearId),
                 ])
                 ->whereDate('visited_at', $today)
@@ -58,33 +58,33 @@ class AdminVisitMonitorService
     {
         $activeSchoolYear = SchoolYear::active()->first();
         $activeSchoolYearId = $activeSchoolYear?->id;
-        $visitors = RegisteredVisitor::query()
+        $visitors = LibraryMember::query()
             ->visitEligibleForSchoolYear($activeSchoolYearId)
             ->with([
                 'student' => fn ($query) => $query
                     ->select(
-                        'student_registrations.id',
-                        'student_registrations.registered_visitor_id',
-                        'student_registrations.school_year_id',
-                        'student_registrations.year_level',
-                        'student_registrations.section',
+                        'student_school_year_records.id',
+                        'student_school_year_records.library_member_id',
+                        'student_school_year_records.school_year_id',
+                        'student_school_year_records.year_level',
+                        'student_school_year_records.section',
                     )
                     ->forSchoolYear($activeSchoolYearId),
                 'employee' => fn ($query) => $query
-                    ->select('id', 'registered_visitor_id', 'school_year_id', 'department')
+                    ->select('id', 'library_member_id', 'school_year_id', 'department')
                     ->forSchoolYear($activeSchoolYearId),
                 'visits' => fn ($query) => $query
-                    ->select('id', 'registered_visitor_id', 'school_year_id', 'visited_at')
+                    ->select('id', 'library_member_id', 'school_year_id', 'visited_at')
                     ->when($activeSchoolYearId, fn ($query) => $query->where('school_year_id', $activeSchoolYearId), fn ($query) => $query->whereRaw('1 = 0'))
                     ->latest('visited_at'),
             ])
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->get()
-            ->map(fn (RegisteredVisitor $visitor): array => $this->visitorHistoryData($visitor));
+            ->map(fn (LibraryMember $visitor): array => $this->visitorHistoryData($visitor));
 
-        $studentVisitors = $visitors->where('type', RegisteredVisitor::TYPE_STUDENT);
-        $employeeVisitors = $visitors->where('type', RegisteredVisitor::TYPE_EMPLOYEE);
+        $studentVisitors = $visitors->where('type', LibraryMember::TYPE_STUDENT);
+        $employeeVisitors = $visitors->where('type', LibraryMember::TYPE_EMPLOYEE);
         $yearLevelsInUse = $studentVisitors
             ->pluck('yearLevel')
             ->filter()
@@ -143,20 +143,20 @@ class AdminVisitMonitorService
 
         $activeSchoolYearId = SchoolYear::active()->value('id');
 
-        return RegisteredVisitor::query()
+        return LibraryMember::query()
             ->visitEligibleForSchoolYear($activeSchoolYearId)
             ->with([
                 'student' => fn ($query) => $query
                     ->select(
-                        'student_registrations.id',
-                        'student_registrations.registered_visitor_id',
-                        'student_registrations.school_year_id',
-                        'student_registrations.year_level',
-                        'student_registrations.section',
+                        'student_school_year_records.id',
+                        'student_school_year_records.library_member_id',
+                        'student_school_year_records.school_year_id',
+                        'student_school_year_records.year_level',
+                        'student_school_year_records.section',
                     )
                     ->forSchoolYear($activeSchoolYearId),
                 'employee' => fn ($query) => $query
-                    ->select('id', 'registered_visitor_id', 'school_year_id', 'department')
+                    ->select('id', 'library_member_id', 'school_year_id', 'department')
                     ->forSchoolYear($activeSchoolYearId),
             ])
             ->where(function (Builder $query) use ($activeSchoolYearId, $search): void {
@@ -165,7 +165,7 @@ class AdminVisitMonitorService
                     ->orWhere('rfid_uid', 'like', "{$search}%")
                     ->orWhere('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhereHas('studentRegistrations', function (Builder $query) use ($activeSchoolYearId, $search): void {
+                    ->orWhereHas('studentSchoolYearRecords', function (Builder $query) use ($activeSchoolYearId, $search): void {
                         $query
                             ->forSchoolYear($activeSchoolYearId)
                             ->where(function (Builder $query) use ($search): void {
@@ -174,7 +174,7 @@ class AdminVisitMonitorService
                                     ->orWhere('section', 'like', "%{$search}%");
                             });
                     })
-                    ->orWhereHas('employeeProfiles', fn (Builder $query) => $query
+                    ->orWhereHas('employeeSchoolYearRecords', fn (Builder $query) => $query
                         ->forSchoolYear($activeSchoolYearId)
                         ->where('department', 'like', "%{$search}%"));
             })
@@ -182,7 +182,7 @@ class AdminVisitMonitorService
             ->orderBy('first_name')
             ->limit($limit)
             ->get()
-            ->map(fn (RegisteredVisitor $visitor): array => $this->scanTargetData($visitor))
+            ->map(fn (LibraryMember $visitor): array => $this->scanTargetData($visitor))
             ->all();
     }
 
@@ -203,7 +203,7 @@ class AdminVisitMonitorService
         ];
     }
 
-    private function visitorHistoryData(RegisteredVisitor $visitor): array
+    private function visitorHistoryData(LibraryMember $visitor): array
     {
         return [
             'id' => $visitor->id,
@@ -224,7 +224,7 @@ class AdminVisitMonitorService
         ];
     }
 
-    private function scanTargetData(RegisteredVisitor $visitor): array
+    private function scanTargetData(LibraryMember $visitor): array
     {
         return [
             'id' => $visitor->id,
@@ -234,7 +234,7 @@ class AdminVisitMonitorService
             'firstName' => $visitor->first_name,
             'lastName' => $visitor->last_name,
             'type' => $visitor->type,
-            'detail' => $visitor->type === RegisteredVisitor::TYPE_EMPLOYEE
+            'detail' => $visitor->type === LibraryMember::TYPE_EMPLOYEE
                 ? $visitor->employee?->department
                 : collect([$visitor->student?->year_level, $visitor->student?->section])->filter()->join(' - '),
         ];

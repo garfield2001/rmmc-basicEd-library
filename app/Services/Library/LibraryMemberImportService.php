@@ -2,8 +2,8 @@
 
 namespace App\Services\Library;
 
+use App\Models\LibraryMember;
 use App\Models\LibraryVisit;
-use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use App\Models\SchoolYearSection;
 use App\Support\Names\PersonName;
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
-class RegisteredVisitorImportService
+class LibraryMemberImportService
 {
     /**
      * @return array{created: int, updated: int, restored: int, visits: int, skipped: int}
@@ -123,9 +123,9 @@ class RegisteredVisitorImportService
                 'matched_name' => $visitor?->full_name,
                 'school_id' => $row['school_id'] ?: null,
                 'rfid_uid' => $row['rfid_uid'] ?: null,
-                'year_level' => $row['type'] === RegisteredVisitor::TYPE_STUDENT ? ($row['year_level'] ?? null) : null,
-                'section' => $row['type'] === RegisteredVisitor::TYPE_STUDENT ? ($row['section'] ?? null) : null,
-                'department' => $row['type'] === RegisteredVisitor::TYPE_EMPLOYEE ? ($row['department'] ?? null) : null,
+                'year_level' => $row['type'] === LibraryMember::TYPE_STUDENT ? ($row['year_level'] ?? null) : null,
+                'section' => $row['type'] === LibraryMember::TYPE_STUDENT ? ($row['section'] ?? null) : null,
+                'department' => $row['type'] === LibraryMember::TYPE_EMPLOYEE ? ($row['department'] ?? null) : null,
             ];
         }
 
@@ -794,7 +794,7 @@ class RegisteredVisitorImportService
         return [
             'school_id' => $this->optionalText((string) ($values['school_id'] ?? '')),
             'rfid_uid' => $this->normalizeRFIDUid((string) ($values['rfid_uid'] ?? '')),
-            'type' => RegisteredVisitor::TYPE_STUDENT,
+            'type' => LibraryMember::TYPE_STUDENT,
             'first_name' => $firstName,
             'middle_name' => $middleName ?? '',
             'last_name' => $lastName,
@@ -1044,18 +1044,18 @@ class RegisteredVisitorImportService
         $type = strtolower($row['type'] ?? $row['visitor_type'] ?? '');
 
         if (str_contains($type, 'employee') || str_contains($type, 'staff') || str_contains($type, 'faculty')) {
-            return RegisteredVisitor::TYPE_EMPLOYEE;
+            return LibraryMember::TYPE_EMPLOYEE;
         }
 
         if (str_contains($type, 'student')) {
-            return RegisteredVisitor::TYPE_STUDENT;
+            return LibraryMember::TYPE_STUDENT;
         }
 
         if (($row['department'] ?? '') !== '') {
-            return RegisteredVisitor::TYPE_EMPLOYEE;
+            return LibraryMember::TYPE_EMPLOYEE;
         }
 
-        return RegisteredVisitor::TYPE_STUDENT;
+        return LibraryMember::TYPE_STUDENT;
     }
 
     /**
@@ -1063,7 +1063,7 @@ class RegisteredVisitorImportService
      */
     private function hasMinimumVisitorData(array $row): bool
     {
-        if (! in_array($row['type'] ?? '', [RegisteredVisitor::TYPE_STUDENT, RegisteredVisitor::TYPE_EMPLOYEE], true)) {
+        if (! in_array($row['type'] ?? '', [LibraryMember::TYPE_STUDENT, LibraryMember::TYPE_EMPLOYEE], true)) {
             return false;
         }
 
@@ -1144,10 +1144,10 @@ class RegisteredVisitorImportService
     /**
      * @param  array<string, string>  $row
      */
-    private function findVisitor(array $row, ?SchoolYear $schoolYear): ?RegisteredVisitor
+    private function findVisitor(array $row, ?SchoolYear $schoolYear): ?LibraryMember
     {
         if (($row['school_id'] ?? '') !== '') {
-            return RegisteredVisitor::query()
+            return LibraryMember::query()
                 ->where('school_id', $row['school_id'])
                 ->first();
         }
@@ -1158,16 +1158,16 @@ class RegisteredVisitorImportService
     /**
      * @param  array<string, string>  $row
      */
-    private function identifierConflictsWithAnotherVisitor(array $row, RegisteredVisitor $visitor): bool
+    private function identifierConflictsWithAnotherVisitor(array $row, LibraryMember $visitor): bool
     {
-        if (($row['school_id'] ?? '') !== '' && RegisteredVisitor::query()
+        if (($row['school_id'] ?? '') !== '' && LibraryMember::query()
             ->where('school_id', $row['school_id'])
             ->whereKeyNot($visitor->id)
             ->exists()) {
             return true;
         }
 
-        if (($row['rfid_uid'] ?? '') !== '' && RegisteredVisitor::query()
+        if (($row['rfid_uid'] ?? '') !== '' && LibraryMember::query()
             ->where('rfid_uid', $row['rfid_uid'])
             ->whereKeyNot($visitor->id)
             ->exists()) {
@@ -1180,7 +1180,7 @@ class RegisteredVisitorImportService
     /**
      * @param  array<string, string>  $row
      */
-    private function rowRejectionMessage(array $row, ?RegisteredVisitor $visitor = null): ?string
+    private function rowRejectionMessage(array $row, ?LibraryMember $visitor = null): ?string
     {
         if (($row['_has_disallowed_single_name_column'] ?? '') === '1') {
             return 'Full-name columns are not accepted. Use separate First Name, Middle Name, and Last Name columns.';
@@ -1214,7 +1214,7 @@ class RegisteredVisitorImportService
     /**
      * @param  array<string, string>  $row
      */
-    private function importRowMatchesExistingIdentity(array $row, RegisteredVisitor $visitor): bool
+    private function importRowMatchesExistingIdentity(array $row, LibraryMember $visitor): bool
     {
         return $visitor->type === ($row['type'] ?? null)
             && strcasecmp($this->optionalText($visitor->first_name ?? ''), $row['first_name'] ?? '') === 0
@@ -1225,14 +1225,14 @@ class RegisteredVisitorImportService
     /**
      * @param  array<string, string>  $row
      */
-    private function findVisitorByCompatibleIdentity(array $row): ?RegisteredVisitor
+    private function findVisitorByCompatibleIdentity(array $row): ?LibraryMember
     {
-        return RegisteredVisitor::query()
+        return LibraryMember::query()
             ->where('type', $row['type'])
             ->whereRaw('LOWER(first_name) = ?', [mb_strtolower($row['first_name'] ?? '')])
             ->whereRaw('LOWER(last_name) = ?', [mb_strtolower($row['last_name'] ?? '')])
             ->get()
-            ->first(fn (RegisteredVisitor $visitor): bool => $this->middleNamesAreCompatible(
+            ->first(fn (LibraryMember $visitor): bool => $this->middleNamesAreCompatible(
                 $this->optionalText($visitor->middle_name ?? ''),
                 $row['middle_name'] ?? '',
             ));
@@ -1251,7 +1251,7 @@ class RegisteredVisitorImportService
     /**
      * @param  array<string, string>  $row
      */
-    private function canFillMissingRfid(RegisteredVisitor $visitor, array $row): bool
+    private function canFillMissingRfid(LibraryMember $visitor, array $row): bool
     {
         return ($row['rfid_uid'] ?? '') !== ''
             && blank($visitor->rfid_uid)
@@ -1261,7 +1261,7 @@ class RegisteredVisitorImportService
     /**
      * @param  array<string, string>  $row
      */
-    private function fillMissingRfid(RegisteredVisitor $visitor, array $row): void
+    private function fillMissingRfid(LibraryMember $visitor, array $row): void
     {
         if (! $this->canFillMissingRfid($visitor, $row)) {
             return;
@@ -1275,10 +1275,10 @@ class RegisteredVisitorImportService
     /**
      * @param  array<string, string>  $row
      */
-    private function identifierConflictMessage(array $row, ?RegisteredVisitor $currentVisitor = null): ?string
+    private function identifierConflictMessage(array $row, ?LibraryMember $currentVisitor = null): ?string
     {
         if (($row['rfid_uid'] ?? '') !== '') {
-            $visitor = RegisteredVisitor::query()
+            $visitor = LibraryMember::query()
                 ->where('rfid_uid', $row['rfid_uid'])
                 ->first();
 
@@ -1293,9 +1293,9 @@ class RegisteredVisitorImportService
     /**
      * @param  array<string, string>  $row
      */
-    private function createVisitor(array $row): RegisteredVisitor
+    private function createVisitor(array $row): LibraryMember
     {
-        return RegisteredVisitor::create([
+        return LibraryMember::create([
             'rfid_uid' => $this->rfidUid($row['rfid_uid'] ?? ''),
             'school_id' => $this->schoolId($row['school_id'] ?? ''),
             'type' => $row['type'],
@@ -1309,19 +1309,19 @@ class RegisteredVisitorImportService
     /**
      * @param  array<string, string>  $row
      */
-    private function syncVisitorDetails(RegisteredVisitor $visitor, array $row, ?SchoolYear $schoolYear): void
+    private function syncVisitorDetails(LibraryMember $visitor, array $row, ?SchoolYear $schoolYear): void
     {
-        if ($visitor->type === RegisteredVisitor::TYPE_EMPLOYEE) {
+        if ($visitor->type === LibraryMember::TYPE_EMPLOYEE) {
             if (! $schoolYear) {
                 return;
             }
 
-            $existingEmployeeProfile = $visitor->employeeProfiles()
+            $existingEmployeeSchoolYearRecord = $visitor->employeeSchoolYearRecords()
                 ->forSchoolYear($schoolYear->id)
                 ->first();
-            $department = $this->mergedOptionalText($existingEmployeeProfile?->department, $row['department'] ?? '') ?? 'Unassigned';
+            $department = $this->mergedOptionalText($existingEmployeeSchoolYearRecord?->department, $row['department'] ?? '') ?? 'Unassigned';
 
-            $visitor->employeeProfiles()->updateOrCreate(
+            $visitor->employeeSchoolYearRecords()->updateOrCreate(
                 ['school_year_id' => $schoolYear->id],
                 $this->visitorSnapshot($visitor) + ['department' => $department],
             );
@@ -1333,16 +1333,16 @@ class RegisteredVisitorImportService
             return;
         }
 
-        $existingStudentRegistration = $visitor->studentRegistrations()
+        $existingStudentSchoolYearRecord = $visitor->studentSchoolYearRecords()
             ->forSchoolYear($schoolYear->id)
             ->first();
-        $yearLevel = $this->mergedOptionalText($existingStudentRegistration?->year_level, $row['year_level'] ?? '');
+        $yearLevel = $this->mergedOptionalText($existingStudentSchoolYearRecord?->year_level, $row['year_level'] ?? '');
 
         if (! $yearLevel) {
             return;
         }
 
-        $sectionName = $this->mergedOptionalText($existingStudentRegistration?->section, $row['section'] ?? '');
+        $sectionName = $this->mergedOptionalText($existingStudentSchoolYearRecord?->section, $row['section'] ?? '');
         $section = $sectionName
             ? SchoolYearSection::query()->firstOrCreate([
                 'school_year_id' => $schoolYear->id,
@@ -1351,7 +1351,7 @@ class RegisteredVisitorImportService
             ])
             : null;
 
-        $visitor->studentRegistrations()->updateOrCreate(
+        $visitor->studentSchoolYearRecords()->updateOrCreate(
             ['school_year_id' => $schoolYear->id],
             $this->visitorSnapshot($visitor) + [
                 'school_year_section_id' => $section?->id,
@@ -1364,7 +1364,7 @@ class RegisteredVisitorImportService
     /**
      * @param  array<string, string>  $row
      */
-    private function syncVisit(RegisteredVisitor $visitor, array $row, ?SchoolYear $schoolYear): bool
+    private function syncVisit(LibraryMember $visitor, array $row, ?SchoolYear $schoolYear): bool
     {
         $visitedAt = $this->dateFromRow($row['visited_at'] ?? '');
 
@@ -1373,7 +1373,7 @@ class RegisteredVisitorImportService
         }
 
         return LibraryVisit::query()->firstOrCreate([
-            'registered_visitor_id' => $visitor->id,
+            'library_member_id' => $visitor->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => $visitedAt,
         ])->wasRecentlyCreated;
@@ -1414,7 +1414,7 @@ class RegisteredVisitorImportService
             return null;
         }
 
-        $exists = RegisteredVisitor::query()
+        $exists = LibraryMember::query()
             ->where('rfid_uid', $rfidUid)
             ->when($ignoreVisitorId, fn ($query) => $query->whereKeyNot($ignoreVisitorId))
             ->exists();
@@ -1430,7 +1430,7 @@ class RegisteredVisitorImportService
             return null;
         }
 
-        $exists = RegisteredVisitor::query()
+        $exists = LibraryMember::query()
             ->where('school_id', $schoolId)
             ->when($ignoreVisitorId, fn ($query) => $query->whereKeyNot($ignoreVisitorId))
             ->exists();
@@ -1482,7 +1482,7 @@ class RegisteredVisitorImportService
         return preg_match('/^[A-Za-z]\.?$/', trim($value)) === 1;
     }
 
-    private function visitorSnapshot(RegisteredVisitor $visitor): array
+    private function visitorSnapshot(LibraryMember $visitor): array
     {
         return [
             'school_id' => $visitor->school_id,

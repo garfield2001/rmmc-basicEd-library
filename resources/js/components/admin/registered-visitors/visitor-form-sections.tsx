@@ -1,6 +1,6 @@
 import { SelectInput } from '@/components/ui/select-input';
 import { studentYearLevels } from '@/constants/academic';
-import type { RegisteredVisitorRow } from '@/types/registered-visitors';
+import type { LibraryMemberRow } from '@/types/registered-visitors';
 import { BriefcaseBusiness, GraduationCap, ImagePlus } from 'lucide-react';
 import type { VisitorFormData } from './visitor-form-state';
 
@@ -18,7 +18,7 @@ interface IdentitySectionProps extends SectionProps {
 }
 
 interface DetailsSectionProps extends SectionProps {
-    visitor: RegisteredVisitorRow | null;
+    visitor: LibraryMemberRow | null;
     sectionOptions: string[];
 }
 

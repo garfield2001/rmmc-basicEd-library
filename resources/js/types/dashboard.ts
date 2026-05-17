@@ -31,13 +31,25 @@ export interface ChartPoint {
 }
 
 export interface VisitTrendPoint {
+    date?: string;
     label: string;
     students: number;
     employees: number;
     total: number;
 }
 
-export type VisitTrafficRange = 'last7' | 'last14' | 'lastMonth';
+export type VisitTrafficRange = 'last7' | 'last14' | 'lastMonth' | 'custom';
+
+export interface StudentActivityVisit {
+    visitedAt: string | null;
+    yearLevel: string | null;
+    section: string | null;
+}
+
+export interface EmployeeActivityVisit {
+    visitedAt: string | null;
+    department: string | null;
+}
 
 export interface RequiredProgressPoint {
     label: 'Students' | 'Employees';
@@ -60,7 +72,7 @@ export interface AdminDashboard {
         | null;
     metrics: {
         registeredVisitors: number;
-        studentRegistrations: number;
+        studentSchoolYearRecords: number;
         visitsToday: number;
         employeeVisitors: number;
     };
@@ -69,7 +81,10 @@ export interface AdminDashboard {
         employees: number;
     };
     charts: {
-        visitsByDay: Record<VisitTrafficRange, VisitTrendPoint[]>;
+        visitsByDay: Record<Exclude<VisitTrafficRange, 'custom'>, VisitTrendPoint[]>;
+        dailyVisits: VisitTrendPoint[];
+        studentActivityVisits: StudentActivityVisit[];
+        employeeActivityVisits: EmployeeActivityVisit[];
         studentVisitsByYearLevel: ChartPoint[];
         studentVisitsBySection: ChartPoint[];
         employeeVisitsByDepartment: ChartPoint[];

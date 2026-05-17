@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\LibraryMember;
 use App\Models\LibraryVisit;
-use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
-use App\Models\StudentRegistration;
+use App\Models\StudentSchoolYearRecord;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -40,7 +40,7 @@ class LibraryVisitTest extends TestCase
         $response->assertSessionHas('recentVisit');
         $response->assertSessionMissing('success');
         $this->assertDatabaseHas('library_visits', [
-            'registered_visitor_id' => $visitor->id,
+            'library_member_id' => $visitor->id,
             'school_year_id' => $schoolYear->id,
         ]);
     }
@@ -57,7 +57,7 @@ class LibraryVisitTest extends TestCase
         ])->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('library_visits', [
-            'registered_visitor_id' => $visitor->id,
+            'library_member_id' => $visitor->id,
             'school_year_id' => $schoolYear->id,
         ]);
     }
@@ -74,7 +74,7 @@ class LibraryVisitTest extends TestCase
         ])->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('library_visits', [
-            'registered_visitor_id' => $visitor->id,
+            'library_member_id' => $visitor->id,
         ]);
     }
 
@@ -90,7 +90,7 @@ class LibraryVisitTest extends TestCase
         ])->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('library_visits', [
-            'registered_visitor_id' => $visitor->id,
+            'library_member_id' => $visitor->id,
         ]);
     }
 
@@ -99,10 +99,10 @@ class LibraryVisitTest extends TestCase
         $this->travelTo(Carbon::parse('2026-09-01 08:00:00', config('app.timezone')));
 
         $this->createActiveSchoolYear();
-        $visitor = RegisteredVisitor::create([
+        $visitor = LibraryMember::create([
             'rfid_uid' => null,
             'school_id' => 'STU-002',
-            'type' => RegisteredVisitor::TYPE_STUDENT,
+            'type' => LibraryMember::TYPE_STUDENT,
             'first_name' => 'Ana',
             'last_name' => 'Reyes',
         ]);
@@ -127,7 +127,7 @@ class LibraryVisitTest extends TestCase
         $visitor = $this->createVisitor();
 
         LibraryVisit::create([
-            'registered_visitor_id' => $visitor->id,
+            'library_member_id' => $visitor->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => now()->subMinutes(30),
         ]);
@@ -147,7 +147,7 @@ class LibraryVisitTest extends TestCase
         $visitor = $this->createVisitor();
 
         LibraryVisit::create([
-            'registered_visitor_id' => $visitor->id,
+            'library_member_id' => $visitor->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => now()->subHour(),
         ]);
@@ -170,7 +170,7 @@ class LibraryVisitTest extends TestCase
         $visitor = $this->createVisitor();
 
         LibraryVisit::create([
-            'registered_visitor_id' => $visitor->id,
+            'library_member_id' => $visitor->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => now()->subMinutes(90),
         ]);
@@ -195,16 +195,16 @@ class LibraryVisitTest extends TestCase
             'is_active' => false,
         ]);
         $this->createActiveSchoolYear();
-        $visitor = RegisteredVisitor::create([
+        $visitor = LibraryMember::create([
             'rfid_uid' => '1000000001',
             'school_id' => 'STU-001',
-            'type' => RegisteredVisitor::TYPE_STUDENT,
+            'type' => LibraryMember::TYPE_STUDENT,
             'first_name' => 'Maria',
             'last_name' => 'Santos',
         ]);
 
-        StudentRegistration::create([
-            'registered_visitor_id' => $visitor->id,
+        StudentSchoolYearRecord::create([
+            'library_member_id' => $visitor->id,
             'school_year_id' => $oldSchoolYear->id,
             'year_level' => 'Grade 1',
             'section' => 'Rizal',
@@ -237,28 +237,28 @@ class LibraryVisitTest extends TestCase
             'employee_required_visits' => 4,
             'is_active' => true,
         ]);
-        $visitor = RegisteredVisitor::create([
+        $visitor = LibraryMember::create([
             'rfid_uid' => '1000000001',
             'school_id' => 'STU-001',
-            'type' => RegisteredVisitor::TYPE_STUDENT,
+            'type' => LibraryMember::TYPE_STUDENT,
             'first_name' => 'Juan',
             'last_name' => 'Santos',
         ]);
 
-        StudentRegistration::create([
-            'registered_visitor_id' => $visitor->id,
+        StudentSchoolYearRecord::create([
+            'library_member_id' => $visitor->id,
             'school_year_id' => $oldSchoolYear->id,
             'year_level' => 'Grade 10',
             'section' => 'Rizal',
         ]);
-        StudentRegistration::create([
-            'registered_visitor_id' => $visitor->id,
+        StudentSchoolYearRecord::create([
+            'library_member_id' => $visitor->id,
             'school_year_id' => $newSchoolYear->id,
             'year_level' => 'Grade 10',
             'section' => null,
         ]);
         LibraryVisit::create([
-            'registered_visitor_id' => $visitor->id,
+            'library_member_id' => $visitor->id,
             'school_year_id' => $oldSchoolYear->id,
             'visited_at' => Carbon::parse('2026-09-01 08:00:00', config('app.timezone')),
         ]);
@@ -268,11 +268,11 @@ class LibraryVisitTest extends TestCase
         ])->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('library_visits', [
-            'registered_visitor_id' => $visitor->id,
+            'library_member_id' => $visitor->id,
             'school_year_id' => $oldSchoolYear->id,
         ]);
         $this->assertDatabaseHas('library_visits', [
-            'registered_visitor_id' => $visitor->id,
+            'library_member_id' => $visitor->id,
             'school_year_id' => $newSchoolYear->id,
         ]);
     }
@@ -347,12 +347,12 @@ class LibraryVisitTest extends TestCase
         ]);
     }
 
-    private function createVisitor(): RegisteredVisitor
+    private function createVisitor(): LibraryMember
     {
-        $visitor = RegisteredVisitor::create([
+        $visitor = LibraryMember::create([
             'rfid_uid' => '1000000001',
             'school_id' => 'STU-001',
-            'type' => RegisteredVisitor::TYPE_STUDENT,
+            'type' => LibraryMember::TYPE_STUDENT,
             'first_name' => 'Maria',
             'last_name' => 'Santos',
         ]);
@@ -362,12 +362,12 @@ class LibraryVisitTest extends TestCase
         return $visitor;
     }
 
-    private function registerVisitorForActiveSchoolYear(RegisteredVisitor $visitor): void
+    private function registerVisitorForActiveSchoolYear(LibraryMember $visitor): void
     {
         $schoolYear = SchoolYear::active()->firstOrFail();
 
-        StudentRegistration::create([
-            'registered_visitor_id' => $visitor->id,
+        StudentSchoolYearRecord::create([
+            'library_member_id' => $visitor->id,
             'school_year_id' => $schoolYear->id,
             'year_level' => 'Grade 1',
             'section' => 'Rizal',

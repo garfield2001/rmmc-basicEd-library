@@ -2,13 +2,13 @@
 
 namespace Database\Seeders;
 
-use App\Models\RegisteredVisitor;
+use App\Models\LibraryMember;
 use App\Models\SchoolYear;
 use App\Models\SchoolYearSection;
 use Illuminate\Database\Seeder;
 use InvalidArgumentException;
 
-abstract class RegisteredVisitorSeeder extends Seeder
+abstract class LibraryMemberSeeder extends Seeder
 {
     /**
      * @var array<int, string>
@@ -219,12 +219,12 @@ abstract class RegisteredVisitorSeeder extends Seeder
     /**
      * @param  array<string, mixed>  $student
      */
-    protected function createStudentVisitor(array $student): RegisteredVisitor
+    protected function createStudentVisitor(array $student): LibraryMember
     {
         $this->validateDetailData($student, ['year_level', 'section']);
         $this->validateStudentSchoolId($student['school_id']);
 
-        $visitor = $this->createVisitor($student, RegisteredVisitor::TYPE_STUDENT);
+        $visitor = $this->createVisitor($student, LibraryMember::TYPE_STUDENT);
         $schoolYear = SchoolYear::active()->firstOrFail();
         $section = SchoolYearSection::query()->firstOrCreate([
             'school_year_id' => $schoolYear->id,
@@ -232,7 +232,7 @@ abstract class RegisteredVisitorSeeder extends Seeder
             'name' => $student['section'],
         ]);
 
-        $visitor->studentRegistrations()->create([
+        $visitor->studentSchoolYearRecords()->create([
             'school_year_id' => $schoolYear->id,
             'school_year_section_id' => $section->id,
             ...$this->visitorSnapshot($visitor),
@@ -263,15 +263,15 @@ abstract class RegisteredVisitorSeeder extends Seeder
     /**
      * @param  array<string, mixed>  $employee
      */
-    protected function createEmployeeVisitor(array $employee): RegisteredVisitor
+    protected function createEmployeeVisitor(array $employee): LibraryMember
     {
         $this->validateDetailData($employee, ['department']);
 
-        $visitor = $this->createVisitor($employee, RegisteredVisitor::TYPE_EMPLOYEE);
+        $visitor = $this->createVisitor($employee, LibraryMember::TYPE_EMPLOYEE);
 
         $schoolYear = SchoolYear::active()->firstOrFail();
 
-        $visitor->employeeProfiles()->create([
+        $visitor->employeeSchoolYearRecords()->create([
             'school_year_id' => $schoolYear->id,
             ...$this->visitorSnapshot($visitor),
             'department' => $employee['department'],
@@ -281,11 +281,11 @@ abstract class RegisteredVisitorSeeder extends Seeder
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $employee_profiles
+     * @param  array<int, array<string, mixed>>  $employee_school_year_records
      */
-    protected function createEmployeeVisitors(array $employee_profiles): void
+    protected function createEmployeeVisitors(array $employee_school_year_records): void
     {
-        foreach ($employee_profiles as $employee) {
+        foreach ($employee_school_year_records as $employee) {
             $this->createEmployeeVisitor($employee);
         }
     }
@@ -310,11 +310,11 @@ abstract class RegisteredVisitorSeeder extends Seeder
     /**
      * @param  array<string, mixed>  $visitorData
      */
-    private function createVisitor(array $visitorData, string $type): RegisteredVisitor
+    private function createVisitor(array $visitorData, string $type): LibraryMember
     {
         $this->validateVisitorData($visitorData);
 
-        return RegisteredVisitor::create([
+        return LibraryMember::create([
             'rfid_uid' => $this->resolveRFIDUid($visitorData),
             'school_id' => $this->useManualSchoolId($visitorData['school_id']),
             'type' => $type,
@@ -325,7 +325,7 @@ abstract class RegisteredVisitorSeeder extends Seeder
         ]);
     }
 
-    private function visitorSnapshot(RegisteredVisitor $visitor): array
+    private function visitorSnapshot(LibraryMember $visitor): array
     {
         return [
             'school_id' => $visitor->school_id,

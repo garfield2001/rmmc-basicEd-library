@@ -2,22 +2,22 @@
 
 namespace Database\Factories;
 
-use App\Models\RegisteredVisitor;
+use App\Models\LibraryMember;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<RegisteredVisitor>
+ * @extends Factory<LibraryMember>
  */
-class RegisteredVisitorFactory extends Factory
+class LibraryMemberFactory extends Factory
 {
-    protected $model = RegisteredVisitor::class;
+    protected $model = LibraryMember::class;
 
     public function definition(): array
     {
         return [
             'rfid_uid' => $this->uniqueRFIDUid(),
             'school_id' => fake()->unique()->bothify('ID-####'),
-            'type' => RegisteredVisitor::TYPE_STUDENT,
+            'type' => LibraryMember::TYPE_STUDENT,
             'first_name' => fake()->firstName(),
             'middle_name' => fake()->optional(0.35)->lastName(),
             'last_name' => fake()->lastName(),
@@ -28,7 +28,7 @@ class RegisteredVisitorFactory extends Factory
     public function student(): static
     {
         return $this->state(fn (): array => [
-            'type' => RegisteredVisitor::TYPE_STUDENT,
+            'type' => LibraryMember::TYPE_STUDENT,
             'school_id' => $this->uniqueStudentSchoolId(),
         ]);
     }
@@ -36,7 +36,7 @@ class RegisteredVisitorFactory extends Factory
     public function employee(): static
     {
         return $this->state(fn (): array => [
-            'type' => RegisteredVisitor::TYPE_EMPLOYEE,
+            'type' => LibraryMember::TYPE_EMPLOYEE,
             'school_id' => fake()->unique()->numerify('FAKE-EMP-#####'),
         ]);
     }
@@ -45,7 +45,7 @@ class RegisteredVisitorFactory extends Factory
     {
         do {
             $RFIDUid = (string) random_int(1000000000, 9999999999);
-        } while (RegisteredVisitor::query()->where('rfid_uid', $RFIDUid)->exists());
+        } while (LibraryMember::query()->where('rfid_uid', $RFIDUid)->exists());
 
         return $RFIDUid;
     }
@@ -56,7 +56,7 @@ class RegisteredVisitorFactory extends Factory
 
         do {
             $schoolId = fake()->randomElement($yearPrefixes).str_pad((string) random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
-        } while (RegisteredVisitor::query()->where('school_id', $schoolId)->exists());
+        } while (LibraryMember::query()->where('school_id', $schoolId)->exists());
 
         return $schoolId;
     }

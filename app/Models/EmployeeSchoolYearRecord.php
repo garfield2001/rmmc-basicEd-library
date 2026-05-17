@@ -7,18 +7,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class EmployeeProfile extends Model
+class EmployeeSchoolYearRecord extends Model
 {
     use HasFactory;
 
     protected static function booted(): void
     {
-        static::creating(function (EmployeeProfile $profile): void {
+        static::creating(function (EmployeeSchoolYearRecord $profile): void {
             if (! $profile->school_year_id) {
                 $profile->school_year_id = SchoolYear::active()->value('id');
             }
 
-            $visitor = $profile->visitor ?: RegisteredVisitor::query()->find($profile->registered_visitor_id);
+            $visitor = $profile->visitor ?: LibraryMember::query()->find($profile->library_member_id);
 
             if (! $visitor) {
                 return;
@@ -34,7 +34,7 @@ class EmployeeProfile extends Model
     }
 
     protected $fillable = [
-        'registered_visitor_id',
+        'library_member_id',
         'school_year_id',
         'school_id',
         'rfid_uid',
@@ -47,7 +47,7 @@ class EmployeeProfile extends Model
 
     public function visitor(): BelongsTo
     {
-        return $this->belongsTo(RegisteredVisitor::class, 'registered_visitor_id');
+        return $this->belongsTo(LibraryMember::class, 'library_member_id');
     }
 
     public function schoolYear(): BelongsTo

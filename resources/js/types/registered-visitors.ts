@@ -1,4 +1,4 @@
-export interface RegisteredVisitorRow {
+export interface LibraryMemberRow {
     id: number;
     rfid_uid: string | null;
     school_id: string | null;
@@ -22,7 +22,7 @@ export interface RegisteredVisitorRow {
     } | null;
 }
 
-export interface RegisteredVisitorImportPreviewMember {
+export interface LibraryMemberImportPreviewMember {
     status: 'create' | 'rfid';
     type: 'student' | 'employee';
     name: string;
@@ -34,14 +34,14 @@ export interface RegisteredVisitorImportPreviewMember {
     department: string | null;
 }
 
-export interface RegisteredVisitorImportPreview {
+export interface LibraryMemberImportPreview {
     file_name: string;
     total_rows: number;
     importable_count: number;
     skipped_count: number;
     create_count: number;
     update_count: number;
-    members: RegisteredVisitorImportPreviewMember[];
+    members: LibraryMemberImportPreviewMember[];
     skipped: {
         name: string;
         reason: string;

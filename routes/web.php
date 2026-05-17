@@ -9,8 +9,8 @@ use App\Http\Controllers\AdminVisitHistoryController;
 use App\Http\Controllers\AdminVisitMonitorController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LibraryMemberController;
 use App\Http\Controllers\LibraryVisitController;
-use App\Http\Controllers\RegisteredVisitorController;
 use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
@@ -40,9 +40,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::patch('admin/school-years/{schoolYear}', [AdminSchoolYearController::class, 'update'])->name('admin.school-years.update');
     Route::patch('admin/school-years/{schoolYear}/activate', [AdminSchoolYearController::class, 'activate'])->name('admin.school-years.activate');
 
-    Route::post('admin/registered-visitors/import/preview', [RegisteredVisitorController::class, 'importPreview'])->name('admin.registered-visitors.import.preview');
-    Route::post('admin/registered-visitors/import', [RegisteredVisitorController::class, 'import'])->name('admin.registered-visitors.import');
-    Route::resource('admin/registered-visitors', RegisteredVisitorController::class)->except(['show', 'destroy'])->names('admin.registered-visitors');
+    Route::post('admin/registered-visitors/import/preview', [LibraryMemberController::class, 'importPreview'])->name('admin.registered-visitors.import.preview');
+    Route::post('admin/registered-visitors/import', [LibraryMemberController::class, 'import'])->name('admin.registered-visitors.import');
+    Route::resource('admin/registered-visitors', LibraryMemberController::class)->except(['show', 'destroy'])->names('admin.registered-visitors');
 
     Route::get('admin/reports', [ReportController::class, 'index'])->name('admin.reports');
     Route::get('admin/reports/visits.csv', [ReportController::class, 'exportCsv'])->name('admin.reports.visits.csv');

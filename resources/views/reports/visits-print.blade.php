@@ -8,8 +8,8 @@
             body {
                 color: #111827;
                 font-family: Arial, Helvetica, sans-serif;
-                font-size: 12px;
-                margin: 32px;
+                font-size: 12pt;
+                margin: 36px 44px 36px 36px;
             }
 
             header {
@@ -20,7 +20,7 @@
             }
 
             h1 {
-                font-size: 18px;
+                font-size: 18pt;
                 margin: 0 0 6px;
             }
 
@@ -29,14 +29,14 @@
                 display: flex;
                 flex-wrap: wrap;
                 gap: 8px 20px;
-                font-size: 12px;
+                font-size: 12pt;
                 font-weight: 700;
                 margin-top: 10px;
             }
 
             .report-range {
                 color: #52525b;
-                font-size: 12px;
+                font-size: 12pt;
                 margin-top: 6px;
             }
 
@@ -53,7 +53,7 @@
                 color: #ffffff;
                 cursor: pointer;
                 display: inline-flex;
-                font-size: 13px;
+                font-size: 12pt;
                 font-weight: 700;
                 gap: 8px;
                 padding: 11px 16px;
@@ -68,7 +68,7 @@
 
             table {
                 border-collapse: collapse;
-                font-size: 12px;
+                font-size: 12pt;
                 table-layout: fixed;
                 width: 100%;
             }
@@ -76,7 +76,7 @@
             th,
             td {
                 border: 1px solid #d4d4d8;
-                padding: 8px;
+                padding: 8px 10px;
                 text-align: left;
                 vertical-align: top;
                 white-space: nowrap;
@@ -109,7 +109,7 @@
                 }
 
                 body {
-                    margin: 0;
+                    margin: 0.35in 0.45in 0.35in 0.35in;
                 }
             }
         </style>

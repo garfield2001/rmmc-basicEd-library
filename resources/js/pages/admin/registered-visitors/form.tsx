@@ -1,11 +1,11 @@
 import { AdminLayout } from '@/layouts/admin/admin-layout';
-import { type RegisteredVisitorRow } from '@/types/registered-visitors';
+import { type LibraryMemberRow } from '@/types/registered-visitors';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { BriefcaseBusiness, GraduationCap, RadioTower, Save } from 'lucide-react';
 import { type FormEventHandler, useEffect, useRef, useState } from 'react';
 
 interface VisitorFormProps {
-    visitor: RegisteredVisitorRow | null;
+    visitor: LibraryMemberRow | null;
 }
 
 type VisitorFormData = {

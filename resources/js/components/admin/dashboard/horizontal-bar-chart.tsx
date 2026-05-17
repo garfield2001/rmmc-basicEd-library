@@ -22,7 +22,7 @@ export function HorizontalBarChart({ data, emptyMessage, labelWidth = 104 }: Hor
     }
 
     return (
-        <ChartContainer config={studentGroupChartConfig} className="h-72 w-full">
+        <ChartContainer config={studentGroupChartConfig} className="h-80 w-full">
             <BarChart data={data} layout="vertical" margin={{ top: 4, right: 20, left: 0, bottom: 4 }}>
                 <CartesianGrid horizontal={false} strokeDasharray="4 4" />
                 <XAxis type="number" hide allowDecimals={false} />

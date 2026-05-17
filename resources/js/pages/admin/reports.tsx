@@ -1,38 +1,40 @@
+import { CustomDateRangePicker } from '@/components/admin/reports/custom-date-range-picker';
 import { ReportExportActions } from '@/components/admin/reports/report-export-actions';
+import {
+    allFilterValue,
+    cleanQuery,
+    getSchoolYearBounds,
+    inferDateRangeMode,
+    rowsPerPage,
+    sortReportRows,
+    summarizeDateRange,
+    toSearchParams,
+    type DateRangeMode,
+    type ReportSortColumn,
+    type SortDirection,
+    type VisitorType,
+    type VisitorTypeFilter,
+} from '@/components/admin/reports/report-helpers';
+import { ReportMetricCard } from '@/components/admin/reports/report-metric-card';
+import { ReportResultsSkeleton } from '@/components/admin/reports/report-results-skeleton';
+import { ProgressBar, ReportRow, ReportSortableHead } from '@/components/admin/reports/report-table-parts';
 import { Button } from '@/components/ui/button';
-import { DateInput, formatDisplayDate } from '@/components/ui/date-input';
+import { formatDisplayDate } from '@/components/ui/date-input';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { SelectInput } from '@/components/ui/select-input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
-import { cn } from '@/lib/utils';
-import { type VisitReport, type VisitReportOptions, type VisitReportRow, type VisitReportSchoolYear } from '@/types/reports';
+import { type VisitReport, type VisitReportOptions } from '@/types/reports';
 import { Head, router } from '@inertiajs/react';
-import {
-    Activity,
-    ArrowDown,
-    ArrowUp,
-    BriefcaseBusiness,
-    ChevronsUpDown,
-    GraduationCap,
-    RotateCcw,
-    Target,
-    UsersRound,
-} from 'lucide-react';
+import { useEchoPublic } from '@laravel/echo-react';
+import { Activity, RotateCcw, Target, UsersRound } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface ReportsProps {
     report: VisitReport | null;
     reportOptions: VisitReportOptions;
 }
-
-type VisitorType = 'student' | 'employee';
-type VisitorTypeFilter = '' | VisitorType;
-type DateRangeMode = '' | 'school_year' | 'custom';
-type AllFilterValue = '__all__';
-type ReportSortColumn = 'school_id' | 'name' | 'group' | 'visit_count' | 'progress_percent';
-type SortDirection = 'asc' | 'desc';
 
 interface ReportQuery {
     [key: string]: string;
@@ -44,9 +46,6 @@ interface ReportQuery {
     section: string;
     department: string;
 }
-
-const rowsPerPage = 10;
-const allFilterValue: AllFilterValue = '__all__';
 
 export default function Reports({ report, reportOptions }: ReportsProps) {
     const activeSchoolYear = reportOptions.schoolYears.find((schoolYear) => schoolYear.is_active) ?? reportOptions.schoolYears[0] ?? null;
@@ -84,7 +83,7 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
         () => (visitorType === 'student' && yearLevel && yearLevel !== allFilterValue ? (sectionSource[yearLevel] ?? []) : []),
         [visitorType, sectionSource, yearLevel],
     );
-    const reportRows = report?.rows ?? [];
+    const reportRows = useMemo(() => report?.rows ?? [], [report?.rows]);
     const sortedRows = useMemo(
         () => sortReportRows(reportRows, sortColumn, sortDirection, visitorType),
         [visitorType, reportRows, sortColumn, sortDirection],
@@ -126,6 +125,12 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
     const csvUrl = `/admin/reports/visits.csv${queryString ? `?${queryString}` : ''}`;
     const pdfUrl = `/admin/reports/visits.pdf${queryString ? `?${queryString}` : ''}`;
     const printUrl = `/admin/reports/visits/print${queryString ? `?${queryString}` : ''}`;
+
+    useEchoPublic('library-visits', '.LibraryVisitRecorded', () => {
+        if (reportCanFetch) {
+            router.reload({ only: ['report'] });
+        }
+    });
 
     useEffect(() => {
         setCurrentPage(1);
@@ -416,24 +421,24 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
                         ) : hasReportResults && report ? (
                             <>
                                 <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                                    <MetricCard
+                                    <ReportMetricCard
                                         icon={UsersRound}
                                         label={visitorType === 'student' ? 'Students' : 'Employees'}
                                         value={report.summary.visitors}
                                     />
-                                    <MetricCard
+                                    <ReportMetricCard
                                         icon={Activity}
                                         label="Visits recorded"
                                         value={report.summary.total_visits}
                                         detail={`${report.summary.average_visits} average, ${report.summary.required_visits} target`}
                                     />
-                                    <MetricCard
+                                    <ReportMetricCard
                                         icon={Target}
                                         label="Excess visits"
                                         value={report.summary.excess_visits}
                                         detail="Visits beyond the required target"
                                     />
-                                    <MetricCard
+                                    <ReportMetricCard
                                         icon={Target}
                                         label="No visits"
                                         value={report.summary.unvisited_visitors}
@@ -565,272 +570,4 @@ export default function Reports({ report, reportOptions }: ReportsProps) {
             </main>
         </>
     );
-}
-
-function CustomDateRangePicker({
-    startDate,
-    endDate,
-    min,
-    max,
-    onChange,
-}: {
-    startDate: string;
-    endDate: string;
-    min: string;
-    max: string;
-    onChange: (startDate: string, endDate: string) => void;
-}) {
-    const updateStartDate = (nextStartDate: string) => {
-        onChange(nextStartDate, endDate && nextStartDate && endDate >= nextStartDate ? endDate : '');
-    };
-
-    const updateEndDate = (nextEndDate: string) => {
-        onChange(startDate, nextEndDate);
-    };
-
-    return (
-        <span className="mt-2 grid w-full gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-            <DateInput value={startDate} min={min} max={max} onChange={updateStartDate} placeholder="Start date" />
-            <DateInput value={endDate} min={startDate || min} max={max} onChange={updateEndDate} placeholder="End date" disabled={!startDate} />
-            {(startDate || endDate) && (
-                <Button type="button" variant="outline" size="sm" onClick={() => onChange('', '')} className="h-10 justify-center">
-                    Clear
-                </Button>
-            )}
-        </span>
-    );
-}
-
-function MetricCard({ icon: Icon, label, value, detail }: { icon: typeof UsersRound; label: string; value: number; detail?: string }) {
-    return (
-        <div className="admin-surface rounded-lg border border-[#040DBF]/10 bg-white/95 p-5 shadow-sm">
-            <div className="flex items-start justify-between gap-4">
-                <div>
-                    <p className="text-sm font-medium text-[#030A8C]">{label}</p>
-                    <p className="mt-3 text-4xl font-semibold tracking-normal text-[#010440]">{value.toLocaleString()}</p>
-                </div>
-                <span className="admin-icon-badge inline-flex size-10 items-center justify-center rounded-lg bg-[#040DBF]/10 text-[#040DBF]">
-                    <Icon className="size-5" />
-                </span>
-            </div>
-            {detail && <p className="mt-3 text-sm text-[#020659]/70">{detail}</p>}
-        </div>
-    );
-}
-
-function ReportRow({
-    row,
-    visitorType,
-    requiredVisits,
-}: {
-    row: VisitReportRow;
-    visitorType: VisitorType;
-    requiredVisits: number;
-}) {
-    const groupLabel = visitorType === 'student' ? row.year_section_label || [row.year_level, row.section].filter(Boolean).join(' - ') || '-' : row.department || '-';
-    const GroupIcon = visitorType === 'student' ? GraduationCap : BriefcaseBusiness;
-
-    return (
-        <TableRow>
-            <TableCell className="font-medium text-[#010440]">{row.school_id}</TableCell>
-            <TableCell>{row.name}</TableCell>
-            <TableCell>
-                <span className="inline-flex items-center gap-2">
-                    <GroupIcon className="report-table-icon size-4 text-[#040DBF]" />
-                    {groupLabel}
-                </span>
-            </TableCell>
-            <TableCell className="font-semibold text-[#010440]">
-                {row.visit_count}
-                <span className="font-normal text-[#020659]/60"> / {requiredVisits}</span>
-                {row.excess_visits > 0 && <span className="ml-2 rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">+{row.excess_visits}</span>}
-            </TableCell>
-            <TableCell className="min-w-48">
-                <div className="flex items-center gap-3">
-                    <ProgressBar value={row.progress_percent} className="min-w-28 flex-1" />
-                    <span className="w-10 text-right text-sm font-medium text-[#020659]">{row.progress_percent}%</span>
-                </div>
-            </TableCell>
-        </TableRow>
-    );
-}
-
-function ReportSortableHead({
-    column,
-    label,
-    sort,
-    direction,
-    onSortChange,
-}: {
-    column: ReportSortColumn;
-    label: string;
-    sort: ReportSortColumn | null;
-    direction: SortDirection;
-    onSortChange: (column: ReportSortColumn) => void;
-}) {
-    const active = sort === column;
-    const Icon = active ? (direction === 'asc' ? ArrowUp : ArrowDown) : ChevronsUpDown;
-
-    return (
-        <TableHead>
-            <button type="button" onClick={() => onSortChange(column)} className="inline-flex items-center gap-1.5 hover:text-[#010440]">
-                {label}
-                <Icon className="size-3.5" />
-            </button>
-        </TableHead>
-    );
-}
-
-function sortReportRows(
-    rows: VisitReportRow[],
-    column: ReportSortColumn | null,
-    direction: SortDirection,
-    visitorType: VisitorTypeFilter,
-): VisitReportRow[] {
-    if (!column) {
-        return rows;
-    }
-
-    return [...rows].sort((first, second) => {
-        const firstValue = reportSortValue(first, column, visitorType);
-        const secondValue = reportSortValue(second, column, visitorType);
-        const result = compareReportValues(firstValue, secondValue);
-
-        return direction === 'asc' ? result : result * -1;
-    });
-}
-
-function reportSortValue(row: VisitReportRow, column: ReportSortColumn, visitorType: VisitorTypeFilter) {
-    if (column === 'group') {
-        return visitorType === 'student' ? (row.year_section_label ?? [row.year_level, row.section].filter(Boolean).join(' ')) : (row.department ?? '');
-    }
-
-    return row[column] ?? '';
-}
-
-function compareReportValues(first: string | number | boolean, second: string | number | boolean) {
-    if (typeof first === 'number' && typeof second === 'number') {
-        return first - second;
-    }
-
-    return String(first).localeCompare(String(second), undefined, { numeric: true, sensitivity: 'base' });
-}
-
-function ProgressBar({ value, className }: { value: number; className?: string }) {
-    return (
-        <div className={cn('h-2 overflow-hidden rounded-full bg-[#040DBF]/10', className)}>
-            <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
-        </div>
-    );
-}
-
-function toSearchParams(query: Record<string, string | number | null | undefined>) {
-    const params = new URLSearchParams();
-
-    Object.entries(cleanQuery(query)).forEach(([key, value]) => {
-        params.set(key, String(value));
-    });
-
-    return params;
-}
-
-function cleanQuery(query: Record<string, string | number | null | undefined>) {
-    return Object.fromEntries(Object.entries(query).filter(([, value]) => value !== '' && value !== null && value !== undefined));
-}
-
-function ReportResultsSkeleton() {
-    return (
-        <>
-            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4" role="status" aria-label="Loading report results">
-                {Array.from({ length: 4 }).map((_, index) => (
-                    <div key={index} className="admin-page-loading-surface p-5">
-                        <div className="flex items-start justify-between gap-4">
-                            <div className="space-y-3">
-                                <span className="admin-page-loading-line h-3 w-24" />
-                                <span className="admin-page-loading-line h-9 w-16" />
-                            </div>
-                            <span className="admin-page-loading-icon" />
-                        </div>
-                        <span className="admin-page-loading-line mt-4 h-3 w-32 max-w-full" />
-                    </div>
-                ))}
-            </section>
-
-            <section className="admin-page-loading-surface p-5">
-                <span className="admin-page-loading-line h-5 w-48 max-w-full" />
-                <span className="admin-page-loading-line mt-3 h-3 w-64 max-w-full" />
-                <span className="admin-page-loading-line mt-5 h-2 w-full" />
-            </section>
-
-            <section className="admin-page-loading-surface overflow-hidden">
-                <div className="grid min-w-180 grid-cols-5 gap-4 border-b border-[#040DBF]/10 bg-[#f6f8ff]/70 px-5 py-4">
-                    {Array.from({ length: 5 }).map((_, index) => (
-                        <span key={index} className="admin-page-loading-line h-3 w-20 max-w-full" />
-                    ))}
-                </div>
-                {Array.from({ length: 7 }).map((_, rowIndex) => (
-                    <div
-                        key={rowIndex}
-                        className="grid min-h-16 min-w-180 grid-cols-5 items-center gap-4 border-b border-[#040DBF]/10 px-5 py-3 last:border-b-0"
-                    >
-                        {Array.from({ length: 5 }).map((_, columnIndex) => (
-                            <span
-                                key={columnIndex}
-                                className={`admin-page-loading-line h-3 ${columnIndex % 3 === 0 ? 'w-24' : columnIndex % 3 === 1 ? 'w-16' : 'w-32'} max-w-full`}
-                            />
-                        ))}
-                    </div>
-                ))}
-            </section>
-        </>
-    );
-}
-
-function inferDateRangeMode(schoolYear: VisitReportSchoolYear | null, startDate: string, endDate: string): DateRangeMode {
-    const bounds = getSchoolYearBounds(schoolYear);
-
-    if (!bounds) {
-        return 'custom';
-    }
-
-    if (startDate === bounds.start && endDate === bounds.end) {
-        return 'school_year';
-    }
-
-    return 'custom';
-}
-
-function getSchoolYearBounds(schoolYear: VisitReportSchoolYear | null) {
-    if (!schoolYear) {
-        return null;
-    }
-
-    return {
-        start: dateOnly(schoolYear.starts_at),
-        end: dateOnly(schoolYear.ends_at),
-    };
-}
-
-function summarizeDateRange(startDate: string, endDate: string) {
-    if (!startDate && !endDate) {
-        return 'Choose a custom start and end date';
-    }
-
-    if (startDate && !endDate) {
-        return `${formatDisplayDate(startDate)} to choose end date`;
-    }
-
-    if (!startDate && endDate) {
-        return `Choose start date to ${formatDisplayDate(endDate)}`;
-    }
-
-    if (startDate === endDate) {
-        return formatDisplayDate(startDate);
-    }
-
-    return `${formatDisplayDate(startDate)} to ${formatDisplayDate(endDate)}`;
-}
-
-function dateOnly(value: VisitReportSchoolYear['starts_at']) {
-    return value.slice(0, 10);
 }

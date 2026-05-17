@@ -2,17 +2,17 @@
 
 namespace Tests\Feature;
 
-use App\Models\EmployeeProfile;
-use App\Models\RegisteredVisitor;
+use App\Models\EmployeeSchoolYearRecord;
+use App\Models\LibraryMember;
 use App\Models\SchoolYear;
-use App\Models\StudentRegistration;
-use App\Services\Library\RegisteredVisitorImportService;
+use App\Models\StudentSchoolYearRecord;
+use App\Services\Library\LibraryMemberImportService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
-class RegisteredVisitorImportServiceTest extends TestCase
+class LibraryMemberImportServiceTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -20,7 +20,7 @@ class RegisteredVisitorImportServiceTest extends TestCase
     {
         $this->expectException(ValidationException::class);
 
-        app(RegisteredVisitorImportService::class)->import($this->csvUpload(<<<'CSV'
+        app(LibraryMemberImportService::class)->import($this->csvUpload(<<<'CSV'
 first_name,last_name,year_level,section
 Juan,Dela Cruz,Grade 5,Rizal
 CSV));
@@ -30,7 +30,7 @@ CSV));
     {
         $this->activeSchoolYear();
 
-        $preview = app(RegisteredVisitorImportService::class)->preview($this->csvUpload(<<<'CSV'
+        $preview = app(LibraryMemberImportService::class)->preview($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,year_level,section
 JOLINA SHANE,TABLINGON,VELASCO,1000000001,Grade 10,Diamond
 INCOMPLETE,,,
@@ -41,27 +41,27 @@ CSV));
         $this->assertSame(1, $preview['skipped_count']);
         $this->assertSame('Jolina Shane T. Velasco', $preview['members'][0]['name']);
         $this->assertSame('create', $preview['members'][0]['status']);
-        $this->assertSame(0, RegisteredVisitor::query()->count());
+        $this->assertSame(0, LibraryMember::query()->count());
     }
 
     public function test_import_rejects_rows_without_school_id(): void
     {
         $this->activeSchoolYear();
 
-        $summary = app(RegisteredVisitorImportService::class)->import($this->csvUpload(<<<'CSV'
+        $summary = app(LibraryMemberImportService::class)->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,year_level,section
 Juan,Santos,Dela Cruz,Gradfe 5,Hydrogen
 CSV));
 
         $this->assertSame(0, $summary['created']);
         $this->assertSame(1, $summary['skipped']);
-        $this->assertSame(0, RegisteredVisitor::query()->count());
+        $this->assertSame(0, LibraryMember::query()->count());
     }
 
     public function test_school_id_reimport_skips_existing_active_year_student_details(): void
     {
         $this->activeSchoolYear();
-        $imports = app(RegisteredVisitorImportService::class);
+        $imports = app(LibraryMemberImportService::class);
 
         $summary = $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,year_level,section
@@ -69,7 +69,7 @@ Juan,Santos,Dela Cruz,1000000001,Grade 5,Hydrogen
 CSV));
 
         $this->assertSame(1, $summary['created']);
-        $visitor = RegisteredVisitor::query()->where('school_id', '1000000001')->firstOrFail();
+        $visitor = LibraryMember::query()->where('school_id', '1000000001')->firstOrFail();
 
         $summary = $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,year_level,section
@@ -79,13 +79,13 @@ CSV));
         $this->assertSame(0, $summary['created']);
         $this->assertSame(0, $summary['updated']);
         $this->assertSame(1, $summary['skipped']);
-        $this->assertSame(1, RegisteredVisitor::query()->count());
+        $this->assertSame(1, LibraryMember::query()->count());
         $this->assertSame('1000000001', $visitor->refresh()->school_id);
         $this->assertSame('Juan', $visitor->first_name);
         $this->assertSame('Santos', $visitor->middle_name);
         $this->assertSame('Dela Cruz', $visitor->last_name);
-        $this->assertDatabaseHas('student_registrations', [
-            'registered_visitor_id' => $visitor->id,
+        $this->assertDatabaseHas('student_school_year_records', [
+            'library_member_id' => $visitor->id,
             'year_level' => 'Grade 5',
             'section' => 'Hydrogen',
         ]);
@@ -94,14 +94,14 @@ CSV));
     public function test_reimport_with_rfid_fills_missing_rfid_only(): void
     {
         $this->activeSchoolYear();
-        $imports = app(RegisteredVisitorImportService::class);
+        $imports = app(LibraryMemberImportService::class);
 
         $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id
 Maria,Lourdes,Esperas,1000000123
 CSV));
 
-        $visitor = RegisteredVisitor::query()->where('last_name', 'Esperas')->firstOrFail();
+        $visitor = LibraryMember::query()->where('last_name', 'Esperas')->firstOrFail();
 
         $summary = $imports->import($this->csvUpload(<<<'CSV'
 first_name,last_name,rfid_uid,school_id
@@ -112,14 +112,14 @@ CSV));
         $this->assertSame(1, $summary['updated']);
         $this->assertSame('1234567890', $visitor->refresh()->rfid_uid);
         $this->assertSame('1000000123', $visitor->school_id);
-        $this->assertSame(1, RegisteredVisitor::query()->where('last_name', 'Esperas')->count());
+        $this->assertSame(1, LibraryMember::query()->where('last_name', 'Esperas')->count());
     }
 
     public function test_import_normalizes_flexible_grade_names(): void
     {
         $this->activeSchoolYear();
 
-        app(RegisteredVisitorImportService::class)->import($this->csvUpload(<<<'CSV'
+        app(LibraryMemberImportService::class)->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,year_level,section
 One,A,Student,1000000001,1,A
 Two,B,Student,1000000002,G2,B
@@ -131,7 +131,7 @@ CSV));
 
         $this->assertSame(
             ['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'],
-            StudentRegistration::query()->orderBy('id')->pluck('year_level')->all(),
+            StudentSchoolYearRecord::query()->orderBy('id')->pluck('year_level')->all(),
         );
     }
 
@@ -139,13 +139,13 @@ CSV));
     {
         $this->activeSchoolYear();
 
-        $summary = app(RegisteredVisitorImportService::class)->import($this->csvUpload(<<<'CSV'
+        $summary = app(LibraryMemberImportService::class)->import($this->csvUpload(<<<'CSV'
 no,last_name,first_name,middle_name,lrn,school_id,year_level,section
 1,AHAT,JOSHUA REUEL,ABELLA,405843160004,1231231231,Grade 7,Zircon
 CSV));
 
         $this->assertSame(1, $summary['created']);
-        $this->assertDatabaseHas('registered_visitors', [
+        $this->assertDatabaseHas('library_members', [
             'first_name' => 'Joshua Reuel',
             'middle_name' => 'Abella',
             'last_name' => 'Ahat',
@@ -156,7 +156,7 @@ CSV));
     public function test_import_accepts_long_school_id_and_skips_same_identity_with_different_school_id(): void
     {
         $this->activeSchoolYear();
-        $imports = app(RegisteredVisitorImportService::class);
+        $imports = app(LibraryMemberImportService::class);
 
         $summary = $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,rfid_uid
@@ -164,7 +164,7 @@ ANDRINO,PHILLIP VIKTOR,GAMOTIN,402048180005,1231233332
 CSV));
 
         $this->assertSame(1, $summary['created']);
-        $this->assertDatabaseHas('registered_visitors', [
+        $this->assertDatabaseHas('library_members', [
             'first_name' => 'Andrino',
             'middle_name' => 'Phillip Viktor',
             'last_name' => 'Gamotin',
@@ -179,14 +179,14 @@ CSV));
 
         $this->assertSame(0, $summary['created']);
         $this->assertSame(1, $summary['skipped']);
-        $this->assertSame(1, RegisteredVisitor::query()->where('last_name', 'Gamotin')->count());
+        $this->assertSame(1, LibraryMember::query()->where('last_name', 'Gamotin')->count());
     }
 
     public function test_import_skips_same_name_students_with_different_school_id(): void
     {
         $this->activeSchoolYear();
 
-        $summary = app(RegisteredVisitorImportService::class)->import($this->csvUpload(<<<'CSV'
+        $summary = app(LibraryMemberImportService::class)->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,year_level,section
 Juan,Santos,Dela Cruz,1000000001,Grade 5,Hydrogen
 Juan,Santos,Dela Cruz,1000000002,Grade 5,Hydrogen
@@ -194,24 +194,24 @@ CSV));
 
         $this->assertSame(1, $summary['created']);
         $this->assertSame(1, $summary['skipped']);
-        $this->assertSame(1, RegisteredVisitor::query()->where('first_name', 'Juan')->where('last_name', 'Dela Cruz')->count());
+        $this->assertSame(1, LibraryMember::query()->where('first_name', 'Juan')->where('last_name', 'Dela Cruz')->count());
     }
 
     public function test_import_uses_active_school_year_and_ignores_non_app_identifiers(): void
     {
         $activeSchoolYear = $this->activeSchoolYear();
 
-        app(RegisteredVisitorImportService::class)->import($this->csvUpload(<<<'CSV'
+        app(LibraryMemberImportService::class)->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,LRN,school_year,year_level,section
 Juan,Santos,Dela Cruz,1000000001,123456789012,1999-2000,G5,Rizal
 CSV));
 
-        $visitor = RegisteredVisitor::query()->firstOrFail();
+        $visitor = LibraryMember::query()->firstOrFail();
 
         $this->assertSame('1000000001', $visitor->school_id);
         $this->assertSame(1, SchoolYear::query()->count());
-        $this->assertDatabaseHas('student_registrations', [
-            'registered_visitor_id' => $visitor->id,
+        $this->assertDatabaseHas('student_school_year_records', [
+            'library_member_id' => $visitor->id,
             'school_year_id' => $activeSchoolYear->id,
             'year_level' => 'Grade 5',
             'section' => 'Rizal',
@@ -222,7 +222,7 @@ CSV));
     {
         $this->activeSchoolYear();
 
-        $summary = app(RegisteredVisitorImportService::class)->import($this->csvUpload(<<<'CSV'
+        $summary = app(LibraryMemberImportService::class)->import($this->csvUpload(<<<'CSV'
 type,first_name,middle_name,last_name,school_id,year_level,section,department
 student,Juan,,,1000000001,Grade 5,Rizal,
 student,Juan,Santos,,1000000002,Grade 5,Rizal,
@@ -236,30 +236,30 @@ CSV));
 
         $this->assertSame(4, $summary['created']);
         $this->assertSame(4, $summary['skipped']);
-        $this->assertSame(4, RegisteredVisitor::query()->count());
-        $this->assertDatabaseHas('registered_visitors', [
+        $this->assertSame(4, LibraryMember::query()->count());
+        $this->assertDatabaseHas('library_members', [
             'first_name' => 'Juan',
             'middle_name' => null,
             'last_name' => 'Dela Cruz',
-            'type' => RegisteredVisitor::TYPE_STUDENT,
+            'type' => LibraryMember::TYPE_STUDENT,
         ]);
-        $this->assertDatabaseHas('registered_visitors', [
+        $this->assertDatabaseHas('library_members', [
             'first_name' => 'Ana',
             'middle_name' => null,
             'last_name' => 'Reyes',
-            'type' => RegisteredVisitor::TYPE_EMPLOYEE,
+            'type' => LibraryMember::TYPE_EMPLOYEE,
         ]);
-        $this->assertDatabaseHas('registered_visitors', [
+        $this->assertDatabaseHas('library_members', [
             'first_name' => 'Ana',
             'middle_name' => 'Marie',
             'last_name' => 'Reyes',
-            'type' => RegisteredVisitor::TYPE_STUDENT,
+            'type' => LibraryMember::TYPE_STUDENT,
         ]);
-        $this->assertDatabaseHas('registered_visitors', [
+        $this->assertDatabaseHas('library_members', [
             'first_name' => 'Cora',
             'middle_name' => 'Mae',
             'last_name' => 'Santos',
-            'type' => RegisteredVisitor::TYPE_EMPLOYEE,
+            'type' => LibraryMember::TYPE_EMPLOYEE,
         ]);
     }
 
@@ -267,7 +267,7 @@ CSV));
     {
         $this->activeSchoolYear();
 
-        $summary = app(RegisteredVisitorImportService::class)->import($this->csvUpload(<<<'CSV'
+        $summary = app(LibraryMemberImportService::class)->import($this->csvUpload(<<<'CSV'
 type,first_name,last_name,school_id,year_level,department
 student,Juan,Dela Cruz,1000000001,Grade 5,
 employee,Ana,Reyes,2000000001,,Faculty
@@ -275,20 +275,20 @@ CSV));
 
         $this->assertSame(2, $summary['created']);
         $this->assertSame(0, $summary['skipped']);
-        $this->assertSame(2, RegisteredVisitor::query()->count());
+        $this->assertSame(2, LibraryMember::query()->count());
     }
 
     public function test_reimport_does_not_fill_profile_or_detail_gaps(): void
     {
         $this->activeSchoolYear();
-        $imports = app(RegisteredVisitorImportService::class);
+        $imports = app(LibraryMemberImportService::class);
 
         $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,year_level,section
 Juan,Santos,Dela Cruz,1000000001,G5,
 CSV));
 
-        $visitor = RegisteredVisitor::query()->where('school_id', '1000000001')->firstOrFail();
+        $visitor = LibraryMember::query()->where('school_id', '1000000001')->firstOrFail();
 
         $summary = $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,year_level,section
@@ -298,8 +298,8 @@ CSV));
         $this->assertSame(0, $summary['updated']);
         $this->assertSame(1, $summary['skipped']);
         $this->assertSame('Santos', $visitor->refresh()->middle_name);
-        $this->assertDatabaseHas('student_registrations', [
-            'registered_visitor_id' => $visitor->id,
+        $this->assertDatabaseHas('student_school_year_records', [
+            'library_member_id' => $visitor->id,
             'year_level' => 'Grade 5',
             'section' => null,
         ]);
@@ -310,8 +310,8 @@ Juan,Santos,Dela Cruz,1000000001,G5,
 CSV));
 
         $this->assertSame('Santos', $visitor->refresh()->middle_name);
-        $this->assertDatabaseHas('student_registrations', [
-            'registered_visitor_id' => $visitor->id,
+        $this->assertDatabaseHas('student_school_year_records', [
+            'library_member_id' => $visitor->id,
             'year_level' => 'Grade 5',
             'section' => null,
         ]);
@@ -320,14 +320,14 @@ CSV));
     public function test_import_skips_full_name_column_instead_of_splitting_it(): void
     {
         $this->activeSchoolYear();
-        $imports = app(RegisteredVisitorImportService::class);
+        $imports = app(LibraryMemberImportService::class);
 
         $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,year_level,section
 JOLINA SHANE,TABLINGON,VELASCO,1000000001,Grade 10,Diamond
 CSV));
 
-        $visitor = RegisteredVisitor::query()->where('last_name', 'Velasco')->firstOrFail();
+        $visitor = LibraryMember::query()->where('last_name', 'Velasco')->firstOrFail();
 
         $summary = $imports->import($this->csvUpload(<<<'CSV'
 name,school_id
@@ -337,7 +337,7 @@ CSV));
         $this->assertSame(0, $summary['created']);
         $this->assertSame(0, $summary['updated']);
         $this->assertSame(1, $summary['skipped']);
-        $this->assertSame(1, RegisteredVisitor::query()->where('last_name', 'Velasco')->count());
+        $this->assertSame(1, LibraryMember::query()->where('last_name', 'Velasco')->count());
         $this->assertSame('1000000001', $visitor->refresh()->school_id);
         $this->assertSame('Jolina Shane', $visitor->first_name);
         $this->assertSame('Tablingon', $visitor->middle_name);
@@ -348,7 +348,7 @@ CSV));
     {
         $this->activeSchoolYear();
 
-        $preview = app(RegisteredVisitorImportService::class)->preview($this->csvUpload(<<<'CSV'
+        $preview = app(LibraryMemberImportService::class)->preview($this->csvUpload(<<<'CSV'
 full_given_name,school_id
 Maria Lourdes Esperas,1000000001
 CSV));
@@ -361,7 +361,7 @@ CSV));
     public function test_preview_rejects_school_id_with_different_existing_identity(): void
     {
         $this->activeSchoolYear();
-        $imports = app(RegisteredVisitorImportService::class);
+        $imports = app(LibraryMemberImportService::class);
 
         $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,year_level,section
@@ -376,13 +376,13 @@ CSV));
         $this->assertSame(0, $preview['importable_count']);
         $this->assertSame(1, $preview['skipped_count']);
         $this->assertStringContainsString('School ID 1000000001 is already registered', $preview['skipped'][0]['reason']);
-        $this->assertSame(1, RegisteredVisitor::query()->count());
+        $this->assertSame(1, LibraryMember::query()->count());
     }
 
     public function test_preview_blocks_school_id_assigned_to_another_student(): void
     {
         $this->activeSchoolYear();
-        $imports = app(RegisteredVisitorImportService::class);
+        $imports = app(LibraryMemberImportService::class);
 
         $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,year_level,section
@@ -406,8 +406,8 @@ CSV));
         $this->assertSame(0, $summary['created']);
         $this->assertSame(0, $summary['updated']);
         $this->assertSame(1, $summary['skipped']);
-        $this->assertSame(1, RegisteredVisitor::query()->count());
-        $this->assertDatabaseMissing('registered_visitors', [
+        $this->assertSame(1, LibraryMember::query()->count());
+        $this->assertDatabaseMissing('library_members', [
             'first_name' => 'Zyrine Mhay',
             'last_name' => 'Zaulda',
             'school_id' => '1231231232',
@@ -418,7 +418,7 @@ CSV));
     {
         $this->activeSchoolYear();
 
-        $preview = app(RegisteredVisitorImportService::class)->preview($this->csvUpload(<<<'CSV'
+        $preview = app(LibraryMemberImportService::class)->preview($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,year_level,section
 Juan,Santos,Dela Cruz,Grade 5,Rizal
 CSV));
@@ -431,7 +431,7 @@ CSV));
     public function test_partial_name_with_different_school_id_creates_separate_visitor(): void
     {
         $this->activeSchoolYear();
-        $imports = app(RegisteredVisitorImportService::class);
+        $imports = app(LibraryMemberImportService::class);
 
         $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,year_level,section
@@ -450,7 +450,7 @@ CSV));
     public function test_import_rejects_rfid_that_belongs_to_another_school_id(): void
     {
         $this->activeSchoolYear();
-        $imports = app(RegisteredVisitorImportService::class);
+        $imports = app(LibraryMemberImportService::class);
 
         $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,rfid_uid,year_level,section
@@ -474,12 +474,12 @@ CSV));
         $this->assertSame(0, $summary['created']);
         $this->assertSame(0, $summary['updated']);
         $this->assertSame(1, $summary['skipped']);
-        $this->assertDatabaseHas('registered_visitors', [
+        $this->assertDatabaseHas('library_members', [
             'first_name' => 'Joshua Reuel',
             'last_name' => 'Ahat',
             'school_id' => '1231231231',
         ]);
-        $this->assertDatabaseMissing('registered_visitors', [
+        $this->assertDatabaseMissing('library_members', [
             'first_name' => 'Zyrine',
             'last_name' => 'Zaulda',
         ]);
@@ -488,14 +488,14 @@ CSV));
     public function test_school_id_with_different_existing_identity_is_skipped(): void
     {
         $this->activeSchoolYear();
-        $imports = app(RegisteredVisitorImportService::class);
+        $imports = app(LibraryMemberImportService::class);
 
         $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,year_level,section
 Juan,Santos,Dela Cruz,1000000001,Grade 5,Rizal
 CSV));
 
-        $visitor = RegisteredVisitor::query()->firstOrFail();
+        $visitor = LibraryMember::query()->firstOrFail();
 
         $summary = $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,year_level,section
@@ -505,7 +505,7 @@ CSV));
         $this->assertSame(0, $summary['created']);
         $this->assertSame(0, $summary['updated']);
         $this->assertSame(1, $summary['skipped']);
-        $this->assertSame(1, RegisteredVisitor::query()->count());
+        $this->assertSame(1, LibraryMember::query()->count());
         $this->assertSame('Juan', $visitor->refresh()->first_name);
         $this->assertSame('Santos', $visitor->middle_name);
         $this->assertSame('1000000001', $visitor->school_id);
@@ -514,14 +514,14 @@ CSV));
     public function test_import_adds_missing_rfid_but_does_not_replace_student_details_for_existing_school_id(): void
     {
         $this->activeSchoolYear();
-        $imports = app(RegisteredVisitorImportService::class);
+        $imports = app(LibraryMemberImportService::class);
 
         $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,year_level,section
 Maria,Lourdes,Esperas,1000000123,Grade 5,Rizal
 CSV));
 
-        $visitor = RegisteredVisitor::query()->where('school_id', '1000000123')->firstOrFail();
+        $visitor = LibraryMember::query()->where('school_id', '1000000123')->firstOrFail();
 
         $summary = $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,rfid_uid,year_level,section
@@ -531,8 +531,8 @@ CSV));
         $this->assertSame(0, $summary['created']);
         $this->assertSame(1, $summary['updated']);
         $this->assertSame('1234567890', $visitor->refresh()->rfid_uid);
-        $this->assertDatabaseHas('student_registrations', [
-            'registered_visitor_id' => $visitor->id,
+        $this->assertDatabaseHas('student_school_year_records', [
+            'library_member_id' => $visitor->id,
             'year_level' => 'Grade 5',
             'section' => 'Rizal',
         ]);
@@ -541,7 +541,7 @@ CSV));
     public function test_exact_name_identifier_reimports_are_skipped_without_missing_rfid(): void
     {
         $this->activeSchoolYear();
-        $imports = app(RegisteredVisitorImportService::class);
+        $imports = app(LibraryMemberImportService::class);
 
         $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,year_level,section
@@ -568,14 +568,14 @@ CSV));
         $this->assertSame(0, $summary['created']);
         $this->assertSame(0, $summary['updated']);
         $this->assertSame(2, $summary['skipped']);
-        $this->assertSame(2, RegisteredVisitor::query()->count());
-        $this->assertSame(1, RegisteredVisitor::query()->where('first_name', 'Juan')->where('last_name', 'Dela Cruz')->count());
-        $this->assertSame(1, RegisteredVisitor::query()->where('first_name', 'Ana')->where('last_name', 'Reyes')->count());
-        $this->assertDatabaseHas('registered_visitors', [
+        $this->assertSame(2, LibraryMember::query()->count());
+        $this->assertSame(1, LibraryMember::query()->where('first_name', 'Juan')->where('last_name', 'Dela Cruz')->count());
+        $this->assertSame(1, LibraryMember::query()->where('first_name', 'Ana')->where('last_name', 'Reyes')->count());
+        $this->assertDatabaseHas('library_members', [
             'first_name' => 'Juan',
             'school_id' => '1000000001',
         ]);
-        $this->assertDatabaseHas('registered_visitors', [
+        $this->assertDatabaseHas('library_members', [
             'first_name' => 'Ana',
             'school_id' => '1000000002',
         ]);
@@ -584,7 +584,7 @@ CSV));
     public function test_duplicate_names_do_not_update_by_school_id(): void
     {
         $this->activeSchoolYear();
-        $imports = app(RegisteredVisitorImportService::class);
+        $imports = app(LibraryMemberImportService::class);
 
         $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id,year_level,section
@@ -600,16 +600,16 @@ CSV));
         $this->assertSame(0, $summary['created']);
         $this->assertSame(0, $summary['updated']);
         $this->assertSame(1, $summary['skipped']);
-        $this->assertSame(1, RegisteredVisitor::query()->where('last_name', 'Dela Cruz')->count());
-        $this->assertDatabaseMissing('registered_visitors', [
+        $this->assertSame(1, LibraryMember::query()->where('last_name', 'Dela Cruz')->count());
+        $this->assertDatabaseMissing('library_members', [
             'first_name' => 'Juan Miguel',
             'school_id' => '1000000001',
         ]);
-        $this->assertDatabaseHas('registered_visitors', [
+        $this->assertDatabaseHas('library_members', [
             'first_name' => 'Juan',
             'school_id' => '1000000001',
         ]);
-        $this->assertDatabaseMissing('registered_visitors', [
+        $this->assertDatabaseMissing('library_members', [
             'first_name' => 'Juan',
             'school_id' => '1000000002',
         ]);
@@ -618,23 +618,23 @@ CSV));
     public function test_employee_reimport_preserves_existing_department_when_file_has_no_department(): void
     {
         $this->activeSchoolYear();
-        $imports = app(RegisteredVisitorImportService::class);
+        $imports = app(LibraryMemberImportService::class);
 
         $imports->import($this->csvUpload(<<<'CSV'
 type,first_name,middle_name,last_name,school_id,department
 employee,Ana,,Reyes,2000000001,Faculty
 CSV));
 
-        $employee = RegisteredVisitor::query()->where('school_id', '2000000001')->firstOrFail();
+        $employee = LibraryMember::query()->where('school_id', '2000000001')->firstOrFail();
 
         $imports->import($this->csvUpload(<<<'CSV'
 type,first_name,middle_name,last_name,school_id
 employee,Ana,,Reyes,2000000001
 CSV));
 
-        $this->assertSame(1, EmployeeProfile::query()->where('registered_visitor_id', $employee->id)->count());
-        $this->assertDatabaseHas('employee_profiles', [
-            'registered_visitor_id' => $employee->id,
+        $this->assertSame(1, EmployeeSchoolYearRecord::query()->where('library_member_id', $employee->id)->count());
+        $this->assertDatabaseHas('employee_school_year_records', [
+            'library_member_id' => $employee->id,
             'department' => 'Faculty',
         ]);
     }
@@ -643,7 +643,7 @@ CSV));
     {
         $this->activeSchoolYear();
 
-        $summary = app(RegisteredVisitorImportService::class)->import($this->pdfUpload(<<<'TEXT'
+        $summary = app(LibraryMemberImportService::class)->import($this->pdfUpload(<<<'TEXT'
 Grade 5 Hydrogen
 LAST NAME  FIRST NAME  MIDDLE NAME  SCHOOL ID
 Dela Cruz  Juan  Santos  1000000001
@@ -652,14 +652,14 @@ TEXT));
 
         $this->assertSame(2, $summary['created']);
         $this->assertSame(0, $summary['skipped']);
-        $this->assertDatabaseHas('student_registrations', [
+        $this->assertDatabaseHas('student_school_year_records', [
             'year_level' => 'Grade 5',
             'section' => 'Hydrogen',
             'first_name' => 'Juan',
             'middle_name' => 'Santos',
             'last_name' => 'Dela Cruz',
         ]);
-        $this->assertDatabaseHas('student_registrations', [
+        $this->assertDatabaseHas('student_school_year_records', [
             'year_level' => 'Grade 5',
             'section' => 'Hydrogen',
             'first_name' => 'Ana',

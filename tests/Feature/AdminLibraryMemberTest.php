@@ -2,17 +2,17 @@
 
 namespace Tests\Feature;
 
+use App\Models\LibraryMember;
 use App\Models\LibraryVisit;
-use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
-use App\Models\StudentRegistration;
+use App\Models\StudentSchoolYearRecord;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
-class AdminRegisteredVisitorTest extends TestCase
+class AdminLibraryMemberTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -37,7 +37,7 @@ class AdminRegisteredVisitorTest extends TestCase
         $response = $this->actingAs($admin)->post('/admin/registered-visitors', [
             'rfid_uid' => '1000000101',
             'school_id' => 'STU-001',
-            'type' => RegisteredVisitor::TYPE_STUDENT,
+            'type' => LibraryMember::TYPE_STUDENT,
             'first_name' => 'Maria',
             'last_name' => 'Santos',
             'photo_file' => $this->fakeJpegUpload(),
@@ -47,12 +47,12 @@ class AdminRegisteredVisitorTest extends TestCase
         ]);
 
         $response->assertRedirect('/admin/registered-visitors?type=student');
-        $visitor = RegisteredVisitor::where('rfid_uid', '1000000101')->firstOrFail();
+        $visitor = LibraryMember::where('rfid_uid', '1000000101')->firstOrFail();
         $this->assertSame('STU-001', $visitor->school_id);
-        $this->assertSame(RegisteredVisitor::TYPE_STUDENT, $visitor->type);
+        $this->assertSame(LibraryMember::TYPE_STUDENT, $visitor->type);
         $this->assertNotNull($visitor->photo);
         $this->assertStringEndsWith('.jpg', $visitor->photo);
-        $this->assertDatabaseHas('student_registrations', [
+        $this->assertDatabaseHas('student_school_year_records', [
             'school_year_id' => $schoolYear->id,
             'year_level' => 'Grade 10',
             'section' => 'Faraday',
@@ -67,7 +67,7 @@ class AdminRegisteredVisitorTest extends TestCase
         $response = $this->actingAs($admin)->post('/admin/registered-visitors', [
             'rfid_uid' => '2000000101',
             'school_id' => 'EMP-001',
-            'type' => RegisteredVisitor::TYPE_EMPLOYEE,
+            'type' => LibraryMember::TYPE_EMPLOYEE,
             'first_name' => 'Ana',
             'last_name' => 'Reyes',
             'is_active' => true,
@@ -75,11 +75,11 @@ class AdminRegisteredVisitorTest extends TestCase
         ]);
 
         $response->assertRedirect('/admin/registered-visitors?type=employee');
-        $this->assertDatabaseHas('registered_visitors', [
+        $this->assertDatabaseHas('library_members', [
             'rfid_uid' => '2000000101',
-            'type' => RegisteredVisitor::TYPE_EMPLOYEE,
+            'type' => LibraryMember::TYPE_EMPLOYEE,
         ]);
-        $this->assertDatabaseHas('employee_profiles', [
+        $this->assertDatabaseHas('employee_school_year_records', [
             'department' => 'Faculty',
         ]);
     }
@@ -92,19 +92,19 @@ class AdminRegisteredVisitorTest extends TestCase
         $this->actingAs($admin)->post('/admin/registered-visitors', [
             'rfid_uid' => '',
             'school_id' => '',
-            'type' => RegisteredVisitor::TYPE_STUDENT,
+            'type' => LibraryMember::TYPE_STUDENT,
             'first_name' => 'Juan',
             'last_name' => 'Dela Cruz',
             'year_level' => 'Grade 5',
             'section' => 'Rizal',
         ])->assertRedirect('/admin/registered-visitors?type=student');
 
-        $visitor = RegisteredVisitor::query()->where('first_name', 'Juan')->where('last_name', 'Dela Cruz')->firstOrFail();
+        $visitor = LibraryMember::query()->where('first_name', 'Juan')->where('last_name', 'Dela Cruz')->firstOrFail();
 
         $this->assertNull($visitor->rfid_uid);
         $this->assertNull($visitor->school_id);
-        $this->assertDatabaseHas('student_registrations', [
-            'registered_visitor_id' => $visitor->id,
+        $this->assertDatabaseHas('student_school_year_records', [
+            'library_member_id' => $visitor->id,
             'school_year_id' => $schoolYear->id,
             'year_level' => 'Grade 5',
             'section' => 'Rizal',
@@ -115,7 +115,7 @@ class AdminRegisteredVisitorTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
 
-        RegisteredVisitor::factory()->employee()->create([
+        LibraryMember::factory()->employee()->create([
             'rfid_uid' => '2000000101',
             'school_id' => 'EMP-001',
         ]);
@@ -123,7 +123,7 @@ class AdminRegisteredVisitorTest extends TestCase
         $this->actingAs($admin)->post('/admin/registered-visitors', [
             'rfid_uid' => '2000000101',
             'school_id' => 'EMP-001',
-            'type' => RegisteredVisitor::TYPE_EMPLOYEE,
+            'type' => LibraryMember::TYPE_EMPLOYEE,
             'first_name' => 'Ana',
             'last_name' => 'Reyes',
             'is_active' => true,
@@ -134,17 +134,17 @@ class AdminRegisteredVisitorTest extends TestCase
         ]);
     }
 
-    public function test_admin_can_sort_registered_visitors_by_school_id(): void
+    public function test_admin_can_sort_library_members_by_school_id(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $schoolYear = SchoolYear::factory()->active()->create();
 
-        $laterStudent = RegisteredVisitor::factory()->student()->create(['school_id' => '2609010002']);
-        $earlierStudent = RegisteredVisitor::factory()->student()->create(['school_id' => '2609010001']);
+        $laterStudent = LibraryMember::factory()->student()->create(['school_id' => '2609010002']);
+        $earlierStudent = LibraryMember::factory()->student()->create(['school_id' => '2609010001']);
 
         foreach ([$laterStudent, $earlierStudent] as $student) {
-            StudentRegistration::factory()->create([
-                'registered_visitor_id' => $student->id,
+            StudentSchoolYearRecord::factory()->create([
+                'library_member_id' => $student->id,
                 'school_year_id' => $schoolYear->id,
                 'year_level' => 'Grade 1',
                 'section' => 'Rizal',
@@ -166,13 +166,13 @@ class AdminRegisteredVisitorTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $schoolYear = SchoolYear::factory()->active()->create();
 
-        RegisteredVisitor::factory()
+        LibraryMember::factory()
             ->student()
             ->count(12)
             ->create()
-            ->each(function (RegisteredVisitor $student) use ($schoolYear): void {
-                StudentRegistration::factory()->create([
-                    'registered_visitor_id' => $student->id,
+            ->each(function (LibraryMember $student) use ($schoolYear): void {
+                StudentSchoolYearRecord::factory()->create([
+                    'library_member_id' => $student->id,
                     'school_year_id' => $schoolYear->id,
                     'year_level' => 'Grade 1',
                     'section' => 'Rizal',
@@ -192,14 +192,14 @@ class AdminRegisteredVisitorTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $schoolYear = SchoolYear::factory()->active()->create();
-        $first = RegisteredVisitor::factory()->student()->create([
+        $first = LibraryMember::factory()->student()->create([
             'rfid_uid' => null,
             'school_id' => null,
             'first_name' => 'Maria',
             'middle_name' => null,
             'last_name' => 'Santos',
         ]);
-        $second = RegisteredVisitor::factory()->student()->create([
+        $second = LibraryMember::factory()->student()->create([
             'rfid_uid' => null,
             'school_id' => null,
             'first_name' => 'Maria',
@@ -208,8 +208,8 @@ class AdminRegisteredVisitorTest extends TestCase
         ]);
 
         foreach ([$first, $second] as $student) {
-            StudentRegistration::factory()->create([
-                'registered_visitor_id' => $student->id,
+            StudentSchoolYearRecord::factory()->create([
+                'library_member_id' => $student->id,
                 'school_year_id' => $schoolYear->id,
                 'year_level' => 'Grade 5',
                 'section' => 'Rizal',
@@ -230,14 +230,14 @@ class AdminRegisteredVisitorTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $schoolYear = SchoolYear::factory()->active()->create();
-        $keeper = RegisteredVisitor::factory()->student()->create([
+        $keeper = LibraryMember::factory()->student()->create([
             'rfid_uid' => null,
             'school_id' => null,
             'first_name' => 'Maria',
             'middle_name' => null,
             'last_name' => 'Santos',
         ]);
-        $duplicate = RegisteredVisitor::factory()->student()->create([
+        $duplicate = LibraryMember::factory()->student()->create([
             'rfid_uid' => null,
             'school_id' => null,
             'first_name' => 'Maria',
@@ -246,8 +246,8 @@ class AdminRegisteredVisitorTest extends TestCase
         ]);
 
         foreach ([$keeper, $duplicate] as $student) {
-            StudentRegistration::factory()->create([
-                'registered_visitor_id' => $student->id,
+            StudentSchoolYearRecord::factory()->create([
+                'library_member_id' => $student->id,
                 'school_year_id' => $schoolYear->id,
                 'year_level' => 'Grade 5',
                 'section' => 'Rizal',
@@ -255,14 +255,14 @@ class AdminRegisteredVisitorTest extends TestCase
         }
 
         $visit = LibraryVisit::factory()->create([
-            'registered_visitor_id' => $duplicate->id,
+            'library_member_id' => $duplicate->id,
             'school_year_id' => $schoolYear->id,
         ]);
 
         $payload = [
             'rfid_uid' => '1000000999',
             'school_id' => '',
-            'type' => RegisteredVisitor::TYPE_STUDENT,
+            'type' => LibraryMember::TYPE_STUDENT,
             'first_name' => 'Maria',
             'middle_name' => '',
             'last_name' => 'Santos',
@@ -274,17 +274,17 @@ class AdminRegisteredVisitorTest extends TestCase
             ->assertSessionHasErrors('confirm_merge_duplicates');
 
         $this->assertNull($keeper->refresh()->rfid_uid);
-        $this->assertDatabaseHas('registered_visitors', ['id' => $duplicate->id]);
+        $this->assertDatabaseHas('library_members', ['id' => $duplicate->id]);
 
         $this->actingAs($admin)->put("/admin/registered-visitors/{$keeper->id}", $payload + [
             'confirm_merge_duplicates' => true,
         ])->assertRedirect('/admin/registered-visitors?type=student');
 
         $this->assertSame('1000000999', $keeper->refresh()->rfid_uid);
-        $this->assertDatabaseMissing('registered_visitors', ['id' => $duplicate->id]);
+        $this->assertDatabaseMissing('library_members', ['id' => $duplicate->id]);
         $this->assertDatabaseHas('library_visits', [
             'id' => $visit->id,
-            'registered_visitor_id' => $keeper->id,
+            'library_member_id' => $keeper->id,
         ]);
     }
 

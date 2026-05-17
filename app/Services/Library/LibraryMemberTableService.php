@@ -2,23 +2,23 @@
 
 namespace App\Services\Library;
 
-use App\Models\RegisteredVisitor;
+use App\Models\LibraryMember;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
-class RegisteredVisitorTableService
+class LibraryMemberTableService
 {
     public const SORT_COLUMNS = ['name', 'school_id', 'year_level', 'section', 'department'];
 
     public const ROW_OPTIONS = [5, 10, 30, 50, 100];
 
-    public function __construct(private readonly RegisteredVisitorDuplicateService $duplicates) {}
+    public function __construct(private readonly LibraryMemberDuplicateService $duplicates) {}
 
     public function typeOption(string $type): string
     {
-        return in_array($type, [RegisteredVisitor::TYPE_STUDENT, RegisteredVisitor::TYPE_EMPLOYEE], true)
+        return in_array($type, [LibraryMember::TYPE_STUDENT, LibraryMember::TYPE_EMPLOYEE], true)
             ? $type
-            : RegisteredVisitor::TYPE_STUDENT;
+            : LibraryMember::TYPE_STUDENT;
     }
 
     public function sortOption(string $sort): string
@@ -46,21 +46,21 @@ class RegisteredVisitorTableService
 
     public function filteredQuery(string $type, string $search, string $yearLevel, string $section, ?int $activeSchoolYearId, string $department = ''): Builder
     {
-        return RegisteredVisitor::query()
+        return LibraryMember::query()
             ->with([
                 'student' => fn ($query) => $query->forSchoolYear($activeSchoolYearId),
                 'employee' => fn ($query) => $query->forSchoolYear($activeSchoolYearId),
             ])
             ->ofType($type)
             ->search($search)
-            ->when($type === RegisteredVisitor::TYPE_STUDENT, function (Builder $query) use ($activeSchoolYearId, $yearLevel, $section): void {
+            ->when($type === LibraryMember::TYPE_STUDENT, function (Builder $query) use ($activeSchoolYearId, $yearLevel, $section): void {
                 if (! $activeSchoolYearId) {
                     $query->whereRaw('1 = 0');
 
                     return;
                 }
 
-                $query->whereHas('studentRegistrations', function (Builder $query) use ($activeSchoolYearId, $yearLevel, $section): void {
+                $query->whereHas('studentSchoolYearRecords', function (Builder $query) use ($activeSchoolYearId, $yearLevel, $section): void {
                     $query
                         ->forSchoolYear($activeSchoolYearId)
                         ->when($yearLevel, fn (Builder $query) => $query->where('year_level', $yearLevel))
@@ -68,7 +68,7 @@ class RegisteredVisitorTableService
                 });
             })
             ->when(
-                $type === RegisteredVisitor::TYPE_EMPLOYEE,
+                $type === LibraryMember::TYPE_EMPLOYEE,
                 function (Builder $query) use ($activeSchoolYearId, $department): void {
                     if (! $activeSchoolYearId) {
                         $query->whereRaw('1 = 0');
@@ -76,53 +76,53 @@ class RegisteredVisitorTableService
                         return;
                     }
 
-                    $query->whereHas('employeeProfiles', fn (Builder $query) => $query
+                    $query->whereHas('employeeSchoolYearRecords', fn (Builder $query) => $query
                         ->forSchoolYear($activeSchoolYearId)
                         ->when($department, fn (Builder $query) => $query->where('department', $department)));
                 },
             )
             ->tap(fn (Builder $query) => $this->duplicates->applyCanonicalFilter($query, $type, $activeSchoolYearId))
-            ->select('registered_visitors.*');
+            ->select('library_members.*');
     }
 
     public function applySort(Builder $query, string $sort, string $direction, ?int $activeSchoolYearId): void
     {
         match ($sort) {
             'name' => $query
-                ->orderBy('registered_visitors.last_name', $direction)
-                ->orderBy('registered_visitors.first_name', $direction),
-            'school_id' => $query->orderBy('registered_visitors.school_id', $direction),
+                ->orderBy('library_members.last_name', $direction)
+                ->orderBy('library_members.first_name', $direction),
+            'school_id' => $query->orderBy('library_members.school_id', $direction),
             'year_level' => $this->sortByActiveStudentColumn($query, 'year_level', $direction, $activeSchoolYearId),
             'section' => $this->sortByActiveStudentColumn($query, 'section', $direction, $activeSchoolYearId),
             'department' => $activeSchoolYearId
                 ? $query
-                    ->leftJoin('employee_profiles as visitor_employee_profiles', function ($join) use ($activeSchoolYearId): void {
+                    ->leftJoin('employee_school_year_records as visitor_employee_school_year_records', function ($join) use ($activeSchoolYearId): void {
                         $join
-                            ->on('visitor_employee_profiles.registered_visitor_id', '=', 'registered_visitors.id')
-                            ->where('visitor_employee_profiles.school_year_id', '=', $activeSchoolYearId);
+                            ->on('visitor_employee_school_year_records.library_member_id', '=', 'library_members.id')
+                            ->where('visitor_employee_school_year_records.school_year_id', '=', $activeSchoolYearId);
                     })
-                    ->orderBy('visitor_employee_profiles.department', $direction)
-                : $query->orderBy('registered_visitors.created_at', 'desc'),
-            default => $query->orderBy('registered_visitors.created_at', 'desc'),
+                    ->orderBy('visitor_employee_school_year_records.department', $direction)
+                : $query->orderBy('library_members.created_at', 'desc'),
+            default => $query->orderBy('library_members.created_at', 'desc'),
         };
 
-        $query->orderBy('registered_visitors.id', 'desc');
+        $query->orderBy('library_members.id', 'desc');
     }
 
     private function sortByActiveStudentColumn(Builder $query, string $column, string $direction, ?int $activeSchoolYearId): void
     {
         if (! $activeSchoolYearId) {
-            $query->orderBy('registered_visitors.created_at', 'desc');
+            $query->orderBy('library_members.created_at', 'desc');
 
             return;
         }
 
         $query
-            ->leftJoin('student_registrations as active_student_registrations', function ($join) use ($activeSchoolYearId): void {
+            ->leftJoin('student_school_year_records as active_student_school_year_records', function ($join) use ($activeSchoolYearId): void {
                 $join
-                    ->on('active_student_registrations.registered_visitor_id', '=', 'registered_visitors.id')
-                    ->where('active_student_registrations.school_year_id', '=', $activeSchoolYearId);
+                    ->on('active_student_school_year_records.library_member_id', '=', 'library_members.id')
+                    ->where('active_student_school_year_records.school_year_id', '=', $activeSchoolYearId);
             })
-            ->orderBy("active_student_registrations.{$column}", $direction);
+            ->orderBy("active_student_school_year_records.{$column}", $direction);
     }
 }

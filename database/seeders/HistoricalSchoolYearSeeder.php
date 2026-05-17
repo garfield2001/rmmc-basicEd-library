@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\LibraryMember;
 use App\Models\LibraryVisit;
-use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use App\Models\SchoolYearSection;
 use App\Support\Academics\AcademicLevels;
@@ -18,18 +18,18 @@ class HistoricalSchoolYearSeeder extends Seeder
 
         $this->seedPreviousStudentRecords($schoolYear);
         $this->seedCompletedGradeTenStudents($schoolYear);
-        $this->seedPreviousEmployeeProfiles($schoolYear);
-        $this->seedPreviousEmployeeProfiles($schoolYear);
+        $this->seedPreviousEmployeeSchoolYearRecords($schoolYear);
+        $this->seedPreviousEmployeeSchoolYearRecords($schoolYear);
         $this->seedHistoricalVisits($schoolYear);
     }
 
     private function seedPreviousStudentRecords(SchoolYear $schoolYear): void
     {
-        RegisteredVisitor::query()
-            ->where('type', RegisteredVisitor::TYPE_STUDENT)
+        LibraryMember::query()
+            ->where('type', LibraryMember::TYPE_STUDENT)
             ->with('student')
             ->get()
-            ->each(function (RegisteredVisitor $visitor) use ($schoolYear): void {
+            ->each(function (LibraryMember $visitor) use ($schoolYear): void {
                 $currentStudentRecord = $visitor->student;
 
                 if (! $currentStudentRecord) {
@@ -40,7 +40,7 @@ class HistoricalSchoolYearSeeder extends Seeder
                 $section = $currentStudentRecord->section ?: 'A';
                 $schoolYearSection = $this->section($schoolYear, $yearLevel, $section);
 
-                $visitor->studentRegistrations()->updateOrCreate(
+                $visitor->studentSchoolYearRecords()->updateOrCreate(
                     ['school_year_id' => $schoolYear->id],
                     [
                         'school_year_section_id' => $schoolYearSection->id,
@@ -57,11 +57,11 @@ class HistoricalSchoolYearSeeder extends Seeder
         $section = $this->section($schoolYear, 'Grade 10', 'Rizal');
 
         foreach ($this->completedStudents() as $student) {
-            $visitor = RegisteredVisitor::query()->firstOrCreate(
+            $visitor = LibraryMember::query()->firstOrCreate(
                 ['school_id' => $student['school_id']],
                 [
                     'rfid_uid' => $student['rfid_uid'],
-                    'type' => RegisteredVisitor::TYPE_STUDENT,
+                    'type' => LibraryMember::TYPE_STUDENT,
                     'first_name' => $student['first_name'],
                     'middle_name' => null,
                     'last_name' => $student['last_name'],
@@ -69,7 +69,7 @@ class HistoricalSchoolYearSeeder extends Seeder
                 ],
             );
 
-            $visitor->studentRegistrations()->updateOrCreate(
+            $visitor->studentSchoolYearRecords()->updateOrCreate(
                 ['school_year_id' => $schoolYear->id],
                 [
                     'school_year_section_id' => $section->id,
@@ -81,14 +81,14 @@ class HistoricalSchoolYearSeeder extends Seeder
         }
     }
 
-    private function seedPreviousEmployeeProfiles(SchoolYear $schoolYear): void
+    private function seedPreviousEmployeeSchoolYearRecords(SchoolYear $schoolYear): void
     {
-        RegisteredVisitor::query()
-            ->where('type', RegisteredVisitor::TYPE_EMPLOYEE)
+        LibraryMember::query()
+            ->where('type', LibraryMember::TYPE_EMPLOYEE)
             ->with('employee')
             ->get()
-            ->each(function (RegisteredVisitor $visitor) use ($schoolYear): void {
-                $visitor->employeeProfiles()->updateOrCreate(
+            ->each(function (LibraryMember $visitor) use ($schoolYear): void {
+                $visitor->employeeSchoolYearRecords()->updateOrCreate(
                     ['school_year_id' => $schoolYear->id],
                     $this->visitorSnapshot($visitor) + [
                         'department' => $visitor->employee?->department ?? 'Unassigned',
@@ -99,20 +99,20 @@ class HistoricalSchoolYearSeeder extends Seeder
 
     private function seedHistoricalVisits(SchoolYear $schoolYear): void
     {
-        $students = RegisteredVisitor::query()
-            ->where('type', RegisteredVisitor::TYPE_STUDENT)
-            ->whereHas('studentRegistrations', fn($query) => $query->forSchoolYear($schoolYear->id))
+        $students = LibraryMember::query()
+            ->where('type', LibraryMember::TYPE_STUDENT)
+            ->whereHas('studentSchoolYearRecords', fn ($query) => $query->forSchoolYear($schoolYear->id))
             ->orderBy('school_id')
             ->limit(55)
             ->get();
 
-        $employee_profiles = RegisteredVisitor::query()
-            ->where('type', RegisteredVisitor::TYPE_EMPLOYEE)
+        $employee_school_year_records = LibraryMember::query()
+            ->where('type', LibraryMember::TYPE_EMPLOYEE)
             ->orderBy('school_id')
             ->limit(18)
             ->get();
 
-        $students->each(function (RegisteredVisitor $visitor, int $index) use ($schoolYear): void {
+        $students->each(function (LibraryMember $visitor, int $index) use ($schoolYear): void {
             $this->visit($visitor, $schoolYear, Carbon::parse('2025-07-07 08:15:00')->addDays($index % 24));
 
             if ($index % 3 !== 0) {
@@ -120,21 +120,21 @@ class HistoricalSchoolYearSeeder extends Seeder
             }
         });
 
-        $employee_profiles->each(function (RegisteredVisitor $visitor, int $index) use ($schoolYear): void {
+        $employee_school_year_records->each(function (LibraryMember $visitor, int $index) use ($schoolYear): void {
             $this->visit($visitor, $schoolYear, Carbon::parse('2025-08-04 10:00:00')->addDays($index % 20));
         });
     }
 
-    private function visit(RegisteredVisitor $visitor, SchoolYear $schoolYear, Carbon $visitedAt): void
+    private function visit(LibraryMember $visitor, SchoolYear $schoolYear, Carbon $visitedAt): void
     {
         LibraryVisit::query()->firstOrCreate([
-            'registered_visitor_id' => $visitor->id,
+            'library_member_id' => $visitor->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => $visitedAt,
         ]);
     }
 
-    private function visitorSnapshot(RegisteredVisitor $visitor): array
+    private function visitorSnapshot(LibraryMember $visitor): array
     {
         return [
             'school_id' => $visitor->school_id,

@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
-class ImportRegisteredVisitorsRequest extends FormRequest
+class ImportLibraryMembersRequest extends FormRequest
 {
     public function authorize(): bool
     {

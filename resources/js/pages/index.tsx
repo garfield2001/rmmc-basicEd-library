@@ -10,11 +10,11 @@ import { useScanErrorDialog } from '@/components/public/home/use-scan-error-dial
 import { ToastProvider } from '@/components/ui/toaster';
 import { ScanSuccessModal } from '@/components/visits/scan-success-modal';
 import { type SharedData } from '@/types/shared';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { type FormEventHandler, useCallback, useEffect, useState } from 'react';
 
 export default function Index({ home }: IndexProps) {
-    const { name, errors, flash } = usePage<SharedData>().props;
+    const { name, errors, flash, auth } = usePage<SharedData>().props;
     const [showLogin, setShowLogin] = useState(false);
     const scanValidationError = typeof errors.rfid_uid === 'string' ? errors.rfid_uid : undefined;
     const { formattedManilaTime } = useManilaClock();
@@ -65,12 +65,17 @@ export default function Index({ home }: IndexProps) {
             return;
         }
 
+        if (auth.user) {
+            router.visit('/admin');
+            return;
+        }
+
         setShowLogin(true);
         searchParams.delete('login');
 
         const nextSearch = searchParams.toString();
         window.history.replaceState({}, '', `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}${window.location.hash}`);
-    }, []);
+    }, [auth.user]);
 
     useEffect(() => {
         if (loginValidationErrors.email || loginValidationErrors.password) {
@@ -139,7 +144,14 @@ export default function Index({ home }: IndexProps) {
                     isRevealed={administration.isAdministrationRevealed}
                     showScrollHint={administration.showAdministrationScrollHint}
                     showReturnButton={administration.showScannerReturnButton}
-                    onLoginClick={() => setShowLogin(true)}
+                    onLoginClick={() => {
+                        if (auth.user) {
+                            router.visit('/admin');
+                            return;
+                        }
+
+                        setShowLogin(true);
+                    }}
                     onReturnToScanner={administration.returnToScanner}
                 />
             </main>

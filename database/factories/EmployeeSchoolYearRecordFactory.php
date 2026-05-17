@@ -2,22 +2,22 @@
 
 namespace Database\Factories;
 
-use App\Models\EmployeeProfile;
-use App\Models\RegisteredVisitor;
+use App\Models\EmployeeSchoolYearRecord;
+use App\Models\LibraryMember;
 use App\Models\SchoolYear;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * @extends Factory<Employee>
  */
-class EmployeeProfileFactory extends Factory
+class EmployeeSchoolYearRecordFactory extends Factory
 {
-    protected $model = EmployeeProfile::class;
+    protected $model = EmployeeSchoolYearRecord::class;
 
     public function definition(): array
     {
         return [
-            'registered_visitor_id' => RegisteredVisitor::factory()->employee(),
+            'library_member_id' => LibraryMember::factory()->employee(),
             'school_year_id' => SchoolYear::query()->active()->value('id') ?? SchoolYear::factory()->active()->create()->id,
             'department' => fake()->randomElement([
                 'Basic Education Faculty',

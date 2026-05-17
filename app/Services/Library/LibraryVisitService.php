@@ -3,8 +3,8 @@
 namespace App\Services\Library;
 
 use App\Events\LibraryVisitRecorded;
+use App\Models\LibraryMember;
 use App\Models\LibraryVisit;
-use App\Models\RegisteredVisitor;
 use App\Models\SchoolYear;
 use App\Services\Settings\LibraryScanSettingsService;
 use Illuminate\Support\Carbon;
@@ -37,7 +37,7 @@ class LibraryVisitService
         $this->ensureVisitorCanRevisit($visitor, $schoolYear->id, $now);
 
         $visit = LibraryVisit::create([
-            'registered_visitor_id' => $visitor->id,
+            'library_member_id' => $visitor->id,
             'school_year_id' => $schoolYear->id,
             'visited_at' => $now,
         ])->load(['visitor', 'schoolYear']);
@@ -68,14 +68,14 @@ class LibraryVisitService
             && filled(config('broadcasting.connections.reverb.options.host'));
     }
 
-    private function resolveVisitor(string $lookup, int $schoolYearId): RegisteredVisitor
+    private function resolveVisitor(string $lookup, int $schoolYearId): LibraryMember
     {
         $normalizedLookup = $this->normalizeLookup($lookup);
 
-        $visitors = RegisteredVisitor::query()
+        $visitors = LibraryMember::query()
             ->visitEligibleForSchoolYear($schoolYearId)
             ->get()
-            ->filter(function (RegisteredVisitor $visitor) use ($normalizedLookup): bool {
+            ->filter(function (LibraryMember $visitor) use ($normalizedLookup): bool {
                 $values = [
                     $visitor->rfid_uid,
                     $visitor->school_id,
@@ -91,10 +91,10 @@ class LibraryVisitService
             ->values();
 
         if ($visitors->isEmpty()) {
-            $visitors = RegisteredVisitor::query()
+            $visitors = LibraryMember::query()
                 ->visitEligibleForSchoolYear($schoolYearId)
                 ->get()
-                ->filter(function (RegisteredVisitor $visitor) use ($normalizedLookup): bool {
+                ->filter(function (LibraryMember $visitor) use ($normalizedLookup): bool {
                     $values = [
                         $visitor->rfid_uid,
                         $visitor->school_id,
@@ -125,7 +125,7 @@ class LibraryVisitService
         ]);
     }
 
-    private function ensureVisitorHasRFID(RegisteredVisitor $visitor): void
+    private function ensureVisitorHasRFID(LibraryMember $visitor): void
     {
         if ($visitor->rfid_uid) {
             return;
@@ -172,7 +172,7 @@ class LibraryVisitService
         ]);
     }
 
-    private function ensureVisitorCanRevisit(RegisteredVisitor $visitor, int $schoolYearId, Carbon $now): void
+    private function ensureVisitorCanRevisit(LibraryMember $visitor, int $schoolYearId, Carbon $now): void
     {
         $intervalHours = $this->scanSettings->repeatScanIntervalHours();
         $lastVisit = $visitor->visits()
