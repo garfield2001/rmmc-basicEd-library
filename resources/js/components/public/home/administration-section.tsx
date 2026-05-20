@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, LogIn } from 'lucide-react';
 import type { RefObject } from 'react';
-import { AdministrationStatCard } from './AdministrationStatCard';
-import { AdministrationStatusCard } from './AdministrationStatusCard';
+import { AdministrationStatCard } from './administration-stat-card';
+import { AdministrationStatusCard } from './administration-status-card';
 import { getAdministrationStats, getAdministrationStatus } from './metrics';
 import type { IndexProps } from './types';
 
@@ -31,7 +31,7 @@ export function AdministrationSection({
     return (
         <section
             ref={sectionRef}
-            className="relative z-10 flex min-h-screen items-center border-t border-[#040DBF]/20 bg-[linear-gradient(180deg,#010440_0%,#020659_100%)] px-5 py-8 text-white sm:px-8 sm:py-10 2xl:px-12 2xl:py-12"
+            className="relative z-10 flex min-h-screen items-start border-t border-[#040DBF]/20 bg-[linear-gradient(180deg,#010440_0%,#020659_100%)] px-5 py-10 text-white sm:px-8 sm:py-12 lg:items-center 2xl:px-12 2xl:py-12"
         >
             {showScrollHint && (
                 <div

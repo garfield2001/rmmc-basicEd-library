@@ -7,6 +7,7 @@ use App\Models\LibraryVisit;
 use App\Models\SchoolYear;
 use App\Models\SchoolYearSection;
 use App\Support\Academics\AcademicLevels;
+use Database\Seeders\Data\HistoricalSchoolYearData;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 
@@ -18,7 +19,6 @@ class HistoricalSchoolYearSeeder extends Seeder
 
         $this->seedPreviousStudentRecords($schoolYear);
         $this->seedCompletedGradeTenStudents($schoolYear);
-        $this->seedPreviousEmployeeSchoolYearRecords($schoolYear);
         $this->seedPreviousEmployeeSchoolYearRecords($schoolYear);
         $this->seedHistoricalVisits($schoolYear);
     }
@@ -56,7 +56,7 @@ class HistoricalSchoolYearSeeder extends Seeder
     {
         $section = $this->section($schoolYear, 'Grade 10', 'Rizal');
 
-        foreach ($this->completedStudents() as $student) {
+        foreach (HistoricalSchoolYearData::completedGradeTenStudents() as $student) {
             $visitor = LibraryMember::query()->firstOrCreate(
                 ['school_id' => $student['school_id']],
                 [
@@ -166,22 +166,4 @@ class HistoricalSchoolYearSeeder extends Seeder
         return AcademicLevels::options()[$rank - 1];
     }
 
-    /**
-     * @return array<int, array<string, string>>
-     */
-    private function completedStudents(): array
-    {
-        return [
-            ['school_id' => '2510109001', 'rfid_uid' => '9000009001', 'first_name' => 'Andrea', 'last_name' => 'Valdez'],
-            ['school_id' => '2510109002', 'rfid_uid' => '9000009002', 'first_name' => 'Miguel', 'last_name' => 'Soriano'],
-            ['school_id' => '2510109003', 'rfid_uid' => '9000009003', 'first_name' => 'Bianca', 'last_name' => 'Navarro'],
-            ['school_id' => '2510109004', 'rfid_uid' => '9000009004', 'first_name' => 'Paolo', 'last_name' => 'Mercado'],
-            ['school_id' => '2510109005', 'rfid_uid' => '9000009005', 'first_name' => 'Clarisse', 'last_name' => 'Domingo'],
-            ['school_id' => '2510109006', 'rfid_uid' => '9000009006', 'first_name' => 'Jerome', 'last_name' => 'Bautista'],
-            ['school_id' => '2510109007', 'rfid_uid' => '9000009007', 'first_name' => 'Therese', 'last_name' => 'Castillo'],
-            ['school_id' => '2510109008', 'rfid_uid' => '9000009008', 'first_name' => 'Kyle', 'last_name' => 'Fernandez'],
-            ['school_id' => '2510109009', 'rfid_uid' => '9000009009', 'first_name' => 'Mariel', 'last_name' => 'Villanueva'],
-            ['school_id' => '2510109010', 'rfid_uid' => '9000009010', 'first_name' => 'Cedric', 'last_name' => 'Lim'],
-        ];
-    }
 }

@@ -66,4 +66,11 @@ class StudentSchoolYearRecord extends Model
 
         return $query->where('school_year_id', $schoolYearId);
     }
+
+    public function scopeForRequiredSchoolYear(Builder $query, ?int $schoolYearId): Builder
+    {
+        return $schoolYearId
+            ? $query->where('school_year_id', $schoolYearId)
+            : $query->whereKey([]);
+    }
 }

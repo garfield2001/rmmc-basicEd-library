@@ -1,5 +1,6 @@
 import { RMMC_LOGO_PATH } from '@/components/public/home/constants';
-import { RadioTower } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { LogIn, RadioTower } from 'lucide-react';
 import type { FormEventHandler, RefObject } from 'react';
 import { PublicRMMCLogo } from './public-rmmc-logo';
 import type { ScanForm } from './types';
@@ -17,6 +18,7 @@ interface ScannerSectionProps {
     formattedManilaTime: string;
     onScanChange: (RFIDUid: string) => void;
     onSubmit: FormEventHandler;
+    onAdminClick: () => void;
 }
 
 export function ScannerSection({
@@ -32,10 +34,11 @@ export function ScannerSection({
     formattedManilaTime,
     onScanChange,
     onSubmit,
+    onAdminClick,
 }: ScannerSectionProps) {
     return (
         <section
-            className={`sticky top-0 isolate z-0 flex min-h-screen items-center overflow-hidden px-5 py-8 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] sm:px-8 sm:py-10 2xl:px-12 2xl:py-12 ${
+            className={`sticky top-0 isolate z-0 flex min-h-[100svh] items-start overflow-hidden px-5 py-8 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] sm:items-center sm:px-8 sm:py-10 2xl:px-12 2xl:py-12 ${
                 isAdministrationRevealed ? 'scale-[0.98] opacity-0' : 'scale-100 opacity-100'
             }`}
         >
@@ -43,9 +46,9 @@ export function ScannerSection({
                 src={RMMC_LOGO_PATH}
                 alt=""
                 aria-hidden="true"
-                className="pointer-events-none absolute top-1/2 left-1/2 -z-10 h-[76vmin] max-h-[1100px] min-h-[420px] w-auto -translate-x-1/2 -translate-y-1/2 opacity-[0.11] saturate-125"
+                className="pointer-events-none absolute top-[56%] left-1/2 -z-10 h-[68vmin] max-h-[1100px] min-h-[260px] w-auto -translate-x-1/2 -translate-y-1/2 opacity-[0.08] saturate-125 sm:top-1/2 sm:h-[76vmin] sm:min-h-[420px] sm:opacity-[0.11]"
             />
-            <div className="public-display-shell mx-auto grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(360px,34vw)] lg:items-center lg:gap-14 2xl:gap-20">
+            <div className="public-display-shell mx-auto grid gap-6 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(360px,34vw)] lg:items-center lg:gap-14 2xl:gap-20">
                 <div className="min-w-0">
                     <div className="flex items-center gap-4 sm:gap-5">
                         <PublicRMMCLogo />
@@ -55,17 +58,41 @@ export function ScannerSection({
                         </div>
                     </div>
 
-                    <div className="mt-10 max-w-5xl sm:mt-14 2xl:mt-18">
-                        <h1 className="public-display-title font-semibold tracking-normal text-[#010440]">Scan your library ID</h1>
-                        <p className="public-display-copy mt-6 max-w-4xl text-[#020659] sm:mt-8">
-                            Approved or not, the scan result will appear clearly on this screen after every scan.
+                    <div className="mt-8 max-w-5xl sm:mt-14 2xl:mt-18">
+                        <h1 className="public-display-title font-semibold tracking-normal text-[#010440]">
+                            <span className="hidden sm:inline">Scan your library ID</span>
+                            <span className="sm:hidden">Library station</span>
+                        </h1>
+                        <p className="public-display-copy mt-4 max-w-4xl text-[#020659] sm:mt-8">
+                            <span className="hidden sm:inline">
+                                Approved or not, the scan result will appear clearly on this screen after every scan.
+                            </span>
+                            <span className="sm:hidden">
+                                RFID scanning is intended for the library computer. Admin/Staff can sign in from this phone to manage records.
+                            </span>
                         </p>
+                    </div>
+
+                    <div className="public-mobile-station-card mt-7 rounded-xl border border-[#040DBF]/15 bg-white/88 p-4 shadow-xl shadow-[#010440]/8 sm:hidden">
+                        <div className="flex items-center gap-3">
+                            <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#040DBF]/10 text-[#040DBF]">
+                                <RadioTower className="size-6" />
+                            </span>
+                            <div className="min-w-0">
+                                <p className="text-lg font-semibold text-[#010440]">{statusText}</p>
+                                <p className="mt-1 text-sm leading-5 text-[#020659]/75">{formattedManilaTime}</p>
+                            </div>
+                        </div>
+                        <Button type="button" onClick={onAdminClick} className="mt-4 h-11 w-full bg-[#040DBF] text-white hover:bg-[#030A8C]">
+                            <LogIn className="size-4" />
+                            Admin login
+                        </Button>
                     </div>
                 </div>
 
                 <form
                     onSubmit={onSubmit}
-                    className="public-scanner-panel relative flex flex-col items-center justify-center border-y border-[#040DBF]/15 py-8 text-center sm:py-10 2xl:py-12"
+                    className="public-scanner-panel relative hidden flex-col items-center justify-center border-y border-[#040DBF]/15 py-8 text-center sm:flex sm:py-10 2xl:py-12"
                 >
                     <input
                         id="public-rfid-scan"

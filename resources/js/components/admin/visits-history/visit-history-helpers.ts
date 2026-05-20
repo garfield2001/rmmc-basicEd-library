@@ -32,17 +32,19 @@ export function sortVisitors(visitors: VisitorWithRangeVisits[], column: SortCol
 }
 
 export function visitsInDateRange(visits: VisitHistoryVisit[], startDate: string, endDate: string) {
-    return visits.filter((visit) => {
-        const visitedAt = parseVisitDate(visit.visitedAt);
+    return visits
+        .filter((visit) => {
+            const visitedAt = parseVisitDate(visit.visitedAt);
 
-        if (!visitedAt) {
-            return false;
-        }
+            if (!visitedAt) {
+                return false;
+            }
 
-        const visitDate = toLocalIsoDate(visitedAt);
+            const visitDate = toLocalIsoDate(visitedAt);
 
-        return (!startDate || visitDate >= startDate) && (!endDate || visitDate <= endDate);
-    });
+            return (!startDate || visitDate >= startDate) && (!endDate || visitDate <= endDate);
+        })
+        .sort((first, second) => (parseVisitDate(second.visitedAt)?.getTime() ?? 0) - (parseVisitDate(first.visitedAt)?.getTime() ?? 0));
 }
 
 export function groupLabel(visitor: VisitHistoryVisitor) {
@@ -106,7 +108,7 @@ function sortValue(visitor: VisitorWithRangeVisits, column: SortColumn) {
     }
 
     if (column === 'name') {
-        return visitor.name ?? '';
+        return [visitor.lastName, visitor.firstName, visitor.name].filter(Boolean).join(' ');
     }
 
     if (column === 'visitCount') {

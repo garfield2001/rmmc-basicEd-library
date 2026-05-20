@@ -2,17 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\Reports\VisitReportExcelExport;
 use App\Http\Requests\ReportFilterRequest;
 use App\Models\EmployeeSchoolYearRecord;
 use App\Models\SchoolYear;
+use App\Services\Reports\VisitReportExportService;
 use App\Services\Reports\VisitReportService;
+use App\Services\Reports\VisitReportWordExportService;
 use App\Services\SchoolYears\SchoolYearSectionService;
 use App\Support\Academics\AcademicLevels;
-use App\Support\Reports\SimpleVisitReportPdf;
 use Illuminate\Http\Response as HttpResponse;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Excel as ExcelFormat;
+use Spatie\Browsershot\Browsershot;
+use Spatie\LaravelPdf\Enums\Format;
+use Spatie\LaravelPdf\Facades\Pdf;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
@@ -30,8 +36,8 @@ class ReportController extends Controller
                     ->map(fn (SchoolYear $schoolYear): array => [
                         'id' => $schoolYear->id,
                         'name' => $schoolYear->name,
-                        'starts_at' => $schoolYear->starts_at->toDateString(),
-                        'ends_at' => $schoolYear->ends_at->toDateString(),
+                        'starts_at' => $schoolYear->startDateString(),
+                        'ends_at' => $schoolYear->endDateString(),
                         'student_required_visits' => $schoolYear->student_required_visits,
                         'employee_required_visits' => $schoolYear->employee_required_visits,
                         'is_active' => $schoolYear->is_active,
@@ -50,117 +56,89 @@ class ReportController extends Controller
         ]);
     }
 
-    public function exportCsv(ReportFilterRequest $request, VisitReportService $reports): StreamedResponse
+    public function exportCsv(ReportFilterRequest $request, VisitReportService $reports, VisitReportExportService $exports): StreamedResponse
     {
         $report = $reports->getData($request->validated());
 
-        return response()->streamDownload(function () use ($report): void {
+        return response()->streamDownload(function () use ($report, $exports): void {
             $file = fopen('php://output', 'w');
-            $columns = $this->exportColumns($report);
+            $columns = $exports->columns($report);
 
             fwrite($file, "\xEF\xBB\xBF");
             fputcsv($file, ['School year: '.($report['school_year']['name'] ?? 'No school year'), 'Visitor type: '.ucfirst((string) ($report['summary']['visitor_type'] ?? 'visitor')).'s']);
             fputcsv($file, ['From '.$report['filters']['start_date'].' to '.$report['filters']['end_date']]);
-            fputcsv($file, [
-                'Visitors: '.$report['summary']['visitors'],
-                'Total Visits: '.$report['summary']['total_visits'],
-                'Required Visits: '.$report['summary']['required_visits'],
-            ]);
-            fputcsv($file, []);
-            fputcsv($file, array_column($columns, 'label'));
 
-            foreach ($report['rows'] as $row) {
-                fputcsv($file, $this->exportRow($columns, $report, $row));
+            foreach ($exports->groups($report) as $group) {
+                fputcsv($file, []);
+                fputcsv($file, [$group['label']]);
+                fputcsv($file, array_column($columns, 'label'));
+
+                foreach ($group['rows'] as $row) {
+                    fputcsv($file, $exports->row($columns, $report, $row));
+                }
+
+                fputcsv($file, [
+                    'Visitors: '.$group['summary']['visitors'],
+                    'Total Visits: '.$group['summary']['total_visits'],
+                    'Excess Visits: '.$group['summary']['excess_visits'],
+                ]);
             }
 
             fclose($file);
-        }, $this->exportFilename($report, 'csv'), [
+        }, $exports->filename($report, 'csv'), [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
     }
 
-    public function exportExcel(ReportFilterRequest $request, VisitReportService $reports): HttpResponse
+    public function exportExcel(ReportFilterRequest $request, VisitReportService $reports, VisitReportExportService $exports)
     {
         $report = $reports->getData($request->validated());
 
-        return response()
-            ->view('reports.visits-export-table', [
-                'report' => $report,
-                'columns' => $this->exportColumns($report),
-            ])
-            ->header('Content-Type', 'application/vnd.ms-excel; charset=UTF-8')
-            ->header('Content-Disposition', 'attachment; filename="'.$this->exportFilename($report, 'xls').'"');
+        return Excel::download(
+            new VisitReportExcelExport($report, $exports->groups($report)),
+            $exports->filename($report, 'xlsx'),
+            ExcelFormat::XLSX,
+        );
     }
 
-    public function exportWord(ReportFilterRequest $request, VisitReportService $reports): HttpResponse
+    public function exportWord(ReportFilterRequest $request, VisitReportService $reports, VisitReportExportService $exports, VisitReportWordExportService $word)
     {
         $report = $reports->getData($request->validated());
 
-        return response()
-            ->view('reports.visits-export-table', [
-                'report' => $report,
-                'columns' => $this->exportColumns($report),
-            ])
-            ->header('Content-Type', 'application/msword; charset=UTF-8')
-            ->header('Content-Disposition', 'attachment; filename="'.$this->exportFilename($report, 'doc').'"');
+        return $word->download($report, $exports->groups($report), $exports->filename($report, 'docx'));
     }
 
-    public function exportPdf(ReportFilterRequest $request, VisitReportService $reports, SimpleVisitReportPdf $pdf): HttpResponse
+    public function exportPdf(ReportFilterRequest $request, VisitReportService $reports, VisitReportExportService $exports)
     {
         $report = $reports->getData($request->validated());
 
-        return response($pdf->make($report))
-            ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'attachment; filename="'.$this->exportFilename($report, 'pdf').'"');
+        return Pdf::view('reports.visits-print', $exports->viewData($report, showActions: false))
+            ->format(Format::Letter)
+            ->portrait()
+            ->withBrowsershot(fn (Browsershot $browser) => $this->configureReportPdfBrowser($browser))
+            ->download($exports->filename($report, 'pdf'));
     }
 
-    public function print(ReportFilterRequest $request, VisitReportService $reports): HttpResponse
+    public function print(ReportFilterRequest $request, VisitReportService $reports, VisitReportExportService $exports): HttpResponse
     {
-        return response()->view('reports.visits-print', [
-            'report' => $reports->getData($request->validated()),
-        ]);
+        $report = $reports->getData($request->validated());
+
+        return response()->view('reports.visits-print', $exports->viewData($report));
     }
 
-    private function exportColumns(array $report): array
+    private function configureReportPdfBrowser(Browsershot $browser): Browsershot
     {
-        $isStudent = ($report['summary']['visitor_type'] ?? null) === 'student';
+        $chromePath = 'C:\Program Files\Google\Chrome\Application\chrome.exe';
 
-        return array_values(array_filter([
-            ['key' => 'school_id', 'label' => 'School ID', 'width' => '82pt'],
-            ['key' => 'name', 'label' => 'Name', 'width' => '180pt'],
-            $isStudent
-                ? ['key' => 'year_section', 'label' => 'Year/Section', 'width' => '150pt']
-                : ['key' => 'department', 'label' => 'Department', 'width' => '150pt'],
-            ['key' => 'visits', 'label' => 'Visits', 'width' => '72pt'],
-            ['key' => 'excess_visits', 'label' => 'Excess', 'width' => '58pt'],
-            ['key' => 'progress', 'label' => 'Progress', 'width' => '72pt'],
-        ]));
-    }
+        if (PHP_OS_FAMILY === 'Windows' && is_file($chromePath)) {
+            $browser->setChromePath($chromePath);
+        }
 
-    private function exportRow(array $columns, array $report, array $row): array
-    {
-        return array_map(function (array $column) use ($report, $row): string|int|null {
-            return match ($column['key']) {
-                'school_year' => $report['school_year']['name'] ?? null,
-                'school_id' => $row['school_id'],
-                'name' => $row['name'],
-                'year_section' => ($row['year_section_label'] ?? trim(collect([$row['year_level'] ?? null, $row['section'] ?? null])->filter()->implode(' - '))) ?: null,
-                'department' => $row['department'],
-                'visits' => $row['visit_count'].' / '.($report['summary']['required_visits'] ?? 0),
-                'excess_visits' => $row['excess_visits'] ?? 0,
-                'progress' => $row['progress_percent'].'%',
-                default => null,
-            };
-        }, $columns);
-    }
-
-    private function exportFilename(array $report, string $extension): string
-    {
-        $schoolYear = Str::slug($report['school_year']['name'] ?? 'no-school-year');
-        $visitorType = Str::slug($report['summary']['visitor_type'] ?? 'visitors');
-        $startDate = $report['filters']['start_date'] ?? 'start';
-        $endDate = $report['filters']['end_date'] ?? 'end';
-
-        return "library-visits-{$schoolYear}-{$visitorType}-{$startDate}-to-{$endDate}.{$extension}";
+        return $browser
+            ->setNodeModulePath(base_path('node_modules'))
+            ->noSandbox()
+            ->newHeadless()
+            ->timeout(120)
+            ->protocolTimeout(120);
     }
 }

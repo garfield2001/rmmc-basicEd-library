@@ -50,6 +50,7 @@ class HandleInertiaRequests extends Middleware
                     'name' => $request->user()->name,
                     'email' => $request->user()->email,
                     'role' => $request->user()->role,
+                    'sessionId' => $request->session()->getId(),
                 ] : null,
             ],
             'flash' => [
@@ -69,8 +70,8 @@ class HandleInertiaRequests extends Middleware
         return [
             'id' => $schoolYear->id,
             'name' => $schoolYear->name,
-            'starts_at' => $schoolYear->starts_at?->toDateString(),
-            'ends_at' => $schoolYear->ends_at?->toDateString(),
+            'starts_at' => $schoolYear->startDateString(),
+            'ends_at' => $schoolYear->endDateString(),
             'student_required_visits' => $schoolYear->student_required_visits,
             'employee_required_visits' => $schoolYear->employee_required_visits,
             'is_active' => $schoolYear->is_active,

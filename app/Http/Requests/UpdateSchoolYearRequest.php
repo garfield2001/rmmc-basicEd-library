@@ -37,8 +37,8 @@ class UpdateSchoolYearRequest extends FormRequest
                 }
 
                 $schoolYearId = $this->route('schoolYear')?->id;
-                $startsAt = Carbon::parse($this->input('starts_at'))->toDateString();
-                $endsAt = Carbon::parse($this->input('ends_at'))->toDateString();
+                $startsAt = $this->dateString($this->input('starts_at'));
+                $endsAt = $this->dateString($this->input('ends_at'));
 
                 $overlappingSchoolYear = SchoolYear::query()
                     ->whereKeyNot($schoolYearId)
@@ -49,7 +49,7 @@ class UpdateSchoolYearRequest extends FormRequest
                 if ($overlappingSchoolYear) {
                     $validator->errors()->add(
                         'starts_at',
-                        "This school year overlaps {$overlappingSchoolYear->name} ({$this->displayDate($overlappingSchoolYear->starts_at)} to {$this->displayDate($overlappingSchoolYear->ends_at)}).",
+                        "This school year overlaps {$overlappingSchoolYear->name} ({$this->displayDate($overlappingSchoolYear->startDate())} to {$this->displayDate($overlappingSchoolYear->endDate())}).",
                     );
                 }
             },
@@ -78,6 +78,11 @@ class UpdateSchoolYearRequest extends FormRequest
     private function displayDate(Carbon $date): string
     {
         return $date->format('M-d-Y');
+    }
+
+    private function dateString(mixed $value): string
+    {
+        return Carbon::parse($value)->toDateString();
     }
 
     private function parseDateInput(mixed $value): ?Carbon

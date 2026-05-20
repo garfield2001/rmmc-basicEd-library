@@ -26,8 +26,8 @@ export function VisitTrafficChart({
     }
 
     return (
-        <ChartContainer config={trafficChartConfig} className="h-76 w-full">
-            <AreaChart data={data} margin={{ top: 12, right: 20, left: 0, bottom: 0 }}>
+        <ChartContainer config={trafficChartConfig} className="h-72 w-full min-w-0 sm:h-76">
+            <AreaChart data={data} margin={{ top: 12, right: 12, left: -8, bottom: 0 }}>
                 <defs>
                     <linearGradient id="students-fill" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="var(--color-students)" stopOpacity={0.36} />
@@ -42,11 +42,10 @@ export function VisitTrafficChart({
                 <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={10} />
                 <YAxis tickLine={false} axisLine={false} tickMargin={10} allowDecimals={false} />
                 <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                <Area dataKey="students" type="monotone" stackId="visits" stroke="var(--color-students)" fill="url(#students-fill)" strokeWidth={2} />
+                <Area dataKey="students" type="monotone" stroke="var(--color-students)" fill="url(#students-fill)" strokeWidth={2} />
                 <Area
                     dataKey="employees"
                     type="monotone"
-                    stackId="visits"
                     stroke="var(--color-employees)"
                     fill="url(#employees-fill)"
                     strokeWidth={2}

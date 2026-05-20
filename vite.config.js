@@ -15,4 +15,15 @@ export default defineConfig({
     esbuild: {
         jsx: 'automatic',
     },
+
+    //For other PC to access this project
+    server: {
+        host: '0.0.0.0',
+        port: 5173,
+        strictPort: true,
+        hmr: {
+            host: '192.168.1.112',
+            port: 5173,
+        },
+    },
 });

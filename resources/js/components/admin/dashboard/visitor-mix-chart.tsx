@@ -39,8 +39,8 @@ export function VisitorMixChart({ students, employees }: VisitorMixChartProps) {
     }
 
     return (
-        <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_11rem] xl:grid-cols-1">
-            <ChartContainer config={visitorMixChartConfig} className="mx-auto h-64 w-full max-w-sm">
+        <div className="grid min-w-0 gap-4 sm:grid-cols-[minmax(0,1fr)_11rem] xl:grid-cols-1">
+            <ChartContainer config={visitorMixChartConfig} className="mx-auto h-56 w-full max-w-xs min-w-0 sm:h-64 sm:max-w-sm">
                 <PieChart>
                     <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
                     <Pie data={data} dataKey="value" nameKey="label" innerRadius={58} outerRadius={92} strokeWidth={5}>
@@ -50,10 +50,10 @@ export function VisitorMixChart({ students, employees }: VisitorMixChartProps) {
                     </Pie>
                 </PieChart>
             </ChartContainer>
-            <div className="grid content-center gap-3">
+            <div className="grid min-w-0 content-center gap-3">
                 {data.map((item) => (
                     <div key={item.key} className="flex items-center justify-between gap-3 text-sm">
-                        <span className="inline-flex items-center gap-2 font-medium text-[#020659]">
+                        <span className="inline-flex min-w-0 items-center gap-2 font-medium text-[#020659]">
                             <span className="size-2.5 rounded-[3px]" style={{ backgroundColor: item.fill }} />
                             {item.label}
                         </span>

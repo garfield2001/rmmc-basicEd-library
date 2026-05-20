@@ -1,180 +1,24 @@
 import { LiveVisitMetrics } from '@/components/admin/live-visits/live-visit-metrics';
 import { LiveVisitScanner } from '@/components/admin/live-visits/live-visit-scanner';
 import { LiveVisitsTable } from '@/components/admin/live-visits/live-visits-table';
+import { useLiveVisitsPage } from '@/components/admin/live-visits/use-live-visits-page';
 import { VisitDetailsModal } from '@/components/admin/visits/visit-details-modal';
-import { useManilaClock } from '@/components/public/home/use-manila-clock';
 import { LatestVisitCard } from '@/components/visits/latest-visit-card';
-import { useRFIDScanListener } from '@/hooks/use-rfid-scan-listener';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
-import { csrfFetch } from '@/lib/http';
-import { type AdminVisitMonitor, type DashboardVisit, type ScanTarget } from '@/types/dashboard';
-import { Head, router, useForm } from '@inertiajs/react';
-import { useEchoPublic } from '@laravel/echo-react';
+import { type AdminVisitMonitor } from '@/types/dashboard';
+import { Head } from '@inertiajs/react';
 import { Clock3 } from 'lucide-react';
-import { type FormEventHandler, useEffect, useMemo, useRef, useState } from 'react';
+import { useRef } from 'react';
 
 interface LiveVisitsProps {
     visitMonitor: AdminVisitMonitor;
 }
 
-interface ScanForm {
-    [key: string]: string;
-    rfid_uid: string;
-}
-
-interface LibraryVisitRecordedEvent {
-    visit: DashboardVisit;
-}
-
-const liveVisitPollMs = 2500;
-
 export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
     const scanInputRef = useRef<HTMLInputElement | null>(null);
-    const [liveVisitMonitor, setLiveVisitMonitor] = useState(visitMonitor);
-    const [scanError, setScanError] = useState<string | undefined>();
-    const [scanTargets, setScanTargets] = useState<ScanTarget[]>(visitMonitor.scanTargets ?? []);
-    const [loadingScanTargets, setLoadingScanTargets] = useState(false);
-    const [selectedVisit, setSelectedVisit] = useState<DashboardVisit | null>(null);
-    const lastVisit = liveVisitMonitor.todayVisits[0];
-    const { formattedManilaTime } = useManilaClock();
-    const {
-        data: scanData,
-        setData: setScanData,
-        post: postScan,
-        processing: scanning,
-        reset: resetScan,
-    } = useForm<ScanForm>({
-        rfid_uid: '',
-    });
-    const scanTargetOptions = useMemo(() => {
-        return scanTargets.map((target) => {
-            const scanValue = target.RFIDUid ?? target.schoolId ?? target.name;
-            const schoolId = target.schoolId ?? 'No school ID';
-
-            return {
-                value: scanValue,
-                label: target.name,
-                meta: `${schoolId} - ${target.type}${target.detail ? ` - ${target.detail}` : ''}`,
-                idTerms: [target.RFIDUid, target.schoolId, ...(target.schoolId ?? '').split(/[^a-zA-Z0-9]+/)].filter((term): term is string =>
-                    Boolean(term),
-                ),
-                textTerms: [target.name, target.firstName, target.lastName, target.type, target.detail].filter((term): term is string =>
-                    Boolean(term),
-                ),
-            };
-        });
-    }, [scanTargets]);
-
-    useEffect(() => {
-        setLiveVisitMonitor(visitMonitor);
-    }, [visitMonitor]);
-
-    useEffect(() => {
-        const interval = window.setInterval(() => {
-            if (document.hidden) {
-                return;
-            }
-
-            router.reload({
-                only: ['visitMonitor'],
-            });
-        }, liveVisitPollMs);
-
-        return () => window.clearInterval(interval);
-    }, []);
-
-    useEchoPublic<LibraryVisitRecordedEvent>('library-visits', '.LibraryVisitRecorded', (event) => {
-        setLiveVisitMonitor((current) => {
-            if (current.todayVisits.some((visit) => visit.id === event.visit.id)) {
-                return current;
-            }
-
-            const isStudent = event.visit.visitor.type === 'student';
-            const isEmployee = event.visit.visitor.type === 'employee';
-
-            return {
-                ...current,
-                metrics: {
-                    visitsToday: current.metrics.visitsToday + 1,
-                    studentVisitsToday: current.metrics.studentVisitsToday + (isStudent ? 1 : 0),
-                    employeeVisitsToday: current.metrics.employeeVisitsToday + (isEmployee ? 1 : 0),
-                },
-                todayVisits: [event.visit, ...current.todayVisits],
-            };
-        });
-    });
-
-    const submitScan: FormEventHandler = (event) => {
-        event.preventDefault();
-
-        postScan('/library-visits', {
-            preserveScroll: true,
-            onStart: () => setScanError(undefined),
-            onError: (errors) => {
-                setScanError(typeof errors.rfid_uid === 'string' ? errors.rfid_uid : 'Unable to record this visit.');
-            },
-            onSuccess: () => {
-                setScanTargets([]);
-            },
-            onFinish: () => {
-                setScanData('rfid_uid', '');
-                resetScan('rfid_uid');
-            },
-        });
-    };
-
-    useRFIDScanListener({
-        enabled: !scanning,
-        onScanStart: () => setScanError(undefined),
-        onError: (errors) => {
-            setScanError(typeof errors.rfid_uid === 'string' ? errors.rfid_uid : 'Unable to record this visit.');
-        },
-        onFinish: () => {
-            router.reload({
-                only: ['visitMonitor'],
-            });
-        },
-    });
-
-    useEffect(() => {
-        const search = scanData.rfid_uid.trim();
-
-        if (search.length < 1) {
-            setScanTargets([]);
-            setLoadingScanTargets(false);
-            return;
-        }
-
-        const controller = new AbortController();
-        const timer = window.setTimeout(async () => {
-            setLoadingScanTargets(true);
-
-            try {
-                const response = await csrfFetch(`/admin/live-visits/scan-targets?search=${encodeURIComponent(search)}`, {
-                    signal: controller.signal,
-                });
-                const payload = await response.json().catch(() => null);
-
-                if (response.ok) {
-                    setScanTargets(payload?.targets ?? []);
-                }
-            } catch (error) {
-                if (!(error instanceof DOMException && error.name === 'AbortError')) {
-                    setScanTargets([]);
-                }
-            } finally {
-                if (!controller.signal.aborted) {
-                    setLoadingScanTargets(false);
-                }
-            }
-        }, 180);
-
-        return () => {
-            controller.abort();
-            window.clearTimeout(timer);
-        };
-    }, [scanData.rfid_uid]);
+    const page = useLiveVisitsPage(visitMonitor);
+    const lastVisit = page.liveVisitMonitor.todayVisits[0];
 
     return (
         <>
@@ -188,46 +32,44 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
                             actions={
                                 <div className="flex items-center gap-2 text-sm text-[#030A8C]">
                                     <Clock3 className="size-4" />
-                                    <span>{formattedManilaTime}</span>
+                                    <span>{page.formattedManilaTime}</span>
                                 </div>
                             }
                         />
 
                         <LiveVisitMetrics
-                            visitsToday={liveVisitMonitor.metrics.visitsToday}
-                            studentVisitsToday={liveVisitMonitor.metrics.studentVisitsToday}
-                            employeeVisitsToday={liveVisitMonitor.metrics.employeeVisitsToday}
+                            visitsToday={page.liveVisitMonitor.metrics.visitsToday}
+                            studentVisitsToday={page.liveVisitMonitor.metrics.studentVisitsToday}
+                            employeeVisitsToday={page.liveVisitMonitor.metrics.employeeVisitsToday}
+                            scanStartsAt={page.liveVisitMonitor.scanWindow.starts_at}
                         />
 
                         <LiveVisitScanner
-                            value={scanData.rfid_uid}
-                            options={scanTargetOptions}
+                            value={page.scanData.rfid_uid}
+                            options={page.scanTargetOptions}
                             inputRef={scanInputRef}
-                            processing={scanning}
-                            loadingOptions={loadingScanTargets}
-                            error={scanError}
-                            onChange={(value) => setScanData('rfid_uid', value)}
-                            onSubmit={submitScan}
+                            processing={page.scanning}
+                            loadingOptions={page.loadingScanTargets}
+                            error={page.scanError}
+                            onChange={(value) => page.setScanData('rfid_uid', value)}
+                            onSubmit={page.submitScan}
                         />
 
-                        <LatestVisitCard
-                            visit={lastVisit ?? null}
-                            emptyMessage="Scanned students and employees will appear in the live table below."
-                        />
+                        <LatestVisitCard visit={lastVisit ?? null} emptyMessage="Scanned students and employees will appear in the live table below." />
 
                         <LiveVisitsTable
-                            visits={liveVisitMonitor.todayVisits}
-                            studentCount={liveVisitMonitor.metrics.studentVisitsToday}
-                            employeeCount={liveVisitMonitor.metrics.employeeVisitsToday}
-                            onVisitSelect={setSelectedVisit}
+                            visits={page.liveVisitMonitor.todayVisits}
+                            studentCount={page.liveVisitMonitor.metrics.studentVisitsToday}
+                            employeeCount={page.liveVisitMonitor.metrics.employeeVisitsToday}
+                            onVisitSelect={page.setSelectedVisit}
                         />
                     </div>
                     <VisitDetailsModal
-                        visit={selectedVisit}
-                        open={Boolean(selectedVisit)}
+                        visit={page.selectedVisit}
+                        open={Boolean(page.selectedVisit)}
                         onOpenChange={(open) => {
                             if (!open) {
-                                setSelectedVisit(null);
+                                page.setSelectedVisit(null);
                             }
                         }}
                     />

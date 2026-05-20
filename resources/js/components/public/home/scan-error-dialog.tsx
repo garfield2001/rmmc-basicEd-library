@@ -16,9 +16,9 @@ export function ScanErrorDialog({ open, error, countdown, onOpenChange }: ScanEr
 
     return (
         <Dialog open={open && Boolean(error)} onOpenChange={onOpenChange}>
-            <DialogContent className="min-h-135 overflow-hidden p-0 sm:max-w-5xl">
+            <DialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto p-0 sm:min-h-135 sm:max-w-5xl">
                 <div className={`h-3 ${isRestrictedRescan ? 'bg-[#040DBF]' : 'bg-red-600'}`} />
-                <div className="flex min-h-134.25 flex-col justify-center p-6 text-center sm:p-10">
+                <div className="flex flex-col justify-center p-6 text-center sm:min-h-134.25 sm:p-10">
                     <div
                         className={`mx-auto flex size-24 items-center justify-center rounded-xl ${
                             isRestrictedRescan ? 'bg-[#040DBF]/10 text-[#040DBF]' : 'bg-red-50 text-red-600'

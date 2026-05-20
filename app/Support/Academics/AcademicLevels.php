@@ -54,8 +54,8 @@ class AcademicLevels
     public static function shortLabel(?string $yearLevel): ?string
     {
         return match ($yearLevel) {
-            'Kindergarten 1' => 'Kinder 1',
-            'Kindergarten 2' => 'Kinder 2',
+            'Kindergarten 1' => 'Kd 1',
+            'Kindergarten 2' => 'Kd 2',
             'Grade 1' => 'Gr 1',
             'Grade 2' => 'Gr 2',
             'Grade 3' => 'Gr 3',

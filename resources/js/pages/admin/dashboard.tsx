@@ -47,19 +47,19 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                     <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
                             title="Dashboard"
-                            description="A school-year view of registered visitors, visit traffic, and required visit progress."
+                            description="A school-year view of registered visitors, library visit tracking, and required visit progress."
                             actions={<DashboardActions requiredProgress={dashboard.charts.requiredProgress} />}
                         />
 
-                        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                        <section className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
                             {metrics.map((metric) => (
                                 <MetricCard key={metric.label} {...metric} />
                             ))}
                         </section>
 
-                        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.9fr)_minmax(20rem,0.9fr)]">
+                        <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.9fr)_minmax(20rem,0.9fr)]">
                             <ChartCard
-                                title="Visit Traffic"
+                                title="Visit Trends"
                                 detail={trafficDetail}
                                 icon={CalendarRange}
                                 actions={
@@ -92,7 +92,7 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                             </ChartCard>
                         </section>
 
-                        <section>
+                        <section className="min-w-0">
                             <ActivityBreakdownCard dashboard={dashboard} />
                         </section>
                     </div>

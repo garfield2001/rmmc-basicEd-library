@@ -55,7 +55,7 @@ class LibraryMemberTableService
             ->search($search)
             ->when($type === LibraryMember::TYPE_STUDENT, function (Builder $query) use ($activeSchoolYearId, $yearLevel, $section): void {
                 if (! $activeSchoolYearId) {
-                    $query->whereRaw('1 = 0');
+                    $query->whereKey([]);
 
                     return;
                 }
@@ -71,7 +71,7 @@ class LibraryMemberTableService
                 $type === LibraryMember::TYPE_EMPLOYEE,
                 function (Builder $query) use ($activeSchoolYearId, $department): void {
                     if (! $activeSchoolYearId) {
-                        $query->whereRaw('1 = 0');
+                        $query->whereKey([]);
 
                         return;
                     }

@@ -34,8 +34,8 @@ class DatabaseSeederTest extends TestCase
 
         $schoolYear = SchoolYear::query()->where('name', '2026-2027')->firstOrFail();
 
-        $this->assertSame('2026-05-01', $schoolYear->starts_at->toDateString());
-        $this->assertSame('2027-03-07', $schoolYear->ends_at->toDateString());
+        $this->assertSame('2026-05-01', $schoolYear->startDateString());
+        $this->assertSame('2027-03-07', $schoolYear->endDateString());
         $this->assertTrue($schoolYear->is_active);
     }
 
@@ -49,8 +49,8 @@ class DatabaseSeederTest extends TestCase
         ]);
         $activeSchoolYear = SchoolYear::query()->where('name', '2026-2027')->firstOrFail();
 
-        $this->assertSame('2026-05-01', $activeSchoolYear->starts_at->toDateString());
-        $this->assertSame('2027-03-07', $activeSchoolYear->ends_at->toDateString());
+        $this->assertSame('2026-05-01', $activeSchoolYear->startDateString());
+        $this->assertSame('2027-03-07', $activeSchoolYear->endDateString());
         $this->assertTrue($activeSchoolYear->is_active);
 
         $manualStudent = LibraryMember::query()

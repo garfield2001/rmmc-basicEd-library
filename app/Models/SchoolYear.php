@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class SchoolYear extends Model
 {
@@ -54,5 +55,25 @@ class SchoolYear extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    public function startDate(): Carbon
+    {
+        return Carbon::parse($this->starts_at);
+    }
+
+    public function endDate(): Carbon
+    {
+        return Carbon::parse($this->ends_at);
+    }
+
+    public function startDateString(): string
+    {
+        return $this->startDate()->toDateString();
+    }
+
+    public function endDateString(): string
+    {
+        return $this->endDate()->toDateString();
     }
 }

@@ -3,7 +3,7 @@ import type { AdminNavItem } from './admin-layout.types';
 
 export const sidebarCollapsedStorageKey = 'rmmc-admin-sidebar-collapsed-v1';
 
-export const adminThemePreferenceStorageKey = 'rmmc-admin-theme-preference-v1';
+export const adminThemePreferenceStorageKey = 'rmmc-admin-theme-preference-v2';
 
 export const RMMC_LOGO_PATH = '/images/rmmc_logo.svg';
 

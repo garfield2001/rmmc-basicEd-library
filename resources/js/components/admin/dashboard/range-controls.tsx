@@ -32,6 +32,7 @@ interface RangeControlsProps {
     onEndDateChange: (value: string) => void;
     onClearDates?: () => void;
     className?: string;
+    compact?: boolean;
 }
 
 export function RangeControls({
@@ -45,6 +46,7 @@ export function RangeControls({
     onEndDateChange,
     onClearDates,
     className,
+    compact = false,
 }: RangeControlsProps) {
     const clearDates =
         onClearDates ??
@@ -55,14 +57,21 @@ export function RangeControls({
         });
 
     return (
-        <div className={cn('flex w-full flex-wrap items-center gap-2', className)}>
-            <div className="admin-segmented-tabs">
+        <div
+            className={cn(
+                compact
+                    ? 'flex w-full min-w-0 flex-wrap items-center justify-between gap-2'
+                    : 'flex w-full min-w-0 flex-wrap items-center justify-between gap-2',
+                className,
+            )}
+        >
+            <div className="admin-segmented-tabs max-w-full flex-nowrap overflow-x-auto">
                 {(['last7', 'last14', 'lastMonth'] as VisitTrafficRange[]).map((range) => (
                     <button
                         key={range}
                         type="button"
                         onClick={() => onRangeChange(range)}
-                        className={`admin-segmented-tab rounded-md px-2.5 py-1.5 text-xs font-semibold transition ${
+                        className={`admin-segmented-tab rounded-md px-2.5 py-1.5 text-xs font-semibold whitespace-nowrap transition ${
                             value === range ? 'admin-segmented-tab-active' : 'text-[#020659]/75 hover:bg-white hover:text-[#010440]'
                         }`}
                     >
@@ -70,7 +79,12 @@ export function RangeControls({
                     </button>
                 ))}
             </div>
-            <div className="grid w-full min-w-0 gap-2 sm:w-auto sm:grid-cols-[minmax(10.5rem,11rem)_minmax(10.5rem,11rem)_auto]">
+            <div
+                className={cn(
+                    'grid w-full min-w-0 gap-2 sm:ml-auto sm:w-auto sm:grid-cols-[minmax(10.5rem,11rem)_minmax(10.5rem,11rem)_auto]',
+                    compact && 'min-[1180px]:w-auto',
+                )}
+            >
                 <DateInput
                     value={startDate}
                     onChange={onStartDateChange}

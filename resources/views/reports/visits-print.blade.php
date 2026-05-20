@@ -4,192 +4,81 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Library Progress Report</title>
-        <style>
-            body {
-                color: #111827;
-                font-family: Arial, Helvetica, sans-serif;
-                font-size: 12pt;
-                margin: 36px 44px 36px 36px;
-            }
-
-            header {
-                display: flex;
-                justify-content: space-between;
-                gap: 24px;
-                margin-bottom: 24px;
-            }
-
-            h1 {
-                font-size: 18pt;
-                margin: 0 0 6px;
-            }
-
-            .report-meta {
-                color: #111827;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px 20px;
-                font-size: 12pt;
-                font-weight: 700;
-                margin-top: 10px;
-            }
-
-            .report-range {
-                color: #52525b;
-                font-size: 12pt;
-                margin-top: 6px;
-            }
-
-            p {
-                color: #52525b;
-                margin: 0;
-            }
-
-            button {
-                align-items: center;
-                background: #040dbf;
-                border: 0;
-                border-radius: 8px;
-                color: #ffffff;
-                cursor: pointer;
-                display: inline-flex;
-                font-size: 12pt;
-                font-weight: 700;
-                gap: 8px;
-                padding: 11px 16px;
-                text-decoration: none;
-            }
-
-            .actions {
-                display: flex;
-                gap: 8px;
-                justify-content: flex-end;
-            }
-
-            table {
-                border-collapse: collapse;
-                font-size: 12pt;
-                table-layout: fixed;
-                width: 100%;
-            }
-
-            th,
-            td {
-                border: 1px solid #d4d4d8;
-                padding: 8px 10px;
-                text-align: left;
-                vertical-align: top;
-                white-space: nowrap;
-            }
-
-            th {
-                background: #e8eefc;
-                color: #111827;
-            }
-
-            tbody tr:nth-child(even) td {
-                background: #f8fafc;
-            }
-
-            .summary {
-                display: flex;
-                gap: 12px;
-                margin-bottom: 20px;
-            }
-
-            .summary div {
-                border: 1px solid #d4d4d8;
-                border-radius: 10px;
-                padding: 12px;
-            }
-
-            @media print {
-                .actions {
-                    display: none;
-                }
-
-                body {
-                    margin: 0.35in 0.45in 0.35in 0.35in;
-                }
-            }
-        </style>
+        @include('reports.partials.print-styles')
     </head>
     <body>
         @php
-            $isStudentReport = ($report['summary']['visitor_type'] ?? null) === 'student';
-            $columns = [
-                ['key' => 'school_id', 'label' => 'School ID', 'width' => '14%'],
-                ['key' => 'name', 'label' => 'Name', 'width' => '32%'],
-                $isStudentReport
-                    ? ['key' => 'year_section', 'label' => 'Year/Section', 'width' => '24%']
-                    : ['key' => 'department', 'label' => 'Department', 'width' => '24%'],
-                ['key' => 'visits', 'label' => 'Visits', 'width' => '11%'],
-                ['key' => 'excess_visits', 'label' => 'Excess', 'width' => '9%'],
-                ['key' => 'progress', 'label' => 'Progress', 'width' => '10%'],
-            ];
+            $columns ??= [];
+            $groups ??= [['label' => 'All visitors', 'rows' => $report['rows']]];
+            $visitorType = ucfirst((string) ($report['summary']['visitor_type'] ?? 'visitor'));
+            $groupPrefix = ($report['summary']['visitor_type'] ?? null) === 'student' ? 'Year & Section' : 'Department';
+            $fromDate = \Carbon\Carbon::parse($report['filters']['start_date'])->format('F j, Y');
+            $toDate = \Carbon\Carbon::parse($report['filters']['end_date'])->format('F j, Y');
         @endphp
 
-        <header>
-            <div>
-                <h1>Library Progress Report</h1>
-                <div class="report-meta">
-                    <span>School year: {{ $report['school_year']['name'] ?? 'No school year' }}</span>
-                    <span>Visitor type: {{ ucfirst($report['summary']['visitor_type']) }}s</span>
+        <main class="report-shell">
+            @if ($showActions ?? true)
+                <div class="top-actions">
+                    <button class="report-action" type="button" onclick="window.print()">Print report</button>
                 </div>
-                <p class="report-range">From {{ $report['filters']['start_date'] }} to {{ $report['filters']['end_date'] }}</p>
-            </div>
-            <div class="actions">
-                <button onclick="window.print()">Print report</button>
-            </div>
-        </header>
+            @endif
 
-        <section class="summary">
-            <div><strong>{{ $report['summary']['visitors'] }}</strong><br>Visitors</div>
-            <div><strong>{{ $report['summary']['total_visits'] }}</strong><br>Total visits</div>
-            <div><strong>{{ $report['summary']['required_visits'] }}</strong><br>Required visits</div>
-        </section>
+            @include('reports.partials.report-letterhead')
 
-        <table>
-            <thead>
-                <tr>
-                    @foreach ($columns as $column)
-                        <th style="width: {{ $column['width'] }}">{{ $column['label'] }}</th>
-                    @endforeach
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($report['rows'] as $row)
-                    <tr>
-                        @foreach ($columns as $column)
-                            <td>
-                                @switch($column['key'])
-                                    @case('school_id')
-                                        {{ $row['school_id'] }}
-                                        @break
-                                    @case('name')
-                                        {{ $row['name'] }}
-                                        @break
-                                    @case('year_section')
-                                        {{ ($row['year_section_label'] ?? collect([$row['year_level'] ?? null, $row['section'] ?? null])->filter()->implode(' - ')) ?: '-' }}
-                                        @break
-                                    @case('department')
-                                        {{ $row['department'] ?? '-' }}
-                                        @break
-                                    @case('visits')
-                                        {{ $row['visit_count'] }} / {{ $report['summary']['required_visits'] }}
-                                        @break
-                                    @case('excess_visits')
-                                        {{ $row['excess_visits'] ?? 0 }}
-                                        @break
-                                    @case('progress')
-                                        {{ $row['progress_percent'] }}%
-                                        @break
-                                @endswitch
-                            </td>
+            <h1>Library Progress Report</h1>
+            <section class="meta-grid">
+                <div><span class="meta-label">School Year:</span> {{ $report['school_year']['name'] ?? 'No school year' }}</div>
+                <div><span class="meta-label">Visitor Type:</span> {{ $visitorType }}</div>
+                <div><span class="meta-label">From:</span> {{ $fromDate }}</div>
+                <div><span class="meta-label">To:</span> {{ $toDate }}</div>
+            </section>
+
+            @foreach ($groups as $group)
+                <div class="group-title">{{ $groupPrefix }}: {{ $group['label'] }}</div>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            @foreach ($columns as $column)
+                                <th style="width: {{ $column['width'] }}">{{ $column['label'] }}</th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($group['rows'] as $row)
+                            <tr>
+                                @foreach ($columns as $column)
+                                    <td>
+                                        @switch($column['key'])
+                                            @case('school_id')
+                                                {{ $row['school_id'] }}
+                                                @break
+                                            @case('name')
+                                                {{ $row['name'] }}
+                                                @break
+                                            @case('visits')
+                                                {{ $row['visit_count'] }} / {{ $report['summary']['required_visits'] }}
+                                                @break
+                                            @case('excess_visits')
+                                                {{ $row['excess_visits'] ?? 0 }}
+                                                @break
+                                            @case('progress')
+                                                {{ $row['progress_percent'] }}%
+                                                @break
+                                        @endswitch
+                                    </td>
+                                @endforeach
+                            </tr>
                         @endforeach
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+                    </tbody>
+                </table>
+                <section class="group-summary">
+                    <div>Visitors: {{ $group['summary']['visitors'] ?? count($group['rows']) }}</div>
+                    <div>Total Visits: {{ $group['summary']['total_visits'] ?? collect($group['rows'])->sum('visit_count') }}</div>
+                    <div>Excess Visits: {{ $group['summary']['excess_visits'] ?? collect($group['rows'])->sum('excess_visits') }}</div>
+                </section>
+            @endforeach
+        </main>
     </body>
 </html>
+
+

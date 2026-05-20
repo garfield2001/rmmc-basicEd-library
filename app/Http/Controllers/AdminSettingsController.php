@@ -8,7 +8,7 @@ use Inertia\Response;
 
 class AdminSettingsController extends Controller
 {
-    public function __invoke(LibraryScanSettingsService $scanSettings): Response
+    public function index(LibraryScanSettingsService $scanSettings): Response
     {
         return Inertia::render('admin/settings', [
             'scanSettings' => $scanSettings->toPageProps(),

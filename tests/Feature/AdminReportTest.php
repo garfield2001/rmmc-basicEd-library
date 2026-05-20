@@ -11,8 +11,10 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
+use ZipArchive;
 
 class AdminReportTest extends TestCase
 {
@@ -148,6 +150,139 @@ class AdminReportTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+    }
+
+    public function test_office_and_pdf_report_exports_keep_progress_column_visible(): void
+    {
+        $user = User::factory()->create(['role' => 'admin']);
+        $schoolYear = SchoolYear::factory()->active()->create([
+            'name' => '2025-2026',
+            'starts_at' => '2025-06-01',
+            'ends_at' => '2026-02-03',
+            'student_required_visits' => 4,
+        ]);
+        $student = LibraryMember::factory()->student()->create([
+            'school_id' => '2603010018',
+            'first_name' => 'Alden',
+            'last_name' => 'Abbott',
+        ]);
+
+        StudentSchoolYearRecord::factory()->create([
+            'library_member_id' => $student->id,
+            'school_year_id' => $schoolYear->id,
+            'year_level' => 'Grade 1',
+            'section' => 'Bonifacio',
+        ]);
+
+        LibraryVisit::factory()->count(2)->create([
+            'library_member_id' => $student->id,
+            'school_year_id' => $schoolYear->id,
+            'visited_at' => '2025-08-01 09:00:00',
+        ]);
+
+        $query = http_build_query([
+            'school_year_id' => $schoolYear->id,
+            'start_date' => '2025-06-01',
+            'end_date' => '2026-02-03',
+            'visitor_type' => LibraryMember::TYPE_STUDENT,
+        ]);
+
+        $excel = $this->actingAs($user)
+            ->get("/admin/reports/visits.xlsx?{$query}")
+            ->assertOk()
+            ->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+        $this->assertStringContainsString('Progress', $this->zipText($excel));
+        $this->assertStringContainsString('50%', $this->zipText($excel));
+        $this->assertStringContainsString('Gr 1 - Bonifacio', $this->zipText($excel));
+
+        $word = $this->actingAs($user)
+            ->get("/admin/reports/visits.docx?{$query}")
+            ->assertOk()
+            ->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+
+        $this->assertStringContainsString('RAMON MAGSAYSAY MEMORIAL', $this->zipText($word));
+        $this->assertStringContainsString('Gr 1 - Bonifacio', $this->zipText($word));
+        $this->assertStringContainsString('Progress', $this->zipText($word));
+
+        $this->actingAs($user)
+            ->get("/admin/reports/visits/print?{$query}")
+            ->assertOk()
+            ->assertDontSee('Save as Word', false)
+            ->assertDontSee('Save as PDF', false)
+            ->assertSee('Print report', false)
+            ->assertDontSee('saveReportAsWord', false)
+            ->assertDontSee('saveReportAsPdf', false)
+            ->assertDontSee('visits/print.doc', false)
+            ->assertDontSee('visits/print.pdf', false)
+            ->assertSee('Gr 1 - Bonifacio', false)
+            ->assertSee('Progress', false)
+            ->assertSee('50%', false);
+
+        $this->actingAs($user)
+            ->get("/admin/reports/visits.pdf?{$query}")
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf')
+            ->assertSee('%PDF', false);
+    }
+
+    private function zipText(TestResponse $response): string
+    {
+        $zip = new ZipArchive;
+        $text = '';
+
+        $zip->open($response->baseResponse->getFile()->getPathname());
+
+        for ($index = 0; $index < $zip->numFiles; $index++) {
+            $name = $zip->getNameIndex($index);
+
+            if (str_ends_with($name, '.xml')) {
+                $text .= $zip->getFromIndex($index);
+            }
+        }
+
+        $zip->close();
+
+        return $text;
+    }
+
+    public function test_student_report_rows_use_academic_order_then_last_name(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $schoolYear = SchoolYear::factory()->active()->create([
+            'starts_at' => '2026-06-01',
+            'ends_at' => '2027-03-31',
+        ]);
+
+        collect([
+            ['Grade 1', 'Zulu', 'Ana', '1000000001'],
+            ['Kindergarten 2', 'Bravo', 'Ben', '1000000002'],
+            ['Kindergarten 1', 'Delta', 'Cora', '1000000003'],
+            ['Kindergarten 1', 'Alpha', 'Dina', '1000000004'],
+        ])->each(function (array $student) use ($schoolYear): void {
+            [$yearLevel, $lastName, $firstName, $schoolId] = $student;
+            $visitor = LibraryMember::factory()->student()->create([
+                'school_id' => $schoolId,
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+            ]);
+
+            StudentSchoolYearRecord::factory()->create([
+                'library_member_id' => $visitor->id,
+                'school_year_id' => $schoolYear->id,
+                'year_level' => $yearLevel,
+                'section' => 'A',
+            ]);
+        });
+
+        $this->actingAs($admin)
+            ->get("/admin/reports?school_year_id={$schoolYear->id}&start_date=2026-06-01&end_date=2027-03-31&visitor_type=student")
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('report.rows.0.last_name', 'Alpha')
+                ->where('report.rows.1.last_name', 'Delta')
+                ->where('report.rows.2.last_name', 'Bravo')
+                ->where('report.rows.3.last_name', 'Zulu'));
     }
 
     public function test_report_progress_keeps_students_and_employees_separate(): void

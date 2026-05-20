@@ -9,10 +9,19 @@
 
 @layer base {
     html {
+        background-color: #f6f8ff;
+        color: #010440;
+        color-scheme: only light;
         font-family: var(--font-sans);
         overflow-y: scroll;
         scrollbar-color: rgb(4 13 191 / 0.35) rgb(246 248 255);
         scrollbar-width: thin;
+    }
+
+    html[data-admin-theme='dark'] {
+        background-color: #020617;
+        color: #e5edff;
+        color-scheme: dark;
     }
 
     html::-webkit-scrollbar {
@@ -32,10 +41,6 @@
 
     html::-webkit-scrollbar-thumb:hover {
         background: rgb(3 10 140 / 0.55);
-    }
-
-    html[data-admin-theme='dark'] {
-        scrollbar-color: rgb(96 165 250 / 0.52) rgb(15 23 42);
     }
 
     html[data-admin-theme='dark'] body {
@@ -69,7 +74,11 @@
     }
 
     body {
+        min-height: 100vh;
         margin: 0;
+        background-color: #f6f8ff;
+        color: #010440;
+        color-scheme: only light;
         --chart-1: #2563eb;
         --chart-2: #059669;
         --chart-3: #7c3aed;
@@ -77,10 +86,27 @@
         --chart-5: #dc2626;
     }
 
+    html[data-admin-theme='dark'] body {
+        background-color: #020617;
+        color: #e5edff;
+        color-scheme: dark;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+        color-scheme: inherit;
+    }
+
     html.modal-scroll-locked,
     body.modal-scroll-locked {
-        overflow: hidden;
+        overflow: hidden !important;
         scrollbar-gutter: stable;
+    }
+
+    html.modal-scroll-locked body {
+        overflow: hidden !important;
     }
 
     :is(button, summary, a[href], input[type='checkbox'], input[type='radio'], select, [role='button']):not(:disabled) {
@@ -210,6 +236,27 @@
     .public-admin-copy {
         font-size: clamp(1rem, 1.15vw, 1.375rem);
         line-height: 1.55;
+    }
+
+    @media (max-width: 639px) {
+        .public-display-title {
+            font-size: clamp(3rem, 16vw, 4.75rem);
+            line-height: 0.98;
+        }
+
+        .public-display-copy {
+            font-size: clamp(1.125rem, 6vw, 1.55rem);
+            line-height: 1.42;
+        }
+
+        .public-display-school {
+            font-size: clamp(1.3rem, 6.4vw, 2rem);
+            line-height: 1.18;
+        }
+
+        .public-display-label {
+            font-size: clamp(1.05rem, 4.8vw, 1.45rem);
+        }
     }
 
     .admin-content-shell {

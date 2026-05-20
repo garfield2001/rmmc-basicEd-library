@@ -7,6 +7,10 @@ export type DateRangeMode = '' | 'school_year' | 'custom';
 export type AllFilterValue = '__all__';
 export type ReportSortColumn = 'school_id' | 'name' | 'group' | 'visit_count' | 'progress_percent';
 export type SortDirection = 'asc' | 'desc';
+export type SchoolYearBounds = {
+    start: string;
+    end: string;
+};
 
 export const rowsPerPage = 10;
 export const allFilterValue: AllFilterValue = '__all__';
@@ -54,7 +58,7 @@ export function inferDateRangeMode(schoolYear: VisitReportSchoolYear | null, sta
     return 'custom';
 }
 
-export function getSchoolYearBounds(schoolYear: VisitReportSchoolYear | null) {
+export function getSchoolYearBounds(schoolYear: VisitReportSchoolYear | null): SchoolYearBounds | null {
     if (!schoolYear) {
         return null;
     }
@@ -86,6 +90,10 @@ export function summarizeDateRange(startDate: string, endDate: string) {
 }
 
 function reportSortValue(row: VisitReportRow, column: ReportSortColumn, visitorType: VisitorTypeFilter) {
+    if (column === 'name') {
+        return [row.last_name, row.first_name, row.name].filter(Boolean).join(' ');
+    }
+
     if (column === 'group') {
         return visitorType === 'student'
             ? (row.year_section_label ?? [row.year_level, row.section].filter(Boolean).join(' '))

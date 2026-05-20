@@ -2,6 +2,8 @@ export interface VisitReportRow {
     id: number;
     school_id: string | null;
     name: string | null;
+    first_name: string | null;
+    last_name: string | null;
     type: string | null;
     department: string | null;
     year_level: string | null;

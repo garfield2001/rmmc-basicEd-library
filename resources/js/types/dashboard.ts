@@ -62,6 +62,10 @@ export interface RequiredProgressPoint {
 }
 
 export interface AdminDashboard {
+    scanWindow: {
+        starts_at: string;
+        ends_at: string;
+    };
     schoolYear:
         | (SchoolYearSummary & {
               starts_at?: string;
@@ -85,6 +89,11 @@ export interface AdminDashboard {
         dailyVisits: VisitTrendPoint[];
         studentActivityVisits: StudentActivityVisit[];
         employeeActivityVisits: EmployeeActivityVisit[];
+        activityGroups: {
+            yearLevels: string[];
+            sections: string[];
+            departments: string[];
+        };
         studentVisitsByYearLevel: ChartPoint[];
         studentVisitsBySection: ChartPoint[];
         employeeVisitsByDepartment: ChartPoint[];
@@ -93,6 +102,10 @@ export interface AdminDashboard {
 }
 
 export interface AdminVisitMonitor {
+    scanWindow: {
+        starts_at: string;
+        ends_at: string;
+    };
     metrics: {
         visitsToday: number;
         studentVisitsToday: number;
@@ -136,6 +149,8 @@ export interface VisitHistoryVisitor {
     id: number;
     schoolId: string | null;
     name: string | null;
+    firstName: string | null;
+    lastName: string | null;
     type: 'student' | 'employee' | null;
     yearLevel: string | null;
     section: string | null;

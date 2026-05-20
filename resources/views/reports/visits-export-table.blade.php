@@ -1,90 +1,124 @@
 <!doctype html>
-<html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:x="urn:schemas-microsoft-com:office:excel"
+      xmlns:w="urn:schemas-microsoft-com:office:word">
 <head>
     <meta charset="utf-8">
     <title>Library Progress Report</title>
-    <style>
-        @page { size: 11in 8.5in; margin: 0.6in; }
-        body { font-family: Arial, Helvetica, sans-serif; color: #111827; font-size: 12pt; }
-        h1 { font-size: 18pt; margin-bottom: 6pt; }
-        p { margin: 0 0 8pt; color: #4b5563; font-size: 12pt; }
-        .meta { margin: 8pt 0 16pt; font-size: 12pt; }
-        .meta strong { color: #111827; }
-        .summary { margin: 16pt 0; border: 0; }
-        .summary td { border: 0; font-size: 12pt; font-weight: 700; padding: 4pt 18pt 4pt 0; white-space: nowrap; }
-        table { width: 98%; border-collapse: collapse; font-size: 12pt; table-layout: fixed; }
-        th, td { border: 1px solid #d1d5db; padding: 7pt 8pt; text-align: left; vertical-align: middle; white-space: nowrap; mso-number-format: '\@'; }
-        th { background: #e8eefc; color: #111827; font-size: 12pt; font-weight: 700; }
-        tbody tr:nth-child(even) td { background: #f8fafc; }
-        tbody tr:nth-child(odd) td { background: #ffffff; }
-        .text-cell { mso-number-format: '\@'; }
-    </style>
+    @verbatim
+    <!--[if gte mso 9]>
+    <xml>
+        <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+                <x:ExcelWorksheet>
+                    <x:Name>Library Progress Report</x:Name>
+                    <x:WorksheetOptions>
+                        <x:PageSetup>
+                            <x:Layout x:Orientation="Portrait"/>
+                            <x:PaperSizeIndex>1</x:PaperSizeIndex>
+                            <x:Scale>95</x:Scale>
+                        </x:PageSetup>
+                        <x:FitToPage/>
+                        <x:Print>
+                            <x:FitWidth>1</x:FitWidth>
+                            <x:FitHeight>0</x:FitHeight>
+                            <x:ValidPrinterInfo/>
+                            <x:HorizontalResolution>600</x:HorizontalResolution>
+                            <x:VerticalResolution>600</x:VerticalResolution>
+                        </x:Print>
+                    </x:WorksheetOptions>
+                </x:ExcelWorksheet>
+            </x:ExcelWorksheets>
+        </x:ExcelWorkbook>
+        <w:WordDocument>
+            <w:View>Print</w:View>
+            <w:Zoom>100</w:Zoom>
+        </w:WordDocument>
+    </xml>
+    <![endif]-->
+    @endverbatim
+    @include('reports.partials.export-styles')
 </head>
 <body>
     @php
         $columns ??= [];
+        $groups ??= [['label' => 'All visitors', 'rows' => $report['rows']]];
+        $visitorType = ucfirst((string) ($report['summary']['visitor_type'] ?? 'visitor'));
+        $groupPrefix = ($report['summary']['visitor_type'] ?? null) === 'student' ? 'Year & Section' : 'Department';
+        $fromDate = \Carbon\Carbon::parse($report['filters']['start_date'])->format('F j, Y');
+        $toDate = \Carbon\Carbon::parse($report['filters']['end_date'])->format('F j, Y');
     @endphp
 
-    <h1>Library Progress Report</h1>
-    <div class="meta">
-        <p><strong>School year:</strong> {{ $report['school_year']['name'] ?? 'No school year' }} &nbsp;&nbsp; <strong>Visitor type:</strong> {{ ucfirst($report['summary']['visitor_type']) }}s</p>
-        <p><strong>From</strong> {{ $report['filters']['start_date'] }} <strong>to</strong> {{ $report['filters']['end_date'] }}</p>
-    </div>
+    <div class="Section1">
+        <div class="report-inner">
+            @include('reports.partials.report-letterhead')
 
-    <table class="summary">
-        <tbody>
-            <tr>
-                <td>Visitors: {{ $report['summary']['visitors'] }}</td>
-                <td>Total Visits: {{ $report['summary']['total_visits'] }}</td>
-                <td>Required Visits: {{ $report['summary']['required_visits'] }}</td>
-            </tr>
-        </tbody>
-    </table>
+            <div class="report-title">Library Progress Report</div>
 
-    <table>
-        <thead>
-            <tr>
-                @foreach ($columns as $column)
-                    <th style="width: {{ $column['width'] }}">{{ $column['label'] }}</th>
-                @endforeach
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($report['rows'] as $row)
-                <tr>
-                    @foreach ($columns as $column)
-                        <td class="{{ in_array($column['key'], ['school_id', 'visits'], true) ? 'text-cell' : '' }}">
-                            @switch($column['key'])
-                                @case('school_year')
-                                    {{ $report['school_year']['name'] ?? '' }}
-                                    @break
-                                @case('school_id')
-                                    {{ $row['school_id'] }}
-                                    @break
-                                @case('name')
-                                    {{ $row['name'] }}
-                                    @break
-                                @case('year_section')
-                                    {{ ($row['year_section_label'] ?? collect([$row['year_level'] ?? null, $row['section'] ?? null])->filter()->implode(' - ')) ?: '-' }}
-                                    @break
-                                @case('department')
-                                    {{ $row['department'] ?? '-' }}
-                                    @break
-                                @case('visits')
-                                    {{ $row['visit_count'] }} / {{ $report['summary']['required_visits'] }}
-                                    @break
-                                @case('excess_visits')
-                                    {{ $row['excess_visits'] ?? 0 }}
-                                    @break
-                                @case('progress')
-                                    {{ $row['progress_percent'] }}%
-                                    @break
-                            @endswitch
-                        </td>
-                    @endforeach
-                </tr>
+            <table class="meta-table">
+                <tbody>
+                    <tr>
+                        <td><span class="meta-label">School Year:</span> {{ $report['school_year']['name'] ?? 'No school year' }}</td>
+                        <td><span class="meta-label">Visitor Type:</span> {{ $visitorType }}</td>
+                    </tr>
+                    <tr>
+                        <td><span class="meta-label">From:</span> {{ $fromDate }}</td>
+                        <td><span class="meta-label">To:</span> {{ $toDate }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            @foreach ($groups as $group)
+                <div class="group-title">{{ $groupPrefix }}: {{ $group['label'] }}</div>
+                <table class="report-table" align="center">
+                    <thead>
+                        <tr>
+                            @foreach ($columns as $column)
+                                <th style="width: {{ $column['width'] }}">{{ $column['label'] }}</th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($group['rows'] as $row)
+                            <tr>
+                                @foreach ($columns as $column)
+                                    <td class="{{ in_array($column['key'], ['school_id', 'visits'], true) ? 'text-cell' : '' }}">
+                                        @switch($column['key'])
+                                            @case('school_id')
+                                                {{ $row['school_id'] }}
+                                                @break
+                                            @case('name')
+                                                {{ $row['name'] }}
+                                                @break
+                                            @case('visits')
+                                                {{ $row['visit_count'] }} / {{ $report['summary']['required_visits'] }}
+                                                @break
+                                            @case('excess_visits')
+                                                {{ $row['excess_visits'] ?? 0 }}
+                                                @break
+                                            @case('progress')
+                                                {{ $row['progress_percent'] }}%
+                                                @break
+                                        @endswitch
+                                    </td>
+                                @endforeach
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                <table class="group-summary">
+                    <tbody>
+                        <tr>
+                            <td>Visitors: {{ $group['summary']['visitors'] ?? count($group['rows']) }}</td>
+                            <td>Total Visits: {{ $group['summary']['total_visits'] ?? collect($group['rows'])->sum('visit_count') }}</td>
+                            <td>Excess Visits: {{ $group['summary']['excess_visits'] ?? collect($group['rows'])->sum('excess_visits') }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             @endforeach
-        </tbody>
-    </table>
+        </div>
+    </div>
 </body>
 </html>
+
+

@@ -44,8 +44,8 @@ class ReportFilterRequest extends FormRequest
                 $startDate = $this->date('start_date');
                 $endDate = $this->date('end_date');
 
-                $schoolYearStart = $schoolYear->starts_at->copy()->startOfDay();
-                $schoolYearEnd = $schoolYear->ends_at->copy()->endOfDay();
+                $schoolYearStart = $schoolYear->startDate()->startOfDay();
+                $schoolYearEnd = $schoolYear->endDate()->endOfDay();
 
                 if ($startDate && $startDate->lt($schoolYearStart)) {
                     $validator->errors()->add('start_date', 'The start date must be within the selected school year.');

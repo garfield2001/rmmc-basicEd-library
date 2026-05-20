@@ -1,0 +1,135 @@
+import { formatDisplayDate } from '@/components/ui/date-input';
+import { SelectInput } from '@/components/ui/select-input';
+import type { VisitReportOptions, VisitReportSchoolYear } from '@/types/reports';
+import { CustomDateRangePicker } from './custom-date-range-picker';
+import { type DateRangeMode, type SchoolYearBounds, type VisitorTypeFilter } from './report-helpers';
+import { ReportVisitorFilters } from './report-visitor-filters';
+
+interface ReportFilterPanelProps {
+    reportOptions: VisitReportOptions;
+    schoolYearId: string;
+    selectedSchoolYear: VisitReportSchoolYear | null;
+    schoolYearBounds: SchoolYearBounds | null;
+    dateRangeMode: DateRangeMode;
+    startDate: string;
+    endDate: string;
+    visitorType: VisitorTypeFilter;
+    yearLevel: string;
+    section: string;
+    department: string;
+    availableSections: string[];
+    dateRangeIsValid: boolean;
+    dateRangeSummary: string;
+    onSchoolYearChange: (value: string) => void;
+    onDateRangeModeChange: (value: DateRangeMode) => void;
+    onCustomDateRangeChange: (startDate: string, endDate: string) => void;
+    onVisitorTypeChange: (value: VisitorTypeFilter) => void;
+    onYearLevelChange: (value: string) => void;
+    onSectionChange: (value: string) => void;
+    onDepartmentChange: (value: string) => void;
+}
+
+export function ReportFilterPanel({
+    reportOptions,
+    schoolYearId,
+    selectedSchoolYear,
+    schoolYearBounds,
+    dateRangeMode,
+    startDate,
+    endDate,
+    visitorType,
+    yearLevel,
+    section,
+    department,
+    availableSections,
+    dateRangeIsValid,
+    dateRangeSummary,
+    onSchoolYearChange,
+    onDateRangeModeChange,
+    onCustomDateRangeChange,
+    onVisitorTypeChange,
+    onYearLevelChange,
+    onSectionChange,
+    onDepartmentChange,
+}: ReportFilterPanelProps) {
+    return (
+        <section className="admin-surface rounded-lg border border-[#040DBF]/10 bg-white/95 p-5 shadow-sm">
+            <div className="grid gap-4 md:grid-cols-3">
+                <label className="text-sm font-medium text-[#010440]">
+                    1. School year
+                    <SelectInput value={schoolYearId} onChange={(event) => onSchoolYearChange(event.target.value)} className="mt-2">
+                        <option value="">Select school year</option>
+                        {reportOptions.schoolYears.map((schoolYear) => (
+                            <option key={schoolYear.id} value={schoolYear.id}>
+                                {schoolYear.name}
+                                {schoolYear.is_active ? ' (active)' : ''}
+                            </option>
+                        ))}
+                    </SelectInput>
+                </label>
+
+                {selectedSchoolYear && (
+                    <label className="text-sm font-medium text-[#010440]">
+                        2. Date coverage
+                        <SelectInput
+                            value={dateRangeMode}
+                            onChange={(event) => onDateRangeModeChange(event.target.value as DateRangeMode)}
+                            className="mt-2"
+                        >
+                            <option value="">Select date coverage</option>
+                            <option value="school_year">Whole school year</option>
+                            <option value="custom">Custom start and end</option>
+                        </SelectInput>
+                    </label>
+                )}
+
+                {selectedSchoolYear && dateRangeMode === 'custom' && schoolYearBounds && (
+                    <label className="text-sm font-medium text-[#010440]">
+                        3. Custom start and end
+                        <CustomDateRangePicker
+                            startDate={startDate}
+                            endDate={endDate}
+                            min={schoolYearBounds.start}
+                            max={schoolYearBounds.end}
+                            onChange={onCustomDateRangeChange}
+                        />
+                    </label>
+                )}
+
+                {dateRangeIsValid && (
+                    <label className="text-sm font-medium text-[#010440]">
+                        {dateRangeMode === 'custom' ? '4.' : '3.'} Visitors
+                        <SelectInput value={visitorType} onChange={(event) => onVisitorTypeChange(event.target.value as VisitorTypeFilter)} className="mt-2">
+                            <option value="">Select visitors</option>
+                            <option value="student">Students</option>
+                            <option value="employee">Employees</option>
+                        </SelectInput>
+                    </label>
+                )}
+
+                {dateRangeIsValid && visitorType && (
+                    <ReportVisitorFilters
+                        reportOptions={reportOptions}
+                        visitorType={visitorType}
+                        yearLevel={yearLevel}
+                        section={section}
+                        department={department}
+                        availableSections={availableSections}
+                        onYearLevelChange={onYearLevelChange}
+                        onSectionChange={onSectionChange}
+                        onDepartmentChange={onDepartmentChange}
+                    />
+                )}
+            </div>
+
+            <div className="mt-4 rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff] px-4 py-3 text-sm text-[#020659]/75">
+                <span className="font-medium text-[#010440]">Selected period:</span> {dateRangeSummary}
+                {schoolYearBounds && (
+                    <span className="block pt-1">
+                        Available dates stay inside {formatDisplayDate(schoolYearBounds.start)} to {formatDisplayDate(schoolYearBounds.end)}.
+                    </span>
+                )}
+            </div>
+        </section>
+    );
+}

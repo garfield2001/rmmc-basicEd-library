@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { paginationItems } from './pagination-utils';
 import { SelectInput } from './select-input';
 
 export type RowsPerPageOption = number | 'all';
@@ -33,13 +34,13 @@ export function PaginationControls({
     const pageItems = paginationItems(currentPage, totalPages);
 
     return (
-        <div className="flex flex-row flex-wrap items-center justify-between gap-3 border-t border-[#040DBF]/10 px-5 py-4 text-sm text-[#020659]/70">
+        <div className="flex flex-col gap-3 border-t border-[#040DBF]/10 px-4 py-4 text-sm text-[#020659]/70 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-5">
             <span className="shrink-0">
                 Showing {total === 0 ? 0 : from}-{to} of {total}
             </span>
-            <div className="flex shrink-0 flex-nowrap items-center gap-2 overflow-x-auto">
+            <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-2">
                 {rowsPerPage && onRowsPerPageChange && (
-                    <div className="w-28 shrink-0">
+                    <div className="w-full shrink-0 sm:w-28">
                         <SelectInput
                             value={rowsPerPage}
                             onChange={(event) => onRowsPerPageChange(event.target.value === 'all' ? 'all' : Number(event.target.value))}
@@ -53,6 +54,36 @@ export function PaginationControls({
                         </SelectInput>
                     </div>
                 )}
+                <div className="flex w-full items-center justify-between gap-2 sm:hidden">
+                    <button
+                        type="button"
+                        onClick={() => onPageChange?.(1)}
+                        disabled={currentPage === 1 || !onPageChange}
+                        className={pageButtonClass}
+                        title="First page"
+                    >
+                        <ChevronsLeft className="size-4" />
+                    </button>
+                    <button type="button" onClick={onPrevious} disabled={currentPage === 1} className={pageButtonClass} title="Previous page">
+                        <ChevronLeft className="size-4" />
+                    </button>
+                    <span className="min-w-0 flex-1 text-center font-semibold whitespace-nowrap text-[#020659]">
+                        Page {currentPage} of {Math.max(totalPages, 1)}
+                    </span>
+                    <button type="button" onClick={onNext} disabled={currentPage === totalPages} className={pageButtonClass} title="Next page">
+                        <ChevronRight className="size-4" />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => onPageChange?.(totalPages)}
+                        disabled={currentPage === totalPages || !onPageChange}
+                        className={pageButtonClass}
+                        title="Last page"
+                    >
+                        <ChevronsRight className="size-4" />
+                    </button>
+                </div>
+                <div className="hidden shrink-0 flex-nowrap items-center gap-2 overflow-x-auto sm:flex">
                 <button
                     type="button"
                     onClick={() => onPageChange?.(1)}
@@ -110,6 +141,7 @@ export function PaginationControls({
                 >
                     <ChevronsRight className="size-4" />
                 </button>
+                </div>
             </div>
         </div>
     );
@@ -117,26 +149,3 @@ export function PaginationControls({
 
 const pageButtonClass =
     'inline-flex h-9 items-center justify-center gap-1 rounded-lg border border-[#040DBF]/15 bg-white px-3 font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-[#040DBF]/15 disabled:hover:bg-white disabled:hover:text-[#020659] disabled:hover:shadow-none';
-
-function paginationItems(currentPage: number, totalPages: number): Array<number | 'ellipsis'> {
-    if (totalPages <= 4) {
-        return Array.from({ length: totalPages }, (_, index) => index + 1);
-    }
-
-    if (currentPage <= 3) {
-        return [1, 2, 3];
-    }
-
-    if (currentPage >= totalPages - 2) {
-        return ['ellipsis', ...Array.from({ length: 4 }, (_, index) => totalPages - 3 + index).filter((page) => page >= 1)];
-    }
-
-    const pages: Array<number | 'ellipsis'> = ['ellipsis'];
-    const endPage = Math.min(totalPages, currentPage + 3);
-
-    for (let page = currentPage; page <= endPage; page += 1) {
-        pages.push(page);
-    }
-
-    return pages;
-}

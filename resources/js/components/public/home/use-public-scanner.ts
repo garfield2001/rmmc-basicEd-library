@@ -1,8 +1,8 @@
-import { PUBLIC_SCANNER_BLOCKED_INPUT_TIMEOUT_MS } from '@/config/timing';
 import { useRFIDScanListener } from '@/hooks/use-rfid-scan-listener';
 import { router } from '@inertiajs/react';
 import { type FormEventHandler, useCallback, useEffect, useRef, useState } from 'react';
 import type { ScanForm } from './types';
+import { useBlockedPublicScannerInput } from './use-blocked-public-scanner-input';
 
 interface UsePublicScannerOptions {
     enabled: boolean;
@@ -135,56 +135,7 @@ export function usePublicScanner({ enabled, cooldownSeconds, onScanStart, onScan
         }
     }, [enabled]);
 
-    useEffect(() => {
-        if (!unavailable || !enabled) {
-            return;
-        }
-
-        let scanBuffer = '';
-        let scanTimer: number | null = null;
-
-        const resetBuffer = () => {
-            scanBuffer = '';
-
-            if (scanTimer) {
-                window.clearTimeout(scanTimer);
-                scanTimer = null;
-            }
-        };
-
-        const blockScanWhileUnavailable = (event: KeyboardEvent) => {
-            const isScanDigit = /^\d$/.test(event.key);
-            const isBufferedScanEnter = event.key === 'Enter' && scanBuffer.length > 0;
-
-            if (!isScanDigit && !isBufferedScanEnter) {
-                return;
-            }
-
-            event.preventDefault();
-            event.stopPropagation();
-            event.stopImmediatePropagation();
-
-            if (isScanDigit) {
-                scanBuffer += event.key;
-
-                if (scanTimer) {
-                    window.clearTimeout(scanTimer);
-                }
-
-                scanTimer = window.setTimeout(resetBuffer, PUBLIC_SCANNER_BLOCKED_INPUT_TIMEOUT_MS);
-                return;
-            }
-
-            resetBuffer();
-        };
-
-        window.addEventListener('keydown', blockScanWhileUnavailable, true);
-
-        return () => {
-            window.removeEventListener('keydown', blockScanWhileUnavailable, true);
-            resetBuffer();
-        };
-    }, [enabled, unavailable]);
+    useBlockedPublicScannerInput({ enabled, unavailable });
 
     useRFIDScanListener({
         enabled: enabled && !unavailable,

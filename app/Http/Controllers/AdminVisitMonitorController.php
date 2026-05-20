@@ -10,7 +10,7 @@ use Inertia\Response;
 
 class AdminVisitMonitorController extends Controller
 {
-    public function __invoke(AdminVisitMonitorService $visitMonitor): Response
+    public function index(AdminVisitMonitorService $visitMonitor): Response
     {
         return Inertia::render('admin/live-visits', [
             'visitMonitor' => $visitMonitor->getData(),

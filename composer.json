@@ -13,7 +13,11 @@
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
         "laravel/reverb": "^1.10",
-        "laravel/tinker": "^2.10.1"
+        "laravel/tinker": "^2.10.1",
+        "maatwebsite/excel": "^3.1",
+        "phpoffice/phpword": "^1.4",
+        "spatie/browsershot": "^5.3",
+        "spatie/laravel-pdf": "^2.8"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -55,6 +59,10 @@
         "dev": [
             "Composer\\Config::disableProcessTimeout",
             "@php scripts/dev.php"
+        ],
+        "local": [
+            "Composer\\Config::disableProcessTimeout",
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve --host=0.0.0.0 --port=8000\" \"pnpm run dev -- --host 0.0.0.0\" \"php artisan reverb:start --host=0.0.0.0 --port=8080\" --names=laravel,vite,reverb --kill-others"
         ]
     },
     "extra": {

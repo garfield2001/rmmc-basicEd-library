@@ -1,3 +1,4 @@
+import { ForcedLogoutListener } from '@/components/auth/forced-logout-listener';
 import { ToastProvider } from '@/components/ui/toaster';
 import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
@@ -67,6 +68,7 @@ export function AdminLayout({ active, children }: AdminLayoutProps) {
 
     return (
         <ToastProvider>
+            <ForcedLogoutListener />
             <AdminRoutePreloader />
             <div
                 className={`admin-theme-root admin-readable grid min-h-screen bg-[#f5f7ff] text-[#010440] transition-[grid-template-columns] duration-300 ${

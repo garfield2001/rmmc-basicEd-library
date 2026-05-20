@@ -125,7 +125,7 @@ class LibraryMemberController extends Controller
     private function departmentOptions(?int $schoolYearId)
     {
         return EmployeeSchoolYearRecord::query()
-            ->when($schoolYearId, fn ($query) => $query->where('school_year_id', $schoolYearId), fn ($query) => $query->whereRaw('1 = 0'))
+            ->forRequiredSchoolYear($schoolYearId)
             ->distinct()
             ->orderBy('department')
             ->pluck('department')

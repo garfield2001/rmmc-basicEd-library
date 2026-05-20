@@ -8,7 +8,7 @@ use Inertia\Response;
 
 class AdminDashboardController extends Controller
 {
-    public function __invoke(AdminDashboardService $dashboard): Response
+    public function index(AdminDashboardService $dashboard): Response
     {
         return Inertia::render('admin/dashboard', [
             'dashboard' => $dashboard->getData(),

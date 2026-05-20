@@ -36,8 +36,8 @@ class StoreSchoolYearRequest extends FormRequest
                     return;
                 }
 
-                $startsAt = Carbon::parse($this->input('starts_at'))->toDateString();
-                $endsAt = Carbon::parse($this->input('ends_at'))->toDateString();
+                $startsAt = $this->dateString($this->input('starts_at'));
+                $endsAt = $this->dateString($this->input('ends_at'));
                 $overlappingSchoolYear = SchoolYear::query()
                     ->whereDate('starts_at', '<=', $endsAt)
                     ->whereDate('ends_at', '>=', $startsAt)
@@ -46,7 +46,7 @@ class StoreSchoolYearRequest extends FormRequest
                 if ($overlappingSchoolYear) {
                     $validator->errors()->add(
                         'starts_at',
-                        "This school year overlaps {$overlappingSchoolYear->name} ({$this->displayDate($overlappingSchoolYear->starts_at)} to {$this->displayDate($overlappingSchoolYear->ends_at)}).",
+                        "This school year overlaps {$overlappingSchoolYear->name} ({$this->displayDate($overlappingSchoolYear->startDate())} to {$this->displayDate($overlappingSchoolYear->endDate())}).",
                     );
 
                     return;
@@ -56,10 +56,10 @@ class StoreSchoolYearRequest extends FormRequest
                     ->orderByDesc('ends_at')
                     ->first();
 
-                if ($latestSchoolYear && Carbon::parse($startsAt)->lte($latestSchoolYear->ends_at)) {
+                if ($latestSchoolYear && Carbon::parse($startsAt)->lte($latestSchoolYear->endDate())) {
                     $validator->errors()->add(
                         'starts_at',
-                        "The next school year must start after {$latestSchoolYear->name} ends ({$this->displayDate($latestSchoolYear->ends_at)}).",
+                        "The next school year must start after {$latestSchoolYear->name} ends ({$this->displayDate($latestSchoolYear->endDate())}).",
                     );
                 }
             },
@@ -89,6 +89,11 @@ class StoreSchoolYearRequest extends FormRequest
     private function displayDate(Carbon $date): string
     {
         return $date->format('M-d-Y');
+    }
+
+    private function dateString(mixed $value): string
+    {
+        return Carbon::parse($value)->toDateString();
     }
 
     private function parseDateInput(mixed $value): ?Carbon

@@ -4,9 +4,9 @@ import { Download, FileDown, FileSpreadsheet, FileText, Printer, type LucideIcon
 interface ReportExportActionsProps {
     excelUrl: string;
     wordUrl: string;
-    csvUrl: string;
     pdfUrl: string;
     printUrl: string;
+    csvUrl: string;
 }
 
 const exportActions: Array<{
@@ -17,9 +17,9 @@ const exportActions: Array<{
 }> = [
     { key: 'excelUrl', label: 'Excel', icon: FileSpreadsheet },
     { key: 'wordUrl', label: 'Word', icon: FileText },
-    { key: 'csvUrl', label: 'CSV', icon: Download },
     { key: 'pdfUrl', label: 'PDF', icon: FileDown },
     { key: 'printUrl', label: 'Print', icon: Printer, external: true },
+    { key: 'csvUrl', label: 'CSV', icon: Download },
 ];
 
 export function ReportExportActions(props: ReportExportActionsProps) {

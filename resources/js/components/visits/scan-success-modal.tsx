@@ -1,41 +1,12 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { FallbackImage } from '@/components/ui/fallback-image';
 import { type DashboardVisit } from '@/types/dashboard';
-import { BriefcaseBusiness, CalendarClock, CheckCircle2, GraduationCap, IdCard, Timer, UserRound, type LucideIcon } from 'lucide-react';
+import { BriefcaseBusiness, CalendarClock, CheckCircle2, GraduationCap, IdCard, Timer } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { DetailItem, formatVisitTime, ScanVisitorPhoto, visitSignature } from './scan-success-modal-parts';
 
 interface ScanSuccessModalProps {
     visit: DashboardVisit | null | undefined;
     closeAfterSeconds: number;
-}
-
-const fallback = '-';
-
-function visitSignature(visit: DashboardVisit | null | undefined) {
-    return visit ? `${visit.id}:${visit.visitedAt ?? 'pending'}` : null;
-}
-
-function formatVisitTime(visitedAt: string | null) {
-    return visitedAt
-        ? new Date(visitedAt).toLocaleString([], {
-              month: 'short',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-          })
-        : 'Just now';
-}
-
-function DetailItem({ label, value, icon: Icon }: { label: string; value: string | null | undefined; icon?: LucideIcon }) {
-    return (
-        <div className="rounded-lg border border-[#040DBF]/10 bg-white/90 p-4 shadow-sm shadow-[#010440]/5">
-            <div className="flex items-center gap-2 text-[#030A8C]">
-                {Icon && <Icon className="size-4" />}
-                <p className="text-xs font-semibold tracking-[0.14em] uppercase">{label}</p>
-            </div>
-            <p className="mt-2 text-2xl font-semibold tracking-normal text-[#010440]">{value || fallback}</p>
-        </div>
-    );
 }
 
 export function ScanSuccessModal({ visit, closeAfterSeconds }: ScanSuccessModalProps) {
@@ -99,7 +70,7 @@ export function ScanSuccessModal({ visit, closeAfterSeconds }: ScanSuccessModalP
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent
                 key={visibleVisit.id}
-                className="scan-success-content min-h-140 overflow-hidden border-[#040DBF]/20 bg-[#f6f8ff] p-0 sm:max-w-5xl"
+                className="scan-success-content max-h-[calc(100dvh-1rem)] overflow-y-auto border-[#040DBF]/20 bg-[#f6f8ff] p-0 sm:min-h-140 sm:max-w-5xl"
             >
                 <div className="h-3 bg-[linear-gradient(90deg,#040DBF_0%,#030A8C_52%,#010440_100%)]" />
                 <div className="p-6 sm:p-8">
@@ -150,21 +121,5 @@ export function ScanSuccessModal({ visit, closeAfterSeconds }: ScanSuccessModalP
                 </div>
             </DialogContent>
         </Dialog>
-    );
-}
-
-function ScanVisitorPhoto({ visit }: { visit: DashboardVisit }) {
-    return (
-        <div className="scan-success-photo overflow-hidden rounded-xl border border-[#040DBF]/15 bg-white p-2 shadow-lg shadow-[#010440]/10">
-            <FallbackImage
-                src={visit.visitor.photoUrl}
-                className="aspect-square size-full rounded-lg object-cover"
-                fallback={
-                    <div className="flex aspect-square items-center justify-center rounded-lg bg-[#eef2ff] text-[#030A8C]/50">
-                        <UserRound className="size-20" />
-                    </div>
-                }
-            />
-        </div>
     );
 }

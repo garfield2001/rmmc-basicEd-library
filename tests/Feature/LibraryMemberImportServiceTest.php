@@ -153,7 +153,7 @@ CSV));
         ]);
     }
 
-    public function test_import_accepts_long_school_id_and_skips_same_identity_with_different_school_id(): void
+    public function test_import_requires_school_id_to_be_ten_digits(): void
     {
         $this->activeSchoolYear();
         $imports = app(LibraryMemberImportService::class);
@@ -163,18 +163,40 @@ first_name,middle_name,last_name,school_id,rfid_uid
 ANDRINO,PHILLIP VIKTOR,GAMOTIN,402048180005,1231233332
 CSV));
 
+        $this->assertSame(0, $summary['created']);
+        $this->assertSame(1, $summary['skipped']);
+        $this->assertSame(0, LibraryMember::query()->count());
+
+        $preview = $imports->preview($this->csvUpload(<<<'CSV'
+first_name,middle_name,last_name,school_id,rfid_uid
+ANDRINO,PHILLIP VIKTOR,GAMOTIN,402048180005,1231233332
+CSV));
+
+        $this->assertStringContainsString('School ID must be exactly 10 digits', $preview['skipped'][0]['reason']);
+    }
+
+    public function test_import_accepts_id_header_as_school_id_and_skips_same_identity_with_different_school_id(): void
+    {
+        $this->activeSchoolYear();
+        $imports = app(LibraryMemberImportService::class);
+
+        $summary = $imports->import($this->csvUpload(<<<'CSV'
+first_name,middle_name,last_name,ID,rfid_uid
+ANDRINO,PHILLIP VIKTOR,GAMOTIN,1000000001,1231233332
+CSV));
+
         $this->assertSame(1, $summary['created']);
         $this->assertDatabaseHas('library_members', [
             'first_name' => 'Andrino',
             'middle_name' => 'Phillip Viktor',
             'last_name' => 'Gamotin',
-            'school_id' => '402048180005',
+            'school_id' => '1000000001',
             'rfid_uid' => '1231233332',
         ]);
 
         $summary = $imports->import($this->csvUpload(<<<'CSV'
 first_name,middle_name,last_name,school_id
-ANDRINO,PHILLIP VIKTOR,GAMOTIN,999999999999
+ANDRINO,PHILLIP VIKTOR,GAMOTIN,1000000002
 CSV));
 
         $this->assertSame(0, $summary['created']);
@@ -428,6 +450,35 @@ CSV));
         $this->assertStringContainsString('School ID column is required', $preview['skipped'][0]['reason']);
     }
 
+    public function test_preview_rejects_lrn_and_other_id_columns_as_school_id(): void
+    {
+        $this->activeSchoolYear();
+
+        $preview = app(LibraryMemberImportService::class)->preview($this->csvUpload(<<<'CSV'
+first_name,middle_name,last_name,LRN,student_id,id_number
+Juan,Santos,Dela Cruz,123456789012,1000000001,1000000002
+CSV));
+
+        $this->assertSame(0, $preview['importable_count']);
+        $this->assertSame(1, $preview['skipped_count']);
+        $this->assertStringContainsString('Use a column named School ID or ID only', $preview['skipped'][0]['reason']);
+    }
+
+    public function test_import_rejects_roster_lrn_without_school_id_header(): void
+    {
+        $this->activeSchoolYear();
+
+        $summary = app(LibraryMemberImportService::class)->import($this->pdfUpload(<<<'TEXT'
+Grade 6 Krypton
+LAST NAME  FIRST NAME  MIDDLE NAME  BIRTH DATE  LRN
+Almontezerie  Abdulmatin  Macalapan  41193  470028180021
+Andrino  Phillip Viktor  Gamotin  41459  402048180005
+TEXT));
+
+        $this->assertSame(0, $summary['created']);
+        $this->assertSame(0, LibraryMember::query()->count());
+    }
+
     public function test_partial_name_with_different_school_id_creates_separate_visitor(): void
     {
         $this->activeSchoolYear();
@@ -668,6 +719,69 @@ TEXT));
         ]);
     }
 
+    public function test_import_reads_multiple_xlsx_sheets_and_uses_sheet_name_for_class_details(): void
+    {
+        $this->activeSchoolYear();
+
+        $summary = app(LibraryMemberImportService::class)->import($this->xlsxUpload([
+            'GRADE 7 ZIRCON' => [
+                ['SURNAME', 'GIVEN NAME', 'MIDDLE NAME', 'LRN', 'School ID'],
+                ['AHAT', 'JOSHUA REUEL', 'ABELLA', '405843160004', '1000000001'],
+            ],
+            'GRADE 8 AMBER' => [
+                ['SURNAME', 'GIVEN NAME', 'MIDDLE NAME', 'LRN', 'ID'],
+                ['ARBAN', 'ARBIE PHERIEL', 'ALIPO-ON', '405847160162', '1000000002'],
+            ],
+        ]));
+
+        $this->assertSame(2, $summary['created']);
+        $this->assertDatabaseHas('student_school_year_records', [
+            'school_id' => '1000000001',
+            'first_name' => 'Joshua Reuel',
+            'middle_name' => 'Abella',
+            'last_name' => 'Ahat',
+            'year_level' => 'Grade 7',
+            'section' => 'Zircon',
+        ]);
+        $this->assertDatabaseHas('student_school_year_records', [
+            'school_id' => '1000000002',
+            'first_name' => 'Arbie Pheriel',
+            'middle_name' => 'Alipo-On',
+            'last_name' => 'Arban',
+            'year_level' => 'Grade 8',
+            'section' => 'Amber',
+        ]);
+    }
+
+    public function test_xlsx_import_scans_each_sheet_but_never_treats_lrn_as_school_id(): void
+    {
+        $this->activeSchoolYear();
+
+        $summary = app(LibraryMemberImportService::class)->import($this->xlsxUpload([
+            'GRADE 6 KRYPTON' => [
+                ['GRADE 6-KRYPTON', '', '', '', ''],
+                ['', 'LAST NAME', 'FIRST NAME', 'MIDDLE NAME', 'LRN'],
+                ['1', 'ANDRINO', 'PHILLIP VIKTOR', 'GAMOTIN', '402048180005'],
+            ],
+            'GRADE 7 ZIRCON' => [
+                ['GRADE 7 ZIRCON', '', '', '', '', ''],
+                ['', 'SURNAME', 'GIVEN NAME', 'MIDDLE NAME', 'LRN', 'School ID'],
+                ['1', 'AHAT', 'JOSHUA REUEL', 'ABELLA', '405843160004', '1231231231'],
+            ],
+        ]));
+
+        $this->assertSame(1, $summary['created']);
+        $this->assertSame(0, LibraryMember::query()->where('school_id', '402048180005')->count());
+        $this->assertDatabaseHas('student_school_year_records', [
+            'school_id' => '1231231231',
+            'first_name' => 'Joshua Reuel',
+            'middle_name' => 'Abella',
+            'last_name' => 'Ahat',
+            'year_level' => 'Grade 7',
+            'section' => 'Zircon',
+        ]);
+    }
+
     private function activeSchoolYear(): SchoolYear
     {
         return SchoolYear::factory()->active()->create([
@@ -700,5 +814,77 @@ TEXT));
         file_put_contents($path, $pdf);
 
         return new UploadedFile($path, 'visitors.pdf', 'application/pdf', null, true);
+    }
+
+    /**
+     * @param  array<string, array<int, array<int, string>>>  $sheets
+     */
+    private function xlsxUpload(array $sheets): UploadedFile
+    {
+        $path = tempnam(sys_get_temp_dir(), 'visitor-import-xlsx-');
+        $zip = new \ZipArchive;
+        $zip->open($path, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+
+        $sheetOverrides = collect(array_keys($sheets))
+            ->map(fn ($name, $index) => '<Override PartName="/xl/worksheets/sheet'.($index + 1).'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>')
+            ->implode('');
+
+        $zip->addFromString('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'.$sheetOverrides.'</Types>');
+        $zip->addFromString('_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
+
+        $workbookSheets = [];
+        $workbookRelationships = [];
+
+        foreach ($sheets as $sheetName => $rows) {
+            $sheetNumber = count($workbookSheets) + 1;
+            $workbookSheets[] = '<sheet name="'.$this->xmlValue($sheetName).'" sheetId="'.$sheetNumber.'" r:id="rId'.$sheetNumber.'"/>';
+            $workbookRelationships[] = '<Relationship Id="rId'.$sheetNumber.'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'.$sheetNumber.'.xml"/>';
+            $zip->addFromString('xl/worksheets/sheet'.$sheetNumber.'.xml', $this->xlsxSheetXml($rows));
+        }
+
+        $zip->addFromString('xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'.implode('', $workbookSheets).'</sheets></workbook>');
+        $zip->addFromString('xl/_rels/workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'.implode('', $workbookRelationships).'</Relationships>');
+        $zip->close();
+
+        return new UploadedFile($path, 'visitors.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', null, true);
+    }
+
+    /**
+     * @param  array<int, array<int, string>>  $rows
+     */
+    private function xlsxSheetXml(array $rows): string
+    {
+        $sheetRows = [];
+
+        foreach ($rows as $rowIndex => $row) {
+            $cells = [];
+
+            foreach ($row as $columnIndex => $value) {
+                $reference = $this->xlsxColumnName($columnIndex + 1).($rowIndex + 1);
+                $cells[] = '<c r="'.$reference.'" t="inlineStr"><is><t>'.$this->xmlValue($value).'</t></is></c>';
+            }
+
+            $sheetRows[] = '<row r="'.($rowIndex + 1).'">'.implode('', $cells).'</row>';
+        }
+
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>'.implode('', $sheetRows).'</sheetData></worksheet>';
+    }
+
+    private function xlsxColumnName(int $column): string
+    {
+        $name = '';
+
+        while ($column > 0) {
+            $column--;
+            $name = chr(65 + ($column % 26)).$name;
+            $column = intdiv($column, 26);
+        }
+
+        return $name;
+    }
+
+    private function xmlValue(string $value): string
+    {
+        return htmlspecialchars($value, ENT_XML1 | ENT_COMPAT, 'UTF-8');
     }
 }

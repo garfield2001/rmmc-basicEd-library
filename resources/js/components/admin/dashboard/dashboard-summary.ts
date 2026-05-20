@@ -21,7 +21,7 @@ export function getOverviewMetrics(dashboard: AdminDashboard, schoolYearLabel: s
         {
             label: 'Visits today',
             value: dashboard.metrics.visitsToday,
-            detail: 'Recorded since midnight',
+            detail: `Scans since ${formatTime(dashboard.scanWindow.starts_at)}`,
             icon: Activity,
         },
         {
@@ -37,4 +37,16 @@ export function getOverviewMetrics(dashboard: AdminDashboard, schoolYearLabel: s
             icon: BriefcaseBusiness,
         },
     ];
+}
+
+export function formatTime(time: string) {
+    const [hours = '0', minutes = '0'] = time.split(':');
+    const date = new Date();
+
+    date.setHours(Number(hours), Number(minutes), 0, 0);
+
+    return new Intl.DateTimeFormat('en', {
+        hour: 'numeric',
+        minute: '2-digit',
+    }).format(date);
 }

@@ -9,8 +9,8 @@ export function AdminNavbar({ collapsed, mobileSidebarOpen, resolvedTheme, onCol
     const ThemeIcon = resolvedTheme === 'dark' ? Sun : Moon;
 
     return (
-        <header className="admin-surface sticky top-0 z-40 flex flex-col gap-4 border-b border-[#040DBF]/10 bg-white/90 px-4 py-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <div className="flex items-center gap-3">
+        <header className="admin-surface sticky top-0 z-40 flex flex-col gap-3 border-b border-[#040DBF]/10 bg-white/90 px-4 py-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div className="flex min-w-0 items-center gap-3 sm:flex-1">
                 <button
                     type="button"
                     onClick={() => {
@@ -29,13 +29,13 @@ export function AdminNavbar({ collapsed, mobileSidebarOpen, resolvedTheme, onCol
                     <Menu className="size-5" aria-hidden="true" />
                 </button>
 
-                <div>
-                    <p className="text-sm font-semibold text-[#010440]">{name}</p>
-                    <p className="text-xs text-[#030A8C]">Library attendance monitoring</p>
+                <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-[#010440]">{name}</p>
+                    <p className="truncate text-xs text-[#030A8C]">Library attendance monitoring</p>
                 </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex w-full shrink-0 flex-nowrap items-center justify-between gap-2 sm:w-auto sm:justify-end">
                 <button
                     type="button"
                     onClick={onThemeToggle}

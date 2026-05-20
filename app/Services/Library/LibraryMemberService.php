@@ -6,25 +6,21 @@ use App\Models\LibraryMember;
 use App\Models\SchoolYear;
 use App\Services\SchoolYears\SchoolYearSectionService;
 use App\Support\Names\PersonName;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class LibraryMemberService
 {
-    private const PHOTO_DISK = 'visitor_photos';
-
     public function __construct(
         private readonly SchoolYearSectionService $sections,
         private readonly LibraryMemberDuplicateService $duplicates,
+        private readonly LibraryMemberPhotoStorage $photos,
     ) {}
 
     public function create(array $data): LibraryMember
     {
         return DB::transaction(function () use ($data): LibraryMember {
-            $data['photo'] = $this->storePhoto($data['photo_file'] ?? null);
+            $data['photo'] = $this->photos->store($data['photo_file'] ?? null);
             $visitor = LibraryMember::create($this->visitorData($data));
 
             $this->syncDetails($visitor, $data);
@@ -36,10 +32,10 @@ class LibraryMemberService
     public function update(LibraryMember $visitor, array $data): LibraryMember
     {
         return DB::transaction(function () use ($visitor, $data): LibraryMember {
-            $newPhoto = $this->storePhoto($data['photo_file'] ?? null);
+            $newPhoto = $this->photos->store($data['photo_file'] ?? null);
 
             if ($newPhoto) {
-                $this->deletePhoto($visitor->photo);
+                $this->photos->delete($visitor->photo);
                 $data['photo'] = $newPhoto;
             } else {
                 $data['photo'] = $visitor->photo;
@@ -82,27 +78,6 @@ class LibraryMemberService
         ];
     }
 
-    private function storePhoto(?UploadedFile $photo): ?string
-    {
-        if (! $photo) {
-            return null;
-        }
-
-        $fileName = Str::uuid()->toString().'.'.$photo->getClientOriginalExtension();
-        Storage::disk(self::PHOTO_DISK)->putFileAs('', $photo, $fileName);
-
-        return $fileName;
-    }
-
-    private function deletePhoto(?string $fileName): void
-    {
-        if (! $fileName) {
-            return;
-        }
-
-        Storage::disk(self::PHOTO_DISK)->delete($fileName);
-    }
-
     private function syncDetails(LibraryMember $visitor, array $data): void
     {
         if ($data['type'] === LibraryMember::TYPE_STUDENT) {
@@ -112,7 +87,7 @@ class LibraryMemberService
                 ? $this->sections->findOrCreate($schoolYear->id, $data['year_level'], $sectionName)
                 : null;
 
-            $this->assignStudentDetails($visitor->id, $schoolYear->id, $data['year_level'], $section?->id, $section?->name);
+            $this->assignStudentDetails($visitor, $schoolYear->id, $data['year_level'], $section?->id, $section?->name);
 
             return;
         }
@@ -137,10 +112,8 @@ class LibraryMemberService
         return $schoolYear;
     }
 
-    private function assignStudentDetails(int $visitorId, int $schoolYearId, string $yearLevel, ?int $sectionId, ?string $sectionName): void
+    private function assignStudentDetails(LibraryMember $visitor, int $schoolYearId, string $yearLevel, ?int $sectionId, ?string $sectionName): void
     {
-        $visitor = LibraryMember::query()->findOrFail($visitorId);
-
         $visitor->studentSchoolYearRecords()->updateOrCreate(
             ['school_year_id' => $schoolYearId],
             $this->visitorSnapshot($visitor) + [
@@ -165,9 +138,7 @@ class LibraryMemberService
 
     private function nullableText(?string $value): ?string
     {
-        $value = trim((string) $value);
-
-        return $value !== '' ? $value : null;
+        return ($value = trim((string) $value)) !== '' ? $value : null;
     }
 
     private function hasIdentifier(LibraryMember $visitor): bool

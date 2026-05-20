@@ -1,3 +1,4 @@
+import { formatTime } from '@/components/admin/dashboard/dashboard-summary';
 import { IconBadge } from '@/components/ui/icon-badge';
 import { BriefcaseBusiness, GraduationCap, Library, type LucideIcon } from 'lucide-react';
 
@@ -5,14 +6,15 @@ interface LiveVisitMetricsProps {
     visitsToday: number;
     studentVisitsToday: number;
     employeeVisitsToday: number;
+    scanStartsAt: string;
 }
 
-export function LiveVisitMetrics({ visitsToday, studentVisitsToday, employeeVisitsToday }: LiveVisitMetricsProps) {
+export function LiveVisitMetrics({ visitsToday, studentVisitsToday, employeeVisitsToday, scanStartsAt }: LiveVisitMetricsProps) {
     const metrics: { label: string; value: number; detail: string; icon: LucideIcon }[] = [
         {
             label: 'Visits today',
             value: visitsToday,
-            detail: 'Successful RFID scans since midnight',
+            detail: `Successful RFID scans since ${formatTime(scanStartsAt)}`,
             icon: Library,
         },
         {

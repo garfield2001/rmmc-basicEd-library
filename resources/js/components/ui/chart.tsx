@@ -58,7 +58,7 @@ function ChartContainer({
             <div
                 data-chart={chartId}
                 className={cn(
-                    "flex aspect-video justify-center text-xs text-[#020659]/70 [&_.recharts-cartesian-axis-tick_text]:fill-[#020659]/60 [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-[#040DBF]/10 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-[#040DBF]/20 [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-[#040DBF]/10 [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
+                    "flex aspect-video min-w-0 max-w-full justify-center overflow-hidden text-xs text-[#020659]/70 [&_.recharts-cartesian-axis-tick_text]:fill-[#020659]/60 [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-[#040DBF]/10 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-[#040DBF]/20 [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-[#040DBF]/10 [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
                     className,
                 )}
                 style={{ ...chartVars, ...props.style }}

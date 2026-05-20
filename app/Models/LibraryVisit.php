@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -31,5 +32,12 @@ class LibraryVisit extends Model
     public function schoolYear(): BelongsTo
     {
         return $this->belongsTo(SchoolYear::class);
+    }
+
+    public function scopeForRequiredSchoolYear(Builder $query, ?int $schoolYearId): Builder
+    {
+        return $schoolYearId
+            ? $query->where('school_year_id', $schoolYearId)
+            : $query->whereKey([]);
     }
 }

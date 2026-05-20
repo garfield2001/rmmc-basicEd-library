@@ -60,7 +60,7 @@ class LibraryMember extends Model
     public function scopeVisitEligibleForSchoolYear(Builder $query, ?int $schoolYearId): Builder
     {
         if (! $schoolYearId) {
-            return $query->whereRaw('1 = 0');
+            return $query->whereKey([]);
         }
 
         return $query->where(function (Builder $query) use ($schoolYearId): void {

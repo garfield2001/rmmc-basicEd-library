@@ -10,13 +10,14 @@ export function useAdminTheme(preference: ThemePreference) {
             const theme = resolveTheme(preference);
 
             document.documentElement.dataset.adminTheme = theme;
+            document.documentElement.style.colorScheme = theme === 'dark' ? 'dark' : 'only light';
             setResolvedTheme(theme);
         };
 
         applyTheme();
 
         if (preference !== 'system' || typeof window === 'undefined') {
-            return;
+            return undefined;
         }
 
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');

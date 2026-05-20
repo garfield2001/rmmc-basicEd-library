@@ -1,35 +1,30 @@
+import { ForcedLogoutListener } from '@/components/auth/forced-logout-listener';
 import { AdminLoginDialog } from '@/components/public/home/admin-login-dialog';
 import { AdministrationSection } from '@/components/public/home/administration-section';
+import { LoginPreloaderOverlay } from '@/components/public/home/login-preloader-overlay';
 import { ScanErrorDialog } from '@/components/public/home/scan-error-dialog';
 import { ScannerSection } from '@/components/public/home/scanner-section';
-import type { IndexProps, LoginForm } from '@/components/public/home/types';
+import type { IndexProps } from '@/components/public/home/types';
+import { useAdminLogin } from '@/components/public/home/use-admin-login';
 import { useManilaClock } from '@/components/public/home/use-manila-clock';
 import { usePublicAdministrationScroll } from '@/components/public/home/use-public-administration-scroll';
 import { usePublicScanner } from '@/components/public/home/use-public-scanner';
 import { useScanErrorDialog } from '@/components/public/home/use-scan-error-dialog';
 import { ToastProvider } from '@/components/ui/toaster';
 import { ScanSuccessModal } from '@/components/visits/scan-success-modal';
+import type { DashboardVisit } from '@/types/dashboard';
 import { type SharedData } from '@/types/shared';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { type FormEventHandler, useCallback, useEffect, useState } from 'react';
+import { Head, router, usePage } from '@inertiajs/react';
+import { useEchoPublic } from '@laravel/echo-react';
+import { useCallback, useEffect, useState } from 'react';
 
 export default function Index({ home }: IndexProps) {
     const { name, errors, flash, auth } = usePage<SharedData>().props;
     const [showLogin, setShowLogin] = useState(false);
+    const [broadcastVisit, setBroadcastVisit] = useState<DashboardVisit | null>(null);
     const scanValidationError = typeof errors.rfid_uid === 'string' ? errors.rfid_uid : undefined;
     const { formattedManilaTime } = useManilaClock();
-    const {
-        data: loginData,
-        setData: setLoginData,
-        post: postLogin,
-        processing: loginProcessing,
-        reset: resetLogin,
-        errors: loginErrors,
-    } = useForm<LoginForm>({ email: '', password: '' });
-    const loginValidationErrors = {
-        email: loginErrors.email ?? (typeof errors.email === 'string' ? errors.email : undefined),
-        password: loginErrors.password ?? (typeof errors.password === 'string' ? errors.password : undefined),
-    };
+    const login = useAdminLogin();
     const {
         isOpen: isScanErrorOpen,
         setIsOpen: setScanErrorOpen,
@@ -48,8 +43,13 @@ export default function Index({ home }: IndexProps) {
         scannerInputRef: scanner.inputRef,
     });
 
+    useEchoPublic<{ visit: DashboardVisit }>('library-visits', '.LibraryVisitRecorded', (event) => {
+        setBroadcastVisit(event.visit);
+    });
+
     useEffect(() => {
         delete document.documentElement.dataset.adminTheme;
+        document.documentElement.style.colorScheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'only light';
     }, []);
 
     useEffect(() => {
@@ -78,22 +78,18 @@ export default function Index({ home }: IndexProps) {
     }, [auth.user]);
 
     useEffect(() => {
-        if (loginValidationErrors.email || loginValidationErrors.password) {
+        if (login.errors.email || login.errors.password) {
             setShowLogin(true);
         }
-    }, [loginValidationErrors.email, loginValidationErrors.password]);
+    }, [login.errors.email, login.errors.password]);
 
-    const submitLogin: FormEventHandler = (event) => {
-        event.preventDefault();
+    const openAdminAccess = () => {
+        if (auth.user) {
+            router.visit('/admin');
+            return;
+        }
 
-        postLogin('/login', {
-            preserveScroll: true,
-            onSuccess: () => {
-                resetLogin('password');
-                setShowLogin(false);
-            },
-            onFinish: () => resetLogin('password'),
-        });
+        setShowLogin(true);
     };
 
     const scannerStatusText = scanner.isSubmitting ? 'Recording scan' : scanner.isPreparing ? 'Preparing next scan' : 'Scanner is ready';
@@ -105,20 +101,22 @@ export default function Index({ home }: IndexProps) {
 
     return (
         <ToastProvider>
+            <ForcedLogoutListener />
             <Head title="Library RFID Scanner" />
 
             <AdminLoginDialog
                 open={showLogin}
                 onOpenChange={setShowLogin}
-                data={loginData}
-                errors={loginValidationErrors}
-                processing={loginProcessing}
-                onEmailChange={(value) => setLoginData('email', value)}
-                onPasswordChange={(value) => setLoginData('password', value)}
-                onSubmit={submitLogin}
+                data={login.data}
+                errors={login.errors}
+                processing={login.processing || login.loadingAdmin}
+                onEmailChange={login.setEmail}
+                onPasswordChange={login.setPassword}
+                onSubmit={login.submit}
             />
+            <LoginPreloaderOverlay visible={login.loadingAdmin} />
 
-            <ScanSuccessModal visit={flash.recentVisit} closeAfterSeconds={home.scanSettings.success_modal_close_seconds} />
+            <ScanSuccessModal visit={broadcastVisit ?? flash.recentVisit} closeAfterSeconds={home.scanSettings.success_modal_close_seconds} />
 
             <ScanErrorDialog open={isScanErrorOpen} error={scanValidationError} countdown={scanErrorCountdown} onOpenChange={setScanErrorOpen} />
 
@@ -136,6 +134,7 @@ export default function Index({ home }: IndexProps) {
                     formattedManilaTime={formattedManilaTime}
                     onScanChange={scanner.changeScanData}
                     onSubmit={scanner.submitScan}
+                    onAdminClick={openAdminAccess}
                 />
 
                 <AdministrationSection
@@ -144,14 +143,7 @@ export default function Index({ home }: IndexProps) {
                     isRevealed={administration.isAdministrationRevealed}
                     showScrollHint={administration.showAdministrationScrollHint}
                     showReturnButton={administration.showScannerReturnButton}
-                    onLoginClick={() => {
-                        if (auth.user) {
-                            router.visit('/admin');
-                            return;
-                        }
-
-                        setShowLogin(true);
-                    }}
+                    onLoginClick={openAdminAccess}
                     onReturnToScanner={administration.returnToScanner}
                 />
             </main>

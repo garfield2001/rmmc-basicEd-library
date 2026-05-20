@@ -1,6 +1,7 @@
 import type { DashboardVisit } from '@/types/dashboard';
 
 export type VisitTab = 'student' | 'employee';
+export type LiveVisitsTableMode = 'live' | 'history';
 export type SortColumn = 'visitedAt' | 'schoolId' | 'name' | 'group';
 export type SortDirection = 'asc' | 'desc';
 
@@ -8,7 +9,59 @@ export const defaultVisitsPerPage = 5;
 export const virtualRowHeight = 73;
 export const virtualOverscan = 8;
 
-export function formatVisitTime(visit: DashboardVisit, mode: 'live' | 'history') {
+interface LiveVisitFilterOptions {
+    visitTab: VisitTab;
+    search: string;
+    yearLevel: string;
+    section: string;
+}
+
+export function initialVisitTab(visits: DashboardVisit[], mode: LiveVisitsTableMode): VisitTab {
+    if (mode !== 'live') {
+        return 'student';
+    }
+
+    return visits[0]?.visitor.type === 'employee' ? 'employee' : 'student';
+}
+
+export function liveVisitsTableTitle(mode: LiveVisitsTableMode, visitTab: VisitTab) {
+    if (mode === 'history') {
+        return visitTab === 'student' ? 'Student visit history' : 'Employee visit history';
+    }
+
+    return visitTab === 'student' ? 'Student visits today' : 'Employee visits today';
+}
+
+export function liveVisitsTableDescription(mode: LiveVisitsTableMode) {
+    return mode === 'history' ? 'Visits from the active school year are shown newest first.' : 'Latest RFID scans for the selected tab are shown first.';
+}
+
+export function filterLiveVisits(visits: DashboardVisit[], { visitTab, search, yearLevel, section }: LiveVisitFilterOptions) {
+    const normalizedSearch = search.trim().toLowerCase();
+
+    return visits.filter((visit) => {
+        const searchable = [
+            visit.visitor.schoolId,
+            visit.visitor.name,
+            visit.visitor.type,
+            visit.visitor.yearLevel,
+            visit.visitor.section,
+            visit.visitor.department,
+        ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+        return (
+            visit.visitor.type === visitTab &&
+            (visitTab !== 'student' || !yearLevel || visit.visitor.yearLevel === yearLevel) &&
+            (visitTab !== 'student' || !section || visit.visitor.section === section) &&
+            (!normalizedSearch || searchable.includes(normalizedSearch))
+        );
+    });
+}
+
+export function formatVisitTime(visit: DashboardVisit, mode: LiveVisitsTableMode) {
     if (!visit.visitedAt) {
         return 'Pending';
     }
