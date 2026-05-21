@@ -22,7 +22,7 @@ export default defineConfig({
         port: 5173,
         strictPort: true,
         hmr: {
-            host: '192.168.1.112',
+            host: '172.16.100.145', // Change this IP depending on which PC you're using
             port: 5173,
         },
     },
