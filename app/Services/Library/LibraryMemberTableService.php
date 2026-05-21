@@ -3,6 +3,7 @@
 namespace App\Services\Library;
 
 use App\Models\LibraryMember;
+use App\Support\Academics\AcademicLevels;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
@@ -21,11 +22,17 @@ class LibraryMemberTableService
             : LibraryMember::TYPE_STUDENT;
     }
 
-    public function sortOption(string $sort): string
+    public function sortOption(string $sort, string $type): string
     {
-        return in_array($sort, self::SORT_COLUMNS, true)
-            ? $sort
-            : 'created_at';
+        $allowed = $type === LibraryMember::TYPE_STUDENT
+            ? ['name', 'year_level']
+            : ['name', 'department'];
+
+        if (in_array($sort, $allowed, true)) {
+            return $sort;
+        }
+
+        return $type === LibraryMember::TYPE_STUDENT ? 'year_level' : 'created_at';
     }
 
     public function directionOption(string $direction): string
@@ -92,7 +99,7 @@ class LibraryMemberTableService
                 ->orderBy('library_members.last_name', $direction)
                 ->orderBy('library_members.first_name', $direction),
             'school_id' => $query->orderBy('library_members.school_id', $direction),
-            'year_level' => $this->sortByActiveStudentColumn($query, 'year_level', $direction, $activeSchoolYearId),
+            'year_level' => $this->sortByActiveStudentYearLevel($query, $direction, $activeSchoolYearId),
             'section' => $this->sortByActiveStudentColumn($query, 'section', $direction, $activeSchoolYearId),
             'department' => $activeSchoolYearId
                 ? $query
@@ -106,7 +113,29 @@ class LibraryMemberTableService
             default => $query->orderBy('library_members.created_at', 'desc'),
         };
 
+        if ($sort !== 'name') {
+            $query
+                ->orderBy('library_members.last_name')
+                ->orderBy('library_members.first_name');
+        }
+
         $query->orderBy('library_members.id', 'desc');
+    }
+
+    private function sortByActiveStudentYearLevel(Builder $query, string $direction, ?int $activeSchoolYearId): void
+    {
+        if (! $activeSchoolYearId) {
+            $query->orderBy('library_members.created_at', 'desc');
+
+            return;
+        }
+
+        $this->joinActiveStudentRecords($query, $activeSchoolYearId);
+        $case = collect(AcademicLevels::options())
+            ->map(fn (string $level, int $index): string => "WHEN active_student_school_year_records.year_level = '".str_replace("'", "''", $level)."' THEN {$index}")
+            ->implode(' ');
+
+        $query->orderByRaw("CASE {$case} ELSE 999 END {$direction}");
     }
 
     private function sortByActiveStudentColumn(Builder $query, string $column, string $direction, ?int $activeSchoolYearId): void
@@ -117,12 +146,16 @@ class LibraryMemberTableService
             return;
         }
 
-        $query
-            ->leftJoin('student_school_year_records as active_student_school_year_records', function ($join) use ($activeSchoolYearId): void {
-                $join
-                    ->on('active_student_school_year_records.library_member_id', '=', 'library_members.id')
-                    ->where('active_student_school_year_records.school_year_id', '=', $activeSchoolYearId);
-            })
-            ->orderBy("active_student_school_year_records.{$column}", $direction);
+        $this->joinActiveStudentRecords($query, $activeSchoolYearId);
+        $query->orderBy("active_student_school_year_records.{$column}", $direction);
+    }
+
+    private function joinActiveStudentRecords(Builder $query, int $activeSchoolYearId): void
+    {
+        $query->leftJoin('student_school_year_records as active_student_school_year_records', function ($join) use ($activeSchoolYearId): void {
+            $join
+                ->on('active_student_school_year_records.library_member_id', '=', 'library_members.id')
+                ->where('active_student_school_year_records.school_year_id', '=', $activeSchoolYearId);
+        });
     }
 }

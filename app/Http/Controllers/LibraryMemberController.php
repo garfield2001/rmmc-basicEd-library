@@ -29,7 +29,7 @@ class LibraryMemberController extends Controller
         $yearLevel = $request->string('year_level')->toString();
         $section = $request->string('section')->toString();
         $department = $request->string('department')->toString();
-        $sort = $visitorTable->sortOption($request->string('sort')->toString());
+        $sort = $visitorTable->sortOption($request->string('sort')->toString(), $type);
         $direction = $visitorTable->directionOption($request->string('direction')->toString());
         $perPage = $visitorTable->perPageOption($request);
         $activeSchoolYearId = SchoolYear::active()->value('id');

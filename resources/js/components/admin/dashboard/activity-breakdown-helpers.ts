@@ -1,6 +1,6 @@
-import { formatDisplayDate } from '@/components/ui/date-input';
-import type { ChartPoint, EmployeeActivityVisit, StudentActivityVisit } from '@/types/dashboard';
+import type { ChartPoint, EmployeeActivityVisit, StudentActivityVisit, VisitTrafficRange } from '@/types/dashboard';
 import { BriefcaseBusiness, GraduationCap, Target, type LucideIcon } from 'lucide-react';
+import { rangeDetail } from './range-controls';
 
 export type ActivityPanel = 'yearLevel' | 'section' | 'department';
 
@@ -34,20 +34,16 @@ export const activityPanelDetails = {
     },
 } satisfies Record<ActivityPanel, { title: string; detail: string; label: string; icon: LucideIcon; emptyMessage: string; labelWidth: number }>;
 
-export function filterStudentActivityVisits(visits: StudentActivityVisit[], days: number, fromDate: string) {
-    const [from, to] = activityDateRange(days, fromDate);
-
-    return visits.filter((visit) => visit.visitedAt && (!from || visit.visitedAt >= from) && visit.visitedAt <= to);
+export function filterStudentActivityVisits(visits: StudentActivityVisit[], startDate: string, endDate: string) {
+    return visits.filter((visit) => visit.visitedAt && (!startDate || visit.visitedAt >= startDate) && (!endDate || visit.visitedAt <= endDate));
 }
 
-export function filterEmployeeActivityVisits(visits: EmployeeActivityVisit[], days: number, fromDate: string) {
-    const [from, to] = activityDateRange(days, fromDate);
-
-    return visits.filter((visit) => visit.visitedAt && (!from || visit.visitedAt >= from) && visit.visitedAt <= to);
+export function filterEmployeeActivityVisits(visits: EmployeeActivityVisit[], startDate: string, endDate: string) {
+    return visits.filter((visit) => visit.visitedAt && (!startDate || visit.visitedAt >= startDate) && (!endDate || visit.visitedAt <= endDate));
 }
 
-export function activityRangeDetail(days: number, fromDate: string) {
-    return fromDate ? `Visits from ${formatDisplayDate(fromDate)} to today` : `Visits from the last ${days} days`;
+export function activityRangeDetail(range: VisitTrafficRange, startDate: string, endDate: string) {
+    return rangeDetail(range, startDate, endDate);
 }
 
 export function groupStudentActivity(visits: StudentActivityVisit[], mode: 'yearLevel' | 'section', labels: string[]): ChartPoint[] {
@@ -80,20 +76,4 @@ function countByLabel(labels: string[]) {
 
 function chartPoints(groups: Map<string, number>) {
     return [...groups.entries()].map(([label, value]) => ({ label, value })).sort((first, second) => second.value - first.value);
-}
-
-function todayIsoDate() {
-    return new Date().toISOString().slice(0, 10);
-}
-
-function activityDateRange(days: number, fromDate: string): [string, string] {
-    if (fromDate) {
-        return [fromDate, todayIsoDate()];
-    }
-
-    const end = new Date();
-    const start = new Date();
-    start.setDate(end.getDate() - (Math.max(1, days) - 1));
-
-    return [start.toISOString().slice(0, 10), todayIsoDate()];
 }

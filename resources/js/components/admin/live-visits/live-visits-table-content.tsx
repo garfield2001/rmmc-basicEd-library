@@ -46,22 +46,37 @@ export function LiveVisitsTableContent({
             <Table className={tableMinWidth}>
                 <TableHeader className="bg-[#f6f8ff]">
                     <TableRow>
-                        <SortableHead
-                            column="visitedAt"
-                            label={mode === 'history' ? 'Date' : 'Time'}
-                            sort={sortColumn}
-                            direction={sortDirection}
-                            onSortChange={onSortChange}
-                        />
-                        <SortableHead column="schoolId" label="ID" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
-                        <SortableHead column="name" label="Name" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
+                        {mode === 'history' ? (
+                            <SortableHead column="visitedAt" label="Date" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
+                        ) : (
+                            <TableHead>Time</TableHead>
+                        )}
+                        {mode === 'history' ? (
+                            <>
+                                <SortableHead column="schoolId" label="ID" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
+                                <SortableHead column="name" label="Name" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
+                            </>
+                        ) : (
+                            <>
+                                <TableHead>ID</TableHead>
+                                <TableHead>Name</TableHead>
+                            </>
+                        )}
                         {visitTab === 'student' ? (
                             <>
-                                <SortableHead column="group" label="Year level" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
+                                {mode === 'history' ? (
+                                    <SortableHead column="group" label="Year level" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
+                                ) : (
+                                    <TableHead>Year level</TableHead>
+                                )}
                                 <TableHead>Section</TableHead>
                             </>
                         ) : (
-                            <SortableHead column="group" label="Department" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
+                            mode === 'history' ? (
+                                <SortableHead column="group" label="Department" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
+                            ) : (
+                                <TableHead>Department</TableHead>
+                            )
                         )}
                     </TableRow>
                 </TableHeader>

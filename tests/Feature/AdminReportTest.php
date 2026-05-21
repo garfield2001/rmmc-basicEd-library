@@ -194,7 +194,7 @@ class AdminReportTest extends TestCase
 
         $this->assertStringContainsString('Progress', $this->zipText($excel));
         $this->assertStringContainsString('50%', $this->zipText($excel));
-        $this->assertStringContainsString('Gr 1 - Bonifacio', $this->zipText($excel));
+        $this->assertStringContainsString('Grade 1 - Bonifacio', $this->zipText($excel));
 
         $word = $this->actingAs($user)
             ->get("/admin/reports/visits.docx?{$query}")
@@ -202,7 +202,7 @@ class AdminReportTest extends TestCase
             ->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
 
         $this->assertStringContainsString('RAMON MAGSAYSAY MEMORIAL', $this->zipText($word));
-        $this->assertStringContainsString('Gr 1 - Bonifacio', $this->zipText($word));
+        $this->assertStringContainsString('Grade 1 - Bonifacio', $this->zipText($word));
         $this->assertStringContainsString('Progress', $this->zipText($word));
 
         $this->actingAs($user)
@@ -215,7 +215,7 @@ class AdminReportTest extends TestCase
             ->assertDontSee('saveReportAsPdf', false)
             ->assertDontSee('visits/print.doc', false)
             ->assertDontSee('visits/print.pdf', false)
-            ->assertSee('Gr 1 - Bonifacio', false)
+            ->assertSee('Grade 1 - Bonifacio', false)
             ->assertSee('Progress', false)
             ->assertSee('50%', false);
 

@@ -37,6 +37,8 @@ export function VisitorsTableToolbar({
     onDepartmentChange,
     onSortClear,
 }: VisitorsTableToolbarProps) {
+    const defaultSort = activeType === 'student' ? 'year_level' : 'created_at';
+
     return (
         <div className="space-y-3 border-b border-zinc-200 bg-zinc-50 px-4 py-3 sm:px-5">
             <VisitorsTableTitle activeType={activeType} />
@@ -62,7 +64,7 @@ export function VisitorsTableToolbar({
                 </div>
                 <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                     <VisitorSearchInput activeType={activeType} search={search} onSearchChange={onSearchChange} />
-                    {sort !== 'created_at' && (
+                    {sort !== defaultSort && (
                         <button
                             type="button"
                             onClick={onSortClear}

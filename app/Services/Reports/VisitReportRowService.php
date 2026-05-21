@@ -101,7 +101,7 @@ class VisitReportRowService
         }
 
         return trim(collect([
-            AcademicLevels::shortLabel($registration->year_level),
+            $registration->year_level,
             $registration->section,
         ])->filter()->implode(' - ')) ?: null;
     }

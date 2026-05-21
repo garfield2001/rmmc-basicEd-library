@@ -47,11 +47,11 @@ export function VisitorsTableContent({
                 <TableHeader className="bg-zinc-50">
                     <TableRow>
                         <SortableHead column="name" label={activeType === 'student' ? 'Student' : 'Employee'} sort={sort} direction={direction} onSortChange={onSortChange} />
-                        <SortableHead column="school_id" label="School ID" sort={sort} direction={direction} onSortChange={onSortChange} />
+                        <TableHead>School ID</TableHead>
                         {activeType === 'student' ? (
                             <>
                                 <SortableHead column="year_level" label="Year level" sort={sort} direction={direction} onSortChange={onSortChange} />
-                                <SortableHead column="section" label="Section" sort={sort} direction={direction} onSortChange={onSortChange} />
+                                <TableHead>Section</TableHead>
                             </>
                         ) : (
                             <SortableHead column="department" label="Department" sort={sort} direction={direction} onSortChange={onSortChange} />

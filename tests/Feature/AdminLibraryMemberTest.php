@@ -134,30 +134,49 @@ class AdminLibraryMemberTest extends TestCase
         ]);
     }
 
-    public function test_admin_can_sort_library_members_by_school_id(): void
+    public function test_student_visitors_default_to_highest_grade_then_name(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $schoolYear = SchoolYear::factory()->active()->create();
 
-        $laterStudent = LibraryMember::factory()->student()->create(['school_id' => '2609010002']);
-        $earlierStudent = LibraryMember::factory()->student()->create(['school_id' => '2609010001']);
+        $gradeOneStudent = LibraryMember::factory()->student()->create([
+            'school_id' => '2609010001',
+            'first_name' => 'Zoe',
+            'last_name' => 'Young',
+        ]);
+        $secondGradeTenStudent = LibraryMember::factory()->student()->create([
+            'school_id' => '2609010002',
+            'first_name' => 'Ben',
+            'last_name' => 'Zulu',
+        ]);
+        $firstGradeTenStudent = LibraryMember::factory()->student()->create([
+            'school_id' => '2609010003',
+            'first_name' => 'Ana',
+            'last_name' => 'Alpha',
+        ]);
 
-        foreach ([$laterStudent, $earlierStudent] as $student) {
+        foreach ([
+            [$gradeOneStudent, 'Grade 1'],
+            [$secondGradeTenStudent, 'Grade 10'],
+            [$firstGradeTenStudent, 'Grade 10'],
+        ] as [$student, $yearLevel]) {
             StudentSchoolYearRecord::factory()->create([
                 'library_member_id' => $student->id,
                 'school_year_id' => $schoolYear->id,
-                'year_level' => 'Grade 1',
+                'year_level' => $yearLevel,
                 'section' => 'Rizal',
             ]);
         }
 
-        $this->actingAs($admin)->get('/admin/registered-visitors?type=student&sort=school_id&direction=asc')
+        $this->actingAs($admin)->get('/admin/registered-visitors?type=student')
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('admin/registered-visitors/index')
-                ->where('visitors.data.0.school_id', '2609010001')
-                ->where('filters.sort', 'school_id')
-                ->where('filters.direction', 'asc')
+                ->where('visitors.data.0.school_id', '2609010003')
+                ->where('visitors.data.1.school_id', '2609010002')
+                ->where('visitors.data.2.school_id', '2609010001')
+                ->where('filters.sort', 'year_level')
+                ->where('filters.direction', 'desc')
             );
     }
 

@@ -57,7 +57,10 @@ export function useLiveVisitsTable({ visits, studentCount, employeeCount, mode }
     }, [visits, yearLevel]);
     const filteredVisits = useMemo(() => filterLiveVisits(visits, { visitTab, search, yearLevel, section }), [search, section, visitTab, visits, yearLevel]);
 
-    const sortedVisits = useMemo(() => sortLiveVisits(filteredVisits, sortColumn, sortDirection), [filteredVisits, sortColumn, sortDirection]);
+    const sortedVisits = useMemo(
+        () => sortLiveVisits(filteredVisits, mode === 'live' ? 'visitedAt' : sortColumn, mode === 'live' ? 'desc' : sortDirection),
+        [filteredVisits, mode, sortColumn, sortDirection],
+    );
     const viewportHeight = useViewportHeight();
     const onePageRowCapacity = Math.max(1, Math.floor(viewportHeight / virtualRowHeight));
     const totalPages = rowsPerPage === 'all' ? 1 : Math.max(1, Math.ceil(sortedVisits.length / rowsPerPage));
@@ -90,6 +93,10 @@ export function useLiveVisitsTable({ visits, studentCount, employeeCount, mode }
     };
 
     const changeSort = (column: SortColumn) => {
+        if (mode === 'live') {
+            return;
+        }
+
         setSortColumn((currentColumn) => {
             if (currentColumn === column) {
                 setSortDirection((direction) => (direction === 'asc' ? 'desc' : 'asc'));

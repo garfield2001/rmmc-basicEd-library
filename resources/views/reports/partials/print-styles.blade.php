@@ -142,6 +142,15 @@
             .report-table tbody tr:nth-child(even) td {
                 background: #f8fafc;
             }
+            .page-footer {
+                bottom: 18px;
+                color: #020659;
+                font-size: 10pt;
+                position: fixed;
+                right: 44px;
+            }
+            .page-footer::after {
+                content: "Page " counter(page);
+            }
             @include('reports.partials.print-media-styles')
         </style>
-

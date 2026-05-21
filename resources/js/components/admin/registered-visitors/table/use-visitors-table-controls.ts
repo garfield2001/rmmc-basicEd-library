@@ -139,13 +139,15 @@ export function useVisitorsTableControls(filters: VisitorsIndexFilters, filterOp
         },
         changeSort,
         clearSort: () => {
-            setSort('created_at');
+            const defaultSort = activeType === 'student' ? 'year_level' : 'created_at';
+
+            setSort(defaultSort);
             setDirection('desc');
-            requestVisitors(activeType, search, yearLevel, section, department, perPage, 'created_at', 'desc');
+            requestVisitors(activeType, search, yearLevel, section, department, perPage, defaultSort, 'desc');
         },
         changeType: (type: VisitorType) => {
             const nextSort = defaultSortForVisitorType(type, sort);
-            const nextDirection = nextSort === 'created_at' ? 'desc' : direction;
+            const nextDirection = nextSort === 'created_at' || nextSort === 'year_level' ? 'desc' : direction;
 
             setSort(nextSort);
             setDirection(nextDirection);

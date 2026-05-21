@@ -3,7 +3,7 @@ import { ChartCard } from '@/components/admin/dashboard/chart-card';
 import { DashboardActions } from '@/components/admin/dashboard/dashboard-actions';
 import { getOverviewMetrics, getSchoolYearDateRange } from '@/components/admin/dashboard/dashboard-summary';
 import { MetricCard } from '@/components/admin/dashboard/metric-card';
-import { RangeControls, rangeDetail, rangeLabel, visitsBetween } from '@/components/admin/dashboard/range-controls';
+import { RangeControls, rangeDetail, rangeLabel, relativeDateRange, visitsBetween } from '@/components/admin/dashboard/range-controls';
 import { VisitTrafficChart } from '@/components/admin/dashboard/visit-traffic-chart';
 import { VisitorMixChart } from '@/components/admin/dashboard/visitor-mix-chart';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
@@ -23,14 +23,11 @@ export default function Dashboard({ dashboard }: DashboardProps) {
     const schoolYearDates = getSchoolYearDateRange(dashboard);
     const metrics = getOverviewMetrics(dashboard, schoolYearLabel);
     const [trafficRange, setTrafficRange] = useState<VisitTrafficRange>('last14');
-    const [trafficStartDate, setTrafficStartDate] = useState('');
-    const [trafficEndDate, setTrafficEndDate] = useState('');
+    const [trafficStartDate, setTrafficStartDate] = useState(() => relativeDateRange('last14')[0]);
+    const [trafficEndDate, setTrafficEndDate] = useState(() => relativeDateRange('last14')[1]);
     const trafficData = useMemo(
-        () =>
-            trafficRange === 'custom'
-                ? visitsBetween(dashboard.charts.dailyVisits, trafficStartDate, trafficEndDate)
-                : dashboard.charts.visitsByDay[trafficRange],
-        [dashboard.charts.dailyVisits, dashboard.charts.visitsByDay, trafficEndDate, trafficRange, trafficStartDate],
+        () => visitsBetween(dashboard.charts.dailyVisits, trafficStartDate, trafficEndDate),
+        [dashboard.charts.dailyVisits, trafficEndDate, trafficStartDate],
     );
     const trafficTotal = useMemo(() => trafficData.reduce((sum, point) => sum + point.total, 0), [trafficData]);
     const trafficDetail = `${rangeDetail(trafficRange, trafficStartDate, trafficEndDate)} - ${trafficTotal.toLocaleString()} visits`;
@@ -69,9 +66,18 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                                         endDate={trafficEndDate}
                                         minDate={dashboard.schoolYear?.starts_at}
                                         maxDate={dashboard.schoolYear?.ends_at}
-                                        onRangeChange={setTrafficRange}
+                                        onRangeChange={(range) => {
+                                            setTrafficRange(range);
+
+                                            if (range !== 'custom') {
+                                                const [start, end] = relativeDateRange(range);
+                                                setTrafficStartDate(start);
+                                                setTrafficEndDate(end);
+                                            }
+                                        }}
                                         onStartDateChange={(value) => {
                                             setTrafficStartDate(value);
+                                            setTrafficEndDate(new Date().toISOString().slice(0, 10));
                                             setTrafficRange('custom');
                                         }}
                                         onEndDateChange={(value) => {

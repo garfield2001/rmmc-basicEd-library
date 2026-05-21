@@ -12,23 +12,26 @@ export interface VisitorsQueryState {
 }
 
 export function visitorIndexQuery(type: VisitorType, state: VisitorsQueryState, page = 1) {
+    const defaultSort = type === 'student' ? 'year_level' : 'created_at';
+    const defaultDirection = type === 'student' ? 'desc' : 'desc';
+
     return {
         search: state.search || undefined,
         type,
         year_level: type === 'student' ? state.yearLevel || undefined : undefined,
         section: type === 'student' && state.yearLevel ? state.section || undefined : undefined,
         department: type === 'employee' ? state.department || undefined : undefined,
-        sort: state.sort === 'created_at' ? undefined : state.sort,
-        direction: state.sort === 'created_at' && state.direction === 'desc' ? undefined : state.direction,
+        sort: state.sort === defaultSort ? undefined : state.sort,
+        direction: state.sort === defaultSort && state.direction === defaultDirection ? undefined : state.direction,
         per_page: state.perPage,
         page: page > 1 ? page : undefined,
     };
 }
 
 export function defaultSortForVisitorType(type: VisitorType, sort: string) {
-    if (type === 'student' && sort === 'department') {
-        return 'created_at';
+    if (type === 'student' && !['name', 'year_level'].includes(sort)) {
+        return 'year_level';
     }
 
-    return type === 'employee' && ['year_level', 'section'].includes(sort) ? 'created_at' : sort;
+    return type === 'employee' && !['name', 'department'].includes(sort) ? 'created_at' : sort;
 }

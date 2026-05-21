@@ -2,7 +2,7 @@ import { VisitTypeTab } from '@/components/admin/visits-history/visit-history-ui
 import { SelectInput } from '@/components/ui/select-input';
 import type { AdminVisitHistory } from '@/types/dashboard';
 import { BriefcaseBusiness, GraduationCap, Search, X } from 'lucide-react';
-import type { VisitorTypeFilter } from './visit-history-helpers';
+import type { SortColumn, SortDirection, VisitorTypeFilter } from './visit-history-helpers';
 
 interface VisitHistoryFilterBarProps {
     filters: AdminVisitHistory['filters'];
@@ -12,11 +12,14 @@ interface VisitHistoryFilterBarProps {
     section: string;
     department: string;
     search: string;
+    sortColumn: SortColumn;
+    sortDirection: SortDirection;
     onVisitorTypeChange: (value: VisitorTypeFilter) => void;
     onYearLevelChange: (value: string) => void;
     onSectionChange: (value: string) => void;
     onDepartmentChange: (value: string) => void;
     onSearchChange: (value: string) => void;
+    onQuickSortChange: (value: string) => void;
 }
 
 export function VisitHistoryFilterBar({
@@ -27,12 +30,17 @@ export function VisitHistoryFilterBar({
     section,
     department,
     search,
+    sortColumn,
+    sortDirection,
     onVisitorTypeChange,
     onYearLevelChange,
     onSectionChange,
     onDepartmentChange,
     onSearchChange,
+    onQuickSortChange,
 }: VisitHistoryFilterBarProps) {
+    const sortValue = `${sortColumn}:${sortDirection}`;
+
     return (
         <div className="space-y-4 border-b border-[#040DBF]/10 px-5 py-4">
             <div className="admin-segmented-tabs w-full sm:w-fit">
@@ -86,7 +94,16 @@ export function VisitHistoryFilterBar({
                     </SelectInput>
                 )}
 
-                <div className="relative md:col-span-2 xl:col-span-3">
+                <SelectInput value={sortValue} onChange={(event) => onQuickSortChange(event.target.value)}>
+                    <option value="lastVisit:desc">Newest first</option>
+                    <option value="lastVisit:asc">Oldest first</option>
+                    <option value="visitCount:desc">Most visits</option>
+                    <option value="visitCount:asc">Fewest visits</option>
+                    <option value="name:asc">Name A-Z</option>
+                    <option value="name:desc">Name Z-A</option>
+                </SelectInput>
+
+                <div className="relative md:col-span-2 xl:col-span-2">
                     <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#030A8C]/50" />
                     <input
                         value={search}

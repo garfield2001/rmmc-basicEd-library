@@ -16,6 +16,7 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory) {
     const schoolYearStart = visitHistory.schoolYear?.starts_at ?? '';
     const schoolYearEnd = visitHistory.schoolYear?.ends_at ?? '';
     const [startDate, setStartDate] = useState(schoolYearStart);
+    const [endDate, setEndDate] = useState(() => new Date().toISOString().slice(0, 10));
     const [visitorType, setVisitorType] = useState<VisitorTypeFilter>('student');
     const [yearLevel, setYearLevel] = useState('');
     const [section, setSection] = useState('');
@@ -39,9 +40,9 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory) {
     const visitorsWithRangeVisits = useMemo(() => {
         return visitHistory.visitors.map((visitor) => ({
             ...visitor,
-            rangeVisits: visitsInDateRange(visitor.visits, startDate, today),
+            rangeVisits: visitsInDateRange(visitor.visits, startDate, endDate || today),
         }));
-    }, [startDate, today, visitHistory.visitors]);
+    }, [endDate, startDate, today, visitHistory.visitors]);
 
     const filteredVisitors = useMemo(() => {
         const normalizedSearch = search.trim().toLowerCase();
@@ -66,7 +67,7 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory) {
     const totalPages = rowsPerPage === 'all' ? 1 : Math.max(1, Math.ceil(sortedVisitors.length / rowsPerPage));
     const visibleVisitors =
         rowsPerPage === 'all' ? sortedVisitors : sortedVisitors.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
-    const selectedVisitorVisits = selectedVisitor ? visitsInDateRange(selectedVisitor.visits, startDate, today) : [];
+    const selectedVisitorVisits = selectedVisitor ? visitsInDateRange(selectedVisitor.visits, startDate, endDate || today) : [];
     const rangeMetrics = useMemo(() => {
         const studentVisits = visitorsWithRangeVisits
             .filter((visitor) => visitor.type === 'student')
@@ -84,7 +85,7 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory) {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [department, rowsPerPage, search, section, startDate, visitorType, yearLevel]);
+    }, [department, endDate, rowsPerPage, search, section, startDate, visitorType, yearLevel]);
 
     useEffect(() => {
         setCurrentPage((page) => Math.min(page, totalPages));
@@ -104,6 +105,7 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory) {
 
     const resetDateCoverage = () => {
         setStartDate(schoolYearStart);
+        setEndDate(today);
     };
 
     const changeSort = (column: SortColumn) => {
@@ -120,11 +122,20 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory) {
         });
     };
 
+    const changeQuickSort = (value: string) => {
+        const [column, direction] = value.split(':') as [SortColumn, SortDirection];
+
+        setSortColumn(column);
+        setSortDirection(direction === 'asc' ? 'asc' : 'desc');
+    };
+
     return {
         schoolYearStart,
         schoolYearEnd,
         startDate,
+        endDate,
         setStartDate,
+        setEndDate,
         resetDateCoverage,
         visitorType,
         yearLevel,
@@ -148,6 +159,7 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory) {
         rangeMetrics,
         totalPages,
         changeSort,
+        changeQuickSort,
         setRowsPerPage,
         previousPage: () => setCurrentPage((page) => Math.max(1, page - 1)),
         nextPage: () => setCurrentPage((page) => Math.min(totalPages, page + 1)),

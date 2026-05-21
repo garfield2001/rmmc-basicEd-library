@@ -1,80 +1,48 @@
-import { DateInput } from '@/components/ui/date-input';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { activityDefaultLimit, activityPanelDetails, activityPanelOrder, type ActivityPanel } from './activity-breakdown-helpers';
 
 interface ActivityBreakdownControlsProps {
     active: ActivityPanel;
-    days: number;
-    fromDate: string;
-    minDate?: string;
-    maxDate?: string;
     onPanelChange: (panel: ActivityPanel) => void;
-    onDaysChange: (days: number) => void;
-    onFromDateChange: (value: string) => void;
-    onClear: () => void;
 }
 
-export function ActivityBreakdownControls({
-    active,
-    days,
-    fromDate,
-    minDate,
-    maxDate,
-    onPanelChange,
-    onDaysChange,
-    onFromDateChange,
-    onClear,
-}: ActivityBreakdownControlsProps) {
+export function ActivityBreakdownControls({ active, onPanelChange }: ActivityBreakdownControlsProps) {
+    const activeIndex = activityPanelOrder.indexOf(active);
+    const previous = activityPanelOrder[(activeIndex - 1 + activityPanelOrder.length) % activityPanelOrder.length];
+    const next = activityPanelOrder[(activeIndex + 1) % activityPanelOrder.length];
+    const activeDetails = activityPanelDetails[active];
+    const ActiveIcon = activeDetails.icon;
+
     return (
-        <div className="grid w-full gap-3 min-[1180px]:grid-cols-[max-content_minmax(0,1fr)] min-[1180px]:items-start">
-            <div className="admin-segmented-tabs w-full max-w-[24rem] flex-nowrap">
-                {activityPanelOrder.map((panel) => (
-                    <button
-                        key={panel}
-                        type="button"
-                        onClick={() => onPanelChange(panel)}
-                        className={`admin-segmented-tab whitespace-nowrap ${active === panel ? 'admin-segmented-tab-active' : ''}`}
-                    >
-                        {activityPanelDetails[panel].label}
-                    </button>
-                ))}
-            </div>
-            <div className="flex w-full min-w-0 flex-wrap items-center justify-between gap-2">
-                <div className="admin-segmented-tabs max-w-full flex-nowrap overflow-x-auto">
-                    {[7, 14, 30].map((option) => (
-                        <button
-                            key={option}
-                            type="button"
-                            onClick={() => onDaysChange(option)}
-                            className={`admin-segmented-tab rounded-md px-2.5 py-1.5 text-xs font-semibold whitespace-nowrap transition ${
-                                !fromDate && days === option ? 'admin-segmented-tab-active' : 'text-[#020659]/75 hover:bg-white hover:text-[#010440]'
-                            }`}
-                        >
-                            {option} days
-                        </button>
-                    ))}
-                </div>
-                <div className="grid w-full min-w-0 gap-2 sm:ml-auto sm:w-auto sm:grid-cols-[8rem_minmax(10.5rem,11rem)_auto]">
-                    <input
-                        type="number"
-                        min={1}
-                        max={366}
-                        value={days}
-                        onChange={(event) => onDaysChange(Number(event.target.value) || 1)}
-                        className="h-10 rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm font-semibold text-[#020659] outline-none transition focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10"
-                        aria-label="Manual number of days ending today"
-                    />
-                    <DateInput value={fromDate} onChange={onFromDateChange} min={minDate} max={maxDate} placeholder="From date to today" className="sm:w-44" />
-                    <button
-                        type="button"
-                        onClick={onClear}
-                        disabled={!fromDate && days === 14}
-                        className="inline-flex h-10 items-center justify-center rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff] px-3 text-sm font-semibold text-[#020659] transition hover:border-[#040DBF]/25 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                        Clear
-                    </button>
-                </div>
-            </div>
+        <div className="group relative flex h-10 w-full max-w-[24rem] items-center justify-center overflow-hidden rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff]">
+            <CarouselArrow label="Previous activity panel" direction="left" onClick={() => onPanelChange(previous)} />
+            <button
+                type="button"
+                onClick={() => onPanelChange(next)}
+                className="flex h-full w-full items-center justify-center gap-2 px-10 text-sm font-semibold text-[#010440] transition-transform duration-200 active:scale-[0.98]"
+            >
+                <ActiveIcon className="size-4 text-[#040DBF]" />
+                <span>{activeDetails.label}</span>
+            </button>
+            <CarouselArrow label="Next activity panel" direction="right" onClick={() => onPanelChange(next)} />
         </div>
+    );
+}
+
+function CarouselArrow({ label, direction, onClick }: { label: string; direction: 'left' | 'right'; onClick: () => void }) {
+    const Icon = direction === 'left' ? ChevronLeft : ChevronRight;
+
+    return (
+        <button
+            type="button"
+            aria-label={label}
+            onClick={onClick}
+            className={`absolute top-1/2 z-10 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[#020659] opacity-0 shadow-sm ring-1 ring-[#040DBF]/10 transition duration-200 group-hover:opacity-100 hover:bg-[#040DBF] hover:text-white ${
+                direction === 'left' ? 'left-1 -translate-x-2 group-hover:translate-x-0' : 'right-1 translate-x-2 group-hover:translate-x-0'
+            }`}
+        >
+            <Icon className="size-4" />
+        </button>
     );
 }
 

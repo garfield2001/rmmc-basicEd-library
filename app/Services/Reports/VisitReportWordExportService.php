@@ -5,6 +5,7 @@ namespace App\Services\Reports;
 use Carbon\Carbon;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\Settings;
 use PhpOffice\PhpWord\SimpleType\Jc;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -13,6 +14,7 @@ class VisitReportWordExportService
     public function download(array $report, array $groups, string $filename): BinaryFileResponse
     {
         $path = tempnam(sys_get_temp_dir(), 'visit-report-').'.docx';
+        Settings::setOutputEscapingEnabled(true);
         IOFactory::createWriter($this->document($report, $groups), 'Word2007')->save($path);
 
         return response()->download($path, $filename)->deleteFileAfterSend(true);
@@ -25,6 +27,7 @@ class VisitReportWordExportService
         $word->setDefaultFontSize(11);
         $word->addTableStyle('report-table', $this->tableStyle(), ['bgColor' => 'E8EEFC', 'bold' => true]);
         $section = $word->addSection(['paperSize' => 'Letter', 'marginTop' => 648, 'marginRight' => 792, 'marginBottom' => 648, 'marginLeft' => 792]);
+        $section->addFooter()->addPreserveText('Page {PAGE} of {NUMPAGES}', ['size' => 10, 'color' => '020659'], ['alignment' => Jc::RIGHT]);
 
         $this->letterhead($section);
         $section->addText('Library Progress Report', ['bold' => true, 'size' => 18, 'color' => '010440'], ['alignment' => Jc::CENTER, 'spaceAfter' => 160]);
@@ -39,7 +42,7 @@ class VisitReportWordExportService
 
     private function letterhead($section): void
     {
-        $table = $section->addTable(['borderSize' => 0, 'cellMargin' => 0, 'alignment' => Jc::CENTER]);
+        $table = $section->addTable(['borderSize' => 0, 'borderColor' => 'FFFFFF', 'cellMargin' => 0, 'alignment' => Jc::CENTER]);
         $table->addRow();
         $logo = public_path('images/rmmc-logo.jpg');
         $left = $table->addCell(1500);
@@ -59,7 +62,7 @@ class VisitReportWordExportService
 
     private function metadata($section, array $report): void
     {
-        $table = $section->addTable(['borderSize' => 0, 'alignment' => Jc::CENTER, 'cellMargin' => 60]);
+        $table = $section->addTable(['borderSize' => 0, 'borderColor' => 'FFFFFF', 'alignment' => Jc::CENTER, 'cellMargin' => 60]);
         $this->metaRow($table, 'School Year:', $report['school_year']['name'] ?? 'No school year', 'Visitor Type:', ucfirst($report['summary']['visitor_type'] ?? 'visitor'));
         $this->metaRow($table, 'From:', $this->date($report, 'start_date'), 'To:', $this->date($report, 'end_date'));
         $section->addTextBreak(1);
@@ -68,8 +71,15 @@ class VisitReportWordExportService
     private function metaRow($table, string $leftLabel, string $leftValue, string $rightLabel, string $rightValue): void
     {
         $table->addRow();
-        $table->addCell(2700)->addText($leftLabel.' '.$leftValue, ['bold' => false]);
-        $table->addCell(2700)->addText($rightLabel.' '.$rightValue, ['bold' => false]);
+        $this->metaCell($table->addCell(2700), $leftLabel, $leftValue);
+        $this->metaCell($table->addCell(2700), $rightLabel, $rightValue);
+    }
+
+    private function metaCell($cell, string $label, string $value): void
+    {
+        $run = $cell->addTextRun(['spaceAfter' => 0]);
+        $run->addText($label.' ', ['bold' => true]);
+        $run->addText($value);
     }
 
     private function group($section, array $report, array $group): void

@@ -122,6 +122,8 @@ export interface AdminVisitHistory {
               name: string;
               starts_at: string;
               ends_at: string;
+              student_required_visits: number;
+              employee_required_visits: number;
           }
         | null;
     metrics: {

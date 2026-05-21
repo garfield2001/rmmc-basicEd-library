@@ -1,7 +1,7 @@
 import { ChartCard } from '@/components/admin/dashboard/chart-card';
 import { HorizontalBarChart } from '@/components/admin/dashboard/horizontal-bar-chart';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import type { AdminDashboard } from '@/types/dashboard';
+import type { AdminDashboard, VisitTrafficRange } from '@/types/dashboard';
 import { useMemo, useState } from 'react';
 import { ActivityBreakdownControls, ShowAllButton } from './activity-breakdown-controls';
 import {
@@ -14,19 +14,21 @@ import {
     groupStudentActivity,
     type ActivityPanel,
 } from './activity-breakdown-helpers';
+import { RangeControls, relativeDateRange } from './range-controls';
 
 export function ActivityBreakdownCard({ dashboard }: { dashboard: AdminDashboard }) {
-    const [days, setDays] = useState(14);
-    const [fromDate, setFromDate] = useState('');
+    const [range, setRange] = useState<VisitTrafficRange>('last14');
+    const [startDate, setStartDate] = useState(() => relativeDateRange('last14')[0]);
+    const [endDate, setEndDate] = useState(() => relativeDateRange('last14')[1]);
     const [activeActivity, setActiveActivity] = useState<ActivityPanel>('yearLevel');
     const [showAllActivity, setShowAllActivity] = useState(false);
     const studentActivityVisits = useMemo(
-        () => filterStudentActivityVisits(dashboard.charts.studentActivityVisits, days, fromDate),
-        [dashboard.charts.studentActivityVisits, days, fromDate],
+        () => filterStudentActivityVisits(dashboard.charts.studentActivityVisits, startDate, endDate),
+        [dashboard.charts.studentActivityVisits, endDate, startDate],
     );
     const departmentActivityVisits = useMemo(
-        () => filterEmployeeActivityVisits(dashboard.charts.employeeActivityVisits, days, fromDate),
-        [dashboard.charts.employeeActivityVisits, days, fromDate],
+        () => filterEmployeeActivityVisits(dashboard.charts.employeeActivityVisits, startDate, endDate),
+        [dashboard.charts.employeeActivityVisits, endDate, startDate],
     );
     const allYearLevelData = useMemo(
         () => groupStudentActivity(studentActivityVisits, 'yearLevel', dashboard.charts.activityGroups.yearLevels),
@@ -50,31 +52,50 @@ export function ActivityBreakdownCard({ dashboard }: { dashboard: AdminDashboard
     return (
         <ChartCard
             title="Activity Breakdown"
-            detail={`${activityRangeDetail(days, fromDate)} by ${activityPanel.detail}`}
+            detail={`${activityRangeDetail(range, startDate, endDate)} by ${activityPanel.detail}`}
             icon={activityPanel.icon}
             actions={
-                <ActivityBreakdownControls
-                    active={activeActivity}
-                    days={days}
-                    fromDate={fromDate}
-                    minDate={dashboard.schoolYear?.starts_at}
-                    maxDate={new Date().toISOString().slice(0, 10)}
-                    onPanelChange={(panel) => {
-                        setActiveActivity(panel);
-                        setShowAllActivity(false);
-                    }}
-                    onDaysChange={(value) => {
-                        setDays(Math.min(366, Math.max(1, value)));
-                        setFromDate('');
-                    }}
-                    onFromDateChange={(value) => {
-                        setFromDate(value);
-                    }}
-                    onClear={() => {
-                        setFromDate('');
-                        setDays(14);
-                    }}
-                />
+                <div className="grid w-full gap-3 min-[1180px]:grid-cols-[max-content_minmax(0,1fr)] min-[1180px]:items-start">
+                    <ActivityBreakdownControls
+                        active={activeActivity}
+                        onPanelChange={(panel) => {
+                            setActiveActivity(panel);
+                            setShowAllActivity(false);
+                        }}
+                    />
+                    <RangeControls
+                        value={range}
+                        startDate={startDate}
+                        endDate={endDate}
+                        minDate={dashboard.schoolYear?.starts_at}
+                        maxDate={dashboard.schoolYear?.ends_at}
+                        compact
+                        onRangeChange={(value) => {
+                            setRange(value);
+
+                            if (value !== 'custom') {
+                                const [start, end] = relativeDateRange(value);
+                                setStartDate(start);
+                                setEndDate(end);
+                            }
+                        }}
+                        onStartDateChange={(value) => {
+                            setStartDate(value);
+                            setEndDate(new Date().toISOString().slice(0, 10));
+                            setRange('custom');
+                        }}
+                        onEndDateChange={(value) => {
+                            setEndDate(value);
+                            setRange('custom');
+                        }}
+                        onClearDates={() => {
+                            const [start, end] = relativeDateRange('last14');
+                            setStartDate(start);
+                            setEndDate(end);
+                            setRange('last14');
+                        }}
+                    />
+                </div>
             }
         >
             <div className="mb-3 grid items-center gap-2" style={{ gridTemplateColumns: `${activityLabelWidth}px minmax(0, 1fr)` }}>

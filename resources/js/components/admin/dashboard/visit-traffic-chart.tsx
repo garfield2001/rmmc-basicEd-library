@@ -25,6 +25,9 @@ export function VisitTrafficChart({
         return <EmptyChartState message={emptyMessage} />;
     }
 
+    const today = new Date().toISOString().slice(0, 10);
+    const todayLabel = data.find((point) => point.date === today)?.label;
+
     return (
         <ChartContainer config={trafficChartConfig} className="h-72 w-full min-w-0 sm:h-76">
             <AreaChart data={data} margin={{ top: 12, right: 12, left: -8, bottom: 0 }}>
@@ -39,7 +42,13 @@ export function VisitTrafficChart({
                     </linearGradient>
                 </defs>
                 <CartesianGrid vertical={false} strokeDasharray="4 4" />
-                <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={10} />
+                <XAxis
+                    dataKey="label"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={10}
+                    tick={(props) => <TodayTick {...props} todayLabel={todayLabel} />}
+                />
                 <YAxis tickLine={false} axisLine={false} tickMargin={10} allowDecimals={false} />
                 <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
                 <Area dataKey="students" type="monotone" stroke="var(--color-students)" fill="url(#students-fill)" strokeWidth={2} />
@@ -52,5 +61,19 @@ export function VisitTrafficChart({
                 />
             </AreaChart>
         </ChartContainer>
+    );
+}
+
+function TodayTick({ x, y, payload, todayLabel }: { x?: number; y?: number; payload?: { value: string }; todayLabel?: string }) {
+    const label = payload?.value ?? '';
+    const active = Boolean(todayLabel && label === todayLabel);
+
+    return (
+        <g transform={`translate(${x ?? 0},${y ?? 0})`}>
+            {active && <rect x={-22} y={3} width={44} height={22} rx={11} fill="#dcfce7" />}
+            <text x={0} y={18} textAnchor="middle" className={active ? 'fill-emerald-700 text-xs font-bold' : 'fill-muted-foreground text-xs'}>
+                {label}
+            </text>
+        </g>
     );
 }

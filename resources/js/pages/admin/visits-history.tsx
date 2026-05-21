@@ -1,5 +1,6 @@
 import { useVisitsHistoryPage } from '@/components/admin/visits-history/use-visits-history-page';
 import { VisitHistoryDateRangeCard } from '@/components/admin/visits-history/visit-history-date-range-card';
+import { VisitHistoryBreakdown } from '@/components/admin/visits-history/visit-history-breakdown';
 import { VisitHistoryFilterBar } from '@/components/admin/visits-history/visit-history-filter-bar';
 import { VisitHistoryMetrics } from '@/components/admin/visits-history/visit-history-metrics';
 import { VisitHistoryTable } from '@/components/admin/visits-history/visit-history-table';
@@ -29,12 +30,20 @@ export default function VisitsHistory({ visitHistory }: VisitsHistoryProps) {
 
                         <VisitHistoryMetrics metrics={visitHistory.metrics} rangeMetrics={historyPage.rangeMetrics} />
 
+                        <VisitHistoryBreakdown
+                            visitors={visitHistory.visitors}
+                            studentRequiredVisits={visitHistory.schoolYear?.student_required_visits ?? 0}
+                            employeeRequiredVisits={visitHistory.schoolYear?.employee_required_visits ?? 0}
+                        />
+
                         <VisitHistoryDateRangeCard
                             schoolYearName={visitHistory.schoolYear?.name}
                             schoolYearStart={historyPage.schoolYearStart}
                             schoolYearEnd={historyPage.schoolYearEnd}
                             startDate={historyPage.startDate}
+                            endDate={historyPage.endDate}
                             onStartDateChange={historyPage.setStartDate}
+                            onEndDateChange={historyPage.setEndDate}
                             onReset={historyPage.resetDateCoverage}
                         />
 
@@ -47,11 +56,14 @@ export default function VisitsHistory({ visitHistory }: VisitsHistoryProps) {
                                 section={historyPage.section}
                                 department={historyPage.department}
                                 search={historyPage.search}
+                                sortColumn={historyPage.sortColumn}
+                                sortDirection={historyPage.sortDirection}
                                 onVisitorTypeChange={historyPage.changeVisitorType}
                                 onYearLevelChange={historyPage.changeYearLevel}
                                 onSectionChange={historyPage.setSection}
                                 onDepartmentChange={historyPage.setDepartment}
                                 onSearchChange={historyPage.setSearch}
+                                onQuickSortChange={historyPage.changeQuickSort}
                             />
                             <VisitHistoryTable
                                 visitors={historyPage.visibleVisitors}
@@ -75,7 +87,7 @@ export default function VisitsHistory({ visitHistory }: VisitsHistoryProps) {
                         visitor={historyPage.selectedVisitor}
                         visits={historyPage.selectedVisitorVisits}
                         startDate={historyPage.startDate}
-                        endDate=""
+                        endDate={historyPage.endDate}
                         open={Boolean(historyPage.selectedVisitor)}
                         onOpenChange={(open) => {
                             if (!open) {

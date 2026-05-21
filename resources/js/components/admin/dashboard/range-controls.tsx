@@ -35,6 +35,8 @@ interface RangeControlsProps {
     compact?: boolean;
 }
 
+const todayIsoDate = () => new Date().toISOString().slice(0, 10);
+
 export function RangeControls({
     value,
     startDate,
@@ -43,19 +45,9 @@ export function RangeControls({
     maxDate,
     onRangeChange,
     onStartDateChange,
-    onEndDateChange,
-    onClearDates,
     className,
     compact = false,
 }: RangeControlsProps) {
-    const clearDates =
-        onClearDates ??
-        (() => {
-            onStartDateChange('');
-            onEndDateChange('');
-            onRangeChange('last14');
-        });
-
     return (
         <div
             className={cn(
@@ -78,10 +70,19 @@ export function RangeControls({
                         {trafficRangeOptions[range].label.replace('last ', '')}
                     </button>
                 ))}
+                <button
+                    type="button"
+                    onClick={() => onRangeChange('custom')}
+                    className={`admin-segmented-tab rounded-md px-2.5 py-1.5 text-xs font-semibold whitespace-nowrap transition ${
+                        value === 'custom' ? 'admin-segmented-tab-active' : 'text-[#020659]/75 hover:bg-white hover:text-[#010440]'
+                    }`}
+                >
+                    Custom
+                </button>
             </div>
             <div
                 className={cn(
-                    'grid w-full min-w-0 gap-2 sm:ml-auto sm:w-auto sm:grid-cols-[minmax(10.5rem,11rem)_minmax(10.5rem,11rem)_auto]',
+                    'grid w-full min-w-0 gap-2 sm:ml-auto sm:w-auto sm:grid-cols-[minmax(10.5rem,11rem)]',
                     compact && 'min-[1180px]:w-auto',
                 )}
             >
@@ -93,22 +94,6 @@ export function RangeControls({
                     placeholder="Start date"
                     className="sm:w-44"
                 />
-                <DateInput
-                    value={endDate}
-                    onChange={onEndDateChange}
-                    min={startDate || minDate}
-                    max={maxDate}
-                    placeholder="End date"
-                    className="sm:w-44"
-                />
-                <button
-                    type="button"
-                    onClick={clearDates}
-                    disabled={!startDate && !endDate && value !== 'custom'}
-                    className="inline-flex h-10 items-center justify-center rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff] px-3 text-sm font-semibold text-[#020659] transition hover:border-[#040DBF]/25 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                    Clear
-                </button>
             </div>
         </div>
     );
@@ -119,6 +104,10 @@ export function rangeLabel(range: VisitTrafficRange, startDate: string, endDate:
 }
 
 export function rangeDetail(range: VisitTrafficRange, startDate: string, endDate: string) {
+    if (range === 'custom' && startDate) {
+        return `Student and employee visits over the last ${daysInRange(startDate, endDate || todayIsoDate())} days`;
+    }
+
     return range === 'custom' ? `Visits from ${summarizeDates(startDate, endDate)}` : trafficRangeOptions[range].detail;
 }
 
@@ -149,4 +138,15 @@ function summarizeDates(startDate: string, endDate: string) {
     }
 
     return 'custom dates';
+}
+
+function daysInRange(startDate: string, endDate: string) {
+    const start = new Date(`${startDate}T00:00:00`);
+    const end = new Date(`${endDate}T00:00:00`);
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) {
+        return 0;
+    }
+
+    return Math.floor((end.getTime() - start.getTime()) / 86400000) + 1;
 }

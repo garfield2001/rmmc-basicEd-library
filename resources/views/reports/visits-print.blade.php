@@ -78,7 +78,7 @@
                 </section>
             @endforeach
         </main>
+        <footer class="page-footer"></footer>
     </body>
 </html>
-
 

@@ -48,6 +48,8 @@ class AdminVisitHistoryService
             'name' => $schoolYear->name,
             'starts_at' => $schoolYear->startDateString(),
             'ends_at' => $schoolYear->endDateString(),
+            'student_required_visits' => $schoolYear->student_required_visits,
+            'employee_required_visits' => $schoolYear->employee_required_visits,
         ];
     }
 
