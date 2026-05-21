@@ -14,8 +14,8 @@ export function VisitHistoryMetrics({ metrics, rangeMetrics }: VisitHistoryMetri
     return (
         <section className="grid gap-4 md:grid-cols-3">
             <HistoryMetricCard icon={UserRound} label="Visitors" value={metrics.visitors} detail="Active school year roster" />
-            <HistoryMetricCard icon={GraduationCap} label="Student visits" value={rangeMetrics.studentVisits} detail="Selected date coverage" />
-            <HistoryMetricCard icon={BriefcaseBusiness} label="Employee visits" value={rangeMetrics.employeeVisits} detail="Selected date coverage" />
+            <HistoryMetricCard icon={GraduationCap} label="Student visits" value={rangeMetrics.studentVisits} detail="From selected date to today" />
+            <HistoryMetricCard icon={BriefcaseBusiness} label="Employee visits" value={rangeMetrics.employeeVisits} detail="From selected date to today" />
         </section>
     );
 }

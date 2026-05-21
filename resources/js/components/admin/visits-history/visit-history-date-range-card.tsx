@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
-import { DateInput, formatDisplayDate } from '@/components/ui/date-input';
+import { formatDisplayDate } from '@/components/ui/date-input';
+import { VisitLogDateRangePicker } from './visit-log-date-range-picker';
 
 interface VisitHistoryDateRangeCardProps {
     schoolYearName?: string | null;
@@ -32,27 +33,21 @@ export function VisitHistoryDateRangeCard({
                     <p className="mt-1 text-sm text-[#020659]/70">
                         {schoolYearStart && schoolYearEnd
                             ? `${formatDisplayDate(schoolYearStart)} to ${formatDisplayDate(schoolYearEnd)}`
-                            : 'Activate a school year to view visit history.'}
+                            : 'Activate a school year to view visit logs.'}
                     </p>
-                    <p className="mt-2 text-xs font-medium text-[#030A8C]">Choose a date range for the table and visitor visit counts.</p>
+                    <p className="mt-2 text-xs font-medium text-[#030A8C]">Choose a date range from one dropdown; included days are highlighted.</p>
                 </div>
-                <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-                    <DateInput
-                        value={startDate}
-                        onChange={onStartDateChange}
-                        min={schoolYearStart || undefined}
-                        max={endDate || today}
-                        placeholder="Start date"
+                <div className="space-y-3">
+                    <VisitLogDateRangePicker
+                        startDate={startDate}
+                        endDate={endDate || today}
+                        minDate={schoolYearStart}
+                        maxDate={today}
+                        onStartDateChange={onStartDateChange}
+                        onEndDateChange={onEndDateChange}
                     />
-                    <DateInput
-                        value={endDate}
-                        onChange={onEndDateChange}
-                        min={startDate || schoolYearStart || undefined}
-                        max={today}
-                        placeholder="End date"
-                    />
-                    <Button type="button" variant="outline" size="sm" onClick={onReset} className="h-10 justify-center">
-                        Reset
+                    <Button type="button" variant="outline" size="sm" onClick={onReset} className="h-10 w-full justify-center sm:w-auto">
+                        Reset to school year through today
                     </Button>
                 </div>
             </div>

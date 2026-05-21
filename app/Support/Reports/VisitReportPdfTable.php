@@ -2,8 +2,6 @@
 
 namespace App\Support\Reports;
 
-use App\Support\Academics\AcademicLevels;
-
 class VisitReportPdfTable
 {
     public const ROW_HEIGHT = 20;
@@ -60,7 +58,7 @@ class VisitReportPdfTable
         return match ($key) {
             'school_id' => (string) ($row['school_id'] ?? '-'),
             'name' => (string) ($row['name'] ?? '-'),
-            'year_section' => (string) (($row['year_section_label'] ?? trim(collect([AcademicLevels::shortLabel($row['year_level'] ?? null), $row['section'] ?? null])->filter()->implode(' - '))) ?: '-'),
+            'year_section' => (string) (($row['year_section_label'] ?? trim(collect([$row['year_level'] ?? null, $row['section'] ?? null])->filter()->implode(' - '))) ?: '-'),
             'department' => (string) (($row['department'] ?? '') ?: '-'),
             'visits' => ($row['visit_count'] ?? 0).' / '.($summary['required_visits'] ?? 0),
             'excess_visits' => (string) ($row['excess_visits'] ?? 0),

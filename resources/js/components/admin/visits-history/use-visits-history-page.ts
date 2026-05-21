@@ -11,6 +11,7 @@ import type { AdminVisitHistory, VisitHistoryVisitor } from '@/types/dashboard';
 import { router } from '@inertiajs/react';
 import { useEchoPublic } from '@laravel/echo-react';
 import { useEffect, useMemo, useState } from 'react';
+import { countVisitLogRangeVisits, filterVisitLogVisitors, visitorsWithDateCoverage } from './visit-log-filtering';
 
 export function useVisitsHistoryPage(visitHistory: AdminVisitHistory) {
     const schoolYearStart = visitHistory.schoolYear?.starts_at ?? '';
@@ -38,29 +39,11 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory) {
     }, [schoolYearStart]);
 
     const visitorsWithRangeVisits = useMemo(() => {
-        return visitHistory.visitors.map((visitor) => ({
-            ...visitor,
-            rangeVisits: visitsInDateRange(visitor.visits, startDate, endDate || today),
-        }));
+        return visitorsWithDateCoverage(visitHistory.visitors, startDate, endDate, today);
     }, [endDate, startDate, today, visitHistory.visitors]);
 
     const filteredVisitors = useMemo(() => {
-        const normalizedSearch = search.trim().toLowerCase();
-
-        return visitorsWithRangeVisits.filter((visitor) => {
-            const searchable = [visitor.schoolId, visitor.name, visitor.yearLevel, visitor.section, visitor.department]
-                .filter(Boolean)
-                .join(' ')
-                .toLowerCase();
-
-            return (
-                visitor.type === visitorType &&
-                (visitorType !== 'student' || !yearLevel || visitor.yearLevel === yearLevel) &&
-                (visitorType !== 'student' || !section || visitor.section === section) &&
-                (visitorType !== 'employee' || !department || visitor.department === department) &&
-                (!normalizedSearch || searchable.includes(normalizedSearch))
-            );
-        });
+        return filterVisitLogVisitors(visitorsWithRangeVisits, { visitorType, yearLevel, section, department, search });
     }, [department, search, section, visitorType, visitorsWithRangeVisits, yearLevel]);
 
     const sortedVisitors = useMemo(() => sortVisitors(filteredVisitors, sortColumn, sortDirection), [filteredVisitors, sortColumn, sortDirection]);
@@ -68,20 +51,7 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory) {
     const visibleVisitors =
         rowsPerPage === 'all' ? sortedVisitors : sortedVisitors.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
     const selectedVisitorVisits = selectedVisitor ? visitsInDateRange(selectedVisitor.visits, startDate, endDate || today) : [];
-    const rangeMetrics = useMemo(() => {
-        const studentVisits = visitorsWithRangeVisits
-            .filter((visitor) => visitor.type === 'student')
-            .reduce((sum, visitor) => sum + visitor.rangeVisits.length, 0);
-        const employeeVisits = visitorsWithRangeVisits
-            .filter((visitor) => visitor.type === 'employee')
-            .reduce((sum, visitor) => sum + visitor.rangeVisits.length, 0);
-
-        return {
-            visits: studentVisits + employeeVisits,
-            studentVisits,
-            employeeVisits,
-        };
-    }, [visitorsWithRangeVisits]);
+    const rangeMetrics = useMemo(() => countVisitLogRangeVisits(visitorsWithRangeVisits), [visitorsWithRangeVisits]);
 
     useEffect(() => {
         setCurrentPage(1);
@@ -152,6 +122,7 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory) {
         sortColumn,
         sortDirection,
         visibleVisitors,
+        visitorsWithRangeVisits,
         sortedVisitors,
         selectedVisitor,
         selectedVisitorVisits,

@@ -17,7 +17,7 @@ export default defineConfig({
     },
 
     //For other PC to access this project
-    server: {
+    /* server: {
         host: '0.0.0.0',
         port: 5173,
         strictPort: true,
@@ -25,5 +25,5 @@ export default defineConfig({
             host: '172.16.100.145', // Change this IP depending on which PC you're using
             port: 5173,
         },
-    },
+    }, */
 });

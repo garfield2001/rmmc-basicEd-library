@@ -1,9 +1,12 @@
 import { ActivityBreakdownCard } from '@/components/admin/dashboard/activity-breakdown-card';
 import { ChartCard } from '@/components/admin/dashboard/chart-card';
 import { DashboardActions } from '@/components/admin/dashboard/dashboard-actions';
+import { DashboardInsightStrip } from '@/components/admin/dashboard/dashboard-insight-strip';
+import { getDashboardInsights } from '@/components/admin/dashboard/dashboard-insights';
 import { getOverviewMetrics, getSchoolYearDateRange } from '@/components/admin/dashboard/dashboard-summary';
 import { MetricCard } from '@/components/admin/dashboard/metric-card';
 import { RangeControls, rangeDetail, rangeLabel, relativeDateRange, visitsBetween } from '@/components/admin/dashboard/range-controls';
+import { DashboardOperationsPanel } from '@/components/admin/dashboard/dashboard-operations-panel';
 import { VisitTrafficChart } from '@/components/admin/dashboard/visit-traffic-chart';
 import { VisitorMixChart } from '@/components/admin/dashboard/visitor-mix-chart';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
@@ -31,6 +34,7 @@ export default function Dashboard({ dashboard }: DashboardProps) {
     );
     const trafficTotal = useMemo(() => trafficData.reduce((sum, point) => sum + point.total, 0), [trafficData]);
     const trafficDetail = `${rangeDetail(trafficRange, trafficStartDate, trafficEndDate)} - ${trafficTotal.toLocaleString()} visits`;
+    const insights = useMemo(() => getDashboardInsights(dashboard.charts.dailyVisits), [dashboard.charts.dailyVisits]);
 
     useEchoPublic('library-visits', '.LibraryVisitRecorded', () => {
         router.reload({ only: ['dashboard'] });
@@ -44,7 +48,7 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                     <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
                             title="Dashboard"
-                            description="A school-year view of registered visitors, library visit tracking, and required visit progress."
+                            description="A bird's-eye view of library visit operations, scanning activity, visitor coverage, and required progress."
                             actions={<DashboardActions requiredProgress={dashboard.charts.requiredProgress} />}
                         />
 
@@ -54,9 +58,13 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                             ))}
                         </section>
 
+                        <DashboardOperationsPanel dashboard={dashboard} schoolYearDates={schoolYearDates} />
+
+                        <DashboardInsightStrip insights={insights} />
+
                         <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.9fr)_minmax(20rem,0.9fr)]">
                             <ChartCard
-                                title="Visit Trends"
+                                title="Visit Volume"
                                 detail={trafficDetail}
                                 icon={CalendarRange}
                                 actions={

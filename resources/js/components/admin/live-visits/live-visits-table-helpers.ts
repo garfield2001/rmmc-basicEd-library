@@ -26,14 +26,14 @@ export function initialVisitTab(visits: DashboardVisit[], mode: LiveVisitsTableM
 
 export function liveVisitsTableTitle(mode: LiveVisitsTableMode, visitTab: VisitTab) {
     if (mode === 'history') {
-        return visitTab === 'student' ? 'Student visit history' : 'Employee visit history';
+        return visitTab === 'student' ? 'Student visit logs' : 'Employee visit logs';
     }
 
     return visitTab === 'student' ? 'Student visits today' : 'Employee visits today';
 }
 
 export function liveVisitsTableDescription(mode: LiveVisitsTableMode) {
-    return mode === 'history' ? 'Visits from the active school year are shown newest first.' : 'Latest RFID scans for the selected tab are shown first.';
+    return mode === 'history' ? 'Active school-year logs are shown newest first.' : 'Latest RFID scans for the selected tab are shown first.';
 }
 
 export function filterLiveVisits(visits: DashboardVisit[], { visitTab, search, yearLevel, section }: LiveVisitFilterOptions) {

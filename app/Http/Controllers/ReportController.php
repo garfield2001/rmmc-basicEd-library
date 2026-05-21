@@ -11,12 +11,12 @@ use App\Services\Reports\VisitReportService;
 use App\Services\Reports\VisitReportWordExportService;
 use App\Services\SchoolYears\SchoolYearSectionService;
 use App\Support\Academics\AcademicLevels;
+use App\Support\Reports\ReportPdfBrowser;
 use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Excel as ExcelFormat;
-use Spatie\Browsershot\Browsershot;
 use Spatie\LaravelPdf\Enums\Format;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -108,14 +108,14 @@ class ReportController extends Controller
         return $word->download($report, $exports->groups($report), $exports->filename($report, 'docx'));
     }
 
-    public function exportPdf(ReportFilterRequest $request, VisitReportService $reports, VisitReportExportService $exports)
+    public function exportPdf(ReportFilterRequest $request, VisitReportService $reports, VisitReportExportService $exports, ReportPdfBrowser $browser)
     {
         $report = $reports->getData($request->validated());
 
         return Pdf::view('reports.visits-print', $exports->viewData($report, showActions: false))
             ->format(Format::Letter)
             ->portrait()
-            ->withBrowsershot(fn (Browsershot $browser) => $this->configureReportPdfBrowser($browser))
+            ->withBrowsershot(fn ($pdfBrowser) => $browser->configure($pdfBrowser))
             ->download($exports->filename($report, 'pdf'));
     }
 
@@ -126,45 +126,4 @@ class ReportController extends Controller
         return response()->view('reports.visits-print', $exports->viewData($report));
     }
 
-    private function configureReportPdfBrowser(Browsershot $browser): Browsershot
-    {
-        $chromePath = $this->browserExecutablePath();
-
-        if ($chromePath) {
-            $browser->setChromePath($chromePath);
-        }
-
-        return $browser
-            ->setNodeModulePath(base_path('node_modules'))
-            ->noSandbox()
-            ->newHeadless()
-            ->timeout(120)
-            ->protocolTimeout(120);
-    }
-
-    private function browserExecutablePath(): ?string
-    {
-        $configuredPath = env('BROWSERSHOT_CHROME_PATH');
-
-        if ($configuredPath && is_file($configuredPath)) {
-            return $configuredPath;
-        }
-
-        if (PHP_OS_FAMILY !== 'Windows') {
-            return null;
-        }
-
-        foreach ([
-            'C:\Program Files\Google\Chrome\Application\chrome.exe',
-            'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe',
-            'C:\Program Files\Microsoft\Edge\Application\msedge.exe',
-            'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe',
-        ] as $path) {
-            if (is_file($path)) {
-                return $path;
-            }
-        }
-
-        return null;
-    }
 }

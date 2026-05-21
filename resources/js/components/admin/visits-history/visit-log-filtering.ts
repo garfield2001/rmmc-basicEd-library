@@ -1,0 +1,48 @@
+import type { VisitHistoryVisitor } from '@/types/dashboard';
+import { visitsInDateRange, type VisitorTypeFilter, type VisitorWithRangeVisits } from './visit-history-helpers';
+
+interface VisitLogFilterState {
+    visitorType: VisitorTypeFilter;
+    yearLevel: string;
+    section: string;
+    department: string;
+    search: string;
+}
+
+export function visitorsWithDateCoverage(visitors: VisitHistoryVisitor[], startDate: string, endDate: string, today: string): VisitorWithRangeVisits[] {
+    return visitors.map((visitor) => ({
+        ...visitor,
+        rangeVisits: visitsInDateRange(visitor.visits, startDate, endDate || today),
+    }));
+}
+
+export function filterVisitLogVisitors(visitors: VisitorWithRangeVisits[], filters: VisitLogFilterState): VisitorWithRangeVisits[] {
+    const normalizedSearch = filters.search.trim().toLowerCase();
+
+    return visitors.filter((visitor) => {
+        const searchable = [visitor.schoolId, visitor.name, visitor.yearLevel, visitor.section, visitor.department].filter(Boolean).join(' ').toLowerCase();
+
+        return (
+            visitor.type === filters.visitorType &&
+            (filters.visitorType !== 'student' || !filters.yearLevel || visitor.yearLevel === filters.yearLevel) &&
+            (filters.visitorType !== 'student' || !filters.section || visitor.section === filters.section) &&
+            (filters.visitorType !== 'employee' || !filters.department || visitor.department === filters.department) &&
+            (!normalizedSearch || searchable.includes(normalizedSearch))
+        );
+    });
+}
+
+export function countVisitLogRangeVisits(visitors: VisitorWithRangeVisits[]) {
+    const studentVisits = countVisitsByType(visitors, 'student');
+    const employeeVisits = countVisitsByType(visitors, 'employee');
+
+    return {
+        visits: studentVisits + employeeVisits,
+        studentVisits,
+        employeeVisits,
+    };
+}
+
+function countVisitsByType(visitors: VisitorWithRangeVisits[], type: 'student' | 'employee') {
+    return visitors.filter((visitor) => visitor.type === type).reduce((sum, visitor) => sum + visitor.rangeVisits.length, 0);
+}

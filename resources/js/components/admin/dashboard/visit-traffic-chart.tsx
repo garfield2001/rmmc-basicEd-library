@@ -27,10 +27,11 @@ export function VisitTrafficChart({
 
     const today = new Date().toISOString().slice(0, 10);
     const todayLabel = data.find((point) => point.date === today)?.label;
+    const interval = Math.max(0, Math.ceil(data.length / 6) - 1);
 
     return (
-        <ChartContainer config={trafficChartConfig} className="h-72 w-full min-w-0 sm:h-76">
-            <AreaChart data={data} margin={{ top: 12, right: 12, left: -8, bottom: 0 }}>
+        <ChartContainer config={trafficChartConfig} className="h-80 w-full min-w-0 sm:h-76">
+            <AreaChart data={data} margin={{ top: 12, right: 12, left: -8, bottom: 26 }}>
                 <defs>
                     <linearGradient id="students-fill" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="var(--color-students)" stopOpacity={0.36} />
@@ -47,6 +48,8 @@ export function VisitTrafficChart({
                     tickLine={false}
                     axisLine={false}
                     tickMargin={10}
+                    interval={interval}
+                    minTickGap={12}
                     tick={(props) => <TodayTick {...props} todayLabel={todayLabel} />}
                 />
                 <YAxis tickLine={false} axisLine={false} tickMargin={10} allowDecimals={false} />
@@ -70,8 +73,8 @@ function TodayTick({ x, y, payload, todayLabel }: { x?: number; y?: number; payl
 
     return (
         <g transform={`translate(${x ?? 0},${y ?? 0})`}>
-            {active && <rect x={-22} y={3} width={44} height={22} rx={11} fill="#dcfce7" />}
-            <text x={0} y={18} textAnchor="middle" className={active ? 'fill-emerald-700 text-xs font-bold' : 'fill-muted-foreground text-xs'}>
+            {active && <rect x={-24} y={2} width={48} height={23} rx={11.5} fill="#dcfce7" />}
+            <text x={0} y={18} textAnchor="middle" className={active ? 'fill-emerald-700 text-[11px] font-bold' : 'fill-muted-foreground text-[11px]'}>
                 {label}
             </text>
         </g>

@@ -108,7 +108,7 @@ function LiveVisitsEmptyRow({ mode, visitsCount, columns }: { mode: LiveVisitsTa
                     {visitsCount > 0
                         ? 'Try another filter or search term.'
                         : mode === 'history'
-                          ? 'Active school-year visit history will appear here after visitors scan in.'
+                          ? 'Active school-year visit logs will appear here after visitors scan in.'
                           : 'Scanned student and employee visits will appear here.'}
                 </p>
             </TableCell>

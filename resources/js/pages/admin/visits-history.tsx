@@ -19,19 +19,19 @@ export default function VisitsHistory({ visitHistory }: VisitsHistoryProps) {
 
     return (
         <>
-            <Head title="Visits History" />
+            <Head title="Visit Logs" />
             <main className="min-h-screen">
                 <AdminLayout active="visits-history">
                     <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
-                            title="Visits History"
-                            description="Find a visitor in the active school year, then open their complete visit log for the selected dates."
+                            title="Visit Logs"
+                            description="Review every student and employee visit within the active school year, from the selected date through today."
                         />
 
                         <VisitHistoryMetrics metrics={visitHistory.metrics} rangeMetrics={historyPage.rangeMetrics} />
 
                         <VisitHistoryBreakdown
-                            visitors={visitHistory.visitors}
+                            visitors={historyPage.visitorsWithRangeVisits}
                             studentRequiredVisits={visitHistory.schoolYear?.student_required_visits ?? 0}
                             employeeRequiredVisits={visitHistory.schoolYear?.employee_required_visits ?? 0}
                         />
@@ -68,6 +68,8 @@ export default function VisitsHistory({ visitHistory }: VisitsHistoryProps) {
                             <VisitHistoryTable
                                 visitors={historyPage.visibleVisitors}
                                 totalVisitors={historyPage.sortedVisitors.length}
+                                startDate={historyPage.startDate}
+                                endDate={historyPage.endDate}
                                 currentPage={historyPage.currentPage}
                                 totalPages={historyPage.totalPages}
                                 rowsPerPage={historyPage.rowsPerPage}

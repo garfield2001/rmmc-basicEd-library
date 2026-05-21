@@ -1,90 +1,58 @@
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ProgressBar } from '@/components/admin/reports/report-table-parts';
-import type { VisitHistoryVisitor } from '@/types/dashboard';
-import { BriefcaseBusiness, GraduationCap, type LucideIcon } from 'lucide-react';
+import { BriefcaseBusiness, GraduationCap, ListChecks, type LucideIcon } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import type { VisitorWithRangeVisits } from './visit-history-helpers';
+import { buildWatchlist, watchlistGroupLabel } from './visit-log-watchlist';
 
 interface VisitHistoryBreakdownProps {
-    visitors: VisitHistoryVisitor[];
+    visitors: VisitorWithRangeVisits[];
     studentRequiredVisits: number;
     employeeRequiredVisits: number;
 }
 
 export function VisitHistoryBreakdown({ visitors, studentRequiredVisits, employeeRequiredVisits }: VisitHistoryBreakdownProps) {
-    const students = visitors.filter((visitor) => visitor.type === 'student');
-    const employees = visitors.filter((visitor) => visitor.type === 'employee');
-    const yearLevels = groupedCounts(students, (visitor) => visitor.yearLevel || 'Unassigned');
-    const sections = groupedCounts(students, (visitor) => [visitor.yearLevel, visitor.section].filter(Boolean).join(' - ') || 'Unassigned');
-    const departments = groupedCounts(employees, (visitor) => visitor.department || 'Unassigned');
-    const attentionRows = [...students, ...employees]
-        .map((visitor) => {
-            const required = visitor.type === 'employee' ? employeeRequiredVisits : studentRequiredVisits;
-            const visits = visitor.visits.length;
-
-            return {
-                visitor,
-                required,
-                visits,
-                percent: required > 0 ? Math.min(100, Math.round((visits / required) * 100)) : 0,
-            };
-        })
-        .filter((row) => row.required > 0 && row.visits < row.required)
-        .sort((first, second) => first.percent - second.percent || first.visits - second.visits)
-        .slice(0, 8);
+    const [open, setOpen] = useState(false);
+    const watchlist = useMemo(() => buildWatchlist(visitors, studentRequiredVisits, employeeRequiredVisits), [employeeRequiredVisits, studentRequiredVisits, visitors]);
 
     return (
         <section className="admin-surface rounded-lg border border-[#040DBF]/10 bg-white/95 p-5 shadow-sm">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-lg font-semibold text-[#010440]">Visit progress breakdown</h2>
-                    <p className="mt-1 text-sm text-[#020659]/70">The attention list shows visitors below the required target, with no-visit cases called out clearly.</p>
+                    <h2 className="text-lg font-semibold text-[#010440]">Low-visit watchlist</h2>
+                    <p className="mt-1 text-sm text-[#020659]/70">Open the watchlist to review low-activity groups and visitor names for the selected coverage.</p>
                 </div>
-            </div>
-            <div className="grid gap-4 xl:grid-cols-3">
-                <BreakdownList title="Students by year level" icon={GraduationCap} rows={yearLevels} />
-                <BreakdownList title="Students by section" icon={GraduationCap} rows={sections} />
-                <BreakdownList title="Employees by department" icon={BriefcaseBusiness} rows={departments} />
-            </div>
-            <div className="mt-5 overflow-x-auto">
-                <table className="min-w-[720px] text-left text-sm">
-                    <thead className="border-b border-[#040DBF]/10 text-[#020659]/70">
-                        <tr>
-                            <th className="py-2 pr-4">Name</th>
-                            <th className="py-2 pr-4">Group</th>
-                            <th className="py-2 pr-4">Visits</th>
-                            <th className="py-2 pr-4">Progress</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {attentionRows.length > 0 ? (
-                            attentionRows.map(({ visitor, required, visits, percent }) => (
-                                <tr key={visitor.id} className="border-b border-[#040DBF]/5">
-                                    <td className="py-2 pr-4 font-medium text-[#010440]">{visitor.name ?? '-'}</td>
-                                    <td className="py-2 pr-4 text-[#020659]/70">{groupLabel(visitor)}</td>
-                                    <td className="py-2 pr-4 font-semibold text-[#010440]">
-                                        {visits === 0 ? (
-                                            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">No visits yet</span>
-                                        ) : (
-                                            `${visits} / ${required}`
-                                        )}
-                                    </td>
-                                    <td className="py-2 pr-4">
-                                        <div className="flex items-center gap-3">
-                                            <ProgressBar value={percent} className="min-w-32 flex-1" />
-                                            <span className="w-10 text-right font-semibold text-[#020659]">{percent}%</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan={4} className="py-8 text-center text-sm text-[#020659]/70">
-                                    Everyone in this group has met the required visit target.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                <Dialog open={open} onOpenChange={setOpen}>
+                    <DialogTrigger asChild>
+                        <Button type="button" size="sm" className="gap-2">
+                            <ListChecks className="size-4" />
+                            Open watchlist
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-h-[calc(100vh-2rem)] max-w-5xl overflow-y-auto">
+                        <DialogHeader>
+                            <DialogTitle>Low-visit watchlist</DialogTitle>
+                            <DialogDescription>Use this to find year levels, sections, departments, and people that may need follow-up.</DialogDescription>
+                        </DialogHeader>
+                        <WatchlistContent watchlist={watchlist} />
+                    </DialogContent>
+                </Dialog>
             </div>
         </section>
+    );
+}
+
+function WatchlistContent({ watchlist }: { watchlist: ReturnType<typeof buildWatchlist> }) {
+    return (
+        <div className="space-y-5">
+            <div className="grid gap-4 xl:grid-cols-3">
+                <BreakdownList title="Low year levels" icon={GraduationCap} rows={watchlist.yearLevels} />
+                <BreakdownList title="Low sections" icon={GraduationCap} rows={watchlist.sections} />
+                <BreakdownList title="Low departments" icon={BriefcaseBusiness} rows={watchlist.departments} />
+            </div>
+            <WatchlistTable rows={watchlist.attentionRows} />
+        </div>
     );
 }
 
@@ -107,20 +75,42 @@ function BreakdownList({ title, icon: Icon, rows }: { title: string; icon: Lucid
     );
 }
 
-function groupedCounts(visitors: VisitHistoryVisitor[], label: (visitor: VisitHistoryVisitor) => string) {
-    const groups = new Map<string, number>();
-
-    visitors.forEach((visitor) => {
-        groups.set(label(visitor), (groups.get(label(visitor)) ?? 0) + visitor.visits.length);
-    });
-
-    return [...groups.entries()].map(([label, value]) => ({ label, value })).sort((first, second) => second.value - first.value);
-}
-
-function groupLabel(visitor: VisitHistoryVisitor) {
-    if (visitor.type === 'employee') {
-        return visitor.department || 'No department';
-    }
-
-    return [visitor.yearLevel, visitor.section].filter(Boolean).join(' - ') || 'No year level or section';
+function WatchlistTable({ rows }: { rows: ReturnType<typeof buildWatchlist>['attentionRows'] }) {
+    return (
+        <div className="overflow-x-auto rounded-lg border border-[#040DBF]/10">
+            <table className="min-w-[720px] text-left text-sm">
+                <thead className="border-b border-[#040DBF]/10 bg-[#f6f8ff] text-[#020659]/70">
+                    <tr>
+                        <th className="px-4 py-3">Name</th>
+                        <th className="px-4 py-3">Group</th>
+                        <th className="px-4 py-3">Visits</th>
+                        <th className="px-4 py-3">Progress</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows.length > 0 ? (
+                        rows.map(({ visitor, required, visits, percent }) => (
+                            <tr key={visitor.id} className="border-b border-[#040DBF]/5 last:border-0">
+                                <td className="px-4 py-3 font-medium text-[#010440]">{visitor.name ?? '-'}</td>
+                                <td className="px-4 py-3 text-[#020659]/70">{watchlistGroupLabel(visitor)}</td>
+                                <td className="px-4 py-3 font-semibold text-[#010440]">{visits === 0 ? 'No visits yet' : `${visits} / ${required}`}</td>
+                                <td className="px-4 py-3">
+                                    <div className="flex items-center gap-3">
+                                        <ProgressBar value={percent} className="min-w-32 flex-1" />
+                                        <span className="w-10 text-right font-semibold text-[#020659]">{percent}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan={4} className="px-4 py-10 text-center text-sm text-[#020659]/70">
+                                Everyone in this coverage has met the required visit target.
+                            </td>
+                        </tr>
+                    )}
+                </tbody>
+            </table>
+        </div>
+    );
 }

@@ -22,7 +22,7 @@ export const navItems: AdminNavItem[] = [
     },
     {
         key: 'visits-history',
-        label: 'Visits History',
+        label: 'Visit Logs',
         href: '/admin/visits-history',
         icon: History,
     },

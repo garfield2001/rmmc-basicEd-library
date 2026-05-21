@@ -1,5 +1,6 @@
 import { formatVisitDateTime, groupLabel, type SortColumn, type SortDirection, type VisitorWithRangeVisits } from './visit-history-helpers';
 import { SortableHead } from '@/components/admin/visits-history/visit-history-ui';
+import { formatDisplayDate } from '@/components/ui/date-input';
 import { PaginationControls, type RowsPerPageOption } from '@/components/ui/pagination-controls';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
 import { VisitorAvatar } from '@/components/ui/visitor-avatar';
@@ -7,6 +8,8 @@ import { VisitorAvatar } from '@/components/ui/visitor-avatar';
 interface VisitHistoryTableProps {
     visitors: VisitorWithRangeVisits[];
     totalVisitors: number;
+    startDate: string;
+    endDate: string;
     currentPage: number;
     totalPages: number;
     rowsPerPage: RowsPerPageOption;
@@ -23,6 +26,8 @@ interface VisitHistoryTableProps {
 export function VisitHistoryTable({
     visitors,
     totalVisitors,
+    startDate,
+    endDate,
     currentPage,
     totalPages,
     rowsPerPage,
@@ -37,6 +42,18 @@ export function VisitHistoryTable({
 }: VisitHistoryTableProps) {
     return (
         <>
+            <div className="border-b border-[#040DBF]/10 px-5 py-4">
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                    <div>
+                        <h2 className="text-lg font-semibold tracking-normal text-[#010440]">Visitor log records</h2>
+                        <p className="mt-1 text-sm text-[#020659]/70">
+                            Showing {totalVisitors.toLocaleString()} visitor{totalVisitors === 1 ? '' : 's'} from {formatDisplayDate(startDate)} to{' '}
+                            {formatDisplayDate(endDate)}. Open a row to review exact visit timestamps.
+                        </p>
+                    </div>
+                    <span className="rounded-full bg-[#040DBF]/10 px-3 py-1 text-xs font-semibold text-[#030A8C]">Newest activity first by default</span>
+                </div>
+            </div>
             <div className="overflow-x-auto">
                 <Table className="min-w-[820px]">
                     <TableHeader className="bg-[#f6f8ff]">
