@@ -18,6 +18,7 @@ interface ReportFilterPanelProps {
     section: string;
     department: string;
     availableSections: string[];
+    showVisitorTypeSelector?: boolean;
     dateRangeIsValid: boolean;
     dateRangeSummary: string;
     onSchoolYearChange: (value: string) => void;
@@ -42,6 +43,7 @@ export function ReportFilterPanel({
     section,
     department,
     availableSections,
+    showVisitorTypeSelector = true,
     dateRangeIsValid,
     dateRangeSummary,
     onSchoolYearChange,
@@ -54,7 +56,7 @@ export function ReportFilterPanel({
 }: ReportFilterPanelProps) {
     return (
         <section className="admin-surface rounded-lg border border-[#040DBF]/10 bg-white/95 p-5 shadow-sm">
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-[minmax(11rem,0.8fr)_minmax(12rem,0.85fr)_minmax(24rem,1.35fr)]">
                 <label className="text-sm font-medium text-[#010440]">
                     1. School year
                     <SelectInput value={schoolYearId} onChange={(event) => onSchoolYearChange(event.target.value)} className="mt-2">
@@ -96,10 +98,14 @@ export function ReportFilterPanel({
                     </label>
                 )}
 
-                {dateRangeIsValid && (
+                {dateRangeIsValid && showVisitorTypeSelector && (
                     <label className="text-sm font-medium text-[#010440]">
                         {dateRangeMode === 'custom' ? '4.' : '3.'} Visitors
-                        <SelectInput value={visitorType} onChange={(event) => onVisitorTypeChange(event.target.value as VisitorTypeFilter)} className="mt-2">
+                        <SelectInput
+                            value={visitorType}
+                            onChange={(event) => onVisitorTypeChange(event.target.value as VisitorTypeFilter)}
+                            className="mt-2"
+                        >
                             <option value="">Select visitors</option>
                             <option value="student">Students</option>
                             <option value="employee">Employees</option>

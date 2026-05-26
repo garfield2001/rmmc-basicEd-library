@@ -11,7 +11,7 @@ interface ChartCardProps {
 
 export function ChartCard({ title, detail, icon: Icon, actions, children }: ChartCardProps) {
     return (
-        <section className="admin-surface min-w-0 overflow-hidden rounded-lg border border-[#040DBF]/10 bg-white/95 p-4 shadow-sm sm:p-5">
+        <section className="admin-surface min-w-0 overflow-visible rounded-lg border border-[#040DBF]/10 bg-white/95 p-4 shadow-sm sm:p-5">
             <div className="mb-5 space-y-4">
                 <div className="flex min-w-0 items-start gap-3">
                     <span className="admin-icon-badge inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#040DBF]/10 text-[#040DBF]">

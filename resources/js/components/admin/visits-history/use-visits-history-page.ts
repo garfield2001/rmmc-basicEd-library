@@ -6,19 +6,20 @@ import {
     type SortDirection,
     type VisitorTypeFilter,
 } from '@/components/admin/visits-history/visit-history-helpers';
+import { toIsoDate } from '@/components/ui/date-input-utils';
 import type { RowsPerPageOption } from '@/components/ui/pagination-controls';
 import type { AdminVisitHistory, VisitHistoryVisitor } from '@/types/dashboard';
 import { router } from '@inertiajs/react';
 import { useEchoPublic } from '@laravel/echo-react';
 import { useEffect, useMemo, useState } from 'react';
-import { countVisitLogRangeVisits, filterVisitLogVisitors, visitorsWithDateCoverage } from './visit-log-filtering';
+import { countVisitLogRangeVisits, filterVisitLogVisitors, filterVisitProgressVisitors, visitorsWithDateCoverage } from './visit-log-filtering';
 
-export function useVisitsHistoryPage(visitHistory: AdminVisitHistory) {
+export function useVisitsHistoryPage(visitHistory: AdminVisitHistory, initialVisitorType: VisitorTypeFilter = 'student') {
     const schoolYearStart = visitHistory.schoolYear?.starts_at ?? '';
     const schoolYearEnd = visitHistory.schoolYear?.ends_at ?? '';
     const [startDate, setStartDate] = useState(schoolYearStart);
-    const [endDate, setEndDate] = useState(() => new Date().toISOString().slice(0, 10));
-    const [visitorType, setVisitorType] = useState<VisitorTypeFilter>('student');
+    const [endDate, setEndDate] = useState(() => toIsoDate(new Date()));
+    const [visitorType, setVisitorType] = useState<VisitorTypeFilter>(initialVisitorType);
     const [yearLevel, setYearLevel] = useState('');
     const [section, setSection] = useState('');
     const [department, setDepartment] = useState('');
@@ -28,7 +29,7 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory) {
     const [sortColumn, setSortColumn] = useState<SortColumn>('lastVisit');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const [selectedVisitor, setSelectedVisitor] = useState<VisitHistoryVisitor | null>(null);
-    const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+    const today = useMemo(() => toIsoDate(new Date()), []);
 
     useEchoPublic('library-visits', '.LibraryVisitRecorded', () => {
         router.reload({ only: ['visitHistory'] });
@@ -38,6 +39,13 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory) {
         setStartDate(schoolYearStart);
     }, [schoolYearStart]);
 
+    useEffect(() => {
+        setVisitorType(initialVisitorType);
+        setYearLevel('');
+        setSection('');
+        setDepartment('');
+    }, [initialVisitorType]);
+
     const visitorsWithRangeVisits = useMemo(() => {
         return visitorsWithDateCoverage(visitHistory.visitors, startDate, endDate, today);
     }, [endDate, startDate, today, visitHistory.visitors]);
@@ -46,10 +54,13 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory) {
         return filterVisitLogVisitors(visitorsWithRangeVisits, { visitorType, yearLevel, section, department, search });
     }, [department, search, section, visitorType, visitorsWithRangeVisits, yearLevel]);
 
+    const progressVisitors = useMemo(() => {
+        return filterVisitProgressVisitors(visitorsWithRangeVisits, { visitorType, yearLevel, section, department, search });
+    }, [department, search, section, visitorType, visitorsWithRangeVisits, yearLevel]);
+
     const sortedVisitors = useMemo(() => sortVisitors(filteredVisitors, sortColumn, sortDirection), [filteredVisitors, sortColumn, sortDirection]);
     const totalPages = rowsPerPage === 'all' ? 1 : Math.max(1, Math.ceil(sortedVisitors.length / rowsPerPage));
-    const visibleVisitors =
-        rowsPerPage === 'all' ? sortedVisitors : sortedVisitors.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+    const visibleVisitors = rowsPerPage === 'all' ? sortedVisitors : sortedVisitors.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
     const selectedVisitorVisits = selectedVisitor ? visitsInDateRange(selectedVisitor.visits, startDate, endDate || today) : [];
     const rangeMetrics = useMemo(() => countVisitLogRangeVisits(visitorsWithRangeVisits), [visitorsWithRangeVisits]);
 
@@ -123,6 +134,7 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory) {
         sortDirection,
         visibleVisitors,
         visitorsWithRangeVisits,
+        progressVisitors,
         sortedVisitors,
         selectedVisitor,
         selectedVisitorVisits,

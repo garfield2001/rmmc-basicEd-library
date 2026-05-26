@@ -78,7 +78,9 @@
                 </section>
             @endforeach
         </main>
-        <footer class="page-footer"></footer>
+
+        @if ($showActions ?? true)
+            @include('reports.partials.print-page-number-script')
+        @endif
     </body>
 </html>
-

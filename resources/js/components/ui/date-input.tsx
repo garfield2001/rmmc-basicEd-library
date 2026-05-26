@@ -17,6 +17,7 @@ interface DateInputProps {
     openOnFocus?: boolean;
     yearWindowStart?: number;
     yearWindowEnd?: number;
+    focusDate?: string;
 }
 
 export { formatDisplayDate };
@@ -34,8 +35,9 @@ export function DateInput({
     openOnFocus = true,
     yearWindowStart,
     yearWindowEnd,
+    focusDate,
 }: DateInputProps) {
-    const dateInput = useDateInputState({ value, onChange, min, max, openOnFocus, yearWindowStart, yearWindowEnd });
+    const dateInput = useDateInputState({ value, onChange, min, max, openOnFocus, yearWindowStart, yearWindowEnd, focusDate });
 
     return (
         <span ref={dateInput.wrapperRef} className="relative block w-full">
@@ -48,6 +50,7 @@ export function DateInput({
                     inputMode="text"
                     placeholder={placeholder}
                     value={dateInput.inputValue}
+                    title={dateInput.inputValue}
                     onFocus={(event) => {
                         dateInput.beginEditing();
                         event.currentTarget.select();
@@ -90,7 +93,9 @@ export function DateInput({
                     yearOptions={dateInput.yearOptions}
                     onMonthChange={dateInput.moveVisibleMonth}
                     onMonthWheel={dateInput.scrollVisibleMonth}
+                    onCalendarWheel={dateInput.scrollCalendarMonth}
                     onDateChoose={dateInput.chooseDate}
+                    align={dateInput.popoverAlign}
                 />
             )}
         </span>

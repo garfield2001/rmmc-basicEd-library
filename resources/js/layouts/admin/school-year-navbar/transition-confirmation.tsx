@@ -39,20 +39,8 @@ export function SchoolYearTransitionConfirmation({
         <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
             <div className="flex gap-2">
                 <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-                <p>
-                    Creating this school year makes it active and starts with no students or employees unless you transfer employee profiles below.
-                    Previous visits remain available in Reports.
-                </p>
+                <p>Creating this school year makes it active. Previous visits remain available in Reports.</p>
             </div>
-            <label className="mt-3 flex items-center gap-2 font-medium">
-                <input
-                    type="checkbox"
-                    checked={Boolean(data.transfer_employees)}
-                    onChange={(event) => onFieldChange('transfer_employees', event.target.checked)}
-                    className="size-4 rounded border-amber-300"
-                />
-                Transfer employee profiles from the previous school year.
-            </label>
             <label className="mt-3 flex items-center gap-2 font-medium">
                 <input
                     type="checkbox"

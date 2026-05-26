@@ -11,7 +11,9 @@ interface DateCalendarPopoverProps {
     yearOptions: number[];
     onMonthChange: (month: number, year: number) => void;
     onMonthWheel: (event: WheelEvent<HTMLSelectElement>) => void;
+    onCalendarWheel: (event: WheelEvent<HTMLDivElement>) => void;
     onDateChoose: (date: Date) => void;
+    align?: 'left' | 'right';
 }
 
 export function DateCalendarPopover({
@@ -23,10 +25,18 @@ export function DateCalendarPopover({
     yearOptions,
     onMonthChange,
     onMonthWheel,
+    onCalendarWheel,
     onDateChoose,
+    align = 'left',
 }: DateCalendarPopoverProps) {
     return (
-        <div className="absolute z-50 mt-2 w-72 rounded-lg border border-[#040DBF]/15 bg-white p-4 text-[#010440] shadow-xl">
+        <div
+            onWheel={onCalendarWheel}
+            className={cn(
+                'absolute z-50 mt-2 w-72 rounded-lg border border-[#040DBF]/15 bg-white p-4 text-[#010440] shadow-xl',
+                align === 'right' ? 'right-0' : 'left-0',
+            )}
+        >
             <div className="mb-3 grid grid-cols-[minmax(0,1fr)_5.5rem] gap-2">
                 <select
                     value={visibleMonth.getMonth()}
@@ -43,6 +53,7 @@ export function DateCalendarPopover({
                 <select
                     value={visibleMonth.getFullYear()}
                     onChange={(event) => onMonthChange(visibleMonth.getMonth(), Number(event.target.value))}
+                    onWheel={onMonthWheel}
                     className="h-9 rounded-md border border-[#040DBF]/15 bg-white px-2 text-sm font-medium outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10"
                 >
                     {yearOptions.map((year) => (

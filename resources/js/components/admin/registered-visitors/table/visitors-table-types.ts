@@ -25,6 +25,7 @@ export interface VisitorsTableProps {
     sort: string;
     direction: SortDirection;
     isLoading?: boolean;
+    showTypeTabs?: boolean;
     onSearchChange: (value: string) => void;
     onTypeChange: (type: VisitorType) => void;
     onYearLevelChange: (value: string) => void;

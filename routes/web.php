@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminSchoolYearController;
 use App\Http\Controllers\AdminSettingsController;
 use App\Http\Controllers\AdminVisitHistoryController;
 use App\Http\Controllers\AdminVisitMonitorController;
+use App\Http\Controllers\AdminVisitProgressController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LibraryMemberController;
 use App\Http\Controllers\LibraryVisitController;
@@ -33,6 +34,17 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('admin', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('admin/live-visits/scan-targets', [AdminVisitMonitorController::class, 'scanTargets'])->name('admin.live-visits.scan-targets');
     Route::get('admin/live-visits', [AdminVisitMonitorController::class, 'index'])->name('admin.live-visits');
+    Route::get('admin/visit-logs/{audience}', [AdminVisitHistoryController::class, 'index'])
+        ->whereIn('audience', ['students', 'employees'])
+        ->name('admin.visit-logs.audience');
+    Route::get('admin/visit-logs', [AdminVisitHistoryController::class, 'index'])->name('admin.visit-logs');
+    Route::get('admin/visit-progress/{audience}', [AdminVisitProgressController::class, 'index'])
+        ->whereIn('audience', ['students', 'employees'])
+        ->name('admin.visit-progress.audience');
+    Route::get('admin/visit-progress', [AdminVisitProgressController::class, 'index'])->name('admin.visit-progress');
+    Route::get('admin/visits-history/{audience}', [AdminVisitHistoryController::class, 'index'])
+        ->whereIn('audience', ['students', 'employees'])
+        ->name('admin.visits-history.audience');
     Route::get('admin/visits-history', [AdminVisitHistoryController::class, 'index'])->name('admin.visits-history');
     Route::get('admin/settings', [AdminSettingsController::class, 'index'])->name('admin.settings');
     Route::patch('admin/profile', [AdminProfileController::class, 'update'])->name('admin.profile.update');
@@ -43,8 +55,14 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     Route::post('admin/registered-visitors/import/preview', [LibraryMemberController::class, 'importPreview'])->name('admin.registered-visitors.import.preview');
     Route::post('admin/registered-visitors/import', [LibraryMemberController::class, 'import'])->name('admin.registered-visitors.import');
+    Route::get('admin/registered-visitors/{audience}', [LibraryMemberController::class, 'index'])
+        ->whereIn('audience', ['students', 'employees'])
+        ->name('admin.registered-visitors.audience');
     Route::resource('admin/registered-visitors', LibraryMemberController::class)->except(['show', 'destroy'])->names('admin.registered-visitors');
 
+    Route::get('admin/reports/{audience}', [ReportController::class, 'index'])
+        ->whereIn('audience', ['students', 'employees'])
+        ->name('admin.reports.audience');
     Route::get('admin/reports', [ReportController::class, 'index'])->name('admin.reports');
     Route::get('admin/reports/visits.csv', [ReportController::class, 'exportCsv'])->name('admin.reports.visits.csv');
     Route::get('admin/reports/visits.xlsx', [ReportController::class, 'exportExcel'])->name('admin.reports.visits.xlsx');
@@ -53,4 +71,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('admin/reports/visits.doc', [ReportController::class, 'exportWord'])->name('admin.reports.visits.doc');
     Route::get('admin/reports/visits.pdf', [ReportController::class, 'exportPdf'])->name('admin.reports.visits.pdf');
     Route::get('admin/reports/visits/print', [ReportController::class, 'print'])->name('admin.reports.visits.print');
+});
+
+//testing
+Route::get('/tunnel-test', function () {
+    return 'Tunnel is working: ' . now();
 });

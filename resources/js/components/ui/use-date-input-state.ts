@@ -23,17 +23,20 @@ interface UseDateInputStateOptions {
     openOnFocus: boolean;
     yearWindowStart?: number;
     yearWindowEnd?: number;
+    focusDate?: string;
 }
 
-export function useDateInputState({ value, onChange, min, max, openOnFocus, yearWindowStart, yearWindowEnd }: UseDateInputStateOptions) {
+export function useDateInputState({ value, onChange, min, max, openOnFocus, yearWindowStart, yearWindowEnd, focusDate }: UseDateInputStateOptions) {
     const wrapperRef = useRef<HTMLSpanElement>(null);
     const selectedDate = useMemo(() => parseIsoDate(value), [value]);
+    const preferredFocusDate = useMemo(() => parseIsoDate(focusDate), [focusDate]);
     const minDate = useMemo(() => parseIsoDate(min), [min]);
     const maxDate = useMemo(() => parseIsoDate(max), [max]);
     const [isOpen, setIsOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [draftValue, setDraftValue] = useState('');
-    const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(clampDate(selectedDate ?? minDate ?? new Date(), minDate, maxDate)));
+    const [popoverAlign, setPopoverAlign] = useState<'left' | 'right'>('left');
+    const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(clampDate(selectedDate ?? preferredFocusDate ?? minDate ?? new Date(), minDate, maxDate)));
     const calendarDays = useMemo(() => buildCalendarDays(visibleMonth), [visibleMonth]);
     const yearOptions = useMemo(
         () => buildYearOptions(minDate, maxDate, visibleMonth, yearWindowStart, yearWindowEnd),
@@ -61,8 +64,33 @@ export function useDateInputState({ value, onChange, min, max, openOnFocus, year
     };
 
     useEffect(() => {
-        setVisibleMonth(startOfMonth(clampDate(selectedDate ?? minDate ?? new Date(), minDate, maxDate)));
-    }, [maxDate, minDate, selectedDate]);
+        setVisibleMonth(startOfMonth(clampDate(selectedDate ?? preferredFocusDate ?? minDate ?? new Date(), minDate, maxDate)));
+    }, [maxDate, minDate, preferredFocusDate, selectedDate]);
+
+    useEffect(() => {
+        if (!isOpen) {
+            return;
+        }
+
+        const updatePopoverAlignment = () => {
+            const rect = wrapperRef.current?.getBoundingClientRect();
+
+            if (!rect) {
+                return;
+            }
+
+            setPopoverAlign(rect.left + 288 > window.innerWidth - 16 ? 'right' : 'left');
+        };
+
+        updatePopoverAlignment();
+        window.addEventListener('resize', updatePopoverAlignment);
+        window.addEventListener('scroll', updatePopoverAlignment, true);
+
+        return () => {
+            window.removeEventListener('resize', updatePopoverAlignment);
+            window.removeEventListener('scroll', updatePopoverAlignment, true);
+        };
+    }, [isOpen]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -100,6 +128,12 @@ export function useDateInputState({ value, onChange, min, max, openOnFocus, year
 
     const scrollVisibleMonth = (event: WheelEvent<HTMLSelectElement>) => {
         event.preventDefault();
+        event.stopPropagation();
+        moveVisibleMonth(visibleMonth.getMonth() + (event.deltaY > 0 ? 1 : -1), visibleMonth.getFullYear());
+    };
+
+    const scrollCalendarMonth = (event: WheelEvent<HTMLDivElement>) => {
+        event.preventDefault();
         moveVisibleMonth(visibleMonth.getMonth() + (event.deltaY > 0 ? 1 : -1), visibleMonth.getFullYear());
     };
 
@@ -110,6 +144,7 @@ export function useDateInputState({ value, onChange, min, max, openOnFocus, year
         maxDate,
         isOpen,
         visibleMonth,
+        popoverAlign,
         calendarDays,
         yearOptions,
         inputValue: isEditing ? draftValue : selectedDate ? displayFormatter.format(selectedDate) : '',
@@ -124,5 +159,6 @@ export function useDateInputState({ value, onChange, min, max, openOnFocus, year
         chooseDate,
         moveVisibleMonth,
         scrollVisibleMonth,
+        scrollCalendarMonth,
     };
 }

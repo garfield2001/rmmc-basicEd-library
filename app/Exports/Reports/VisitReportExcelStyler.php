@@ -22,7 +22,7 @@ class VisitReportExcelStyler
         $sheet = $event->sheet->getDelegate();
         $sheet->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT)->setPaperSize(PageSetup::PAPERSIZE_LETTER);
         $sheet->getPageSetup()->setFitToWidth(1)->setFitToHeight(0);
-        $sheet->getPageMargins()->setTop(0.45)->setRight(0.55)->setBottom(0.45)->setLeft(0.55);
+        $sheet->getPageMargins()->setTop(0.45)->setRight(0.55)->setBottom(0.72)->setLeft(0.55)->setFooter(0.25);
         $sheet->setShowGridlines(false);
         $sheet->getHeaderFooter()->setOddFooter('&RPage &P of &N');
 
@@ -61,14 +61,23 @@ class VisitReportExcelStyler
     private function styleTables($sheet): void
     {
         foreach ($this->headerRows as $row) {
+            foreach (['A' => 'School ID', 'B' => 'Name', 'C' => 'Visits', 'D' => 'Excess', 'E' => 'Progress'] as $column => $label) {
+                $sheet->setCellValue("{$column}{$row}", $label);
+            }
+
             $sheet->getStyle("A{$row}:E{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('E8EEFC');
             $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true);
+            $sheet->getStyle("A{$row}:E{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("A{$row}:E{$row}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         }
 
         foreach ($this->tableRanges as [$start, $end]) {
             $sheet->getStyle("A{$start}:E{$end}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
             $sheet->getStyle("A{$start}:E{$end}")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+
+            if ($end > $start) {
+                $sheet->getStyle('D'.($start + 1).":D{$end}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            }
         }
     }
 

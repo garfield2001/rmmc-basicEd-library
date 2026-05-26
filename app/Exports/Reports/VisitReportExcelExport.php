@@ -4,18 +4,24 @@ namespace App\Exports\Reports;
 
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithDrawings;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
-class VisitReportExcelExport implements FromArray, WithColumnWidths, WithDrawings, WithEvents, WithTitle
+class VisitReportExcelExport implements FromArray, WithColumnFormatting, WithColumnWidths, WithDrawings, WithEvents, WithStrictNullComparison, WithTitle
 {
     private array $headerRows = [];
+
     private array $tableRanges = [];
+
     private array $groupTitleRows = [];
+
     private array $summaryRows = [];
 
     public function __construct(private readonly array $report, private readonly array $groups) {}
@@ -25,7 +31,7 @@ class VisitReportExcelExport implements FromArray, WithColumnWidths, WithDrawing
         $rows = $this->titleRows();
 
         foreach ($this->groups as $group) {
-            $rows[] = [];
+            $rows[] = ['', '', '', '', ''];
             $rows[] = [$this->groupPrefix().': '.$group['label']];
             $this->groupTitleRows[] = count($rows);
             $rows[] = ['School ID', 'Name', 'Visits', 'Excess', 'Progress'];
@@ -33,7 +39,13 @@ class VisitReportExcelExport implements FromArray, WithColumnWidths, WithDrawing
             $tableStart = count($rows);
 
             foreach ($group['rows'] as $row) {
-                $rows[] = [$row['school_id'], $row['name'], $row['visit_count'].' / '.$this->requiredVisits(), $row['excess_visits'] ?? 0, $row['progress_percent'].'%'];
+                $rows[] = [
+                    (string) ($row['school_id'] ?? ''),
+                    (string) ($row['name'] ?? ''),
+                    ((int) ($row['visit_count'] ?? 0)).' / '.$this->requiredVisits(),
+                    (int) ($row['excess_visits'] ?? 0),
+                    ((int) ($row['progress_percent'] ?? 0)).'%',
+                ];
             }
 
             $this->tableRanges[] = [$tableStart, count($rows)];
@@ -47,7 +59,16 @@ class VisitReportExcelExport implements FromArray, WithColumnWidths, WithDrawing
 
     public function columnWidths(): array
     {
-        return ['A' => 16, 'B' => 28, 'C' => 14, 'D' => 14, 'E' => 16];
+        return ['A' => 18, 'B' => 36, 'C' => 13, 'D' => 12, 'E' => 13];
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'A' => NumberFormat::FORMAT_TEXT,
+            'C' => NumberFormat::FORMAT_TEXT,
+            'E' => NumberFormat::FORMAT_TEXT,
+        ];
     }
 
     public function drawings(): array

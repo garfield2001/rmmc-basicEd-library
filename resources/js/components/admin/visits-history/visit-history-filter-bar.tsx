@@ -20,6 +20,7 @@ interface VisitHistoryFilterBarProps {
     onDepartmentChange: (value: string) => void;
     onSearchChange: (value: string) => void;
     onQuickSortChange: (value: string) => void;
+    showVisitorType?: boolean;
 }
 
 export function VisitHistoryFilterBar({
@@ -38,30 +39,33 @@ export function VisitHistoryFilterBar({
     onDepartmentChange,
     onSearchChange,
     onQuickSortChange,
+    showVisitorType = true,
 }: VisitHistoryFilterBarProps) {
     const sortValue = `${sortColumn}:${sortDirection}`;
 
     return (
         <div className="space-y-4 border-b border-[#040DBF]/10 px-5 py-4">
-            <div className="admin-segmented-tabs w-full sm:w-fit">
-                <VisitTypeTab
-                    value="student"
-                    activeValue={visitorType}
-                    label="Students"
-                    count={metrics.studentVisitors}
-                    icon={GraduationCap}
-                    onChange={onVisitorTypeChange}
-                />
-                <VisitTypeTab
-                    value="employee"
-                    activeValue={visitorType}
-                    label="Employees"
-                    count={metrics.employeeVisitors}
-                    icon={BriefcaseBusiness}
-                    onChange={onVisitorTypeChange}
-                />
-            </div>
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+            {showVisitorType && (
+                <div className="admin-segmented-tabs w-full sm:w-fit">
+                    <VisitTypeTab
+                        value="student"
+                        activeValue={visitorType}
+                        label="Students"
+                        count={metrics.studentVisitors}
+                        icon={GraduationCap}
+                        onChange={onVisitorTypeChange}
+                    />
+                    <VisitTypeTab
+                        value="employee"
+                        activeValue={visitorType}
+                        label="Employees"
+                        count={metrics.employeeVisitors}
+                        icon={BriefcaseBusiness}
+                        onChange={onVisitorTypeChange}
+                    />
+                </div>
+            )}
+            <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-[minmax(13rem,1fr)_minmax(13rem,1fr)_minmax(12rem,0.8fr)_minmax(20rem,1.6fr)]">
                 {visitorType === 'student' && (
                     <>
                         <SelectInput value={yearLevel} onChange={(event) => onYearLevelChange(event.target.value)}>
@@ -84,7 +88,7 @@ export function VisitHistoryFilterBar({
                 )}
 
                 {visitorType === 'employee' && (
-                    <SelectInput value={department} onChange={(event) => onDepartmentChange(event.target.value)} wrapperClassName="xl:col-span-2">
+                    <SelectInput value={department} onChange={(event) => onDepartmentChange(event.target.value)}>
                         <option value="">All departments</option>
                         {filters.departments.map((option) => (
                             <option key={option} value={option}>
@@ -103,7 +107,7 @@ export function VisitHistoryFilterBar({
                     <option value="name:desc">Name Z-A</option>
                 </SelectInput>
 
-                <div className="relative md:col-span-2 xl:col-span-2">
+                <div className="relative md:col-span-2 2xl:col-span-1">
                     <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#030A8C]/50" />
                     <input
                         value={search}

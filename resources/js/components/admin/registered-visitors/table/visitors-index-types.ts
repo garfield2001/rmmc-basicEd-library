@@ -23,6 +23,8 @@ export interface VisitorsIndexFilterOptions {
 
 export interface VisitorsIndexProps {
     visitors: Paginated<LibraryMemberRow>;
+    audienceType: VisitorType;
+    pagePath: string;
     filters: VisitorsIndexFilters;
     filterOptions: VisitorsIndexFilterOptions;
 }

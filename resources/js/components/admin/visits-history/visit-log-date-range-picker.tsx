@@ -1,7 +1,7 @@
 import { formatDisplayDate } from '@/components/ui/date-input';
+import { parseIsoDate, toIsoDate } from '@/components/ui/date-input-utils';
 import { CalendarDays } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { parseIsoDate, toIsoDate } from '@/components/ui/date-input-utils';
 import { VisitLogDateRangeCalendar } from './visit-log-date-range-calendar';
 
 interface VisitLogDateRangePickerProps {
@@ -57,15 +57,21 @@ export function VisitLogDateRangePicker({ startDate, endDate, minDate, maxDate, 
 
     return (
         <div ref={wrapperRef} className="relative">
-            <button type="button" onClick={() => setOpen((value) => !value)} className="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg border border-[#040DBF]/15 bg-white px-3 py-2 text-left text-sm shadow-sm transition hover:border-[#040DBF]/30 focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 focus:outline-none">
+            <button
+                type="button"
+                onClick={() => setOpen((value) => !value)}
+                className="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg border border-[#040DBF]/15 bg-white px-3 py-2 text-left text-sm shadow-sm transition hover:border-[#040DBF]/30 focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 focus:outline-none"
+            >
                 <span>
                     <span className="block text-xs font-semibold tracking-[0.08em] text-[#030A8C] uppercase">Date coverage</span>
-                    <span className="mt-1 block font-semibold text-[#010440]">{formatDisplayDate(startDate)} to {formatDisplayDate(endDate)}</span>
+                    <span className="mt-1 block font-semibold text-[#010440]">
+                        {formatDisplayDate(startDate)} to {formatDisplayDate(endDate)}
+                    </span>
                 </span>
                 <CalendarDays className="size-4 shrink-0 text-[#040DBF]" />
             </button>
             {open && (
-                <div className="absolute right-0 z-50 mt-2 w-[min(22rem,calc(100vw-2rem))]">
+                <div className="absolute right-0 z-50 mt-2 max-h-[min(34rem,calc(100vh-8rem))] w-[min(28rem,calc(100vw-2rem))] overflow-y-auto overscroll-contain">
                     <VisitLogDateRangeCalendar
                         activePoint={activePoint}
                         visibleMonth={visibleMonth}

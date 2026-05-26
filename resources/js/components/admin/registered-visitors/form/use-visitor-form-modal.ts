@@ -7,15 +7,16 @@ import { firstStepWithErrors, initialVisitorData, isStepComplete, stepHasErrors,
 interface UseVisitorFormModalOptions {
     visitor: LibraryMemberRow | null;
     open: boolean;
+    defaultType?: VisitorFormData['type'];
     onOpenChange: (open: boolean) => void;
 }
 
-export function useVisitorFormModal({ visitor, open, onOpenChange }: UseVisitorFormModalOptions) {
+export function useVisitorFormModal({ visitor, open, defaultType = 'student', onOpenChange }: UseVisitorFormModalOptions) {
     const isEditing = Boolean(visitor);
     const [step, setStep] = useState(0);
     const [attemptedStep, setAttemptedStep] = useState<number | null>(null);
     const [confirmMergeOpen, setConfirmMergeOpen] = useState(false);
-    const form = useForm<VisitorFormData>(initialVisitorData(visitor));
+    const form = useForm<VisitorFormData>(initialVisitorData(visitor, defaultType));
     const currentStepComplete = isStepComplete(step, form.data);
     const currentStepHasErrors = stepHasErrors(step, form.errors);
 
@@ -29,8 +30,8 @@ export function useVisitorFormModal({ visitor, open, onOpenChange }: UseVisitorF
         setConfirmMergeOpen(false);
         form.clearErrors();
         form.reset();
-        form.setData(initialVisitorData(visitor));
-    }, [form.clearErrors, visitor, open, form.reset, form.setData]);
+        form.setData(initialVisitorData(visitor, defaultType));
+    }, [defaultType, form.clearErrors, visitor, open, form.reset, form.setData]);
 
     const acceptScan = useCallback(
         (rfidUid: string) => {

@@ -49,6 +49,7 @@ class AdminDashboardService
                 'studentVisitsBySection' => $this->activity->studentVisitsBySection($schoolYearId),
                 'employeeVisitsByDepartment' => $this->activity->employeeVisitsByDepartment($schoolYearId),
                 'requiredProgress' => $this->progress->requiredProgress($schoolYear),
+                'individualProgress' => $this->progress->individualProgress($schoolYear),
             ],
         ];
     }

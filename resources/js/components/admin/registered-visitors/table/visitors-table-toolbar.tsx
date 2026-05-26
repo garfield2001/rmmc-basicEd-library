@@ -12,6 +12,7 @@ interface VisitorsTableToolbarProps {
     sections: string[];
     departments: string[];
     sort: string;
+    showTypeTabs?: boolean;
     onSearchChange: (value: string) => void;
     onTypeChange: (type: VisitorType) => void;
     onYearLevelChange: (value: string) => void;
@@ -30,6 +31,7 @@ export function VisitorsTableToolbar({
     sections,
     departments,
     sort,
+    showTypeTabs = true,
     onSearchChange,
     onTypeChange,
     onYearLevelChange,
@@ -43,8 +45,8 @@ export function VisitorsTableToolbar({
         <div className="space-y-3 border-b border-zinc-200 bg-zinc-50 px-4 py-3 sm:px-5">
             <VisitorsTableTitle activeType={activeType} />
             <div className="space-y-3">
-                <div className="grid gap-3 lg:grid-cols-[minmax(12rem,18rem)_minmax(0,1fr)] lg:items-center">
-                    <VisitorTypeTabs activeType={activeType} onTypeChange={onTypeChange} />
+                <div className={`grid gap-3 lg:items-center ${showTypeTabs ? 'lg:grid-cols-[minmax(12rem,18rem)_minmax(0,1fr)]' : 'lg:grid-cols-1'}`}>
+                    {showTypeTabs && <VisitorTypeTabs activeType={activeType} onTypeChange={onTypeChange} />}
                     {activeType === 'student' ? (
                         <div className="grid min-w-0 gap-3 sm:grid-cols-2">
                             <FilterSelect value={yearLevel} options={yearLevels} placeholder="All year levels" onChange={onYearLevelChange} />

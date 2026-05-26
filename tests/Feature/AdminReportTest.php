@@ -49,6 +49,52 @@ class AdminReportTest extends TestCase
                 ->missing('dashboard'));
     }
 
+    public function test_authenticated_user_can_view_separate_visit_log_pages(): void
+    {
+        SchoolYear::factory()->active()->create();
+
+        $this->actingAs(User::factory()->create(['role' => 'admin']))
+            ->get('/admin/visit-logs/students')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('admin/visits-history')
+                ->where('initialVisitorType', LibraryMember::TYPE_STUDENT)
+                ->where('pagePath', '/admin/visit-logs/students')
+                ->has('visitHistory'));
+
+        $this->actingAs(User::factory()->create(['role' => 'admin']))
+            ->get('/admin/visit-logs/employees')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('admin/visits-history')
+                ->where('initialVisitorType', LibraryMember::TYPE_EMPLOYEE)
+                ->where('pagePath', '/admin/visit-logs/employees')
+                ->has('visitHistory'));
+    }
+
+    public function test_authenticated_user_can_view_separate_visit_progress_pages(): void
+    {
+        SchoolYear::factory()->active()->create();
+
+        $this->actingAs(User::factory()->create(['role' => 'admin']))
+            ->get('/admin/visit-progress/students')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('admin/visit-progress')
+                ->where('initialVisitorType', LibraryMember::TYPE_STUDENT)
+                ->where('pagePath', '/admin/visit-progress/students')
+                ->has('visitHistory'));
+
+        $this->actingAs(User::factory()->create(['role' => 'admin']))
+            ->get('/admin/visit-progress/employees')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('admin/visit-progress')
+                ->where('initialVisitorType', LibraryMember::TYPE_EMPLOYEE)
+                ->where('pagePath', '/admin/visit-progress/employees')
+                ->has('visitHistory'));
+    }
+
     public function test_admin_can_search_limited_live_visit_scan_targets(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
@@ -193,6 +239,10 @@ class AdminReportTest extends TestCase
             ->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 
         $this->assertStringContainsString('Progress', $this->zipText($excel));
+        $this->assertStringContainsString('School ID', $this->zipText($excel));
+        $this->assertStringContainsString('Name', $this->zipText($excel));
+        $this->assertStringContainsString('Visits', $this->zipText($excel));
+        $this->assertStringContainsString('Excess', $this->zipText($excel));
         $this->assertStringContainsString('50%', $this->zipText($excel));
         $this->assertStringContainsString('Grade 1 - Bonifacio', $this->zipText($excel));
 
@@ -204,6 +254,9 @@ class AdminReportTest extends TestCase
         $this->assertStringContainsString('RAMON MAGSAYSAY MEMORIAL', $this->zipText($word));
         $this->assertStringContainsString('Grade 1 - Bonifacio', $this->zipText($word));
         $this->assertStringContainsString('Progress', $this->zipText($word));
+        $this->assertStringContainsString('w:hideSpellingErrors', $this->zipText($word));
+        $this->assertStringContainsString('w:updateFields', $this->zipText($word));
+        $this->assertStringContainsString('w:view w:val="print"', $this->zipText($word));
 
         $this->actingAs($user)
             ->get("/admin/reports/visits/print?{$query}")
@@ -215,6 +268,9 @@ class AdminReportTest extends TestCase
             ->assertDontSee('saveReportAsPdf', false)
             ->assertDontSee('visits/print.doc', false)
             ->assertDontSee('visits/print.pdf', false)
+            ->assertDontSee('counter(page)', false)
+            ->assertDontSee('Page 0', false)
+            ->assertSee('print-page-number', false)
             ->assertSee('Grade 1 - Bonifacio', false)
             ->assertSee('Progress', false)
             ->assertSee('50%', false);
@@ -276,7 +332,7 @@ class AdminReportTest extends TestCase
         });
 
         $this->actingAs($admin)
-            ->get("/admin/reports?school_year_id={$schoolYear->id}&start_date=2026-06-01&end_date=2027-03-31&visitor_type=student")
+            ->get("/admin/reports/students?school_year_id={$schoolYear->id}&start_date=2026-06-01&end_date=2027-03-31")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('report.rows.0.last_name', 'Alpha')
@@ -328,7 +384,7 @@ class AdminReportTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->get("/admin/reports?school_year_id={$schoolYear->id}&start_date=2026-06-01&end_date=2027-03-31&visitor_type=student")
+            ->get("/admin/reports/students?school_year_id={$schoolYear->id}&start_date=2026-06-01&end_date=2027-03-31")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('admin/reports')
@@ -341,7 +397,7 @@ class AdminReportTest extends TestCase
                 ->where('report.rows.0.visit_count', 2));
 
         $this->actingAs($admin)
-            ->get("/admin/reports?school_year_id={$schoolYear->id}&start_date=2026-06-01&end_date=2027-03-31&visitor_type=employee")
+            ->get("/admin/reports/employees?school_year_id={$schoolYear->id}&start_date=2026-06-01&end_date=2027-03-31")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('report.summary.visitor_type', 'employee')
@@ -385,7 +441,7 @@ class AdminReportTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->get("/admin/reports?school_year_id={$activeSchoolYear->id}&start_date=2026-06-01&end_date=2027-03-31&visitor_type=employee")
+            ->get("/admin/reports/employees?school_year_id={$activeSchoolYear->id}&start_date=2026-06-01&end_date=2027-03-31")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('report.summary.visitors', 1)
@@ -404,15 +460,15 @@ class AdminReportTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->from('/admin/reports')
-            ->get("/admin/reports?school_year_id={$schoolYear->id}&start_date=2026-05-31&end_date=2027-03-31&visitor_type=student")
-            ->assertRedirect('/admin/reports')
+            ->from('/admin/reports/students')
+            ->get("/admin/reports/students?school_year_id={$schoolYear->id}&start_date=2026-05-31&end_date=2027-03-31")
+            ->assertRedirect('/admin/reports/students')
             ->assertSessionHasErrors('start_date');
 
         $this->actingAs($admin)
-            ->from('/admin/reports')
-            ->get("/admin/reports?school_year_id={$schoolYear->id}&start_date=2026-06-01&end_date=2027-04-01&visitor_type=student")
-            ->assertRedirect('/admin/reports')
+            ->from('/admin/reports/students')
+            ->get("/admin/reports/students?school_year_id={$schoolYear->id}&start_date=2026-06-01&end_date=2027-04-01")
+            ->assertRedirect('/admin/reports/students')
             ->assertSessionHasErrors('end_date');
     }
 
@@ -426,7 +482,7 @@ class AdminReportTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->get("/admin/reports?school_year_id={$schoolYear->id}&visitor_type=student")
+            ->get("/admin/reports/students?school_year_id={$schoolYear->id}")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('report.school_year.starts_at', '2026-06-01')

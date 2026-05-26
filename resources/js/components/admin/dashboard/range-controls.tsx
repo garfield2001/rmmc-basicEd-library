@@ -45,15 +45,14 @@ export function RangeControls({
     maxDate,
     onRangeChange,
     onStartDateChange,
+    onEndDateChange,
     className,
     compact = false,
 }: RangeControlsProps) {
     return (
         <div
             className={cn(
-                compact
-                    ? 'flex w-full min-w-0 flex-wrap items-center justify-between gap-2'
-                    : 'flex w-full min-w-0 flex-wrap items-center justify-between gap-2',
+                compact ? 'flex w-full min-w-0 flex-wrap items-center justify-between gap-2' : 'flex w-full min-w-0 flex-wrap items-center gap-2',
                 className,
             )}
         >
@@ -80,21 +79,26 @@ export function RangeControls({
                     Custom
                 </button>
             </div>
-            <div
-                className={cn(
-                    'grid w-full min-w-0 gap-2 sm:ml-auto sm:w-auto sm:grid-cols-[minmax(10.5rem,11rem)]',
-                    compact && 'min-[1180px]:w-auto',
-                )}
-            >
-                <DateInput
-                    value={startDate}
-                    onChange={onStartDateChange}
-                    min={minDate}
-                    max={endDate || maxDate}
-                    placeholder="Start date"
-                    className="sm:w-44"
-                />
-            </div>
+            {value === 'custom' && (
+                <div className={cn('grid w-full min-w-0 gap-2 sm:ml-auto sm:w-auto sm:grid-cols-2', compact && 'min-[1180px]:w-auto')}>
+                    <DateInput
+                        value={startDate}
+                        onChange={onStartDateChange}
+                        min={minDate}
+                        max={endDate || maxDate}
+                        placeholder="Start date"
+                        focusDate={startDate || minDate}
+                    />
+                    <DateInput
+                        value={endDate}
+                        onChange={onEndDateChange}
+                        min={startDate || minDate}
+                        max={maxDate}
+                        placeholder="End date"
+                        focusDate={endDate || startDate || minDate}
+                    />
+                </div>
+            )}
         </div>
     );
 }

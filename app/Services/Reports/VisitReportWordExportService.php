@@ -2,6 +2,7 @@
 
 namespace App\Services\Reports;
 
+use App\Support\Reports\WordDocumentCleaner;
 use Carbon\Carbon;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
@@ -16,6 +17,7 @@ class VisitReportWordExportService
         $path = tempnam(sys_get_temp_dir(), 'visit-report-').'.docx';
         Settings::setOutputEscapingEnabled(true);
         IOFactory::createWriter($this->document($report, $groups), 'Word2007')->save($path);
+        app(WordDocumentCleaner::class)->clean($path);
 
         return response()->download($path, $filename)->deleteFileAfterSend(true);
     }
@@ -23,10 +25,14 @@ class VisitReportWordExportService
     private function document(array $report, array $groups): PhpWord
     {
         $word = new PhpWord;
+        $word->getCompatibility()->setOoxmlVersion(15);
+        $word->getSettings()->setHideSpellingErrors(true);
+        $word->getSettings()->setHideGrammaticalErrors(true);
+        $word->getSettings()->setUpdateFields(true);
         $word->setDefaultFontName('Calibri');
         $word->setDefaultFontSize(11);
         $word->addTableStyle('report-table', $this->tableStyle(), ['bgColor' => 'E8EEFC', 'bold' => true]);
-        $section = $word->addSection(['paperSize' => 'Letter', 'marginTop' => 648, 'marginRight' => 792, 'marginBottom' => 648, 'marginLeft' => 792]);
+        $section = $word->addSection(['paperSize' => 'Letter', 'marginTop' => 648, 'marginRight' => 792, 'marginBottom' => 1008, 'marginLeft' => 792, 'footerHeight' => 360]);
         $section->addFooter()->addPreserveText('Page {PAGE} of {NUMPAGES}', ['size' => 10, 'color' => '020659'], ['alignment' => Jc::RIGHT]);
 
         $this->letterhead($section);
@@ -65,7 +71,6 @@ class VisitReportWordExportService
         $table = $section->addTable(['borderSize' => 0, 'borderColor' => 'FFFFFF', 'alignment' => Jc::CENTER, 'cellMargin' => 60]);
         $this->metaRow($table, 'School Year:', $report['school_year']['name'] ?? 'No school year', 'Visitor Type:', ucfirst($report['summary']['visitor_type'] ?? 'visitor'));
         $this->metaRow($table, 'From:', $this->date($report, 'start_date'), 'To:', $this->date($report, 'end_date'));
-        $section->addTextBreak(1);
     }
 
     private function metaRow($table, string $leftLabel, string $leftValue, string $rightLabel, string $rightValue): void
@@ -84,7 +89,7 @@ class VisitReportWordExportService
 
     private function group($section, array $report, array $group): void
     {
-        $section->addText($this->groupPrefix($report).': '.$group['label'], ['bold' => true, 'color' => '010440'], ['alignment' => Jc::CENTER, 'spaceAfter' => 80]);
+        $section->addText($this->groupPrefix($report).': '.$group['label'], ['bold' => true, 'color' => '010440'], ['alignment' => Jc::CENTER, 'spaceBefore' => 180, 'spaceAfter' => 80]);
         $table = $section->addTable('report-table');
         $this->tableRow($table, ['School ID', 'Name', 'Visits', 'Excess', 'Progress'], true);
 
@@ -92,8 +97,17 @@ class VisitReportWordExportService
             $this->tableRow($table, [$row['school_id'], $row['name'], $row['visit_count'].' / '.($report['summary']['required_visits'] ?? 0), $row['excess_visits'] ?? 0, $row['progress_percent'].'%']);
         }
 
-        $summary = $group['summary'];
-        $section->addText("Visitors: {$summary['visitors']}     Total Visits: {$summary['total_visits']}     Excess Visits: {$summary['excess_visits']}", ['bold' => true], ['spaceBefore' => 90, 'spaceAfter' => 180]);
+        $this->summary($section, $group['summary']);
+    }
+
+    private function summary($section, array $summary): void
+    {
+        $table = $section->addTable(['borderSize' => 0, 'borderColor' => 'FFFFFF', 'cellMargin' => 0, 'alignment' => Jc::START]);
+        $table->addRow();
+
+        foreach (["Visitors: {$summary['visitors']}", "Total Visits: {$summary['total_visits']}", "Excess Visits: {$summary['excess_visits']}"] as $text) {
+            $table->addCell(1900)->addText($text, ['bold' => true], ['spaceBefore' => 90, 'spaceAfter' => 180]);
+        }
     }
 
     private function tableRow($table, array $values, bool $header = false): void

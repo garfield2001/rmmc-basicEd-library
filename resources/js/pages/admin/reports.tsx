@@ -1,8 +1,8 @@
 import { ReportEmptyState } from '@/components/admin/reports/report-empty-state';
 import { ReportFilterPanel } from '@/components/admin/reports/report-filter-panel';
+import { type VisitorType, type VisitorTypeFilter } from '@/components/admin/reports/report-helpers';
 import { ReportResults } from '@/components/admin/reports/report-results';
 import { ReportResultsSkeleton } from '@/components/admin/reports/report-results-skeleton';
-import { type VisitorType } from '@/components/admin/reports/report-helpers';
 import { useReportPage } from '@/components/admin/reports/use-report-page';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
@@ -11,19 +11,29 @@ import { Head } from '@inertiajs/react';
 
 interface ReportsProps {
     report: VisitReport | null;
+    initialVisitorType: VisitorTypeFilter;
+    pagePath: string;
     reportOptions: VisitReportOptions;
 }
 
-export default function Reports({ report, reportOptions }: ReportsProps) {
-    const page = useReportPage(report, reportOptions);
+export default function Reports({ report, initialVisitorType, pagePath, reportOptions }: ReportsProps) {
+    const page = useReportPage(report, reportOptions, initialVisitorType, pagePath);
+    const audienceLabel = page.visitorType === 'employee' ? 'Employee' : 'Student';
 
     return (
         <>
-            <Head title="Reports" />
+            <Head title={`${audienceLabel} Reports`} />
             <main className="min-h-screen">
                 <AdminLayout active="reports">
                     <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
-                        <AdminPageHeader title="Reports" description="School-year progress by selected visitors, date range, and filters." />
+                        <AdminPageHeader
+                            title={`${audienceLabel} Reports`}
+                            description={
+                                page.visitorType === 'employee'
+                                    ? 'Review employee visit progress by date range, department, and required school-year targets.'
+                                    : 'Review student visit progress by date range, year level, section, and required school-year targets.'
+                            }
+                        />
 
                         <ReportFilterPanel {...page.filterPanel} />
 

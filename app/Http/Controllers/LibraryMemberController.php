@@ -22,9 +22,9 @@ use Inertia\Response;
 
 class LibraryMemberController extends Controller
 {
-    public function index(Request $request, LibraryMemberTableService $visitorTable, SchoolYearSectionService $sections): Response
+    public function index(Request $request, LibraryMemberTableService $visitorTable, SchoolYearSectionService $sections, ?string $audience = null): Response
     {
-        $type = $visitorTable->typeOption($request->string('type')->toString());
+        $type = $this->visitorType($audience, $request->string('type')->toString(), $visitorTable);
         $search = $request->string('search')->toString();
         $yearLevel = $request->string('year_level')->toString();
         $section = $request->string('section')->toString();
@@ -49,6 +49,8 @@ class LibraryMemberController extends Controller
 
         return Inertia::render('admin/registered-visitors/index', [
             'visitors' => $visitors,
+            'audienceType' => $type,
+            'pagePath' => route('admin.registered-visitors.audience', ['audience' => $this->audienceSlug($type)], false),
             'filters' => [
                 'search' => $search,
                 'type' => $type,
@@ -78,7 +80,9 @@ class LibraryMemberController extends Controller
     {
         $visitor = $visitors->create($request->validated());
 
-        return redirect()->route('admin.registered-visitors.index', ['type' => $visitor->type])->with('success', 'registered visitor has been created.');
+        return redirect()
+            ->route('admin.registered-visitors.audience', ['audience' => $this->audienceSlug($visitor->type)])
+            ->with('success', 'registered visitor has been created.');
     }
 
     public function import(ImportLibraryMembersRequest $request, LibraryMemberImportService $imports): RedirectResponse
@@ -111,7 +115,9 @@ class LibraryMemberController extends Controller
     {
         $visitor = $visitors->update($registeredVisitor, $request->validated());
 
-        return redirect()->route('admin.registered-visitors.index', ['type' => $visitor->type])->with('success', 'registered visitor has been updated.');
+        return redirect()
+            ->route('admin.registered-visitors.audience', ['audience' => $this->audienceSlug($visitor->type)])
+            ->with('success', 'registered visitor has been updated.');
     }
 
     /**
@@ -131,5 +137,19 @@ class LibraryMemberController extends Controller
             ->pluck('department')
             ->filter()
             ->values();
+    }
+
+    private function visitorType(?string $audience, string $fallback, LibraryMemberTableService $visitorTable): string
+    {
+        return match ($audience) {
+            'employees' => LibraryMember::TYPE_EMPLOYEE,
+            'students' => LibraryMember::TYPE_STUDENT,
+            default => $visitorTable->typeOption($fallback),
+        };
+    }
+
+    private function audienceSlug(string $type): string
+    {
+        return $type === LibraryMember::TYPE_EMPLOYEE ? 'employees' : 'students';
     }
 }

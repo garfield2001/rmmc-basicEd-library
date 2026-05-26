@@ -4,7 +4,14 @@ import { Menu, Moon, Sun } from 'lucide-react';
 import type { AdminNavbarProps } from './admin-layout.types';
 import { SchoolYearNavbarControl } from './school-year-navbar-control';
 
-export function AdminNavbar({ collapsed, mobileSidebarOpen, resolvedTheme, onCollapsedChange, onMobileSidebarToggle, onThemeToggle }: AdminNavbarProps) {
+export function AdminNavbar({
+    collapsed,
+    mobileSidebarOpen,
+    resolvedTheme,
+    onCollapsedChange,
+    onMobileSidebarToggle,
+    onThemeToggle,
+}: AdminNavbarProps) {
     const { name } = usePage<SharedData>().props;
     const ThemeIcon = resolvedTheme === 'dark' ? Sun : Moon;
 
@@ -21,7 +28,7 @@ export function AdminNavbar({ collapsed, mobileSidebarOpen, resolvedTheme, onCol
 
                         onMobileSidebarToggle();
                     }}
-                    className="flex size-11 items-center justify-center rounded-lg border border-[#040DBF]/15 bg-white text-[#020659] shadow-sm transition-[background-color,border-color,color,box-shadow] duration-200 hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-md hover:shadow-[#040DBF]/10"
+                    className="admin-icon-button flex size-11 items-center justify-center rounded-lg border border-[#040DBF]/15 bg-white text-[#020659] shadow-sm transition-[background-color,border-color,color,box-shadow] duration-200 hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-md hover:shadow-[#040DBF]/10"
                     title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                     aria-label="Toggle sidebar"
                     aria-expanded={mobileSidebarOpen || !collapsed}
@@ -39,7 +46,7 @@ export function AdminNavbar({ collapsed, mobileSidebarOpen, resolvedTheme, onCol
                 <button
                     type="button"
                     onClick={onThemeToggle}
-                    className="flex size-9 items-center justify-center rounded-full border border-[#040DBF]/10 bg-white text-[#020659] shadow-sm transition hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#030A8C] hover:shadow-md hover:shadow-[#040DBF]/10"
+                    className="admin-icon-button flex size-9 items-center justify-center rounded-full border border-[#040DBF]/10 bg-white text-[#020659] shadow-sm transition hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#030A8C] hover:shadow-md hover:shadow-[#040DBF]/10"
                     title={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
                     aria-label={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
                 >

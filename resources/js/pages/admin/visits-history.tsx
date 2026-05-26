@@ -1,7 +1,7 @@
 import { useVisitsHistoryPage } from '@/components/admin/visits-history/use-visits-history-page';
 import { VisitHistoryDateRangeCard } from '@/components/admin/visits-history/visit-history-date-range-card';
-import { VisitHistoryBreakdown } from '@/components/admin/visits-history/visit-history-breakdown';
 import { VisitHistoryFilterBar } from '@/components/admin/visits-history/visit-history-filter-bar';
+import type { VisitorTypeFilter } from '@/components/admin/visits-history/visit-history-helpers';
 import { VisitHistoryMetrics } from '@/components/admin/visits-history/visit-history-metrics';
 import { VisitHistoryTable } from '@/components/admin/visits-history/visit-history-table';
 import { VisitorHistoryModal } from '@/components/admin/visits-history/visitor-history-modal';
@@ -12,28 +12,28 @@ import { Head } from '@inertiajs/react';
 
 interface VisitsHistoryProps {
     visitHistory: AdminVisitHistory;
+    initialVisitorType: VisitorTypeFilter;
 }
 
-export default function VisitsHistory({ visitHistory }: VisitsHistoryProps) {
-    const historyPage = useVisitsHistoryPage(visitHistory);
+export default function VisitsHistory({ visitHistory, initialVisitorType }: VisitsHistoryProps) {
+    const historyPage = useVisitsHistoryPage(visitHistory, initialVisitorType);
+    const audienceLabel = historyPage.visitorType === 'student' ? 'Student' : 'Employee';
 
     return (
         <>
-            <Head title="Visit Logs" />
+            <Head title={`${audienceLabel} Visit Logs`} />
             <main className="min-h-screen">
                 <AdminLayout active="visits-history">
                     <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
-                            title="Visit Logs"
-                            description="Review every student and employee visit within the active school year, from the selected date through today."
+                            title={`${audienceLabel} Visit Logs`}
+                            description={`Audit exact ${audienceLabel.toLowerCase()} visit records, timestamps, and date coverage for the active school year.`}
                         />
 
-                        <VisitHistoryMetrics metrics={visitHistory.metrics} rangeMetrics={historyPage.rangeMetrics} />
-
-                        <VisitHistoryBreakdown
-                            visitors={historyPage.visitorsWithRangeVisits}
-                            studentRequiredVisits={visitHistory.schoolYear?.student_required_visits ?? 0}
-                            employeeRequiredVisits={visitHistory.schoolYear?.employee_required_visits ?? 0}
+                        <VisitHistoryMetrics
+                            metrics={visitHistory.metrics}
+                            rangeMetrics={historyPage.rangeMetrics}
+                            visitorType={historyPage.visitorType}
                         />
 
                         <VisitHistoryDateRangeCard
@@ -64,6 +64,7 @@ export default function VisitsHistory({ visitHistory }: VisitsHistoryProps) {
                                 onDepartmentChange={historyPage.setDepartment}
                                 onSearchChange={historyPage.setSearch}
                                 onQuickSortChange={historyPage.changeQuickSort}
+                                showVisitorType={false}
                             />
                             <VisitHistoryTable
                                 visitors={historyPage.visibleVisitors}

@@ -4,12 +4,14 @@ namespace Tests\Feature;
 
 use App\Models\EmployeeSchoolYearRecord;
 use App\Models\LibraryMember;
+use App\Models\LibraryVisit;
 use App\Models\SchoolYear;
 use App\Models\StudentSchoolYearRecord;
 use App\Models\User;
 use Database\Seeders\CurrentSchoolYear;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -34,7 +36,7 @@ class DatabaseSeederTest extends TestCase
 
         $schoolYear = SchoolYear::query()->where('name', '2026-2027')->firstOrFail();
 
-        $this->assertSame('2026-05-01', $schoolYear->startDateString());
+        $this->assertSame('2026-01-08', $schoolYear->startDateString());
         $this->assertSame('2027-03-07', $schoolYear->endDateString());
         $this->assertTrue($schoolYear->is_active);
     }
@@ -49,7 +51,7 @@ class DatabaseSeederTest extends TestCase
         ]);
         $activeSchoolYear = SchoolYear::query()->where('name', '2026-2027')->firstOrFail();
 
-        $this->assertSame('2026-05-01', $activeSchoolYear->startDateString());
+        $this->assertSame('2026-01-08', $activeSchoolYear->startDateString());
         $this->assertSame('2027-03-07', $activeSchoolYear->endDateString());
         $this->assertTrue($activeSchoolYear->is_active);
 
@@ -81,6 +83,36 @@ class DatabaseSeederTest extends TestCase
         );
         $this->assertGreaterThanOrEqual(600, StudentSchoolYearRecord::query()->count());
         $this->assertGreaterThanOrEqual(50, EmployeeSchoolYearRecord::query()->count());
+        $currentVisits = LibraryVisit::query()->where('school_year_id', $activeSchoolYear->id);
+        $this->assertSame('2026-01-08', Carbon::parse((clone $currentVisits)->min('visited_at'))->toDateString());
+        $this->assertSame('2026-05-25', Carbon::parse((clone $currentVisits)->max('visited_at'))->toDateString());
+        $this->assertGreaterThanOrEqual(
+            100,
+            (clone $currentVisits)
+                ->pluck('visited_at')
+                ->map(fn ($visitedAt): string => Carbon::parse($visitedAt)->toDateString())
+                ->unique()
+                ->count(),
+        );
+        $studentVisitCounts = $this->seededVisitCounts(LibraryMember::TYPE_STUDENT, $activeSchoolYear->id);
+        $employeeVisitCounts = $this->seededVisitCounts(LibraryMember::TYPE_EMPLOYEE, $activeSchoolYear->id);
+
+        foreach ([$studentVisitCounts, $employeeVisitCounts] as $visitCounts) {
+            $this->assertTrue($visitCounts->contains(0));
+            $this->assertTrue($visitCounts->contains(fn (int $count): bool => $count > 0 && $count <= 2));
+            $this->assertTrue($visitCounts->contains(fn (int $count): bool => $count >= 5 && $count <= 6));
+        }
+
+        $this->assertGreaterThan((int) floor($studentVisitCounts->count() * 0.7), $studentVisitCounts->filter(fn (int $count): bool => $count > 0)->count());
+        $this->assertGreaterThan((int) floor($employeeVisitCounts->count() * 0.7), $employeeVisitCounts->filter(fn (int $count): bool => $count > 0)->count());
+        $this->assertTrue($studentVisitCounts->contains(fn (int $count): bool => $count >= $activeSchoolYear->student_required_visits));
+        $this->assertTrue($employeeVisitCounts->contains(fn (int $count): bool => $count >= $activeSchoolYear->employee_required_visits));
+
+        $previousSchoolYear = SchoolYear::query()->where('name', '2025-2026')->firstOrFail();
+        $previousVisits = LibraryVisit::query()->where('school_year_id', $previousSchoolYear->id);
+        $this->assertGreaterThan(500, (clone $previousVisits)->count());
+        $this->assertGreaterThanOrEqual($previousSchoolYear->startDateString(), Carbon::parse((clone $previousVisits)->min('visited_at'))->toDateString());
+        $this->assertLessThanOrEqual($previousSchoolYear->endDateString(), Carbon::parse((clone $previousVisits)->max('visited_at'))->toDateString());
 
         $employeeDepartments = [
             'Basic Education Faculty',
@@ -134,5 +166,24 @@ class DatabaseSeederTest extends TestCase
                 $this->assertGreaterThanOrEqual(25, $section->student_count);
                 $this->assertLessThanOrEqual(35, $section->student_count);
             });
+
+        $sectionsUsedByMultipleYearLevels = (clone $studentSchoolYearRecords)
+            ->selectRaw('section, count(distinct year_level) as year_level_count')
+            ->groupBy('section')
+            ->having('year_level_count', '>', 1)
+            ->pluck('section');
+
+        $this->assertCount(0, $sectionsUsedByMultipleYearLevels);
+    }
+
+    private function seededVisitCounts(string $type, int $schoolYearId)
+    {
+        $relation = $type === LibraryMember::TYPE_STUDENT ? 'studentSchoolYearRecords' : 'employeeSchoolYearRecords';
+
+        return LibraryMember::query()
+            ->where('type', $type)
+            ->whereHas($relation, fn ($query) => $query->forSchoolYear($schoolYearId))
+            ->withCount(['visits as seeded_visits_count' => fn ($query) => $query->where('school_year_id', $schoolYearId)])
+            ->pluck('seeded_visits_count');
     }
 }

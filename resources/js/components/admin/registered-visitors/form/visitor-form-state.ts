@@ -30,13 +30,13 @@ export const visitorFormSteps = [
     },
 ];
 
-export function initialVisitorData(visitor: LibraryMemberRow | null): VisitorFormData {
+export function initialVisitorData(visitor: LibraryMemberRow | null, defaultType: VisitorFormData['type'] = 'student'): VisitorFormData {
     return {
         _method: visitor ? 'put' : 'post',
         rfid_uid: visitor?.rfid_uid ?? '',
         school_id: visitor?.school_id ?? '',
         confirm_merge_duplicates: false,
-        type: visitor?.type ?? 'student',
+        type: visitor?.type ?? defaultType,
         first_name: visitor?.first_name ?? '',
         middle_name: visitor?.middle_name ?? '',
         last_name: visitor?.last_name ?? '',

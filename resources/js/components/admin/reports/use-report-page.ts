@@ -1,7 +1,8 @@
+import type { VisitReport, VisitReportOptions } from '@/types/reports';
 import { router } from '@inertiajs/react';
 import { useEchoPublic } from '@laravel/echo-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { VisitReport, VisitReportOptions } from '@/types/reports';
+import { reportExportUrls } from './report-export-url-builder';
 import {
     allFilterValue,
     cleanQuery,
@@ -12,7 +13,6 @@ import {
     type SortDirection,
     type VisitorTypeFilter,
 } from './report-helpers';
-import { reportExportUrls } from './report-export-url-builder';
 import { useReportFilters } from './use-report-filters';
 
 interface ReportQuery {
@@ -26,20 +26,15 @@ interface ReportQuery {
     department: string;
 }
 
-export function useReportPage(report: VisitReport | null, reportOptions: VisitReportOptions) {
-    const filters = useReportFilters(report, reportOptions);
-    const {
-        schoolYearId,
-        startDate,
-        endDate,
-        visitorType,
-        yearLevel,
-        section,
-        department,
-        selectedSchoolYear,
-        dateRangeSummary,
-        reportCanFetch,
-    } = filters.values;
+export function useReportPage(
+    report: VisitReport | null,
+    reportOptions: VisitReportOptions,
+    initialVisitorType: VisitorTypeFilter = 'student',
+    pagePath = '/admin/reports',
+) {
+    const filters = useReportFilters(report, reportOptions, initialVisitorType);
+    const { schoolYearId, startDate, endDate, visitorType, yearLevel, section, department, selectedSchoolYear, dateRangeSummary, reportCanFetch } =
+        filters.values;
     const [currentPage, setCurrentPage] = useState(1);
     const [sortColumn, setSortColumn] = useState<ReportSortColumn | null>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -108,7 +103,7 @@ export function useReportPage(report: VisitReport | null, reportOptions: VisitRe
 
         const timeout = window.setTimeout(() => {
             setShowResultsSkeleton(true);
-            router.get('/admin/reports', cleanQuery(query), {
+            router.get(pagePath, cleanQuery(query), {
                 only: ['report'],
                 preserveScroll: true,
                 preserveState: true,
@@ -119,7 +114,7 @@ export function useReportPage(report: VisitReport | null, reportOptions: VisitRe
         return () => {
             window.clearTimeout(timeout);
         };
-    }, [query, reportCanFetch]);
+    }, [pagePath, query, reportCanFetch]);
 
     const changeSort = (column: ReportSortColumn) => {
         setSortColumn((currentColumn) => {

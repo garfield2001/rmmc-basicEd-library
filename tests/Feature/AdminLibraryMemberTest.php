@@ -46,7 +46,7 @@ class AdminLibraryMemberTest extends TestCase
             'section' => 'Faraday',
         ]);
 
-        $response->assertRedirect('/admin/registered-visitors?type=student');
+        $response->assertRedirect('/admin/registered-visitors/students');
         $visitor = LibraryMember::where('rfid_uid', '1000000101')->firstOrFail();
         $this->assertSame('STU-001', $visitor->school_id);
         $this->assertSame(LibraryMember::TYPE_STUDENT, $visitor->type);
@@ -74,7 +74,7 @@ class AdminLibraryMemberTest extends TestCase
             'department' => 'Faculty',
         ]);
 
-        $response->assertRedirect('/admin/registered-visitors?type=employee');
+        $response->assertRedirect('/admin/registered-visitors/employees');
         $this->assertDatabaseHas('library_members', [
             'rfid_uid' => '2000000101',
             'type' => LibraryMember::TYPE_EMPLOYEE,
@@ -97,7 +97,7 @@ class AdminLibraryMemberTest extends TestCase
             'last_name' => 'Dela Cruz',
             'year_level' => 'Grade 5',
             'section' => 'Rizal',
-        ])->assertRedirect('/admin/registered-visitors?type=student');
+        ])->assertRedirect('/admin/registered-visitors/students');
 
         $visitor = LibraryMember::query()->where('first_name', 'Juan')->where('last_name', 'Dela Cruz')->firstOrFail();
 
@@ -168,7 +168,7 @@ class AdminLibraryMemberTest extends TestCase
             ]);
         }
 
-        $this->actingAs($admin)->get('/admin/registered-visitors?type=student')
+        $this->actingAs($admin)->get('/admin/registered-visitors/students')
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('admin/registered-visitors/index')
@@ -198,7 +198,7 @@ class AdminLibraryMemberTest extends TestCase
                 ]);
             });
 
-        $this->actingAs($admin)->get('/admin/registered-visitors?type=student&per_page=all')
+        $this->actingAs($admin)->get('/admin/registered-visitors/students?per_page=all')
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('admin/registered-visitors/index')
@@ -235,7 +235,7 @@ class AdminLibraryMemberTest extends TestCase
             ]);
         }
 
-        $this->actingAs($admin)->get('/admin/registered-visitors?type=student&per_page=all')
+        $this->actingAs($admin)->get('/admin/registered-visitors/students?per_page=all')
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('admin/registered-visitors/index')
@@ -297,7 +297,7 @@ class AdminLibraryMemberTest extends TestCase
 
         $this->actingAs($admin)->put("/admin/registered-visitors/{$keeper->id}", $payload + [
             'confirm_merge_duplicates' => true,
-        ])->assertRedirect('/admin/registered-visitors?type=student');
+        ])->assertRedirect('/admin/registered-visitors/students');
 
         $this->assertSame('1000000999', $keeper->refresh()->rfid_uid);
         $this->assertDatabaseMissing('library_members', ['id' => $duplicate->id]);

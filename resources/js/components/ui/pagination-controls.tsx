@@ -84,63 +84,62 @@ export function PaginationControls({
                     </button>
                 </div>
                 <div className="hidden shrink-0 flex-nowrap items-center gap-2 overflow-x-auto sm:flex">
-                <button
-                    type="button"
-                    onClick={() => onPageChange?.(1)}
-                    disabled={currentPage === 1 || !onPageChange}
-                    className={pageButtonClass}
-                    title="First page"
-                >
-                    <ChevronsLeft className="size-4" />
-                </button>
-                <button
-                    type="button"
-                    onClick={onPrevious}
-                    disabled={currentPage === 1}
-                    className="inline-flex h-9 items-center gap-1 rounded-lg border border-[#040DBF]/15 bg-white px-3 font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-[#040DBF]/15 disabled:hover:bg-white disabled:hover:text-[#020659] disabled:hover:shadow-none"
-                >
-                    <ChevronLeft className="size-4" />
-                    Previous
-                </button>
-                <div className="flex items-center gap-1">
-                    {pageItems.map((page, index) =>
-                        page === 'ellipsis' ? (
-                            <span key={`ellipsis-${index}`} className="px-1.5 font-medium text-[#020659]/45">
-                                ...
-                            </span>
-                        ) : (
-                            <button
-                                key={page}
-                                type="button"
-                                onClick={() => onPageChange?.(page)}
-                                disabled={!onPageChange || page === currentPage}
-                                className={`${pageButtonClass} min-w-9 px-2 ${
-                                    page === currentPage ? 'border-[#040DBF] bg-[#040DBF] text-white opacity-100' : ''
-                                }`}
-                            >
-                                {page}
-                            </button>
-                        ),
-                    )}
-                </div>
-                <button
-                    type="button"
-                    onClick={onNext}
-                    disabled={currentPage === totalPages}
-                    className="inline-flex h-9 items-center gap-1 rounded-lg border border-[#040DBF]/15 bg-white px-3 font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-[#040DBF]/15 disabled:hover:bg-white disabled:hover:text-[#020659] disabled:hover:shadow-none"
-                >
-                    Next
-                    <ChevronRight className="size-4" />
-                </button>
-                <button
-                    type="button"
-                    onClick={() => onPageChange?.(totalPages)}
-                    disabled={currentPage === totalPages || !onPageChange}
-                    className={pageButtonClass}
-                    title="Last page"
-                >
-                    <ChevronsRight className="size-4" />
-                </button>
+                    <button
+                        type="button"
+                        onClick={() => onPageChange?.(1)}
+                        disabled={currentPage === 1 || !onPageChange}
+                        className={pageButtonClass}
+                        title="First page"
+                    >
+                        <ChevronsLeft className="size-4" />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onPrevious}
+                        disabled={currentPage === 1}
+                        className="inline-flex h-9 items-center gap-1 rounded-lg border border-[#040DBF]/15 bg-white px-3 font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-[#040DBF]/15 disabled:hover:bg-white disabled:hover:text-[#020659] disabled:hover:shadow-none"
+                    >
+                        <ChevronLeft className="size-4" />
+                        Previous
+                    </button>
+                    <div className="flex items-center gap-1">
+                        {pageItems.map((page, index) =>
+                            page === 'ellipsis' ? (
+                                <span key={`ellipsis-${index}`} className="px-1.5 font-medium text-[#020659]/45">
+                                    ...
+                                </span>
+                            ) : (
+                                <button
+                                    key={page}
+                                    type="button"
+                                    onClick={() => onPageChange?.(page)}
+                                    disabled={!onPageChange || page === currentPage}
+                                    aria-current={page === currentPage ? 'page' : undefined}
+                                    className={page === currentPage ? currentPageButtonClass : `${pageButtonClass} min-w-9 px-2`}
+                                >
+                                    {page}
+                                </button>
+                            ),
+                        )}
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onNext}
+                        disabled={currentPage === totalPages}
+                        className="inline-flex h-9 items-center gap-1 rounded-lg border border-[#040DBF]/15 bg-white px-3 font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-[#040DBF]/15 disabled:hover:bg-white disabled:hover:text-[#020659] disabled:hover:shadow-none"
+                    >
+                        Next
+                        <ChevronRight className="size-4" />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => onPageChange?.(totalPages)}
+                        disabled={currentPage === totalPages || !onPageChange}
+                        className={pageButtonClass}
+                        title="Last page"
+                    >
+                        <ChevronsRight className="size-4" />
+                    </button>
                 </div>
             </div>
         </div>
@@ -149,3 +148,6 @@ export function PaginationControls({
 
 const pageButtonClass =
     'inline-flex h-9 items-center justify-center gap-1 rounded-lg border border-[#040DBF]/15 bg-white px-3 font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-[#040DBF]/15 disabled:hover:bg-white disabled:hover:text-[#020659] disabled:hover:shadow-none';
+
+const currentPageButtonClass =
+    'inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-[#040DBF] bg-[#040DBF] px-2 font-semibold text-white shadow-sm shadow-[#040DBF]/20 disabled:cursor-default disabled:opacity-100';

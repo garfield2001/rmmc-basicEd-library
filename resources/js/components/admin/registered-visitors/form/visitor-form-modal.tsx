@@ -10,12 +10,13 @@ import { VisitorMergeDialog } from './visitor-merge-dialog';
 interface VisitorFormModalProps {
     visitor: LibraryMemberRow | null;
     open: boolean;
+    defaultType?: 'student' | 'employee';
     sectionsByYearLevel: Record<string, string[]>;
     onOpenChange: (open: boolean) => void;
 }
 
-export function VisitorFormModal({ visitor, open, sectionsByYearLevel, onOpenChange }: VisitorFormModalProps) {
-    const form = useVisitorFormModal({ visitor, open, onOpenChange });
+export function VisitorFormModal({ visitor, open, defaultType = 'student', sectionsByYearLevel, onOpenChange }: VisitorFormModalProps) {
+    const form = useVisitorFormModal({ visitor, open, defaultType, onOpenChange });
     const inputClass =
         'mt-2 h-10 w-full rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm text-[#010440] outline-none transition focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10';
     const sectionClass = form.isEditing ? 'rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff] p-4' : 'space-y-4';

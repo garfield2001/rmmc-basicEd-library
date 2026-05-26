@@ -5,11 +5,13 @@ import type React from 'react';
 export function RegisteredVisitorsHeaderActions({
     importing,
     importInputRef,
+    createLabel = 'Add visitor',
     onImportFile,
     onCreateVisitor,
 }: {
     importing: boolean;
     importInputRef: React.RefObject<HTMLInputElement | null>;
+    createLabel?: string;
     onImportFile: (file: File | null) => void;
     onCreateVisitor: () => void;
 }) {
@@ -28,7 +30,7 @@ export function RegisteredVisitorsHeaderActions({
             </Button>
             <Button type="button" onClick={onCreateVisitor} className="w-full sm:w-auto">
                 <Plus className="size-4" />
-                Add visitor
+                {createLabel}
             </Button>
         </div>
     );

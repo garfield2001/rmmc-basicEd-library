@@ -3,8 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { VisitorAvatar } from '@/components/ui/visitor-avatar';
 import type { VisitHistoryVisit, VisitHistoryVisitor } from '@/types/dashboard';
-import { CalendarClock, History, type LucideIcon } from 'lucide-react';
-import { formatVisitDateTime, groupLabel, parseVisitDate, summarizeDateRange, toLocalIsoDate } from './visit-history-helpers';
+import { groupLabel, parseVisitDate, summarizeDateRange, toLocalIsoDate } from './visit-history-helpers';
 
 interface VisitorHistoryModalProps {
     visitor: VisitHistoryVisitor | null;
@@ -36,16 +35,15 @@ export function VisitorHistoryModal({ visitor, visits, startDate, endDate, open,
                     </div>
                 </DialogHeader>
 
-                <div className="grid gap-3 sm:grid-cols-3">
-                    <ModalStat icon={History} label="Total visits" value={visits.length.toLocaleString()} />
-                    <ModalStat icon={CalendarClock} label="First visit" value={formatVisitDateTime(visits.at(-1)?.visitedAt)} />
-                    <ModalStat icon={CalendarClock} label="Last visit" value={formatVisitDateTime(visits[0]?.visitedAt)} />
-                </div>
-
                 <section className="overflow-hidden rounded-lg border border-[#040DBF]/10">
-                    <div className="border-b border-[#040DBF]/10 bg-[#f6f8ff] px-4 py-3">
-                        <h3 className="font-semibold text-[#010440]">Visit log</h3>
-                        <p className="mt-1 text-sm text-[#020659]/70">{summarizeDateRange(startDate, endDate)}</p>
+                    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#040DBF]/10 bg-[#f6f8ff] px-4 py-3">
+                        <div>
+                            <h3 className="font-semibold text-[#010440]">Visit log</h3>
+                            <p className="mt-1 text-sm text-[#020659]/70">{summarizeDateRange(startDate, endDate)}</p>
+                        </div>
+                        <span className="rounded-full bg-[#040DBF]/10 px-3 py-1.5 text-xs font-semibold text-[#030A8C]">
+                            Total visits: {visits.length.toLocaleString()}
+                        </span>
                     </div>
 
                     {visits.length > 0 ? (
@@ -86,17 +84,5 @@ export function VisitorHistoryModal({ visitor, visits, startDate, endDate, open,
                 </section>
             </DialogContent>
         </Dialog>
-    );
-}
-
-function ModalStat({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
-    return (
-        <div className="rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff] p-4">
-            <span className="admin-icon-badge inline-flex size-9 items-center justify-center rounded-lg bg-[#040DBF]/10 text-[#040DBF]">
-                <Icon className="size-4" />
-            </span>
-            <p className="mt-3 text-xs font-semibold tracking-[0.12em] text-[#030A8C] uppercase">{label}</p>
-            <p className="mt-1 text-base font-semibold text-[#010440]">{value}</p>
-        </div>
     );
 }

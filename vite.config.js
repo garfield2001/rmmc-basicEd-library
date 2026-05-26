@@ -17,13 +17,13 @@ export default defineConfig({
     },
 
     //For other PC to access this project
-    /* server: {
+    server: {
         host: '0.0.0.0',
         port: 5173,
         strictPort: true,
         hmr: {
-            host: '172.16.100.145', // Change this IP depending on which PC you're using
+            host: '192.168.1.112', // Change this IP depending on which PC you're using
             port: 5173,
         },
-    }, */
+    },
 });

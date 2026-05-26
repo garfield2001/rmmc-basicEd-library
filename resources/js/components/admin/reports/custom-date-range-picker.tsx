@@ -19,9 +19,17 @@ export function CustomDateRangePicker({ startDate, endDate, min, max, onChange }
     };
 
     return (
-        <span className="mt-2 grid w-full gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-            <DateInput value={startDate} min={min} max={max} onChange={updateStartDate} placeholder="Start date" />
-            <DateInput value={endDate} min={startDate || min} max={max} onChange={updateEndDate} placeholder="End date" disabled={!startDate} />
+        <span className="mt-2 grid w-full gap-2 min-[520px]:grid-cols-[minmax(10.5rem,1fr)_minmax(10.5rem,1fr)_auto]">
+            <DateInput value={startDate} min={min} max={max} onChange={updateStartDate} placeholder="Start date" focusDate={startDate || min} />
+            <DateInput
+                value={endDate}
+                min={startDate || min}
+                max={max}
+                onChange={updateEndDate}
+                placeholder="End date"
+                disabled={!startDate}
+                focusDate={endDate || startDate || min}
+            />
             {(startDate || endDate) && (
                 <Button type="button" variant="outline" size="sm" onClick={() => onChange('', '')} className="h-10 justify-center">
                     Clear

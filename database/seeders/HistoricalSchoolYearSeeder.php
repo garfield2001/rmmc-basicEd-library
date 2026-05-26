@@ -103,26 +103,62 @@ class HistoricalSchoolYearSeeder extends Seeder
             ->where('type', LibraryMember::TYPE_STUDENT)
             ->whereHas('studentSchoolYearRecords', fn ($query) => $query->forSchoolYear($schoolYear->id))
             ->orderBy('school_id')
-            ->limit(55)
             ->get();
 
-        $employee_school_year_records = LibraryMember::query()
+        $employees = LibraryMember::query()
             ->where('type', LibraryMember::TYPE_EMPLOYEE)
+            ->whereHas('employeeSchoolYearRecords', fn ($query) => $query->forSchoolYear($schoolYear->id))
             ->orderBy('school_id')
-            ->limit(18)
             ->get();
 
         $students->each(function (LibraryMember $visitor, int $index) use ($schoolYear): void {
-            $this->visit($visitor, $schoolYear, Carbon::parse('2025-07-07 08:15:00')->addDays($index % 24));
+            $visitCount = $this->historicalStudentVisitCount($index);
 
-            if ($index % 3 !== 0) {
-                $this->visit($visitor, $schoolYear, Carbon::parse('2025-09-08 09:30:00')->addDays($index % 30));
+            for ($visitNumber = 0; $visitNumber < $visitCount; $visitNumber++) {
+                $this->visit(
+                    $visitor,
+                    $schoolYear,
+                    Carbon::parse('2025-06-09 08:15:00')
+                        ->addDays((($index * 3) + ($visitNumber * 19)) % 206)
+                        ->addMinutes((($index * 7) + ($visitNumber * 13)) % 360),
+                );
             }
         });
 
-        $employee_school_year_records->each(function (LibraryMember $visitor, int $index) use ($schoolYear): void {
-            $this->visit($visitor, $schoolYear, Carbon::parse('2025-08-04 10:00:00')->addDays($index % 20));
+        $employees->each(function (LibraryMember $visitor, int $index) use ($schoolYear): void {
+            $visitCount = $this->historicalEmployeeVisitCount($index);
+
+            for ($visitNumber = 0; $visitNumber < $visitCount; $visitNumber++) {
+                $this->visit(
+                    $visitor,
+                    $schoolYear,
+                    Carbon::parse('2025-06-16 09:00:00')
+                        ->addDays((($index * 5) + ($visitNumber * 23)) % 199)
+                        ->addMinutes((($index * 11) + ($visitNumber * 17)) % 300),
+                );
+            }
         });
+    }
+
+    private function historicalStudentVisitCount(int $index): int
+    {
+        return match (true) {
+            $index % 37 === 0 => 0,
+            $index % 19 === 0 => 1,
+            $index % 11 === 0 => 2,
+            $index % 5 === 0 => 4 + ($index % 3),
+            default => 3 + ($index % 3),
+        };
+    }
+
+    private function historicalEmployeeVisitCount(int $index): int
+    {
+        return match (true) {
+            $index % 23 === 0 => 0,
+            $index % 13 === 0 => 1,
+            $index % 7 === 0 => 3,
+            default => 4 + ($index % 3),
+        };
     }
 
     private function visit(LibraryMember $visitor, SchoolYear $schoolYear, Carbon $visitedAt): void
@@ -165,5 +201,4 @@ class HistoricalSchoolYearSeeder extends Seeder
 
         return AcademicLevels::options()[$rank - 1];
     }
-
 }

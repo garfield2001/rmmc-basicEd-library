@@ -22,6 +22,7 @@ export function VisitorsTable({
     sort,
     direction,
     isLoading = false,
+    showTypeTabs = true,
     onSearchChange,
     onTypeChange,
     onYearLevelChange,
@@ -67,6 +68,7 @@ export function VisitorsTable({
                 sections={sections}
                 departments={departments}
                 sort={sort}
+                showTypeTabs={showTypeTabs}
                 onSearchChange={onSearchChange}
                 onTypeChange={onTypeChange}
                 onYearLevelChange={onYearLevelChange}

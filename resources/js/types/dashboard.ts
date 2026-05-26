@@ -61,6 +61,18 @@ export interface RequiredProgressPoint {
     percent: number;
 }
 
+export interface IndividualProgressPoint {
+    id: number;
+    name: string;
+    schoolId: string | null;
+    type: 'student' | 'employee';
+    group: string;
+    visits: number;
+    required: number;
+    remaining: number;
+    percent: number;
+}
+
 export interface AdminDashboard {
     scanWindow: {
         starts_at: string;
@@ -98,6 +110,7 @@ export interface AdminDashboard {
         studentVisitsBySection: ChartPoint[];
         employeeVisitsByDepartment: ChartPoint[];
         requiredProgress: RequiredProgressPoint[];
+        individualProgress: IndividualProgressPoint[];
     };
 }
 
@@ -116,16 +129,14 @@ export interface AdminVisitMonitor {
 }
 
 export interface AdminVisitHistory {
-    schoolYear:
-        | {
-              id: number;
-              name: string;
-              starts_at: string;
-              ends_at: string;
-              student_required_visits: number;
-              employee_required_visits: number;
-          }
-        | null;
+    schoolYear: {
+        id: number;
+        name: string;
+        starts_at: string;
+        ends_at: string;
+        student_required_visits: number;
+        employee_required_visits: number;
+    } | null;
     metrics: {
         visitors: number;
         studentVisitors: number;

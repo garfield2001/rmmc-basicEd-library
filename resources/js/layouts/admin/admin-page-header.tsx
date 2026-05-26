@@ -2,7 +2,7 @@ import type { AdminPageHeaderProps } from './admin-layout.types';
 
 export function AdminPageHeader({ title, description, badge, actions }: AdminPageHeaderProps) {
     return (
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <header className="flex flex-col gap-4 text-left sm:flex-row sm:items-start sm:justify-between">
             <div>
                 <div className="flex flex-wrap items-center gap-3">
                     <h1 className="admin-page-title font-semibold tracking-normal text-zinc-950">{title}</h1>

@@ -1,7 +1,7 @@
 import { formatTime } from '@/components/admin/dashboard/dashboard-summary';
 import type { AdminDashboard } from '@/types/dashboard';
 import { Link } from '@inertiajs/react';
-import { AlertCircle, ClipboardList, FileText, RadioTower, UsersRound } from 'lucide-react';
+import { AlertCircle, ChartColumn, ClipboardList, FileText, RadioTower, UsersRound } from 'lucide-react';
 
 interface DashboardOperationsPanelProps {
     dashboard: AdminDashboard;
@@ -28,7 +28,12 @@ export function DashboardOperationsPanel({ dashboard, schoolYearDates }: Dashboa
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-3">
                     <StatusTile label="Visits today" value={dashboard.metrics.visitsToday} detail="Live scan volume" />
-                    <StatusTile label="Need progress" value={needsAttention} detail="Below required visits" tone={needsAttention > 0 ? 'warning' : 'normal'} />
+                    <StatusTile
+                        label="Need progress"
+                        value={needsAttention}
+                        detail="Below required visits"
+                        tone={needsAttention > 0 ? 'warning' : 'normal'}
+                    />
                     <StatusTile label="Roster coverage" value={dashboard.metrics.registeredVisitors} detail="Visit-eligible profiles" />
                 </div>
             </article>
@@ -40,9 +45,10 @@ export function DashboardOperationsPanel({ dashboard, schoolYearDates }: Dashboa
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
                     <QuickLink href="/admin/live-visits" icon={RadioTower} label="Live Visits" detail="Monitor scans now" />
-                    <QuickLink href="/admin/visits-history" icon={ClipboardList} label="Visit Logs" detail="Audit visitor records" />
-                    <QuickLink href="/admin/reports" icon={FileText} label="Reports" detail="Export progress files" />
-                    <QuickLink href="/admin/registered-visitors" icon={UsersRound} label="Visitors" detail="Manage profiles" />
+                    <QuickLink href="/admin/visit-logs/students" icon={ClipboardList} label="Visit Logs" detail="Audit exact visit records" />
+                    <QuickLink href="/admin/visit-progress/students" icon={ChartColumn} label="Progress" detail="Monitor completion and watchlists" />
+                    <QuickLink href="/admin/reports/students" icon={FileText} label="Reports" detail="Export progress files" />
+                    <QuickLink href="/admin/registered-visitors/students" icon={UsersRound} label="Visitors" detail="Manage profiles" />
                 </div>
             </article>
         </section>

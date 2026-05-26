@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { formatDisplayDate } from '@/components/ui/date-input';
+import { toIsoDate } from '@/components/ui/date-input-utils';
 import { VisitLogDateRangePicker } from './visit-log-date-range-picker';
 
 interface VisitHistoryDateRangeCardProps {
@@ -23,7 +24,7 @@ export function VisitHistoryDateRangeCard({
     onEndDateChange,
     onReset,
 }: VisitHistoryDateRangeCardProps) {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = toIsoDate(new Date());
 
     return (
         <section className="admin-surface rounded-lg border border-[#040DBF]/10 bg-white/95 p-5 shadow-sm">
@@ -33,7 +34,7 @@ export function VisitHistoryDateRangeCard({
                     <p className="mt-1 text-sm text-[#020659]/70">
                         {schoolYearStart && schoolYearEnd
                             ? `${formatDisplayDate(schoolYearStart)} to ${formatDisplayDate(schoolYearEnd)}`
-                            : 'Activate a school year to view visit logs.'}
+                            : 'Activate a school year to view visit history.'}
                     </p>
                     <p className="mt-2 text-xs font-medium text-[#030A8C]">Choose a date range from one dropdown; included days are highlighted.</p>
                 </div>

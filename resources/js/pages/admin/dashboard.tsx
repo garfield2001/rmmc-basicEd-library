@@ -3,10 +3,11 @@ import { ChartCard } from '@/components/admin/dashboard/chart-card';
 import { DashboardActions } from '@/components/admin/dashboard/dashboard-actions';
 import { DashboardInsightStrip } from '@/components/admin/dashboard/dashboard-insight-strip';
 import { getDashboardInsights } from '@/components/admin/dashboard/dashboard-insights';
+import { DashboardOperationsPanel } from '@/components/admin/dashboard/dashboard-operations-panel';
 import { getOverviewMetrics, getSchoolYearDateRange } from '@/components/admin/dashboard/dashboard-summary';
+import { IndividualProgressPanel } from '@/components/admin/dashboard/individual-progress-panel';
 import { MetricCard } from '@/components/admin/dashboard/metric-card';
 import { RangeControls, rangeDetail, rangeLabel, relativeDateRange, visitsBetween } from '@/components/admin/dashboard/range-controls';
-import { DashboardOperationsPanel } from '@/components/admin/dashboard/dashboard-operations-panel';
 import { VisitTrafficChart } from '@/components/admin/dashboard/visit-traffic-chart';
 import { VisitorMixChart } from '@/components/admin/dashboard/visitor-mix-chart';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
@@ -81,6 +82,9 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                                                 const [start, end] = relativeDateRange(range);
                                                 setTrafficStartDate(start);
                                                 setTrafficEndDate(end);
+                                            } else {
+                                                setTrafficStartDate('');
+                                                setTrafficEndDate('');
                                             }
                                         }}
                                         onStartDateChange={(value) => {
@@ -105,6 +109,8 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                                 <VisitorMixChart students={dashboard.visitorBreakdown.students} employees={dashboard.visitorBreakdown.employees} />
                             </ChartCard>
                         </section>
+
+                        <IndividualProgressPanel progress={dashboard.charts.individualProgress} />
 
                         <section className="min-w-0">
                             <ActivityBreakdownCard dashboard={dashboard} />

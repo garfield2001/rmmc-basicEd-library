@@ -501,6 +501,49 @@
         color: #030a8c !important;
     }
 
+    .admin-theme-root :is(button, a, .admin-icon-badge) > svg,
+    .dialog-content :is(button, a, .admin-icon-badge) > svg {
+        flex-shrink: 0;
+        color: currentColor;
+        stroke-width: 2.15;
+    }
+
+    .admin-theme-root .admin-icon-button {
+        color: #020659;
+    }
+
+    .admin-theme-root .admin-icon-button:hover {
+        color: #010440;
+    }
+
+    .admin-floating-scrim {
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+    }
+
+    .admin-floating-popover {
+        color: #010440;
+    }
+
+    .admin-theme-root .admin-sidebar-child-link {
+        color: rgb(2 6 89 / 0.78) !important;
+    }
+
+    .admin-theme-root .admin-sidebar-child-link svg {
+        color: currentColor !important;
+        stroke-width: 2.25;
+    }
+
+    .admin-theme-root .admin-sidebar-child-link:hover,
+    .admin-theme-root .admin-sidebar-child-active {
+        color: #010440 !important;
+    }
+
+    .admin-theme-root .admin-sidebar-child-active {
+        border-color: rgb(4 13 191 / 0.25) !important;
+        background-color: rgb(4 13 191 / 0.1) !important;
+    }
+
     .admin-theme-root .admin-danger-action {
         border-color: rgb(254 202 202) !important;
         color: #dc2626 !important;
@@ -602,6 +645,23 @@
         color: #f8fbff !important;
     }
 
+    html[data-admin-theme='dark'] .admin-theme-root .admin-icon-button,
+    html[data-admin-theme='dark'] .dialog-content .admin-icon-button {
+        border-color: rgb(96 165 250 / 0.24) !important;
+        background-color: rgb(15 23 42 / 0.94) !important;
+        color: #dbeafe !important;
+        box-shadow:
+            inset 0 1px 0 rgb(255 255 255 / 0.05),
+            0 10px 24px rgb(0 0 0 / 0.16) !important;
+    }
+
+    html[data-admin-theme='dark'] .admin-theme-root .admin-icon-button:hover,
+    html[data-admin-theme='dark'] .dialog-content .admin-icon-button:hover {
+        border-color: rgb(147 197 253 / 0.36) !important;
+        background-color: rgb(30 41 59 / 0.98) !important;
+        color: #ffffff !important;
+    }
+
     html[data-admin-theme='dark'] .admin-theme-root :is(button, a)[class*='bg-zinc-950'] {
         background-color: #1d4ed8 !important;
         color: #ffffff !important;
@@ -638,33 +698,50 @@
         color: #f8fbff !important;
     }
 
-    html[data-admin-theme='dark'] .admin-theme-root .admin-school-year-popover {
+    html[data-admin-theme='dark'] .admin-theme-root .admin-school-year-popover,
+    html[data-admin-theme='dark'] .admin-school-year-popover,
+    html[data-admin-theme='dark'] .admin-floating-popover {
         border-color: rgb(96 165 250 / 0.24) !important;
         background-color: rgb(15 23 42 / 0.98) !important;
+        color: #e5edff !important;
         box-shadow:
             inset 0 1px 0 rgb(255 255 255 / 0.05),
             0 24px 70px rgb(0 0 0 / 0.34) !important;
     }
 
-    html[data-admin-theme='dark'] .admin-theme-root .admin-school-year-popover-icon {
+    html[data-admin-theme='dark'] .admin-theme-root .admin-school-year-popover-icon,
+    html[data-admin-theme='dark'] .admin-school-year-popover-icon {
         border: 1px solid rgb(96 165 250 / 0.22) !important;
         background-color: rgb(29 78 216 / 0.18) !important;
         color: #93c5fd !important;
         box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06) !important;
     }
 
-    html[data-admin-theme='dark'] .admin-theme-root .admin-school-year-mini-stat {
+    html[data-admin-theme='dark'] .admin-theme-root .admin-school-year-mini-stat,
+    html[data-admin-theme='dark'] .admin-school-year-mini-stat {
         border-color: rgb(96 165 250 / 0.22) !important;
         background-color: rgb(30 41 59 / 0.72) !important;
     }
 
-    html[data-admin-theme='dark'] .admin-theme-root .admin-school-year-popover :is(p, span, button) {
+    html[data-admin-theme='dark'] .admin-theme-root .admin-school-year-popover :is(p, span, button),
+    html[data-admin-theme='dark'] .admin-school-year-popover :is(p, span, button),
+    html[data-admin-theme='dark'] .admin-floating-popover :is(a, button, span) {
         color: #e5edff !important;
     }
 
     html[data-admin-theme='dark'] .admin-theme-root .admin-school-year-popover [class*='text-[#030A8C]'],
-    html[data-admin-theme='dark'] .admin-theme-root .admin-school-year-popover [class*='text-[#020659]'] {
+    html[data-admin-theme='dark'] .admin-theme-root .admin-school-year-popover [class*='text-[#020659]'],
+    html[data-admin-theme='dark'] .admin-school-year-popover [class*='text-[#030A8C]'],
+    html[data-admin-theme='dark'] .admin-school-year-popover [class*='text-[#020659]'],
+    html[data-admin-theme='dark'] .admin-floating-popover [class*='text-[#030A8C]'],
+    html[data-admin-theme='dark'] .admin-floating-popover [class*='text-[#020659]'] {
         color: #b9c8ff !important;
+    }
+
+    html[data-admin-theme='dark'] .admin-floating-popover :is(a, button):hover {
+        border-color: rgb(96 165 250 / 0.24) !important;
+        background-color: rgb(30 41 59 / 0.9) !important;
+        color: #ffffff !important;
     }
 
     html[data-admin-theme='dark'] .admin-theme-root .admin-progress-track,
@@ -736,6 +813,20 @@
         background-color: rgb(29 78 216 / 0.22) !important;
         color: #dbeafe !important;
         box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06) !important;
+    }
+
+    html[data-admin-theme='dark'] .admin-theme-root .admin-sidebar-child-link {
+        color: rgb(219 234 254 / 0.82) !important;
+    }
+
+    html[data-admin-theme='dark'] .admin-theme-root .admin-sidebar-child-link:hover,
+    html[data-admin-theme='dark'] .admin-theme-root .admin-sidebar-child-active {
+        color: #f8fbff !important;
+    }
+
+    html[data-admin-theme='dark'] .admin-theme-root .admin-sidebar-child-active {
+        border-color: rgb(147 197 253 / 0.35) !important;
+        background-color: rgb(56 189 248 / 0.14) !important;
     }
 
     html[data-admin-theme='dark'] .admin-theme-root :is(.bg-emerald-50, [class*='bg-emerald-50']) {

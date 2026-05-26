@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
 import type { VisitReport, VisitReportOptions } from '@/types/reports';
+import { useEffect, useMemo, useState } from 'react';
+import { reportFilterValidation } from './report-filter-validation';
 import {
     allFilterValue,
     getSchoolYearBounds,
@@ -8,14 +9,21 @@ import {
     type DateRangeMode,
     type VisitorTypeFilter,
 } from './report-helpers';
-import { reportFilterValidation } from './report-filter-validation';
 
-export function useReportFilters(report: VisitReport | null, reportOptions: VisitReportOptions) {
+export function useReportFilters(
+    report: VisitReport | null,
+    reportOptions: VisitReportOptions,
+    initialVisitorTypeFromPage: VisitorTypeFilter = 'student',
+) {
     const activeSchoolYear = reportOptions.schoolYears.find((schoolYear) => schoolYear.is_active) ?? reportOptions.schoolYears[0] ?? null;
     const initialSchoolYearId = report?.filters.school_year_id ? String(report.filters.school_year_id) : '';
     const initialSchoolYear = reportOptions.schoolYears.find((schoolYear) => String(schoolYear.id) === initialSchoolYearId) ?? activeSchoolYear;
     const initialVisitorType: VisitorTypeFilter =
-        report?.filters.visitor_type === 'employee' || report?.filters.visitor_type === 'student' ? report.filters.visitor_type : '';
+        report?.filters.visitor_type === 'employee' || report?.filters.visitor_type === 'student'
+            ? report.filters.visitor_type
+            : initialVisitorTypeFromPage === 'employee'
+              ? 'employee'
+              : 'student';
 
     const [schoolYearId, setSchoolYearId] = useState(initialSchoolYearId);
     const [startDate, setStartDate] = useState(report?.filters.start_date ?? '');
@@ -71,7 +79,7 @@ export function useReportFilters(report: VisitReport | null, reportOptions: Visi
     }, [department, visitorType, reportOptions.departments]);
 
     const resetDependentFilters = () => {
-        setVisitorType('');
+        setVisitorType(initialVisitorTypeFromPage === 'employee' ? 'employee' : 'student');
         setYearLevel('');
         setSection('');
         setDepartment('');
@@ -148,6 +156,7 @@ export function useReportFilters(report: VisitReport | null, reportOptions: Visi
             section,
             department,
             availableSections,
+            showVisitorTypeSelector: false,
             dateRangeIsValid: validation.dateRangeIsValid,
             dateRangeSummary,
             onSchoolYearChange: chooseSchoolYear,

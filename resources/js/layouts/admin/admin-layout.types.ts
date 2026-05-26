@@ -1,15 +1,20 @@
-import type { LayoutDashboard } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-export type AdminSection = 'dashboard' | 'live-visits' | 'visits-history' | 'visitors' | 'reports' | 'settings';
+export type AdminSection = 'dashboard' | 'live-visits' | 'visits-history' | 'visit-progress' | 'visitors' | 'reports' | 'settings';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 
 export type AdminNavItem = {
     key: AdminSection;
     label: string;
-    href: string;
-    icon: typeof LayoutDashboard;
+    href?: string;
+    icon: LucideIcon;
+    children?: Array<{
+        label: string;
+        href: string;
+        icon: LucideIcon;
+    }>;
 };
 
 export interface AdminLayoutProps {

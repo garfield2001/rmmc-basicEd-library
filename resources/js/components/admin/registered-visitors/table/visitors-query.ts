@@ -17,7 +17,6 @@ export function visitorIndexQuery(type: VisitorType, state: VisitorsQueryState, 
 
     return {
         search: state.search || undefined,
-        type,
         year_level: type === 'student' ? state.yearLevel || undefined : undefined,
         section: type === 'student' && state.yearLevel ? state.section || undefined : undefined,
         department: type === 'employee' ? state.department || undefined : undefined,

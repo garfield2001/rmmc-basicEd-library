@@ -1,10 +1,14 @@
+import type { RowsPerPageOption } from '@/components/ui/pagination-controls';
 import { router } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { RowsPerPageOption } from '@/components/ui/pagination-controls';
 import type { VisitorsIndexFilterOptions, VisitorsIndexFilters, VisitorType } from './visitors-index-types';
 import { defaultSortForVisitorType, visitorIndexQuery } from './visitors-query';
 
-export function useVisitorsTableControls(filters: VisitorsIndexFilters, filterOptions: VisitorsIndexFilterOptions) {
+export function useVisitorsTableControls(
+    filters: VisitorsIndexFilters,
+    filterOptions: VisitorsIndexFilterOptions,
+    pagePath = '/admin/registered-visitors',
+) {
     const [search, setSearch] = useState(filters.search ?? '');
     const [yearLevel, setYearLevel] = useState(filters.year_level ?? '');
     const [section, setSection] = useState(filters.section ?? '');
@@ -54,16 +58,20 @@ export function useVisitorsTableControls(filters: VisitorsIndexFilters, filterOp
                 startTableLoading();
             }
             router.get(
-                '/admin/registered-visitors',
-                visitorIndexQuery(type, {
-                    search: nextSearch,
-                    yearLevel: nextYearLevel,
-                    section: nextSection,
-                    department: nextDepartment,
-                    sort: nextSort,
-                    direction: nextDirection,
-                    perPage: nextPerPage,
-                }, nextPage),
+                pagePath,
+                visitorIndexQuery(
+                    type,
+                    {
+                        search: nextSearch,
+                        yearLevel: nextYearLevel,
+                        section: nextSection,
+                        department: nextDepartment,
+                        sort: nextSort,
+                        direction: nextDirection,
+                        perPage: nextPerPage,
+                    },
+                    nextPage,
+                ),
                 {
                     preserveState: true,
                     preserveScroll: true,
@@ -72,7 +80,7 @@ export function useVisitorsTableControls(filters: VisitorsIndexFilters, filterOp
                 },
             );
         },
-        [direction, sort, startTableLoading, stopTableLoading],
+        [direction, pagePath, sort, startTableLoading, stopTableLoading],
     );
 
     useEffect(() => () => loadingTimerRef.current && window.clearTimeout(loadingTimerRef.current), []);

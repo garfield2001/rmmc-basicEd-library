@@ -35,11 +35,11 @@ class LoginController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'redirect' => route('admin.dashboard'),
+                'redirect' => route('admin.dashboard', absolute: false),
             ]);
         }
 
-        return redirect()->intended(route('admin.dashboard'))->with('success', 'Admin session started.');
+        return redirect()->intended(route('admin.dashboard', absolute: false))->with('success', 'Admin session started.');
     }
 
     public function status(Request $request): JsonResponse

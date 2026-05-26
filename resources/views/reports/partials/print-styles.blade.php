@@ -1,7 +1,7 @@
 <style>
             @page {
                 size: 8.5in 11in;
-                margin: 0.45in 0.55in;
+                margin: 0.45in 0.55in 0.72in;
             }
             body {
                 color: #111827;
@@ -12,6 +12,8 @@
             .report-shell {
                 margin: 0 auto;
                 max-width: 7.35in;
+                padding-bottom: 0.35in;
+                position: relative;
             }
             .top-actions {
                 display: flex;
@@ -95,6 +97,7 @@
                 font-weight: 700;
             }
             .group-summary {
+                break-inside: avoid;
                 display: flex;
                 gap: 30px;
                 justify-content: flex-start;
@@ -113,6 +116,7 @@
                 width: 6.55in;
             }
             .report-table {
+                break-inside: auto;
                 border-collapse: collapse;
                 border-right: 1.5px solid #111827;
                 box-sizing: border-box;
@@ -130,6 +134,10 @@
                 vertical-align: middle;
                 white-space: nowrap;
             }
+            .report-table tr {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
             .report-table th:last-child,
             .report-table td:last-child {
                 border-right: 1.5px solid #111827;
@@ -142,15 +150,8 @@
             .report-table tbody tr:nth-child(even) td {
                 background: #f8fafc;
             }
-            .page-footer {
-                bottom: 18px;
-                color: #020659;
-                font-size: 10pt;
-                position: fixed;
-                right: 44px;
-            }
-            .page-footer::after {
-                content: "Page " counter(page);
+            .print-page-number {
+                display: none;
             }
             @include('reports.partials.print-media-styles')
         </style>

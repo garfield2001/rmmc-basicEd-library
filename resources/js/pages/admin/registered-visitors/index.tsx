@@ -4,16 +4,16 @@ import { ImportPreviewDialog } from '@/components/admin/registered-visitors/impo
 import { ImportProgressOverlay } from '@/components/admin/registered-visitors/import/import-progress-overlay';
 import { useVisitorImport } from '@/components/admin/registered-visitors/import/use-visitor-import';
 import { useVisitorsTableControls } from '@/components/admin/registered-visitors/table/use-visitors-table-controls';
-import { VisitorsTable } from '@/components/admin/registered-visitors/table/visitors-table';
 import type { VisitorsIndexProps } from '@/components/admin/registered-visitors/table/visitors-index-types';
+import { VisitorsTable } from '@/components/admin/registered-visitors/table/visitors-table';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
 import { type LibraryMemberRow } from '@/types/registered-visitors';
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function VisitorsIndex({ visitors, filters, filterOptions }: VisitorsIndexProps) {
-    const table = useVisitorsTableControls(filters, filterOptions);
+export default function VisitorsIndex({ visitors, audienceType, pagePath, filters, filterOptions }: VisitorsIndexProps) {
+    const table = useVisitorsTableControls(filters, filterOptions, pagePath);
     const importer = useVisitorImport();
     const [visitorFormOpen, setVisitorFormOpen] = useState(false);
     const [selectedVisitor, setSelectedVisitor] = useState<LibraryMemberRow | null>(null);
@@ -31,17 +31,22 @@ export default function VisitorsIndex({ visitors, filters, filterOptions }: Visi
 
     return (
         <>
-            <Head title="Registered Visitors" />
+            <Head title={audienceType === 'student' ? 'Registered Students' : 'Registered Employees'} />
             <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f4f5_42%,#e7e5e4_100%)] text-zinc-950">
                 <AdminLayout active="visitors">
                     <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
-                            title="Registered Visitors"
-                            description="Manage RFID identities and active school-year details for students and employees."
+                            title={audienceType === 'student' ? 'Registered Students' : 'Registered Employees'}
+                            description={
+                                audienceType === 'student'
+                                    ? 'Manage student RFID identities, year levels, and active school-year sections.'
+                                    : 'Manage employee RFID identities, departments, and active school-year details.'
+                            }
                             actions={
                                 <RegisteredVisitorsHeaderActions
                                     importing={importer.importing}
                                     importInputRef={importer.importInputRef}
+                                    createLabel={audienceType === 'student' ? 'Add student' : 'Add employee'}
                                     onImportFile={importer.previewImport}
                                     onCreateVisitor={openCreateVisitor}
                                 />
@@ -70,8 +75,11 @@ export default function VisitorsIndex({ visitors, filters, filterOptions }: Visi
                             onRowsPerPageChange={table.setters.setPerPage}
                             onSortChange={table.changeSort}
                             onSortClear={table.clearSort}
+                            showTypeTabs={false}
                             onEdit={openEditVisitor}
-                            onPrevious={() => table.visitUrl(visitors.prev_page_url ?? visitors.links.find((link) => link.label.includes('Previous'))?.url)}
+                            onPrevious={() =>
+                                table.visitUrl(visitors.prev_page_url ?? visitors.links.find((link) => link.label.includes('Previous'))?.url)
+                            }
                             onNext={() => table.visitUrl(visitors.next_page_url ?? visitors.links.find((link) => link.label.includes('Next'))?.url)}
                             onPageChange={table.requestPage}
                         />
@@ -85,6 +93,7 @@ export default function VisitorsIndex({ visitors, filters, filterOptions }: Visi
                     <VisitorFormModal
                         visitor={selectedVisitor}
                         open={visitorFormOpen}
+                        defaultType={audienceType}
                         sectionsByYearLevel={filterOptions.sectionsByYearLevel}
                         onOpenChange={setVisitorFormOpen}
                     />

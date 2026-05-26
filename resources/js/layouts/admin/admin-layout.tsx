@@ -116,6 +116,14 @@ function loadingTargetFromPath(pathname: string): AdminLoadingTarget {
         return 'live-visits';
     }
 
+    if (pathname.startsWith('/admin/visit-logs') || pathname.startsWith('/admin/visits-history')) {
+        return 'visit-history';
+    }
+
+    if (pathname.startsWith('/admin/visit-progress')) {
+        return 'visit-progress';
+    }
+
     if (pathname === '/admin/registered-visitors/create' || /^\/admin\/registered-visitors\/[^/]+\/edit$/.test(pathname)) {
         return 'visitors-form';
     }
@@ -145,7 +153,19 @@ function activePathFromSection(active: AdminLayoutProps['active']) {
     }
 
     if (active === 'visitors') {
-        return '/admin/registered-visitors';
+        return '/admin/registered-visitors/students';
+    }
+
+    if (active === 'visits-history') {
+        return '/admin/visit-logs/students';
+    }
+
+    if (active === 'visit-progress') {
+        return '/admin/visit-progress/students';
+    }
+
+    if (active === 'reports') {
+        return '/admin/reports/students';
     }
 
     return `/admin/${active}`;
