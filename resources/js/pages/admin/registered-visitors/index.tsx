@@ -1,4 +1,5 @@
 import { VisitorFormModal } from '@/components/admin/registered-visitors/form/visitor-form-modal';
+import { PageExportActions } from '@/components/admin/exports/page-export-actions';
 import { RegisteredVisitorsHeaderActions } from '@/components/admin/registered-visitors/import/header-actions';
 import { ImportPreviewDialog } from '@/components/admin/registered-visitors/import/import-preview-dialog';
 import { ImportProgressOverlay } from '@/components/admin/registered-visitors/import/import-progress-overlay';
@@ -12,7 +13,7 @@ import { type LibraryMemberRow } from '@/types/registered-visitors';
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function VisitorsIndex({ visitors, audienceType, pagePath, filters, filterOptions }: VisitorsIndexProps) {
+export default function VisitorsIndex({ visitors, pagePath, filters, filterOptions }: VisitorsIndexProps) {
     const table = useVisitorsTableControls(filters, filterOptions, pagePath);
     const importer = useVisitorImport();
     const [visitorFormOpen, setVisitorFormOpen] = useState(false);
@@ -31,25 +32,28 @@ export default function VisitorsIndex({ visitors, audienceType, pagePath, filter
 
     return (
         <>
-            <Head title={audienceType === 'student' ? 'Registered Students' : 'Registered Employees'} />
+            <Head title="Registered Visitors" />
             <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f4f5_42%,#e7e5e4_100%)] text-zinc-950">
                 <AdminLayout active="visitors">
                     <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
-                            title={audienceType === 'student' ? 'Registered Students' : 'Registered Employees'}
-                            description={
-                                audienceType === 'student'
-                                    ? 'Manage student RFID identities, year levels, and active school-year sections.'
-                                    : 'Manage employee RFID identities, departments, and active school-year details.'
-                            }
+                            title="Registered Visitors"
+                            description="Manage student and employee RFID identities, school-year details, and searchable roster records."
                             actions={
-                                <RegisteredVisitorsHeaderActions
-                                    importing={importer.importing}
-                                    importInputRef={importer.importInputRef}
-                                    createLabel={audienceType === 'student' ? 'Add student' : 'Add employee'}
-                                    onImportFile={importer.previewImport}
-                                    onCreateVisitor={openCreateVisitor}
-                                />
+                                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
+                                    <PageExportActions
+                                        page="registered-visitors"
+                                        audience={table.activeType === 'student' ? 'students' : 'employees'}
+                                        query={{ search, year_level: yearLevel, section, department, sort, direction }}
+                                    />
+                                    <RegisteredVisitorsHeaderActions
+                                        importing={importer.importing}
+                                        importInputRef={importer.importInputRef}
+                                        createLabel={table.activeType === 'student' ? 'Add student' : 'Add employee'}
+                                        onImportFile={importer.previewImport}
+                                        onCreateVisitor={openCreateVisitor}
+                                    />
+                                </div>
                             }
                         />
 
@@ -75,7 +79,6 @@ export default function VisitorsIndex({ visitors, audienceType, pagePath, filter
                             onRowsPerPageChange={table.setters.setPerPage}
                             onSortChange={table.changeSort}
                             onSortClear={table.clearSort}
-                            showTypeTabs={false}
                             onEdit={openEditVisitor}
                             onPrevious={() =>
                                 table.visitUrl(visitors.prev_page_url ?? visitors.links.find((link) => link.label.includes('Previous'))?.url)
@@ -93,7 +96,7 @@ export default function VisitorsIndex({ visitors, audienceType, pagePath, filter
                     <VisitorFormModal
                         visitor={selectedVisitor}
                         open={visitorFormOpen}
-                        defaultType={audienceType}
+                        defaultType={table.activeType}
                         sectionsByYearLevel={filterOptions.sectionsByYearLevel}
                         onOpenChange={setVisitorFormOpen}
                     />

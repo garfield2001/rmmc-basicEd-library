@@ -1,9 +1,9 @@
 import { formatDisplayDate } from '@/components/ui/date-input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { VisitorAvatar } from '@/components/ui/visitor-avatar';
 import type { DashboardVisit } from '@/types/dashboard';
-import { CalendarClock, IdCard, type LucideIcon, UsersRound } from 'lucide-react';
+import { CalendarClock, IdCard, UsersRound } from 'lucide-react';
+import type React from 'react';
 
 interface VisitDetailsModalProps {
     visit: DashboardVisit | null;
@@ -22,71 +22,60 @@ export function VisitDetailsModal({ visit, open, onOpenChange }: VisitDetailsMod
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-xl">
+            <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-4xl" onOpenAutoFocus={(event) => event.preventDefault()}>
                 <DialogHeader>
-                    <div className="flex items-center gap-3 pr-8">
+                    <div className="grid gap-5 pr-8 sm:grid-cols-[11rem_minmax(0,1fr)] sm:items-center">
                         <VisitorAvatar
                             name={visit?.visitor.name ?? 'Visitor'}
                             src={visit?.visitor.photoUrl}
-                            className="live-visit-avatar bg-[#eef2ff] text-[#030A8C]/70 ring-1 ring-[#040DBF]/10"
+                            className="live-visit-avatar size-36 rounded-xl bg-[#eef2ff] text-3xl text-[#030A8C]/70 ring-1 ring-[#040DBF]/10 sm:size-44"
                         />
                         <div className="min-w-0">
                             <DialogTitle className="truncate text-2xl text-[#010440]">{visit?.visitor.name ?? 'Visit details'}</DialogTitle>
                             <DialogDescription>{visit?.visitor.schoolId ?? 'No school ID'}</DialogDescription>
+                            <div className="mt-4 flex flex-wrap gap-2">
+                                <VisitPill icon={<UsersRound className="size-3.5" />} label={visitorType} />
+                                <VisitPill icon={<CalendarClock className="size-3.5" />} label={validVisitedAt ? formatDisplayDate(toIsoDate(validVisitedAt)) : '-'} />
+                                <VisitPill
+                                    icon={<IdCard className="size-3.5" />}
+                                    label={
+                                        validVisitedAt
+                                            ? validVisitedAt.toLocaleTimeString([], {
+                                                  hour: '2-digit',
+                                                  minute: '2-digit',
+                                              })
+                                            : '-'
+                                    }
+                                />
+                            </div>
                         </div>
                     </div>
                 </DialogHeader>
 
-                <div className="grid gap-3 sm:grid-cols-3">
-                    <VisitDetailCard icon={UsersRound} label="Type" value={visitorType} />
-                    <VisitDetailCard icon={CalendarClock} label="Date" value={validVisitedAt ? formatDisplayDate(toIsoDate(validVisitedAt)) : '-'} />
-                    <VisitDetailCard
-                        icon={IdCard}
-                        label="Time"
-                        value={
-                            validVisitedAt
-                                ? validVisitedAt.toLocaleTimeString([], {
-                                      hour: '2-digit',
-                                      minute: '2-digit',
-                                  })
-                                : '-'
-                        }
-                    />
-                </div>
-
-                <section className="overflow-hidden rounded-lg border border-[#040DBF]/10">
-                    <Table>
-                        <TableBody>
-                            <TableRow>
-                                <TableCell className="w-36 font-medium text-[#020659]/70">Name</TableCell>
-                                <TableCell className="font-semibold text-[#010440]">{visit?.visitor.name ?? '-'}</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium text-[#020659]/70">School ID</TableCell>
-                                <TableCell className="font-semibold text-[#010440]">{visit?.visitor.schoolId ?? '-'}</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium text-[#020659]/70">
-                                    {visit?.visitor.type === 'employee' ? 'Department' : 'Year / Section'}
-                                </TableCell>
-                                <TableCell className="font-semibold text-[#010440]">{groupLabel}</TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
+                <section className="divide-y divide-[#040DBF]/10 rounded-lg border border-[#040DBF]/10">
+                    <VisitDetailRow label="Name" value={visit?.visitor.name ?? '-'} />
+                    <VisitDetailRow label="School ID" value={visit?.visitor.schoolId ?? '-'} />
+                    <VisitDetailRow label={visit?.visitor.type === 'employee' ? 'Department' : 'Year / Section'} value={groupLabel} />
                 </section>
             </DialogContent>
         </Dialog>
     );
 }
 
-function VisitDetailCard({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
+function VisitPill({ icon, label }: { icon: React.ReactNode; label: string }) {
     return (
-        <div className="rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff] p-4">
-            <span className="admin-icon-badge inline-flex size-9 items-center justify-center rounded-lg bg-[#040DBF]/10 text-[#040DBF]">
-                <Icon className="size-4" />
-            </span>
-            <p className="mt-3 text-xs font-semibold tracking-[0.12em] text-[#030A8C] uppercase">{label}</p>
-            <p className="mt-1 text-base font-semibold text-[#010440]">{value}</p>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#040DBF]/15 bg-[#f6f8ff] px-3 py-1.5 text-xs font-semibold text-[#030A8C]">
+            {icon}
+            {label}
+        </span>
+    );
+}
+
+function VisitDetailRow({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="grid gap-1 px-4 py-4 sm:grid-cols-[11rem_minmax(0,1fr)] sm:gap-5">
+            <span className="text-sm font-medium text-[#020659]/70">{label}</span>
+            <span className="font-semibold text-[#010440]">{value}</span>
         </div>
     );
 }

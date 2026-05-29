@@ -71,9 +71,9 @@ export function AdminLayout({ active, children }: AdminLayoutProps) {
             <ForcedLogoutListener />
             <AdminRoutePreloader />
             <div
-                className={`admin-theme-root admin-readable grid min-h-screen bg-[#f5f7ff] text-[#010440] transition-[grid-template-columns] duration-300 ${
-                    isSidebarCollapsed ? 'lg:grid-cols-[72px_minmax(0,1fr)]' : 'lg:grid-cols-[280px_minmax(0,1fr)]'
-                } ${isSidebarCollapsed ? 'admin-sidebar-collapsed' : ''}`}
+                className={`admin-theme-root admin-readable min-h-screen overflow-x-hidden bg-[#f5f7ff] text-[#010440] ${
+                    isSidebarCollapsed ? 'admin-sidebar-collapsed' : ''
+                }`}
             >
                 {isMobileSidebarOpen && (
                     <button
@@ -91,7 +91,11 @@ export function AdminLayout({ active, children }: AdminLayoutProps) {
                     onNavigate={() => setIsMobileSidebarOpen(false)}
                 />
 
-                <section className="min-w-0 space-y-6">
+                <section
+                    className={`min-w-0 space-y-6 overflow-x-hidden transition-[padding-left] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                        isSidebarCollapsed ? 'lg:pl-[72px] 2xl:pl-[84px]' : 'lg:pl-[280px] 2xl:pl-[304px]'
+                    }`}
+                >
                     <AdminNavbar
                         collapsed={isSidebarCollapsed}
                         mobileSidebarOpen={isMobileSidebarOpen}

@@ -1,4 +1,5 @@
 import { VisitTypeTab } from '@/components/admin/visits-history/visit-history-ui';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { SelectInput } from '@/components/ui/select-input';
 import type { AdminVisitHistory } from '@/types/dashboard';
 import { BriefcaseBusiness, GraduationCap, Search, X } from 'lucide-react';
@@ -20,6 +21,7 @@ interface VisitHistoryFilterBarProps {
     onDepartmentChange: (value: string) => void;
     onSearchChange: (value: string) => void;
     onQuickSortChange: (value: string) => void;
+    onClearFilters?: () => void;
     showVisitorType?: boolean;
 }
 
@@ -39,12 +41,39 @@ export function VisitHistoryFilterBar({
     onDepartmentChange,
     onSearchChange,
     onQuickSortChange,
+    onClearFilters,
     showVisitorType = true,
 }: VisitHistoryFilterBarProps) {
     const sortValue = `${sortColumn}:${sortDirection}`;
+    const hasFilters = Boolean(search || yearLevel || section || department || sortColumn !== 'lastVisit' || sortDirection !== 'desc');
+    const searchPlaceholder = visitorType === 'student' ? 'Search ID, name, section' : 'Search ID, name, department';
+    const yearLevelOptions = [{ value: '', label: 'All year levels' }, ...filters.yearLevels.map((level) => ({ value: level, label: level }))];
+    const sectionOptions = [
+        { value: '', label: yearLevel ? 'All sections' : 'Choose year level first' },
+        ...(filters.sectionsByYearLevel[yearLevel] ?? []).map((option) => ({ value: option, label: option })),
+    ];
+    const departmentOptions = [{ value: '', label: 'All departments' }, ...filters.departments.map((option) => ({ value: option, label: option }))];
 
     return (
         <div className="space-y-4 border-b border-[#040DBF]/10 px-5 py-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                    <h2 className="text-lg font-semibold tracking-normal text-[#010440]">Filters</h2>
+                    <p className="mt-1 text-sm text-[#020659]/70">
+                        Narrow the list by group, sort order, or search text. Blank dates use the active school-year coverage.
+                    </p>
+                </div>
+                {onClearFilters && (
+                    <button
+                        type="button"
+                        onClick={onClearFilters}
+                        disabled={!hasFilters}
+                        className="inline-flex h-9 items-center justify-center rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm font-medium text-[#020659] transition hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                        Clear filters
+                    </button>
+                )}
+            </div>
             {showVisitorType && (
                 <div className="admin-segmented-tabs w-full sm:w-fit">
                     <VisitTypeTab
@@ -68,34 +97,32 @@ export function VisitHistoryFilterBar({
             <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-[minmax(13rem,1fr)_minmax(13rem,1fr)_minmax(12rem,0.8fr)_minmax(20rem,1.6fr)]">
                 {visitorType === 'student' && (
                     <>
-                        <SelectInput value={yearLevel} onChange={(event) => onYearLevelChange(event.target.value)}>
-                            <option value="">All year levels</option>
-                            {filters.yearLevels.map((level) => (
-                                <option key={level} value={level}>
-                                    {level}
-                                </option>
-                            ))}
-                        </SelectInput>
-                        <SelectInput value={section} onChange={(event) => onSectionChange(event.target.value)} disabled={!yearLevel}>
-                            <option value="">{yearLevel ? 'All sections' : 'Choose year level first'}</option>
-                            {(filters.sectionsByYearLevel[yearLevel] ?? []).map((option) => (
-                                <option key={option} value={option}>
-                                    {option}
-                                </option>
-                            ))}
-                        </SelectInput>
+                        <SearchableSelect
+                            value={yearLevel}
+                            options={yearLevelOptions}
+                            placeholder="All year levels"
+                            searchPlaceholder="Search year level"
+                            onChange={onYearLevelChange}
+                        />
+                        <SearchableSelect
+                            value={section}
+                            options={sectionOptions}
+                            placeholder={yearLevel ? 'All sections' : 'Choose year level first'}
+                            searchPlaceholder="Search section"
+                            disabled={!yearLevel}
+                            onChange={onSectionChange}
+                        />
                     </>
                 )}
 
                 {visitorType === 'employee' && (
-                    <SelectInput value={department} onChange={(event) => onDepartmentChange(event.target.value)}>
-                        <option value="">All departments</option>
-                        {filters.departments.map((option) => (
-                            <option key={option} value={option}>
-                                {option}
-                            </option>
-                        ))}
-                    </SelectInput>
+                    <SearchableSelect
+                        value={department}
+                        options={departmentOptions}
+                        placeholder="All departments"
+                        searchPlaceholder="Search department"
+                        onChange={onDepartmentChange}
+                    />
                 )}
 
                 <SelectInput value={sortValue} onChange={(event) => onQuickSortChange(event.target.value)}>
@@ -112,7 +139,7 @@ export function VisitHistoryFilterBar({
                     <input
                         value={search}
                         onChange={(event) => onSearchChange(event.target.value)}
-                        placeholder="Search ID, name, section, department"
+                        placeholder={searchPlaceholder}
                         className="h-10 w-full rounded-lg border border-[#040DBF]/15 bg-white pr-9 pl-9 text-sm transition outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10"
                     />
                     {search && (

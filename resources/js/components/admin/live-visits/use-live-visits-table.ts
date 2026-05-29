@@ -37,6 +37,7 @@ export function useLiveVisitsTable({ visits, studentCount, employeeCount, mode }
     const [search, setSearch] = useState('');
     const [yearLevel, setYearLevel] = useState('');
     const [section, setSection] = useState('');
+    const [department, setDepartment] = useState('');
     const [sortColumn, setSortColumn] = useState<SortColumn>('visitedAt');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const tableBodyRef = useRef<HTMLTableSectionElement | null>(null);
@@ -55,7 +56,11 @@ export function useLiveVisitsTable({ visits, studentCount, employeeCount, mode }
             'section',
         );
     }, [visits, yearLevel]);
-    const filteredVisits = useMemo(() => filterLiveVisits(visits, { visitTab, search, yearLevel, section }), [search, section, visitTab, visits, yearLevel]);
+    const departmentOptions = useMemo(() => uniqueVisitValues(visits, 'department'), [visits]);
+    const filteredVisits = useMemo(
+        () => filterLiveVisits(visits, { visitTab, search, yearLevel, section, department }),
+        [department, search, section, visitTab, visits, yearLevel],
+    );
 
     const sortedVisits = useMemo(
         () => sortLiveVisits(filteredVisits, mode === 'live' ? 'visitedAt' : sortColumn, mode === 'live' ? 'desc' : sortDirection),
@@ -81,6 +86,8 @@ export function useLiveVisitsTable({ visits, studentCount, employeeCount, mode }
         if (visitTab === 'employee') {
             setYearLevel('');
             setSection('');
+        } else {
+            setDepartment('');
         }
     }, [visitTab]);
 
@@ -118,8 +125,10 @@ export function useLiveVisitsTable({ visits, studentCount, employeeCount, mode }
         search,
         yearLevel,
         section,
+        department,
         yearLevelOptions,
         sectionOptions,
+        departmentOptions,
         currentPage,
         rowsPerPage,
         isPaging,
@@ -138,6 +147,10 @@ export function useLiveVisitsTable({ visits, studentCount, employeeCount, mode }
         changeYearLevel,
         changeSection: (value: string) => {
             setSection(value);
+            setSearch('');
+        },
+        changeDepartment: (value: string) => {
+            setDepartment(value);
             setSearch('');
         },
         changeSort,

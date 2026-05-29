@@ -53,7 +53,7 @@ class VisitReportPdfPaginator
                 $this->commitPage($pages, $items, $remaining);
             }
 
-            $items[] = ['type' => 'summary', 'text' => $this->groupSummaryText($rows)];
+            $items[] = ['type' => 'summary', 'summary' => $this->groupSummary($rows)];
             $remaining -= self::GROUP_HEIGHT;
         }
 
@@ -107,12 +107,12 @@ class VisitReportPdfPaginator
         return $rows instanceof Collection ? $rows->values()->all() : (is_array($rows) ? array_values($rows) : []);
     }
 
-    private function groupSummaryText(array $rows): string
+    private function groupSummary(array $rows): array
     {
-        $visitors = count($rows);
-        $totalVisits = collect($rows)->sum(fn (array $row): int => (int) ($row['visit_count'] ?? 0));
-        $excessVisits = collect($rows)->sum(fn (array $row): int => (int) ($row['excess_visits'] ?? 0));
-
-        return "Visitors: {$visitors}    Total Visits: {$totalVisits}    Excess Visits: {$excessVisits}";
+        return [
+            'visitors' => count($rows),
+            'total_visits' => collect($rows)->sum(fn (array $row): int => (int) ($row['visit_count'] ?? 0)),
+            'excess_visits' => collect($rows)->sum(fn (array $row): int => (int) ($row['excess_visits'] ?? 0)),
+        ];
     }
 }

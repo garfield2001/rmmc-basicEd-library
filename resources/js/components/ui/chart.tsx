@@ -44,6 +44,8 @@ function ChartContainer({
     children: React.ReactElement;
 }) {
     const uniqueId = React.useId();
+    const containerRef = React.useRef<HTMLDivElement | null>(null);
+    const [containerSize, setContainerSize] = React.useState({ width: 0, height: 0 });
     const chartId = `chart-${id ?? uniqueId.replace(/:/g, '')}`;
     const chartVars = Object.entries(config).reduce<Record<string, string>>((styles, [key, item]) => {
         if (item.color) {
@@ -53,9 +55,41 @@ function ChartContainer({
         return styles;
     }, {});
 
+    React.useEffect(() => {
+        const element = containerRef.current;
+
+        if (!element) {
+            return;
+        }
+
+        const updateSize = () => {
+            const rect = element.getBoundingClientRect();
+
+            setContainerSize({ width: rect.width, height: rect.height });
+        };
+
+        updateSize();
+
+        if (typeof ResizeObserver === 'undefined') {
+            window.addEventListener('resize', updateSize);
+
+            return () => window.removeEventListener('resize', updateSize);
+        }
+
+        const observer = new ResizeObserver(updateSize);
+        observer.observe(element);
+
+        return () => observer.disconnect();
+    }, []);
+
+    const chartWidth = Math.floor(containerSize.width);
+    const chartHeight = Math.floor(containerSize.height);
+    const chartCanRender = chartWidth > 0 && chartHeight > 0;
+
     return (
         <ChartContext.Provider value={{ config }}>
             <div
+                ref={containerRef}
                 data-chart={chartId}
                 className={cn(
                     "flex aspect-video min-w-0 max-w-full justify-center overflow-hidden text-xs text-[#020659]/70 [&_.recharts-cartesian-axis-tick_text]:fill-[#020659]/60 [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-[#040DBF]/10 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-[#040DBF]/20 [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-[#040DBF]/10 [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
@@ -64,7 +98,7 @@ function ChartContainer({
                 style={{ ...chartVars, ...props.style }}
                 {...props}
             >
-                <RechartsPrimitive.ResponsiveContainer>{children}</RechartsPrimitive.ResponsiveContainer>
+                {chartCanRender ? React.cloneElement(children, { width: chartWidth, height: chartHeight }) : null}
             </div>
         </ChartContext.Provider>
     );

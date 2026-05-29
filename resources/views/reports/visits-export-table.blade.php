@@ -105,15 +105,15 @@
                             </tr>
                         @endforeach
                     </tbody>
-                </table>
-                <table class="group-summary">
-                    <tbody>
-                        <tr>
+                    <tfoot>
+                        <tr class="summary-row">
                             <td>Visitors: {{ $group['summary']['visitors'] ?? count($group['rows']) }}</td>
-                            <td>Total Visits: {{ $group['summary']['total_visits'] ?? collect($group['rows'])->sum('visit_count') }}</td>
+                            <td class="summary-center">Total Visits: {{ $group['summary']['total_visits'] ?? collect($group['rows'])->sum('visit_count') }}</td>
                             <td>Excess Visits: {{ $group['summary']['excess_visits'] ?? collect($group['rows'])->sum('excess_visits') }}</td>
+                            <td></td>
+                            <td></td>
                         </tr>
-                    </tbody>
+                    </tfoot>
                 </table>
             @endforeach
         </div>

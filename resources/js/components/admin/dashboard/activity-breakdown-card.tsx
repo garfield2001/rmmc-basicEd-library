@@ -62,13 +62,13 @@ export function ActivityBreakdownCard({ dashboard }: { dashboard: AdminDashboard
             <div className="group/activity relative">
                 <CarouselButton direction="left" label="Previous activity breakdown" onClick={() => changePanel(previousPanel)} />
                 <CarouselButton direction="right" label="Next activity breakdown" onClick={() => changePanel(nextPanel)} />
-                <div className="mb-3 grid items-center gap-2 px-8 sm:px-10" style={{ gridTemplateColumns: `${activityLabelWidth}px minmax(0, 1fr)` }}>
+                <div className="mb-3 grid items-center gap-2" style={{ gridTemplateColumns: `${activityLabelWidth}px minmax(0, 1fr)` }}>
                     <p className="text-sm font-medium text-[#020659]/70">{activityPanel.title}</p>
-                    <div className="justify-self-end pr-4">
+                    <div className="justify-self-end">
                         <ShowAllButton total={allActivityData.length} expanded={showAllActivity} onClick={() => setShowAllActivity((value) => !value)} />
                     </div>
                 </div>
-                <div className="px-8 sm:px-10">
+                <div>
                     <HorizontalBarChart data={activityData} emptyMessage={activityPanel.emptyMessage} labelWidth={activityLabelWidth} height={chartHeight} />
                 </div>
             </div>
@@ -84,8 +84,8 @@ function CarouselButton({ direction, label, onClick }: { direction: 'left' | 'ri
             type="button"
             aria-label={label}
             onClick={onClick}
-            className={`absolute top-1/2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-[#020659] opacity-85 shadow-md ring-1 ring-[#040DBF]/10 transition duration-200 hover:scale-110 hover:bg-[#040DBF] hover:text-white group-hover/activity:opacity-100 ${
-                direction === 'left' ? 'left-0 hover:-translate-x-0.5' : 'right-0 hover:translate-x-0.5'
+            className={`absolute top-1/2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#020659] opacity-20 shadow-md ring-1 ring-[#040DBF]/10 backdrop-blur transition duration-200 hover:scale-110 hover:bg-[#040DBF] hover:text-white hover:opacity-100 group-hover/activity:opacity-100 ${
+                direction === 'left' ? '-left-3 hover:-translate-x-0.5' : '-right-3 hover:translate-x-0.5'
             }`}
         >
             <Icon className="size-5" />

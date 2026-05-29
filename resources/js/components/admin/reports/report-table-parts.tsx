@@ -67,7 +67,7 @@ export function ReportSortableHead({
 export function ProgressBar({ value, className }: { value: number; className?: string }) {
     return (
         <div className={cn('admin-progress-track h-2 overflow-hidden rounded-full bg-[#040DBF]/10', className)}>
-            <div className="admin-progress-fill h-full rounded-full bg-emerald-500" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
+            <div className="admin-progress-fill h-full rounded-full" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
         </div>
     );
 }

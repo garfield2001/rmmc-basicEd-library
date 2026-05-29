@@ -16,9 +16,10 @@ export function useVisitorsTableControls(
     const [sort, setSort] = useState(filters.sort ?? 'created_at');
     const [direction, setDirection] = useState<'asc' | 'desc'>(filters.direction === 'asc' ? 'asc' : 'desc');
     const [perPage, setPerPage] = useState<RowsPerPageOption>(filters.per_page ?? 5);
+    const [selectedType, setSelectedType] = useState<VisitorType>(filters.type === 'employee' ? 'employee' : 'student');
     const [tableLoading, setTableLoading] = useState(false);
     const loadingTimerRef = useRef<number | null>(null);
-    const activeType: VisitorType = filters.type === 'employee' ? 'employee' : 'student';
+    const activeType: VisitorType = selectedType;
     const availableSections = useMemo(
         () => (yearLevel ? (filterOptions.sectionsByYearLevel[yearLevel] ?? []) : []),
         [filterOptions.sectionsByYearLevel, yearLevel],
@@ -86,6 +87,10 @@ export function useVisitorsTableControls(
     useEffect(() => () => loadingTimerRef.current && window.clearTimeout(loadingTimerRef.current), []);
 
     useEffect(() => {
+        setSelectedType(filters.type === 'employee' ? 'employee' : 'student');
+    }, [filters.type]);
+
+    useEffect(() => {
         if (activeType === 'student' && yearLevel && availableSections.length === 1 && section !== availableSections[0]) {
             setSection(availableSections[0]);
         }
@@ -104,19 +109,19 @@ export function useVisitorsTableControls(
             filters.year_level === yearLevel &&
             filters.section === normalizedSection &&
             filters.department === department &&
-            filters.type === activeType &&
+            filters.type === selectedType &&
             filters.sort === sort &&
             filters.direction === direction &&
             filters.per_page === perPage;
 
         if (!matchesFilters) {
             const filterTimer = window.setTimeout(() => {
-                requestVisitors(activeType, search, yearLevel, normalizedSection, department, perPage);
+                requestVisitors(selectedType, search, yearLevel, normalizedSection, department, perPage);
             }, 300);
 
             return () => window.clearTimeout(filterTimer);
         }
-    }, [activeType, filters, perPage, requestVisitors, search, section, department, sort, direction, yearLevel]);
+    }, [filters, perPage, requestVisitors, search, section, department, sort, direction, selectedType, yearLevel]);
 
     const changeSort = (column: string) => {
         const nextDirection = sort === column && direction === 'asc' ? 'desc' : 'asc';
@@ -157,9 +162,14 @@ export function useVisitorsTableControls(
             const nextSort = defaultSortForVisitorType(type, sort);
             const nextDirection = nextSort === 'created_at' || nextSort === 'year_level' ? 'desc' : direction;
 
+            setSelectedType(type);
             setSort(nextSort);
             setDirection(nextDirection);
-            requestVisitors(type, search, yearLevel, section, department, perPage, nextSort, nextDirection);
+            setSearch('');
+            setYearLevel('');
+            setSection('');
+            setDepartment('');
+            requestVisitors(type, '', '', '', '', perPage, nextSort, nextDirection);
         },
         requestPage: (page: number) => requestVisitors(activeType, search, yearLevel, section, department, perPage, sort, direction, true, page),
         visitUrl: (url: string | null | undefined) => {

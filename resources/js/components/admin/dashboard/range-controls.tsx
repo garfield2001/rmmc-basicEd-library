@@ -52,11 +52,13 @@ export function RangeControls({
     return (
         <div
             className={cn(
-                compact ? 'flex w-full min-w-0 flex-wrap items-center justify-between gap-2' : 'flex w-full min-w-0 flex-wrap items-center gap-2',
+                compact
+                    ? 'flex w-full min-w-0 flex-wrap items-center justify-between gap-2 min-[900px]:flex-nowrap'
+                    : 'flex w-full min-w-0 flex-wrap items-center gap-2 min-[900px]:flex-nowrap',
                 className,
             )}
         >
-            <div className="admin-segmented-tabs max-w-full flex-nowrap overflow-x-auto">
+            <div className="admin-segmented-tabs shrink-0 flex-nowrap overflow-x-auto">
                 {(['last7', 'last14', 'lastMonth'] as VisitTrafficRange[]).map((range) => (
                     <button
                         key={range}
@@ -80,7 +82,7 @@ export function RangeControls({
                 </button>
             </div>
             {value === 'custom' && (
-                <div className={cn('grid w-full min-w-0 gap-2 sm:ml-auto sm:w-auto sm:grid-cols-2', compact && 'min-[1180px]:w-auto')}>
+                <div className={cn('flex w-full min-w-0 flex-wrap gap-2 min-[900px]:ml-auto min-[900px]:w-auto min-[900px]:flex-nowrap')}>
                     <DateInput
                         value={startDate}
                         onChange={onStartDateChange}
@@ -88,6 +90,7 @@ export function RangeControls({
                         max={endDate || maxDate}
                         placeholder="Start date"
                         focusDate={startDate || minDate}
+                        wrapperClassName="w-full min-[520px]:w-[11rem]"
                     />
                     <DateInput
                         value={endDate}
@@ -96,6 +99,7 @@ export function RangeControls({
                         max={maxDate}
                         placeholder="End date"
                         focusDate={endDate || startDate || minDate}
+                        wrapperClassName="w-full min-[520px]:w-[11rem]"
                     />
                 </div>
             )}

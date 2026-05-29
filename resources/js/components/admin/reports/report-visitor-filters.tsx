@@ -1,4 +1,4 @@
-import { SelectInput } from '@/components/ui/select-input';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import type { VisitReportOptions } from '@/types/reports';
 import { allFilterValue, type VisitorTypeFilter } from './report-helpers';
 
@@ -26,18 +26,23 @@ export function ReportVisitorFilters({
     onDepartmentChange,
 }: ReportVisitorFiltersProps) {
     if (visitorType === 'employee') {
+        const departmentOptions = [
+            { value: '', label: 'Select department' },
+            { value: allFilterValue, label: 'All departments' },
+            ...reportOptions.departments.map((option) => ({ value: option, label: option })),
+        ];
+
         return (
             <label className="text-sm font-medium text-[#010440]">
                 Department
-                <SelectInput value={department} onChange={(event) => onDepartmentChange(event.target.value)} className="mt-2">
-                    <option value="">Select department</option>
-                    <option value={allFilterValue}>All departments</option>
-                    {reportOptions.departments.map((option) => (
-                        <option key={option} value={option}>
-                            {option}
-                        </option>
-                    ))}
-                </SelectInput>
+                <SearchableSelect
+                    value={department}
+                    options={departmentOptions}
+                    placeholder="Select department"
+                    searchPlaceholder="Search department"
+                    className="mt-2"
+                    onChange={onDepartmentChange}
+                />
             </label>
         );
     }
@@ -46,33 +51,42 @@ export function ReportVisitorFilters({
         return null;
     }
 
+    const yearLevelOptions = [
+        { value: '', label: 'Select year level' },
+        { value: allFilterValue, label: 'All year levels' },
+        ...reportOptions.yearLevels.map((level) => ({ value: level, label: level })),
+    ];
+    const sectionOptions = [
+        { value: '', label: 'Select section' },
+        ...(availableSections.length > 1 ? [{ value: allFilterValue, label: 'All sections' }] : []),
+        ...availableSections.map((option) => ({ value: option, label: option })),
+    ];
+
     return (
         <>
             <label className="text-sm font-medium text-[#010440]">
                 Year level
-                <SelectInput value={yearLevel} onChange={(event) => onYearLevelChange(event.target.value)} className="mt-2">
-                    <option value="">Select year level</option>
-                    <option value={allFilterValue}>All year levels</option>
-                    {reportOptions.yearLevels.map((level) => (
-                        <option key={level} value={level}>
-                            {level}
-                        </option>
-                    ))}
-                </SelectInput>
+                <SearchableSelect
+                    value={yearLevel}
+                    options={yearLevelOptions}
+                    placeholder="Select year level"
+                    searchPlaceholder="Search year level"
+                    className="mt-2"
+                    onChange={onYearLevelChange}
+                />
             </label>
 
             {yearLevel && yearLevel !== allFilterValue && (
                 <label className="text-sm font-medium text-[#010440]">
                     Section
-                    <SelectInput value={section} onChange={(event) => onSectionChange(event.target.value)} className="mt-2">
-                        <option value="">Select section</option>
-                        {availableSections.length > 1 && <option value={allFilterValue}>All sections</option>}
-                        {availableSections.map((option) => (
-                            <option key={option} value={option}>
-                                {option}
-                            </option>
-                        ))}
-                    </SelectInput>
+                    <SearchableSelect
+                        value={section}
+                        options={sectionOptions}
+                        placeholder="Select section"
+                        searchPlaceholder="Search section"
+                        className="mt-2"
+                        onChange={onSectionChange}
+                    />
                 </label>
             )}
         </>

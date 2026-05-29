@@ -1,11 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { PaginationControls } from '@/components/ui/pagination-controls';
-import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHeader, TablePlaceholderRows, TableRow } from '@/components/ui/table';
 import type { VisitReportRow } from '@/types/reports';
 import { RotateCcw } from 'lucide-react';
 import { ReportExportActions } from './report-export-actions';
+import { rowsPerPage, type ReportSortColumn, type SortDirection, type VisitorType } from './report-helpers';
 import { ReportRow, ReportSortableHead } from './report-table-parts';
-import type { ReportSortColumn, SortDirection, VisitorType } from './report-helpers';
 
 interface ReportExportUrls {
     excelUrl: string;
@@ -48,6 +48,8 @@ export function ReportResultsTable({
     onClearSort,
     onPageChange,
 }: ReportResultsTableProps) {
+    const placeholderRows = visibleRows.length > 0 ? Math.max(0, rowsPerPage - visibleRows.length) : 0;
+
     return (
         <section className="admin-surface overflow-hidden rounded-lg border border-[#040DBF]/10 bg-white/95 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#040DBF]/10 bg-[#f6f8ff] px-5 py-3">
@@ -84,7 +86,10 @@ export function ReportResultsTable({
                     </TableHeader>
                     <TableBody>
                         {visibleRows.length > 0 ? (
-                            visibleRows.map((row) => <ReportRow key={row.id} row={row} visitorType={visitorType} requiredVisits={requiredVisits} />)
+                            <>
+                                {visibleRows.map((row) => <ReportRow key={row.id} row={row} visitorType={visitorType} requiredVisits={requiredVisits} />)}
+                                <TablePlaceholderRows rowCount={placeholderRows} colSpan={5} />
+                            </>
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={5} className="h-24 text-center text-sm text-[#020659]/65">

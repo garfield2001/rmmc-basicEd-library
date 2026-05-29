@@ -57,6 +57,18 @@
             background: #ffffff;
         }
 
+        tfoot td {
+            background: #ffffff;
+            border: 0;
+            font-weight: 700;
+            padding: 5pt 0 0;
+            white-space: nowrap;
+        }
+
+        tfoot .summary-center {
+            text-align: center;
+        }
+
         .text-cell {
             mso-number-format: '\@';
         }

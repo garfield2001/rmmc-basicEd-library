@@ -54,6 +54,8 @@ export function ReportFilterPanel({
     onSectionChange,
     onDepartmentChange,
 }: ReportFilterPanelProps) {
+    const schoolYearDateLabel = schoolYearBounds ? `${formatDisplayDate(schoolYearBounds.start)} to ${formatDisplayDate(schoolYearBounds.end)}` : '';
+
     return (
         <section className="admin-surface rounded-lg border border-[#040DBF]/10 bg-white/95 p-5 shadow-sm">
             <div className="grid gap-4 md:grid-cols-[minmax(11rem,0.8fr)_minmax(12rem,0.85fr)_minmax(24rem,1.35fr)]">
@@ -72,22 +74,22 @@ export function ReportFilterPanel({
 
                 {selectedSchoolYear && (
                     <label className="text-sm font-medium text-[#010440]">
-                        2. Date coverage
+                        2. Start date and end date
                         <SelectInput
                             value={dateRangeMode}
                             onChange={(event) => onDateRangeModeChange(event.target.value as DateRangeMode)}
                             className="mt-2"
                         >
-                            <option value="">Select date coverage</option>
-                            <option value="school_year">Whole school year</option>
-                            <option value="custom">Custom start and end</option>
+                            <option value="">Select start and end date</option>
+                            <option value="school_year">{schoolYearDateLabel}</option>
+                            <option value="custom">Choose custom dates</option>
                         </SelectInput>
                     </label>
                 )}
 
                 {selectedSchoolYear && dateRangeMode === 'custom' && schoolYearBounds && (
                     <label className="text-sm font-medium text-[#010440]">
-                        3. Custom start and end
+                        3. Custom dates
                         <CustomDateRangePicker
                             startDate={startDate}
                             endDate={endDate}

@@ -8,8 +8,6 @@
 
         <title inertia>{{ config('app.display_name', 'RMMC Basic Education Library') }}</title>
 
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
         <script>
             (() => {
                 document.documentElement.style.colorScheme = 'only light';

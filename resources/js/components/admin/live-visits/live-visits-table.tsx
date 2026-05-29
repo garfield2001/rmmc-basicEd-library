@@ -26,12 +26,15 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount, mode = 'l
                 search={table.search}
                 yearLevel={table.yearLevel}
                 section={table.section}
+                department={table.department}
                 yearLevelOptions={table.yearLevelOptions}
                 sectionOptions={table.sectionOptions}
+                departmentOptions={table.departmentOptions}
                 onVisitTabChange={table.setVisitTab}
                 onSearchChange={table.setSearch}
                 onYearLevelChange={table.changeYearLevel}
                 onSectionChange={table.changeSection}
+                onDepartmentChange={table.changeDepartment}
             />
 
             <LiveVisitsTableContent
@@ -41,6 +44,7 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount, mode = 'l
                 allVisitsCount={visits.length}
                 isPaging={table.isPaging}
                 columns={table.tableColumnCount}
+                rowsPerPage={table.rowsPerPage}
                 tableMinWidth={table.tableMinWidth}
                 sortColumn={table.sortColumn}
                 sortDirection={table.sortDirection}

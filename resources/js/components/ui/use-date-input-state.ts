@@ -134,6 +134,7 @@ export function useDateInputState({ value, onChange, min, max, openOnFocus, year
 
     const scrollCalendarMonth = (event: WheelEvent<HTMLDivElement>) => {
         event.preventDefault();
+        event.stopPropagation();
         moveVisibleMonth(visibleMonth.getMonth() + (event.deltaY > 0 ? 1 : -1), visibleMonth.getFullYear());
     };
 

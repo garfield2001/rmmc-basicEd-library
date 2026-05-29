@@ -4,11 +4,11 @@ namespace App\Events;
 
 use App\Models\LibraryVisit;
 use Illuminate\Broadcasting\Channel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class LibraryVisitRecorded implements ShouldBroadcastNow
+class LibraryVisitRecorded implements ShouldBroadcast
 {
     use Dispatchable;
     use SerializesModels;

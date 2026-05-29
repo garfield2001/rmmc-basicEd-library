@@ -17,6 +17,7 @@ return new class extends Migration
 
             $table->index(['library_member_id', 'school_year_id']);
             $table->index(['school_year_id', 'visited_at']);
+            $table->index(['school_year_id', 'library_member_id', 'visited_at'], 'library_visits_school_member_date_index');
         });
     }
 

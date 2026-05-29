@@ -16,7 +16,7 @@ export function AdminNavbar({
     const ThemeIcon = resolvedTheme === 'dark' ? Sun : Moon;
 
     return (
-        <header className="admin-surface sticky top-0 z-40 flex flex-col gap-3 border-b border-[#040DBF]/10 bg-white/90 px-4 py-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <header className="admin-surface sticky top-0 z-40 flex min-w-0 flex-col gap-3 border-b border-[#040DBF]/10 bg-white/90 px-4 py-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div className="flex min-w-0 items-center gap-3 sm:flex-1">
                 <button
                     type="button"
@@ -42,7 +42,7 @@ export function AdminNavbar({
                 </div>
             </div>
 
-            <div className="flex w-full shrink-0 flex-nowrap items-center justify-between gap-2 sm:w-auto sm:justify-end">
+            <div className="flex w-full min-w-0 shrink-0 flex-nowrap items-center justify-between gap-2 sm:w-auto sm:justify-end">
                 <button
                     type="button"
                     onClick={onThemeToggle}

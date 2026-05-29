@@ -26,6 +26,7 @@ return new class extends Migration
 
             $table->unique(['library_member_id', 'school_year_id'], 'student_school_year_record_unique');
             $table->index(['school_year_id', 'year_level', 'section'], 'student_school_year_record_group_index');
+            $table->index(['school_year_id', 'library_member_id'], 'student_school_year_member_index');
         });
     }
 

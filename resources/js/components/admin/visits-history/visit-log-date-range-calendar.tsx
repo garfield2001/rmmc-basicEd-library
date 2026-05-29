@@ -49,11 +49,12 @@ export function VisitLogDateRangeCalendar({
     };
     const handleWheel = (event: React.WheelEvent<HTMLDivElement | HTMLSelectElement>) => {
         event.preventDefault();
+        event.stopPropagation();
         changeVisibleMonth(moveMonth(visibleMonth, event.deltaY > 0 ? 1 : -1));
     };
 
     return (
-        <div onWheel={handleWheel} className="rounded-lg border border-[#040DBF]/10 bg-white p-3 shadow-xl">
+        <div onWheel={handleWheel} className="admin-contained-scroll rounded-lg border border-[#040DBF]/10 bg-white p-3 shadow-xl">
             <div className="mb-3 grid gap-2 sm:grid-cols-2">
                 <PointButton active={activePoint === 'start'} label="Choose from date" onClick={() => onActivePointChange('start')} />
                 <PointButton active={activePoint === 'end'} label="Choose to date" onClick={() => onActivePointChange('end')} />

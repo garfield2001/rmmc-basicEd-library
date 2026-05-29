@@ -1,6 +1,7 @@
 import { formatVisitTime, type LiveVisitsTableMode, type VisitTab } from './live-visits-table-helpers';
 import { LiveVisitLoadingRows, VisitVisitorCell } from '@/components/admin/live-visits/live-visits-table-ui';
-import { TableCell, TableRow } from '@/components/ui/table';
+import type { RowsPerPageOption } from '@/components/ui/pagination-controls';
+import { TableCell, TablePlaceholderRows, TableRow } from '@/components/ui/table';
 import { VirtualTableSpacerRow } from '@/components/ui/virtual-table-spacer-row';
 import type { DashboardVisit } from '@/types/dashboard';
 
@@ -11,6 +12,7 @@ interface LiveVisitsTableRowsProps {
     allVisitsCount: number;
     isPaging: boolean;
     columns: number;
+    rowsPerPage: RowsPerPageOption;
     usesVirtualRows: boolean;
     virtualRows: {
         paddingTop: number;
@@ -26,6 +28,7 @@ export function LiveVisitsTableRows({
     allVisitsCount,
     isPaging,
     columns,
+    rowsPerPage,
     usesVirtualRows,
     virtualRows,
     onVisitSelect,
@@ -44,6 +47,7 @@ export function LiveVisitsTableRows({
             {visits.map((visit) => (
                 <LiveVisitRow key={visit.id} mode={mode} visitTab={visitTab} visit={visit} onVisitSelect={onVisitSelect} />
             ))}
+            {!usesVirtualRows && rowsPerPage !== 'all' && <TablePlaceholderRows rowCount={Math.max(0, rowsPerPage - visits.length)} colSpan={columns} />}
             {usesVirtualRows && virtualRows.paddingBottom > 0 && <VirtualTableSpacerRow height={virtualRows.paddingBottom} colSpan={columns} />}
         </>
     );

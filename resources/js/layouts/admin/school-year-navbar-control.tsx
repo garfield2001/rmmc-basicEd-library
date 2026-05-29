@@ -96,13 +96,13 @@ export function SchoolYearNavbarControl() {
                     aria-expanded={previewOpen}
                     aria-haspopup="dialog"
                     onClick={() => setPreviewOpen((open) => !open)}
-                    className="admin-school-year-badge inline-flex h-9 items-center overflow-hidden rounded-full border border-[#040DBF]/10 bg-white text-xs shadow-sm transition hover:border-[#040DBF]/25 hover:shadow-md hover:shadow-[#040DBF]/10"
+                    className="admin-school-year-badge inline-flex h-9 max-w-[calc(100vw-5.75rem)] items-center overflow-hidden rounded-full border border-[#040DBF]/10 bg-white text-xs shadow-sm transition hover:border-[#040DBF]/25 hover:shadow-md hover:shadow-[#040DBF]/10"
                 >
-                    <span className="admin-school-year-label border-r border-[#040DBF]/10 bg-[#f6f8ff] px-3 font-medium text-[#030A8C]">
+                    <span className="admin-school-year-label shrink-0 border-r border-[#040DBF]/10 bg-[#f6f8ff] px-3 font-medium text-[#030A8C]">
                         School year
                     </span>
-                    <span className="admin-school-year-value inline-flex items-center gap-2 px-3 font-semibold text-[#010440]">
-                        {schoolYear?.name ?? 'Not configured'}
+                    <span className="admin-school-year-value inline-flex min-w-0 items-center gap-2 px-3 font-semibold text-[#010440]">
+                        <span className="truncate">{schoolYear?.name ?? 'Not configured'}</span>
                         <ChevronDown className={`size-3.5 transition-transform ${previewOpen ? 'rotate-180' : ''}`} />
                     </span>
                 </button>

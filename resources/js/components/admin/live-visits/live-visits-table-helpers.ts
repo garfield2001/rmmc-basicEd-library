@@ -14,6 +14,7 @@ interface LiveVisitFilterOptions {
     search: string;
     yearLevel: string;
     section: string;
+    department: string;
 }
 
 export function initialVisitTab(visits: DashboardVisit[], mode: LiveVisitsTableMode): VisitTab {
@@ -36,7 +37,7 @@ export function liveVisitsTableDescription(mode: LiveVisitsTableMode) {
     return mode === 'history' ? 'Active school-year logs are shown newest first.' : 'Latest RFID scans for the selected tab are shown first.';
 }
 
-export function filterLiveVisits(visits: DashboardVisit[], { visitTab, search, yearLevel, section }: LiveVisitFilterOptions) {
+export function filterLiveVisits(visits: DashboardVisit[], { visitTab, search, yearLevel, section, department }: LiveVisitFilterOptions) {
     const normalizedSearch = search.trim().toLowerCase();
 
     return visits.filter((visit) => {
@@ -56,6 +57,7 @@ export function filterLiveVisits(visits: DashboardVisit[], { visitTab, search, y
             visit.visitor.type === visitTab &&
             (visitTab !== 'student' || !yearLevel || visit.visitor.yearLevel === yearLevel) &&
             (visitTab !== 'student' || !section || visit.visitor.section === section) &&
+            (visitTab !== 'employee' || !department || visit.visitor.department === department) &&
             (!normalizedSearch || searchable.includes(normalizedSearch))
         );
     });
@@ -78,7 +80,7 @@ export function formatVisitTime(visit: DashboardVisit, mode: LiveVisitsTableMode
     });
 }
 
-export function uniqueVisitValues(visits: DashboardVisit[], key: 'yearLevel' | 'section'): string[] {
+export function uniqueVisitValues(visits: DashboardVisit[], key: 'yearLevel' | 'section' | 'department'): string[] {
     return [...new Set(visits.map((visit) => visit.visitor[key]).filter((value): value is string => Boolean(value)))].sort((first, second) =>
         first.localeCompare(second, undefined, { numeric: true, sensitivity: 'base' }),
     );

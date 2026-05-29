@@ -73,8 +73,8 @@ function TodayTick({ x, y, payload, todayLabel }: { x?: number; y?: number; payl
 
     return (
         <g transform={`translate(${x ?? 0},${y ?? 0})`}>
-            {active && <rect x={-24} y={2} width={48} height={23} rx={11.5} fill="#dcfce7" />}
-            <text x={0} y={18} textAnchor="middle" className={active ? 'fill-emerald-700 text-[11px] font-bold' : 'fill-muted-foreground text-[11px]'}>
+            {active && <rect className="admin-today-tick-bg" x={-24} y={2} width={48} height={23} rx={11.5} fill="#dcfce7" />}
+            <text x={0} y={18} textAnchor="middle" className={active ? 'admin-today-tick-active text-[11px] font-bold' : 'admin-chart-tick text-[11px]'}>
                 {label}
             </text>
         </g>

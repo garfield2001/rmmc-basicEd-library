@@ -104,9 +104,15 @@ class VisitReportWordExportService
     {
         $table = $section->addTable(['borderSize' => 0, 'borderColor' => 'FFFFFF', 'cellMargin' => 0, 'alignment' => Jc::START]);
         $table->addRow();
+        $widths = [1500, 5000, 1000, 1000, 1100];
+        $values = ["Visitors: {$summary['visitors']}", "Total Visits: {$summary['total_visits']}", "Excess Visits: {$summary['excess_visits']}", '', ''];
 
-        foreach (["Visitors: {$summary['visitors']}", "Total Visits: {$summary['total_visits']}", "Excess Visits: {$summary['excess_visits']}"] as $text) {
-            $table->addCell(1900)->addText($text, ['bold' => true], ['spaceBefore' => 90, 'spaceAfter' => 180]);
+        foreach ($values as $index => $text) {
+            $table->addCell($widths[$index])->addText($text, ['bold' => true], [
+                'alignment' => $index === 1 ? Jc::CENTER : Jc::START,
+                'spaceBefore' => 90,
+                'spaceAfter' => 180,
+            ]);
         }
     }
 

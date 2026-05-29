@@ -4,9 +4,10 @@ import type { VisitHistoryVisit, VisitHistoryVisitor } from '@/types/dashboard';
 export type VisitorTypeFilter = 'student' | 'employee';
 export type SortColumn = 'schoolId' | 'name' | 'group' | 'visitCount' | 'lastVisit';
 export type SortDirection = 'asc' | 'desc';
+export type VisitLogStatusFilter = 'all' | 'below' | 'met' | 'excess';
 export type VisitorWithRangeVisits = VisitHistoryVisitor & { rangeVisits: VisitHistoryVisit[] };
 
-export const defaultRowsPerPage = 10;
+export const defaultRowsPerPage = 5;
 
 const yearLevelOrder = [
     'Kindergarten 1',

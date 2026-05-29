@@ -1,4 +1,4 @@
-import { SelectInput } from '@/components/ui/select-input';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { BriefcaseBusiness, GraduationCap, Search, X } from 'lucide-react';
 import type { VisitorType } from './visitors-table-types';
 
@@ -80,19 +80,17 @@ export function FilterSelect({
     disabled?: boolean;
     onChange: (value: string) => void;
 }) {
+    const searchableOptions = [{ value: '', label: placeholder }, ...options.map((option) => ({ value: option, label: option }))];
+
     return (
-        <SelectInput
+        <SearchableSelect
             value={value}
-            onChange={(event) => onChange(event.target.value)}
+            options={searchableOptions}
+            placeholder={placeholder}
+            searchPlaceholder={`Search ${placeholder.toLowerCase()}`}
             disabled={disabled}
             className="border-zinc-300 bg-white text-zinc-700 focus:border-zinc-500 focus:ring-zinc-100"
-        >
-            <option value="">{placeholder}</option>
-            {options.map((option) => (
-                <option key={option} value={option}>
-                    {option}
-                </option>
-            ))}
-        </SelectInput>
+            onChange={onChange}
+        />
     );
 }

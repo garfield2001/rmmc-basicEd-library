@@ -41,11 +41,8 @@ export const navItems: AdminNavItem[] = [
     {
         key: 'visitors',
         label: 'Registered Visitors',
+        href: '/admin/registered-visitors',
         icon: UsersRound,
-        children: [
-            { label: 'Students', href: '/admin/registered-visitors/students', icon: GraduationCap },
-            { label: 'Employees', href: '/admin/registered-visitors/employees', icon: BriefcaseBusiness },
-        ],
     },
     {
         key: 'reports',

@@ -1,11 +1,8 @@
 import { ActivityBreakdownCard } from '@/components/admin/dashboard/activity-breakdown-card';
 import { ChartCard } from '@/components/admin/dashboard/chart-card';
 import { DashboardActions } from '@/components/admin/dashboard/dashboard-actions';
-import { DashboardInsightStrip } from '@/components/admin/dashboard/dashboard-insight-strip';
-import { getDashboardInsights } from '@/components/admin/dashboard/dashboard-insights';
 import { DashboardOperationsPanel } from '@/components/admin/dashboard/dashboard-operations-panel';
 import { getOverviewMetrics, getSchoolYearDateRange } from '@/components/admin/dashboard/dashboard-summary';
-import { IndividualProgressPanel } from '@/components/admin/dashboard/individual-progress-panel';
 import { MetricCard } from '@/components/admin/dashboard/metric-card';
 import { RangeControls, rangeDetail, rangeLabel, relativeDateRange, visitsBetween } from '@/components/admin/dashboard/range-controls';
 import { VisitTrafficChart } from '@/components/admin/dashboard/visit-traffic-chart';
@@ -35,7 +32,6 @@ export default function Dashboard({ dashboard }: DashboardProps) {
     );
     const trafficTotal = useMemo(() => trafficData.reduce((sum, point) => sum + point.total, 0), [trafficData]);
     const trafficDetail = `${rangeDetail(trafficRange, trafficStartDate, trafficEndDate)} - ${trafficTotal.toLocaleString()} visits`;
-    const insights = useMemo(() => getDashboardInsights(dashboard.charts.dailyVisits), [dashboard.charts.dailyVisits]);
 
     useEchoPublic('library-visits', '.LibraryVisitRecorded', () => {
         router.reload({ only: ['dashboard'] });
@@ -59,9 +55,7 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                             ))}
                         </section>
 
-                        <DashboardOperationsPanel dashboard={dashboard} schoolYearDates={schoolYearDates} />
-
-                        <DashboardInsightStrip insights={insights} />
+                        <DashboardOperationsPanel dashboard={dashboard} />
 
                         <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.9fr)_minmax(20rem,0.9fr)]">
                             <ChartCard
@@ -83,8 +77,8 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                                                 setTrafficStartDate(start);
                                                 setTrafficEndDate(end);
                                             } else {
-                                                setTrafficStartDate('');
-                                                setTrafficEndDate('');
+                                                setTrafficStartDate(dashboard.schoolYear?.starts_at ?? '');
+                                                setTrafficEndDate(new Date().toISOString().slice(0, 10));
                                             }
                                         }}
                                         onStartDateChange={(value) => {
@@ -109,8 +103,6 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                                 <VisitorMixChart students={dashboard.visitorBreakdown.students} employees={dashboard.visitorBreakdown.employees} />
                             </ChartCard>
                         </section>
-
-                        <IndividualProgressPanel progress={dashboard.charts.individualProgress} />
 
                         <section className="min-w-0">
                             <ActivityBreakdownCard dashboard={dashboard} />

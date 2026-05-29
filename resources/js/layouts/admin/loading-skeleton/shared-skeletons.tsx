@@ -1,6 +1,16 @@
 import type { CSSProperties } from 'react';
 
-export function TableSkeleton({ columns, rows, withAvatar = false, withToolbar = false }: { columns: number; rows: number; withAvatar?: boolean; withToolbar?: boolean }) {
+export function TableSkeleton({
+    columns,
+    rows,
+    withAvatar = false,
+    withToolbar = false,
+}: {
+    columns: number;
+    rows: number;
+    withAvatar?: boolean;
+    withToolbar?: boolean;
+}) {
     return (
         <div className="admin-page-loading-surface overflow-hidden">
             {withToolbar && (
@@ -10,7 +20,7 @@ export function TableSkeleton({ columns, rows, withAvatar = false, withToolbar =
                 </div>
             )}
             <div className="overflow-x-auto">
-                <div className="min-w-[var(--loading-table-width)]" style={{ '--loading-table-width': `${columns * 8.5}rem` } as CSSProperties}>
+                <div className="min-w-(--loading-table-width)" style={{ '--loading-table-width': `${columns * 8.5}rem` } as CSSProperties}>
                     <div
                         className="grid gap-4 border-b border-[#040DBF]/10 bg-[#f6f8ff]/70 px-5 py-4"
                         style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}

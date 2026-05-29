@@ -8,7 +8,7 @@ $concurrently = file_exists($localConcurrently) ? $localConcurrently : 'concurre
 $commands = [
     'server' => 'php artisan serve',
     'queue' => 'php artisan queue:listen --tries=1',
-    'reverb' => 'php artisan reverb:start --host=127.0.0.1 --port=8080',
+    'reverb' => 'php artisan reverb:start --host=0.0.0.0 --port=8080',
     'vite' => $npm.' run dev',
 ];
 

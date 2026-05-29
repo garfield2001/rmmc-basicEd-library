@@ -47,26 +47,26 @@ export function VisitorsTableToolbar({
             <div className="space-y-3">
                 <div className={`grid gap-3 lg:items-center ${showTypeTabs ? 'lg:grid-cols-[minmax(12rem,18rem)_minmax(0,1fr)]' : 'lg:grid-cols-1'}`}>
                     {showTypeTabs && <VisitorTypeTabs activeType={activeType} onTypeChange={onTypeChange} />}
-                    {activeType === 'student' ? (
-                        <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-                            <FilterSelect value={yearLevel} options={yearLevels} placeholder="All year levels" onChange={onYearLevelChange} />
-                            <FilterSelect
-                                value={section}
-                                options={sections}
-                                placeholder={yearLevel ? 'All sections' : 'Choose year level first'}
-                                disabled={!yearLevel}
-                                onChange={onSectionChange}
-                            />
-                        </div>
-                    ) : (
-                        <div className="min-w-0">
-                            <FilterSelect value={department} options={departments} placeholder="Select department" onChange={onDepartmentChange} />
-                        </div>
-                    )}
+                    <div className="grid min-w-0 gap-3 md:grid-cols-3">
+                        <VisitorSearchInput activeType={activeType} search={search} onSearchChange={onSearchChange} />
+                        {activeType === 'student' ? (
+                            <>
+                                <FilterSelect value={yearLevel} options={yearLevels} placeholder="All year levels" onChange={onYearLevelChange} />
+                                <FilterSelect
+                                    value={section}
+                                    options={sections}
+                                    placeholder={yearLevel ? 'All sections' : 'Choose year level first'}
+                                    disabled={!yearLevel}
+                                    onChange={onSectionChange}
+                                />
+                            </>
+                        ) : (
+                            <FilterSelect value={department} options={departments} placeholder="All departments" onChange={onDepartmentChange} />
+                        )}
+                    </div>
                 </div>
-                <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                    <VisitorSearchInput activeType={activeType} search={search} onSearchChange={onSearchChange} />
-                    {sort !== defaultSort && (
+                {sort !== defaultSort && (
+                    <div className="flex justify-end">
                         <button
                             type="button"
                             onClick={onSortClear}
@@ -75,8 +75,8 @@ export function VisitorsTableToolbar({
                             <RotateCcw className="size-4" />
                             Clear sort
                         </button>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
         </div>
     );

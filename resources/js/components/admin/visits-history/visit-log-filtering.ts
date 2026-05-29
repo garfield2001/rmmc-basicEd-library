@@ -1,5 +1,5 @@
 import type { VisitHistoryVisitor } from '@/types/dashboard';
-import { visitsInDateRange, type VisitorTypeFilter, type VisitorWithRangeVisits } from './visit-history-helpers';
+import { visitsInDateRange, type VisitLogStatusFilter, type VisitorTypeFilter, type VisitorWithRangeVisits } from './visit-history-helpers';
 
 interface VisitLogFilterState {
     visitorType: VisitorTypeFilter;
@@ -23,6 +23,26 @@ export function visitorsWithDateCoverage(
 
 export function filterVisitLogVisitors(visitors: VisitorWithRangeVisits[], filters: VisitLogFilterState): VisitorWithRangeVisits[] {
     return filterVisitors(visitors, filters).filter((visitor) => visitor.rangeVisits.length > 0);
+}
+
+export function filterVisitLogStatus(visitors: VisitorWithRangeVisits[], status: VisitLogStatusFilter, requiredVisits: number): VisitorWithRangeVisits[] {
+    if (status === 'all' || requiredVisits <= 0) {
+        return visitors;
+    }
+
+    return visitors.filter((visitor) => {
+        const visits = visitor.rangeVisits.length;
+
+        if (status === 'below') {
+            return visits > 0 && visits < requiredVisits;
+        }
+
+        if (status === 'met') {
+            return visits >= requiredVisits;
+        }
+
+        return visits > requiredVisits;
+    });
 }
 
 export function filterVisitProgressVisitors(visitors: VisitorWithRangeVisits[], filters: VisitLogFilterState): VisitorWithRangeVisits[] {

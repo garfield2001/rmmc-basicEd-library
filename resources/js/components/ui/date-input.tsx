@@ -8,6 +8,7 @@ interface DateInputProps {
     value: string;
     onChange: (value: string) => void;
     className?: string;
+    wrapperClassName?: string;
     id?: string;
     name?: string;
     disabled?: boolean;
@@ -26,6 +27,7 @@ export function DateInput({
     value,
     onChange,
     className,
+    wrapperClassName,
     id,
     name,
     disabled = false,
@@ -40,7 +42,7 @@ export function DateInput({
     const dateInput = useDateInputState({ value, onChange, min, max, openOnFocus, yearWindowStart, yearWindowEnd, focusDate });
 
     return (
-        <span ref={dateInput.wrapperRef} className="relative block w-full">
+        <span ref={dateInput.wrapperRef} className={cn('relative block w-full', wrapperClassName)}>
             <span className="relative block">
                 <input
                     id={id}

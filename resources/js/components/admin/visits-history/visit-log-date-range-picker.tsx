@@ -63,7 +63,7 @@ export function VisitLogDateRangePicker({ startDate, endDate, minDate, maxDate, 
                 className="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg border border-[#040DBF]/15 bg-white px-3 py-2 text-left text-sm shadow-sm transition hover:border-[#040DBF]/30 focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 focus:outline-none"
             >
                 <span>
-                    <span className="block text-xs font-semibold tracking-[0.08em] text-[#030A8C] uppercase">Date coverage</span>
+                    <span className="block text-xs font-semibold tracking-[0.08em] text-[#030A8C] uppercase">Start date and end date</span>
                     <span className="mt-1 block font-semibold text-[#010440]">
                         {formatDisplayDate(startDate)} to {formatDisplayDate(endDate)}
                     </span>

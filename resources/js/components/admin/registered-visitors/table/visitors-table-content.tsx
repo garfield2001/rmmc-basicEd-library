@@ -1,4 +1,4 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TablePlaceholderRows, TableRow } from '@/components/ui/table';
 import { VirtualTableSpacerRow } from '@/components/ui/virtual-table-spacer-row';
 import type { LibraryMemberRow } from '@/types/registered-visitors';
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
@@ -41,6 +41,9 @@ export function VisitorsTableContent({
     onSortChange,
     onEdit,
 }: VisitorsTableContentProps) {
+    const placeholderRows =
+        !isLoading && !usesVirtualRows && rowsPerPage !== 'all' && displayedVisitors.length > 0 ? Math.max(0, rowsPerPage - displayedVisitors.length) : 0;
+
     return (
         <div className="overflow-x-auto">
             <Table className={activeType === 'student' ? 'min-w-170' : 'min-w-140'}>
@@ -68,6 +71,7 @@ export function VisitorsTableContent({
                             {displayedVisitors.map((visitor) => (
                                 <VisitorDataRow key={visitor.id} visitor={visitor} activeType={activeType} onEdit={() => onEdit(visitor)} />
                             ))}
+                            <TablePlaceholderRows rowCount={placeholderRows} colSpan={visibleColumnCount} />
                             {usesVirtualRows && paddingBottom > 0 && <VirtualTableSpacerRow height={paddingBottom} colSpan={visibleColumnCount} />}
                         </>
                     ) : (

@@ -34,4 +34,30 @@ function TableCaption({ className, ...props }: React.ComponentProps<'caption'>) 
     return <caption className={cn('mt-4 text-sm text-zinc-500', className)} {...props} />;
 }
 
-export { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow };
+function TablePlaceholderRows({
+    rowCount,
+    colSpan,
+    label = '-',
+}: {
+    rowCount: number;
+    colSpan: number;
+    label?: string;
+}) {
+    if (rowCount <= 0) {
+        return null;
+    }
+
+    return (
+        <>
+            {Array.from({ length: rowCount }).map((_, index) => (
+                <TableRow key={`placeholder-${index}`} aria-hidden="true" className="hover:bg-transparent">
+                    <TableCell colSpan={colSpan} className="h-[4.25rem] text-center text-sm text-[#020659]/35 dark:text-slate-400/45">
+                        {label}
+                    </TableCell>
+                </TableRow>
+            ))}
+        </>
+    );
+}
+
+export { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TablePlaceholderRows, TableRow };

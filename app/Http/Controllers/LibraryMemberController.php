@@ -50,7 +50,7 @@ class LibraryMemberController extends Controller
         return Inertia::render('admin/registered-visitors/index', [
             'visitors' => $visitors,
             'audienceType' => $type,
-            'pagePath' => route('admin.registered-visitors.audience', ['audience' => $this->audienceSlug($type)], false),
+            'pagePath' => route('admin.registered-visitors.index', absolute: false),
             'filters' => [
                 'search' => $search,
                 'type' => $type,

@@ -84,7 +84,7 @@ class LibraryMember extends Model
             return $query;
         }
 
-        return $query->where('type', $type);
+        return $query->where('library_members.type', $type);
     }
 
     public function scopeSearch(Builder $query, ?string $search): Builder
@@ -95,10 +95,10 @@ class LibraryMember extends Model
 
         return $query->where(function (Builder $query) use ($search): void {
             $query
-                ->where('school_id', 'like', "%{$search}%")
-                ->orWhere('rfid_uid', 'like', "%{$search}%")
-                ->orWhere('first_name', 'like', "%{$search}%")
-                ->orWhere('last_name', 'like', "%{$search}%");
+                ->where('library_members.school_id', 'like', "%{$search}%")
+                ->orWhere('library_members.rfid_uid', 'like', "%{$search}%")
+                ->orWhere('library_members.first_name', 'like', "%{$search}%")
+                ->orWhere('library_members.last_name', 'like', "%{$search}%");
         });
     }
 

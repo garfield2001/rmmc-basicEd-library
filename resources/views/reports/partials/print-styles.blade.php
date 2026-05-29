@@ -19,6 +19,9 @@
                 display: flex;
                 justify-content: flex-end;
                 margin-bottom: 14px;
+                position: sticky;
+                top: 14px;
+                z-index: 10;
             }
             .report-action {
                 align-items: center;
@@ -149,6 +152,16 @@
             }
             .report-table tbody tr:nth-child(even) td {
                 background: #f8fafc;
+            }
+            .report-table tfoot td {
+                background: #ffffff;
+                border: 0;
+                font-weight: 700;
+                padding: 8px 0 0;
+                white-space: nowrap;
+            }
+            .report-table tfoot .summary-center {
+                text-align: center;
             }
             .print-page-number {
                 display: none;

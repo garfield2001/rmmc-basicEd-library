@@ -1,8 +1,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { FallbackImage } from '@/components/ui/fallback-image';
-import { IconBadge } from '@/components/ui/icon-badge';
+import { VisitorAvatar } from '@/components/ui/visitor-avatar';
 import { type DashboardVisit } from '@/types/dashboard';
-import { BriefcaseBusiness, CalendarClock, GraduationCap, IdCard, ScanLine, UserRound } from 'lucide-react';
+import { BriefcaseBusiness, CalendarClock, GraduationCap, IdCard, ScanLine } from 'lucide-react';
 import { LatestVisitDetailItem } from './latest-visit-detail-item';
 import { formatVisitDateTime, visitorTypeLabel } from './latest-visit-card-utils';
 
@@ -17,7 +16,7 @@ export function LatestVisitDetailsDialog({ open, visit, onOpenChange }: LatestVi
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto p-0 sm:max-w-3xl">
+            <DialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto p-0 sm:max-w-4xl" onOpenAutoFocus={(event) => event.preventDefault()}>
                 <div className="h-2 bg-[linear-gradient(90deg,#040DBF_0%,#030A8C_52%,#010440_100%)]" />
                 <DialogHeader>
                     <div className="px-6 pt-6">
@@ -26,7 +25,7 @@ export function LatestVisitDetailsDialog({ open, visit, onOpenChange }: LatestVi
                     </div>
                 </DialogHeader>
 
-                <div className="grid gap-6 p-6 sm:grid-cols-[176px_minmax(0,1fr)]">
+                <div className="grid gap-6 p-6 sm:grid-cols-[13rem_minmax(0,1fr)]">
                     <VisitPhoto visit={visit} />
 
                     <div className="min-w-0">
@@ -47,26 +46,22 @@ export function LatestVisitDetailsDialog({ open, visit, onOpenChange }: LatestVi
                             {visit.visitor.schoolId ?? 'No ID'}
                         </p>
 
-                        <div className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
-                            <LatestVisitDetailItem label="Visitor type" value={visitorTypeLabel(visit)} />
+                        <div className="mt-6 divide-y divide-[#040DBF]/10 rounded-lg border border-[#040DBF]/10 text-sm">
+                            <LatestVisitDetailItem className="grid gap-1 px-4 py-4 sm:grid-cols-[11rem_minmax(0,1fr)]" label="Visitor type" value={visitorTypeLabel(visit)} />
                             {visit.visitor.type === 'employee' ? (
-                                <LatestVisitDetailItem label="Department" value={visit.visitor.department} />
+                                <LatestVisitDetailItem className="grid gap-1 px-4 py-4 sm:grid-cols-[11rem_minmax(0,1fr)]" label="Department" value={visit.visitor.department} />
                             ) : (
                                 <>
-                                    <LatestVisitDetailItem label="Year level" value={visit.visitor.yearLevel} />
-                                    <LatestVisitDetailItem label="Section" value={visit.visitor.section} />
+                                    <LatestVisitDetailItem className="grid gap-1 px-4 py-4 sm:grid-cols-[11rem_minmax(0,1fr)]" label="Year level" value={visit.visitor.yearLevel} />
+                                    <LatestVisitDetailItem className="grid gap-1 px-4 py-4 sm:grid-cols-[11rem_minmax(0,1fr)]" label="Section" value={visit.visitor.section} />
                                 </>
                             )}
                         </div>
 
-                        <div className="mt-5 rounded-lg border border-[#040DBF]/10 bg-[#f6f8ff] p-4 text-sm text-[#020659]">
-                            <div className="flex items-center gap-2 font-medium text-[#010440]">
-                                <IconBadge icon={ScanLine} className="size-8" iconClassName="size-4" />
-                                Visit record
-                            </div>
-                            <p className="mt-2 leading-6">
-                                This detail view is read-only. Edit visitor profile information from Registered Visitors when a name, photo, or
-                                department needs correction.
+                        <div className="mt-5 flex items-start gap-3 text-sm text-[#020659]/75">
+                            <ScanLine className="mt-0.5 size-4 shrink-0 text-[#040DBF]" />
+                            <p className="leading-6">
+                                Read-only visit record. Edit profile information from Registered Visitors when a name, photo, or department needs correction.
                             </p>
                         </div>
                     </div>
@@ -78,15 +73,11 @@ export function LatestVisitDetailsDialog({ open, visit, onOpenChange }: LatestVi
 
 function VisitPhoto({ visit }: { visit: DashboardVisit }) {
     return (
-        <div className="overflow-hidden rounded-xl border border-[#040DBF]/15 bg-[#f6f8ff] p-2 shadow-sm">
-            <FallbackImage
+        <div>
+            <VisitorAvatar
+                name={visit.visitor.name}
                 src={visit.visitor.photoUrl}
-                className="aspect-square size-full rounded-lg object-cover"
-                fallback={
-                    <div className="flex aspect-square items-center justify-center rounded-lg bg-white text-[#030A8C]/45">
-                        <UserRound className="size-12" />
-                    </div>
-                }
+                className="live-visit-avatar aspect-square size-full min-h-48 rounded-xl bg-[#eef2ff] text-4xl text-[#030A8C]/70 ring-1 ring-[#040DBF]/10"
             />
         </div>
     );

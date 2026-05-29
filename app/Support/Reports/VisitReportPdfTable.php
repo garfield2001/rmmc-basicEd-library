@@ -42,6 +42,29 @@ class VisitReportPdfTable
         return $content;
     }
 
+    public function summary(array $summary, float $y): string
+    {
+        $columns = $this->columns();
+        $content = '';
+        $x = self::MARGIN;
+        $items = [
+            0 => 'Visitors: '.($summary['visitors'] ?? 0),
+            1 => 'Total Visits: '.($summary['total_visits'] ?? 0),
+            2 => 'Excess Visits: '.($summary['excess_visits'] ?? 0),
+        ];
+
+        foreach ($columns as $index => $column) {
+            if (isset($items[$index])) {
+                $offset = $index === 1 ? max(5, ($column['width'] - $this->canvas->textWidth($items[$index], 9.5)) / 2) : 0;
+                $content .= $this->canvas->text($x + $offset, $y - 8, $items[$index], 9.5, 'F2', [0.07, 0.09, 0.17]);
+            }
+
+            $x += $column['width'];
+        }
+
+        return $content;
+    }
+
     private function columns(): array
     {
         return [

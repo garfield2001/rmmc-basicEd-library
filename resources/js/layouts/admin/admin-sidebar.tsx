@@ -13,7 +13,9 @@ export function AdminSidebar({ active, collapsed, mobileOpen, onNavigate }: Admi
     const { auth } = page.props;
     const currentUrl = page.url;
     const user = auth.user;
-    const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+    const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => ({ [active]: true }));
+    const [pendingHref, setPendingHref] = useState<string | null>(null);
+    const displayUrl = pendingHref ?? currentUrl;
     const sidebarMotion = 'duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]';
     const sidebarColumns = collapsed ? 'grid-cols-[40px_minmax(0,1fr)] lg:grid-cols-[40px_0px]' : 'grid-cols-[40px_minmax(0,1fr)]';
     const sidebarRowWidth = collapsed ? 'w-full lg:w-10' : 'w-full';
@@ -23,14 +25,20 @@ export function AdminSidebar({ active, collapsed, mobileOpen, onNavigate }: Admi
     }`;
 
     useEffect(() => {
-        setOpenGroups((groups) => ({ ...groups, [active]: true }));
+        setOpenGroups({ [active]: true });
     }, [active]);
+
+    useEffect(() => {
+        if (pendingHref && isCurrentHref(currentUrl, pendingHref)) {
+            setPendingHref(null);
+        }
+    }, [currentUrl, pendingHref]);
 
     return (
         <aside
-            className={`admin-surface fixed inset-y-0 left-0 z-50 flex h-screen w-72 transform-gpu flex-col overflow-y-auto border-r border-[#040DBF]/10 bg-white/95 p-4 shadow-xl shadow-[#010440]/15 transition-[transform,width] ${sidebarMotion} will-change-transform ${collapsed ? 'lg:overflow-y-hidden' : ''} ${
+            className={`admin-surface fixed inset-y-0 left-0 z-50 flex h-dvh min-h-dvh w-72 transform-gpu flex-col overflow-y-auto overscroll-contain border-r border-[#040DBF]/10 bg-white/95 p-4 shadow-xl shadow-[#010440]/15 transition-[transform,width] ${sidebarMotion} will-change-transform ${collapsed ? 'lg:w-[72px] lg:overflow-y-hidden 2xl:w-[84px]' : 'lg:w-[280px] 2xl:w-[304px]'} ${
                 mobileOpen ? 'translate-x-0' : '-translate-x-full'
-            } lg:sticky lg:top-0 lg:z-auto lg:w-full lg:translate-x-0 lg:self-start lg:shadow-sm`}
+            } lg:translate-x-0 lg:shadow-sm`}
         >
             <div className="border-b border-[#040DBF]/10 pb-4">
                 <div className={sidebarRow}>
@@ -47,16 +55,16 @@ export function AdminSidebar({ active, collapsed, mobileOpen, onNavigate }: Admi
             <nav className="mt-4 flex-1 space-y-1">
                 {navItems.map((item) => {
                     const Icon = item.icon;
-                    const isActive = active === item.key;
+                    const isActive = pendingHref ? itemMatchesHref(item, pendingHref) : active === item.key;
                     const hasChildren = Boolean(item.children?.length);
-                    const open = openGroups[item.key] ?? isActive;
+                    const open = Boolean(openGroups[item.key]);
 
                     if (hasChildren) {
                         return (
                             <div key={item.key} className="space-y-1">
                                 <button
                                     type="button"
-                                    onClick={() => setOpenGroups((groups) => ({ ...groups, [item.key]: !open }))}
+                                    onClick={() => setOpenGroups(open ? (item.key === active ? {} : { [active]: true }) : { [item.key]: true })}
                                     title={collapsed ? item.label : undefined}
                                     className={`${sidebarRow} rounded-lg border text-sm font-medium ${
                                         isActive
@@ -87,13 +95,16 @@ export function AdminSidebar({ active, collapsed, mobileOpen, onNavigate }: Admi
                                     <div className="min-h-0 space-y-1 pl-6">
                                         {item.children?.map((child) => {
                                             const ChildIcon = child.icon;
-                                            const childActive = isCurrentHref(currentUrl, child.href);
+                                            const childActive = isCurrentHref(displayUrl, child.href);
 
                                             return (
                                                 <Link
                                                     key={child.href}
                                                     href={child.href}
-                                                    onClick={onNavigate}
+                                                    onClick={() => {
+                                                        setPendingHref(child.href);
+                                                        onNavigate?.();
+                                                    }}
                                                     className={`admin-sidebar-child-link grid h-9 grid-cols-[28px_minmax(0,1fr)_1rem] items-center rounded-lg border text-left text-sm font-medium transition-[background-color,border-color,color,box-shadow] ${
                                                         childActive
                                                             ? 'admin-sidebar-child-active border-[#040DBF]/25 bg-[#040DBF]/10 text-[#010440] dark:border-sky-300/35 dark:bg-sky-400/15 dark:text-sky-50'
@@ -118,7 +129,13 @@ export function AdminSidebar({ active, collapsed, mobileOpen, onNavigate }: Admi
                         <Link
                             key={item.href}
                             href={item.href ?? '#'}
-                            onClick={onNavigate}
+                            onClick={() => {
+                                if (item.href) {
+                                    setPendingHref(item.href);
+                                }
+
+                                onNavigate?.();
+                            }}
                             title={collapsed ? item.label : undefined}
                             className={`${sidebarRow} rounded-lg border text-sm font-medium ${
                                 isActive
@@ -146,6 +163,14 @@ export function AdminSidebar({ active, collapsed, mobileOpen, onNavigate }: Admi
             />
         </aside>
     );
+}
+
+function itemMatchesHref(item: (typeof navItems)[number], href: string) {
+    if (item.href && isCurrentHref(href, item.href)) {
+        return true;
+    }
+
+    return item.children?.some((child) => isCurrentHref(href, child.href)) ?? false;
 }
 
 function isCurrentHref(currentUrl: string, href: string) {

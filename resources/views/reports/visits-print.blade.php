@@ -70,12 +70,16 @@
                             </tr>
                         @endforeach
                     </tbody>
+                    <tfoot>
+                        <tr class="summary-row">
+                            <td>Visitors: {{ $group['summary']['visitors'] ?? count($group['rows']) }}</td>
+                            <td class="summary-center">Total Visits: {{ $group['summary']['total_visits'] ?? collect($group['rows'])->sum('visit_count') }}</td>
+                            <td>Excess Visits: {{ $group['summary']['excess_visits'] ?? collect($group['rows'])->sum('excess_visits') }}</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
                 </table>
-                <section class="group-summary">
-                    <div>Visitors: {{ $group['summary']['visitors'] ?? count($group['rows']) }}</div>
-                    <div>Total Visits: {{ $group['summary']['total_visits'] ?? collect($group['rows'])->sum('visit_count') }}</div>
-                    <div>Excess Visits: {{ $group['summary']['excess_visits'] ?? collect($group['rows'])->sum('excess_visits') }}</div>
-                </section>
             @endforeach
         </main>
 

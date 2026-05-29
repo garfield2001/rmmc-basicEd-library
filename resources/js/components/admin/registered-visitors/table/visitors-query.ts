@@ -16,6 +16,7 @@ export function visitorIndexQuery(type: VisitorType, state: VisitorsQueryState, 
     const defaultDirection = type === 'student' ? 'desc' : 'desc';
 
     return {
+        type,
         search: state.search || undefined,
         year_level: type === 'student' ? state.yearLevel || undefined : undefined,
         section: type === 'student' && state.yearLevel ? state.section || undefined : undefined,

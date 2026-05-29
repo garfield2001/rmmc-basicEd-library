@@ -33,7 +33,7 @@ export function DateCalendarPopover({
         <div
             onWheel={onCalendarWheel}
             className={cn(
-                'absolute z-50 mt-2 w-72 rounded-lg border border-[#040DBF]/15 bg-white p-4 text-[#010440] shadow-xl',
+                'admin-contained-scroll absolute z-50 mt-2 max-h-[min(23rem,calc(100vh-7rem))] w-72 overflow-y-auto overscroll-contain rounded-lg border border-[#040DBF]/15 bg-white p-4 text-[#010440] shadow-xl',
                 align === 'right' ? 'right-0' : 'left-0',
             )}
         >

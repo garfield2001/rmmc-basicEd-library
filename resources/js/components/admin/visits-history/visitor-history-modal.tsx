@@ -17,7 +17,7 @@ interface VisitorHistoryModalProps {
 export function VisitorHistoryModal({ visitor, visits, startDate, endDate, open, onOpenChange }: VisitorHistoryModalProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-3xl">
+            <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-3xl" onOpenAutoFocus={(event) => event.preventDefault()}>
                 <DialogHeader>
                     <div className="flex items-center gap-3 pr-8">
                         <VisitorAvatar

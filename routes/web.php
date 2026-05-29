@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminPageExportController;
 use App\Http\Controllers\AdminProfileController;
 use App\Http\Controllers\AdminScanSettingsController;
 use App\Http\Controllers\AdminSchoolYearController;
@@ -32,6 +33,11 @@ Route::post('library-visits', [LibraryVisitController::class, 'store'])->name('l
 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('admin', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('admin/{page}/{audience}/exports/{format}', [AdminPageExportController::class, 'show'])
+        ->whereIn('page', ['visit-logs', 'visit-progress', 'registered-visitors'])
+        ->whereIn('audience', ['students', 'employees'])
+        ->whereIn('format', ['xlsx', 'docx', 'pdf', 'print'])
+        ->name('admin.page-exports.show');
     Route::get('admin/live-visits/scan-targets', [AdminVisitMonitorController::class, 'scanTargets'])->name('admin.live-visits.scan-targets');
     Route::get('admin/live-visits', [AdminVisitMonitorController::class, 'index'])->name('admin.live-visits');
     Route::get('admin/visit-logs/{audience}', [AdminVisitHistoryController::class, 'index'])

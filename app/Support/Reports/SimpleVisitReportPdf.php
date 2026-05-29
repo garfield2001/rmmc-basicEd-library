@@ -45,7 +45,7 @@ class SimpleVisitReportPdf
                 $content .= $this->table->header($y);
                 $y -= VisitReportPdfTable::ROW_HEIGHT;
             } elseif ($item['type'] === 'summary') {
-                $content .= $this->canvas->centerText(306, $y, $item['text'], 10.5, 'F2', [0.07, 0.09, 0.17]);
+                $content .= $this->table->summary($item['summary'], $y);
                 $y -= self::GROUP_HEIGHT;
             } else {
                 $content .= $this->table->row($summary, $item['row'], $y, $item['stripe']);

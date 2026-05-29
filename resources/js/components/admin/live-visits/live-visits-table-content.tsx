@@ -1,6 +1,7 @@
 import { type LiveVisitsTableMode, type SortColumn, type SortDirection, type VisitTab } from './live-visits-table-helpers';
 import { LiveVisitsTableRows } from '@/components/admin/live-visits/live-visits-table-rows';
 import { SortableHead } from '@/components/admin/live-visits/live-visits-table-ui';
+import type { RowsPerPageOption } from '@/components/ui/pagination-controls';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { DashboardVisit } from '@/types/dashboard';
 import type { RefObject } from 'react';
@@ -12,6 +13,7 @@ interface LiveVisitsTableContentProps {
     allVisitsCount: number;
     isPaging: boolean;
     columns: number;
+    rowsPerPage: RowsPerPageOption;
     tableMinWidth: string;
     sortColumn: SortColumn;
     sortDirection: SortDirection;
@@ -32,6 +34,7 @@ export function LiveVisitsTableContent({
     allVisitsCount,
     isPaging,
     columns,
+    rowsPerPage,
     tableMinWidth,
     sortColumn,
     sortDirection,
@@ -88,6 +91,7 @@ export function LiveVisitsTableContent({
                         allVisitsCount={allVisitsCount}
                         isPaging={isPaging}
                         columns={columns}
+                        rowsPerPage={rowsPerPage}
                         usesVirtualRows={usesVirtualRows}
                         virtualRows={virtualRows}
                         onVisitSelect={onVisitSelect}
