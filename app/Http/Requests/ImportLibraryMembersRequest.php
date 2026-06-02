@@ -15,26 +15,7 @@ class ImportLibraryMembersRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'visitors_file' => ['required', 'file', 'max:5120'],
-        ];
-    }
-
-    public function after(): array
-    {
-        return [
-            function (Validator $validator): void {
-                $file = $this->file('visitors_file');
-
-                if (! $file) {
-                    return;
-                }
-
-                $extension = strtolower($file->getClientOriginalExtension());
-
-                if (! in_array($extension, ['csv', 'txt', 'tsv', 'xls', 'xlsx', 'xlsm', 'docx', 'pdf'], true)) {
-                    $validator->errors()->add('visitors_file', 'Upload a CSV, Excel, Word, or PDF roster file.');
-                }
-            },
+            'visitors_file' => ['required', 'file', 'max:5120', 'mimes:csv,txt,tsv,xls,xlsx,xlsm,docx,pdf'],
         ];
     }
 }

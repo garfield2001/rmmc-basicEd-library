@@ -20,7 +20,8 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::middleware('guest')->group(function () {
     Route::get('login', [LoginController::class, 'show'])->name('login');
-    Route::post('login', [LoginController::class, 'store']);
+    Route::post('login', [LoginController::class, 'store'])
+        ->middleware('throttle:5,1'); // 5 attempt per minute
 });
 
 Route::middleware('auth')->group(function () {
@@ -29,7 +30,9 @@ Route::middleware('auth')->group(function () {
     Route::post('session/close', [LoginController::class, 'destroyOnClose'])->name('session.close');
 });
 
-Route::post('library-visits', [LibraryVisitController::class, 'store'])->name('library-visits.store');
+Route::post('library-visits', [LibraryVisitController::class, 'store'])
+    ->name('library-visits.store')
+    ->middleware('throttle:30,1'); // 30 requests per minute
 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('admin', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
@@ -60,7 +63,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::patch('admin/school-years/{schoolYear}/activate', [AdminSchoolYearController::class, 'activate'])->name('admin.school-years.activate');
 
     Route::post('admin/registered-visitors/import/preview', [LibraryMemberController::class, 'importPreview'])->name('admin.registered-visitors.import.preview');
-    Route::post('admin/registered-visitors/import', [LibraryMemberController::class, 'import'])->name('admin.registered-visitors.import');
+    Route::post('admin/registered-visitors/import', [LibraryMemberController::class, 'import'])
+        ->name('admin.registered-visitors.import')
+        ->middleware('throttle:10,1'); // 10 uploads per minute
     Route::get('admin/registered-visitors/{audience}', [LibraryMemberController::class, 'index'])
         ->whereIn('audience', ['students', 'employees'])
         ->name('admin.registered-visitors.audience');

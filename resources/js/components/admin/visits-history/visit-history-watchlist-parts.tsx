@@ -1,6 +1,6 @@
 import { ProgressBar } from '@/components/admin/reports/report-table-parts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
-import { AlertTriangle, BarChart3, BriefcaseBusiness, CalendarDays, CheckCircle2, GraduationCap, ListChecks, Target, type LucideIcon } from 'lucide-react';
+import { BarChart3, CheckCircle2, type LucideIcon } from 'lucide-react';
 import type React from 'react';
 import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from 'recharts';
 import type { buildWatchlist, WatchlistGroup } from './visit-log-watchlist';
@@ -145,7 +145,7 @@ export function WeakGroupChart({ data }: { data: Array<{ label: string; percent:
 export function WatchlistTable({ rows }: { rows: AttentionRows }) {
     return (
         <div className="overflow-x-auto rounded-lg border border-[#040DBF]/10">
-            <table className="min-w-[860px] text-left text-sm">
+            <table className="min-w-215 text-left text-sm">
                 <thead className="border-b border-[#040DBF]/10 bg-[#f6f8ff] text-[#020659]/70">
                     <tr>
                         <th className="px-4 py-3">Name</th>
@@ -156,9 +156,7 @@ export function WatchlistTable({ rows }: { rows: AttentionRows }) {
                         <th className="px-4 py-3">Progress</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {rows.length > 0 ? rows.map((row) => <WatchlistTableRow key={row.visitor.id} row={row} />) : <WatchlistEmptyRow />}
-                </tbody>
+                <tbody>{rows.length > 0 ? rows.map((row) => <WatchlistTableRow key={row.visitor.id} row={row} />) : <WatchlistEmptyRow />}</tbody>
             </table>
         </div>
     );

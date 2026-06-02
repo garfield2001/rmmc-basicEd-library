@@ -38,11 +38,11 @@ class HandleInertiaRequests extends Middleware
     {
         return array_merge(parent::share($request), [
             'name' => config('app.display_name'),
-            'schoolYear' => fn () => $this->schoolYearRow(SchoolYear::active()->first()),
-            'schoolYears' => fn () => SchoolYear::query()
+            'schoolYear' => fn() => $this->schoolYearRow(SchoolYear::active()->first()),
+            'schoolYears' => fn() => SchoolYear::query()
                 ->orderByDesc('starts_at')
                 ->get()
-                ->map(fn (SchoolYear $schoolYear): array => $this->schoolYearRow($schoolYear))
+                ->map(fn(SchoolYear $schoolYear): array => $this->schoolYearRow($schoolYear))
                 ->values(),
             'auth' => [
                 'user' => $request->user() ? [
@@ -54,9 +54,9 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
             ],
             'flash' => [
-                'success' => fn () => $request->session()->get('success'),
-                'error' => fn () => $request->session()->get('error'),
-                'recentVisit' => fn () => $request->session()->get('recentVisit'),
+                'success' => fn() => $request->session()->get('success'),
+                'error' => fn() => $request->session()->get('error'),
+                'recentVisit' => fn() => $request->session()->get('recentVisit'),
             ],
         ]);
     }

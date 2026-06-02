@@ -13,7 +13,13 @@ import type { AdminVisitHistory, VisitHistoryVisitor } from '@/types/dashboard';
 import { router } from '@inertiajs/react';
 import { useEchoPublic } from '@laravel/echo-react';
 import { useEffect, useMemo, useState } from 'react';
-import { countVisitLogRangeVisits, filterVisitLogStatus, filterVisitLogVisitors, filterVisitProgressVisitors, visitorsWithDateCoverage } from './visit-log-filtering';
+import {
+    countVisitLogRangeVisits,
+    filterVisitLogStatus,
+    filterVisitLogVisitors,
+    filterVisitProgressVisitors,
+    visitorsWithDateCoverage,
+} from './visit-log-filtering';
 
 export function useVisitsHistoryPage(visitHistory: AdminVisitHistory, initialVisitorType: VisitorTypeFilter = 'student') {
     const schoolYearStart = visitHistory.schoolYear?.starts_at ?? '';
@@ -53,7 +59,9 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory, initialVis
     }, [effectiveEndDate, effectiveStartDate, today, visitHistory.visitors]);
 
     const requiredVisits =
-        visitorType === 'student' ? (visitHistory.schoolYear?.student_required_visits ?? 0) : (visitHistory.schoolYear?.employee_required_visits ?? 0);
+        visitorType === 'student'
+            ? (visitHistory.schoolYear?.student_required_visits ?? 0)
+            : (visitHistory.schoolYear?.employee_required_visits ?? 0);
 
     const filteredVisitors = useMemo(() => {
         return filterVisitLogStatus(

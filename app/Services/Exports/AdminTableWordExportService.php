@@ -9,8 +9,20 @@ use PhpOffice\PhpWord\Settings;
 use PhpOffice\PhpWord\SimpleType\Jc;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
+/**
+ * Service responsible for exporting admin table data to Word (.docx) format.
+ * Handles the creation of formatted Word documents with tables, headers, and styling
+ * for various admin export functionalities (registered visitors, visit logs, etc.).
+ */
 class AdminTableWordExportService
 {
+    /**
+     * Generate and download a Word document export.
+     *
+     * @param array  $payload    The data payload containing columns, groups, and metadata
+     * @param string $filename   The name of the file to be downloaded
+     * @return BinaryFileResponse The downloadable file response
+     */
     public function download(array $payload, string $filename): BinaryFileResponse
     {
         $path = tempnam(sys_get_temp_dir(), 'admin-table-export-').'.docx';
@@ -21,6 +33,12 @@ class AdminTableWordExportService
         return response()->download($path, $filename)->deleteFileAfterSend(true);
     }
 
+    /**
+     * Create the PhpWord document object with all content.
+     *
+     * @param array $payload The data payload to be exported
+     * @return PhpWord       The configured PhpWord document instance
+     */
     private function document(array $payload): PhpWord
     {
         $word = new PhpWord;
@@ -44,6 +62,12 @@ class AdminTableWordExportService
         return $word;
     }
 
+    /**
+     * Add the letterhead section to the document.
+     *
+     * @param object $section The section to add the letterhead to
+     * @return void
+     */
     private function letterhead($section): void
     {
         $table = $section->addTable(['borderSize' => 0, 'cellMargin' => 0, 'alignment' => Jc::CENTER]);
@@ -64,6 +88,13 @@ class AdminTableWordExportService
         $center->addText('rmmcbep@gmail.com / +639518240218', ['color' => '0645AD'], ['alignment' => Jc::CENTER, 'spaceAfter' => 180]);
     }
 
+    /**
+     * Add metadata section (school year, visitor type, date range) to the document.
+     *
+     * @param object $section The section to add metadata to
+     * @param array  $payload The data payload containing metadata
+     * @return void
+     */
     private function metadata($section, array $payload): void
     {
         $table = $section->addTable(['borderSize' => 0, 'cellMargin' => 60, 'alignment' => Jc::CENTER]);
@@ -74,6 +105,14 @@ class AdminTableWordExportService
         $table->addCell(7200, ['gridSpan' => 2])->addText('Date Range: '.$payload['date_range'], ['bold' => true]);
     }
 
+    /**
+     * Add a data group section to the document.
+     *
+     * @param object $section The section to add the group to
+     * @param array  $payload The data payload containing column definitions
+     * @param array  $group   The group data to export
+     * @return void
+     */
     private function group($section, array $payload, array $group): void
     {
         $section->addText($payload['group_label'].': '.$group['label'], ['bold' => true, 'color' => '010440'], ['alignment' => Jc::CENTER, 'spaceBefore' => 160]);
@@ -87,6 +126,14 @@ class AdminTableWordExportService
         $this->summary($section, $group['summary'] ?? []);
     }
 
+    /**
+     * Add a row of data to the export table.
+     *
+     * @param object $table   The table to add the row to
+     * @param array  $values  The cell values for the row
+     * @param bool   $header  Whether this is a header row (bold text)
+     * @return void
+     */
     private function row($table, array $values, bool $header = false): void
     {
         $table->addRow();
@@ -97,6 +144,13 @@ class AdminTableWordExportService
         }
     }
 
+    /**
+     * Add a summary section to the document.
+     *
+     * @param object $section  The section to add the summary to
+     * @param array  $summary  The summary data (label/value pairs)
+     * @return void
+     */
     private function summary($section, array $summary): void
     {
         $table = $section->addTable(['borderSize' => 0, 'cellMargin' => 0]);
@@ -111,6 +165,11 @@ class AdminTableWordExportService
         }
     }
 
+    /**
+     * Define the table style for export tables.
+     *
+     * @return array The table style configuration
+     */
     private function tableStyle(): array
     {
         return ['borderSize' => 6, 'borderColor' => '111827', 'cellMargin' => 70, 'alignment' => Jc::CENTER];
