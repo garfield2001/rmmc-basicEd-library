@@ -1,41 +1,95 @@
+import { ScanSettingsForm, type ScanSettings } from '@/components/admin/settings/scan-settings-form';
 import { formatTime } from '@/components/admin/dashboard/dashboard-summary';
-import type { AdminDashboard } from '@/types/dashboard';
-import { Link } from '@inertiajs/react';
-import { Clock3, Settings2 } from 'lucide-react';
+import type { DashboardScanSettings } from '@/types/dashboard';
+import { Clock3, Settings2, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 interface DashboardOperationsPanelProps {
-    dashboard: AdminDashboard;
+    dashboard: {
+        scanWindow: {
+            starts_at: string;
+            ends_at: string;
+        };
+    };
+    scanSettings: DashboardScanSettings;
 }
 
-export function DashboardOperationsPanel({ dashboard }: DashboardOperationsPanelProps) {
-    return (
-        <section className="admin-surface rounded-lg border border-[#040DBF]/10 bg-white/95 p-5 shadow-sm">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex min-w-0 items-start gap-3">
-                    <span className="admin-icon-badge inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#040DBF]/10 text-[#040DBF]">
-                        <Clock3 className="size-5" />
-                    </span>
-                    <div className="min-w-0">
-                        <p className="text-sm font-semibold text-[#030A8C]">Scan window</p>
-                        <h2 className="mt-1 text-xl font-semibold tracking-normal text-[#010440]">
-                            {formatTime(dashboard.scanWindow.starts_at)} to {formatTime(dashboard.scanWindow.ends_at)}
-                        </h2>
-                        <p className="mt-1 text-sm text-[#020659]/70">
-                            Scanning opens at {formatTime(dashboard.scanWindow.starts_at)} and closes at {formatTime(dashboard.scanWindow.ends_at)}.
-                        </p>
-                    </div>
-                </div>
+export function DashboardOperationsPanel({ dashboard, scanSettings }: DashboardOperationsPanelProps) {
+    const [showDrawer, setShowDrawer] = useState(false);
+    const motion = 'duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]';
+    const drawerRef = useRef<HTMLDivElement | null>(null);
 
-                <div className="flex flex-wrap items-center gap-2">
-                    <Link
-                        href="/admin/settings"
-                        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#040DBF] px-4 text-sm font-medium text-white shadow-sm shadow-[#040DBF]/20 hover:bg-[#030A8C]"
+    useEffect(() => {
+        if (!showDrawer) {
+            return;
+        }
+
+        const closeOnEscape = (event: KeyboardEvent) => event.key === 'Escape' && setShowDrawer(false);
+
+        document.addEventListener('keydown', closeOnEscape);
+
+        return () => document.removeEventListener('keydown', closeOnEscape);
+    }, [showDrawer]);
+
+    return (
+        <>
+            <section className="admin-surface rounded-lg border border-[#040DBF]/10 bg-white/95 shadow-sm">
+                <div className="flex items-center justify-between p-5">
+                    <div className="flex min-w-0 items-start gap-3">
+                        <span className="admin-icon-badge inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#040DBF]/10 text-[#040DBF]">
+                            <Clock3 className="size-5" />
+                        </span>
+                        <div className="min-w-0">
+                            <p className="text-sm font-semibold text-[#030A8C]">Scan window</p>
+                            <h2 className="mt-1 text-xl font-semibold tracking-normal text-[#010440]">
+                                Opens at {formatTime(dashboard.scanWindow.starts_at)}, closes at {formatTime(dashboard.scanWindow.ends_at)}
+                            </h2>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={() => setShowDrawer(true)}
+                        className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-[#040DBF] px-4 text-sm font-medium text-white shadow-sm shadow-[#040DBF]/20 transition-all hover:bg-[#030A8C]"
                     >
                         <Settings2 className="size-4" />
-                        More details
-                    </Link>
+                        <span className="hidden sm:inline">More details</span>
+                    </button>
+                </div>
+            </section>
+
+            <div
+                className={`fixed inset-0 z-[60] transition-all ${motion} ${showDrawer ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+                ref={drawerRef}
+            >
+                <div
+                    className="absolute inset-0 bg-[#010440]/20 backdrop-blur-[2px]"
+                    aria-hidden="true"
+                    onClick={() => setShowDrawer(false)}
+                />
+                <div
+                    className={`absolute bottom-0 right-0 top-0 flex w-full max-w-lg transform-gpu flex-col bg-white shadow-2xl shadow-[#010440]/20 transition-transform ${motion} ${
+                        showDrawer ? 'translate-x-0' : 'translate-x-full'
+                    }`}
+                >
+                    <div className="flex items-center justify-between border-b border-[#040DBF]/10 px-6 py-5">
+                        <div>
+                            <h2 className="text-lg font-semibold text-[#010440]">Scan rules</h2>
+                            <p className="text-sm text-[#020659]/70">Edit repeat-scan interval and daily visit scanning window.</p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setShowDrawer(false)}
+                            className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg text-[#020659] transition-all hover:bg-[#040DBF]/5 hover:text-[#040DBF]"
+                        >
+                            <X className="size-5" />
+                        </button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto px-6 pt-5 pb-0">
+                        <ScanSettingsForm settings={scanSettings as unknown as ScanSettings} noWrapper />
+                    </div>
                 </div>
             </div>
-        </section>
+        </>
     );
 }

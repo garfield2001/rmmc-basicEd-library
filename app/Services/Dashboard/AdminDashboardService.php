@@ -27,6 +27,7 @@ class AdminDashboardService
 
         return [
             'scanWindow' => $scanWindow,
+            'scanSettings' => $this->scanSettings->toPageProps(),
             'schoolYear' => $schoolYear ? $this->schoolYearData($schoolYear) : null,
             'metrics' => [
                 'registeredVisitors' => $studentVisitors + $employeeVisitors,

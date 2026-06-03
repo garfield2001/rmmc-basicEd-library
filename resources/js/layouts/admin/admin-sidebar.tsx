@@ -36,7 +36,7 @@ export function AdminSidebar({ active, collapsed, mobileOpen, onNavigate }: Admi
 
     return (
         <aside
-            className={`admin-surface fixed inset-y-0 left-0 z-50 flex h-dvh min-h-dvh w-72 transform-gpu flex-col overflow-y-auto overscroll-contain border-r border-[#040DBF]/10 bg-white/95 p-4 shadow-xl shadow-[#010440]/15 transition-[transform,width] ${sidebarMotion} will-change-transform ${collapsed ? 'lg:w-[72px] lg:overflow-y-hidden 2xl:w-[84px]' : 'lg:w-[280px] 2xl:w-[304px]'} ${
+            className={`admin-surface fixed inset-y-0 left-0 z-50 flex h-dvh min-h-dvh w-72 transform-gpu flex-col overflow-y-auto overscroll-contain border-r border-[#040DBF]/10 bg-white/95 p-4 shadow-xl shadow-[#010440]/15 transition-[transform,width] ${sidebarMotion} will-change-transform ${collapsed ? 'lg:w-[72px] 2xl:w-[84px]' : 'lg:w-[280px] 2xl:w-[304px]'} ${
                 mobileOpen ? 'translate-x-0' : '-translate-x-full'
             } lg:translate-x-0 lg:shadow-sm`}
         >
@@ -89,10 +89,10 @@ export function AdminSidebar({ active, collapsed, mobileOpen, onNavigate }: Admi
 
                                 <div
                                     className={`grid overflow-hidden transition-[grid-template-rows,opacity] ${sidebarMotion} ${
-                                        open && !collapsed ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 lg:opacity-0'
+                                        open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 lg:opacity-0'
                                     }`}
                                 >
-                                    <div className="min-h-0 space-y-1 pl-6">
+                                    <div className={`min-h-0 space-y-1 ${collapsed ? 'pl-0' : 'pl-6'}`}>
                                         {item.children?.map((child) => {
                                             const ChildIcon = child.icon;
                                             const childActive = isCurrentHref(displayUrl, child.href);
@@ -105,14 +105,19 @@ export function AdminSidebar({ active, collapsed, mobileOpen, onNavigate }: Admi
                                                         setPendingHref(child.href);
                                                         onNavigate?.();
                                                     }}
-                                                    className={`admin-sidebar-child-link grid h-9 grid-cols-[28px_minmax(0,1fr)_1rem] items-center rounded-lg border text-left text-sm font-medium transition-[background-color,border-color,color,box-shadow] ${
+                                                    title={collapsed ? `${item.label} - ${child.label}` : undefined}
+                                                    className={`admin-sidebar-child-link grid h-9 items-center rounded-lg border text-left text-sm font-medium transition-[background-color,border-color,color,box-shadow] ${
+                                                        collapsed
+                                                            ? 'grid-cols-[40px_0px_0px] w-10 lg:w-10'
+                                                            : 'grid-cols-[28px_minmax(0,1fr)_1rem]'
+                                                    } ${
                                                         childActive
                                                             ? 'admin-sidebar-child-active border-[#040DBF]/25 bg-[#040DBF]/10 text-[#010440] dark:border-sky-300/35 dark:bg-sky-400/15 dark:text-sky-50'
                                                             : 'border-transparent text-[#020659]/75 hover:border-[#040DBF]/15 hover:bg-[#040DBF]/5 hover:text-[#040DBF] dark:text-slate-200/80 dark:hover:border-sky-300/25 dark:hover:bg-sky-400/10 dark:hover:text-white'
                                                     }`}
                                                 >
                                                     <span className="flex items-center justify-center">
-                                                        <ChildIcon className="size-3.5 shrink-0" aria-hidden="true" />
+                                                        <ChildIcon className={`${collapsed ? 'size-4' : 'size-3.5'} shrink-0`} aria-hidden="true" />
                                                     </span>
                                                     <span className="truncate">{child.label}</span>
                                                     <ChevronRight className="size-3.5" aria-hidden="true" />

@@ -55,7 +55,7 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                             ))}
                         </section>
 
-                        <DashboardOperationsPanel dashboard={dashboard} />
+                        <DashboardOperationsPanel dashboard={dashboard} scanSettings={dashboard.scanSettings} />
 
                         <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.9fr)_minmax(20rem,0.9fr)]">
                             <ChartCard

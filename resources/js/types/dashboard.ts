@@ -73,11 +73,22 @@ export interface IndividualProgressPoint {
     percent: number;
 }
 
+export interface DashboardScanSettings {
+    repeat_scan_interval_hours: number;
+    repeat_scan_interval_minutes: number;
+    scan_starts_at: string;
+    scan_ends_at: string;
+    success_modal_close_seconds: number;
+    error_modal_close_seconds: number;
+    scanner_cooldown_seconds: number;
+}
+
 export interface AdminDashboard {
     scanWindow: {
         starts_at: string;
         ends_at: string;
     };
+    scanSettings: DashboardScanSettings;
     schoolYear:
         | (SchoolYearSummary & {
               starts_at?: string;

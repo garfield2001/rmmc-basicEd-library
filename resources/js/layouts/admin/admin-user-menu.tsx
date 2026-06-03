@@ -114,10 +114,10 @@ export function AdminUserMenu({ active, collapsed, sidebarLabel, sidebarMotion, 
                 open &&
                 createPortal(
                     <>
-                        <div className="admin-floating-scrim fixed inset-0 z-40 bg-[#010440]/10 backdrop-blur-[3px]" aria-hidden="true" />
+                        <div className="admin-floating-scrim fixed inset-0 z-[51] bg-[#010440]/10 backdrop-blur-[3px]" aria-hidden="true" />
                         <div
                             ref={menuRef}
-                            className="admin-floating-popover fixed z-50 rounded-lg border border-[#040DBF]/10 bg-white/95 p-1 shadow-lg shadow-[#040DBF]/10 backdrop-blur-md"
+                            className="admin-floating-popover fixed z-[52] rounded-lg border border-[#040DBF]/10 bg-white/95 p-1 shadow-lg shadow-[#040DBF]/10 backdrop-blur-md"
                             style={{
                                 left: menuPosition.left,
                                 bottom: menuPosition.bottom,
