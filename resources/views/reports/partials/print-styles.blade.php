@@ -128,14 +128,14 @@
                 table-layout: fixed;
                 width: 6.48in;
             }
-            .report-table th,
             .report-table td {
                 border: 1px solid #111827;
                 box-sizing: border-box;
                 padding: 5px 8px;
                 text-align: left;
                 vertical-align: middle;
-                white-space: nowrap;
+                word-break: break-word;
+                overflow-wrap: break-word;
             }
             .report-table tr {
                 break-inside: avoid;

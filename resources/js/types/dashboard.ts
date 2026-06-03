@@ -128,7 +128,7 @@ export interface AdminVisitMonitor {
     scanTargets: ScanTarget[];
 }
 
-export interface AdminVisitHistory {
+export interface AdminVisitLogs {
     schoolYear: {
         id: number;
         name: string;
@@ -150,15 +150,15 @@ export interface AdminVisitHistory {
         sectionsByYearLevel: Record<string, string[]>;
         departments: string[];
     };
-    visitors: VisitHistoryVisitor[];
+    visitors: VisitLogVisitor[];
 }
 
-export interface VisitHistoryVisit {
+export interface VisitLogVisit {
     id: number;
     visitedAt: string | null;
 }
 
-export interface VisitHistoryVisitor {
+export interface VisitLogVisitor {
     id: number;
     schoolId: string | null;
     name: string | null;
@@ -169,5 +169,5 @@ export interface VisitHistoryVisitor {
     section: string | null;
     department: string | null;
     photoUrl: string | null;
-    visits: VisitHistoryVisit[];
+    visits: VisitLogVisit[];
 }

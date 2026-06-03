@@ -6,7 +6,7 @@ use App\Http\Controllers\AdminProfileController;
 use App\Http\Controllers\AdminScanSettingsController;
 use App\Http\Controllers\AdminSchoolYearController;
 use App\Http\Controllers\AdminSettingsController;
-use App\Http\Controllers\AdminVisitHistoryController;
+use App\Http\Controllers\AdminVisitLogsController;
 use App\Http\Controllers\AdminVisitMonitorController;
 use App\Http\Controllers\AdminVisitProgressController;
 use App\Http\Controllers\HomeController;
@@ -43,18 +43,18 @@ Route::middleware(['auth', 'admin'])->group(function () {
         ->name('admin.page-exports.show');
     Route::get('admin/live-visits/scan-targets', [AdminVisitMonitorController::class, 'scanTargets'])->name('admin.live-visits.scan-targets');
     Route::get('admin/live-visits', [AdminVisitMonitorController::class, 'index'])->name('admin.live-visits');
-    Route::get('admin/visit-logs/{audience}', [AdminVisitHistoryController::class, 'index'])
+    Route::get('admin/visit-logs/{audience}', [AdminVisitLogsController::class, 'index'])
         ->whereIn('audience', ['students', 'employees'])
         ->name('admin.visit-logs.audience');
-    Route::get('admin/visit-logs', [AdminVisitHistoryController::class, 'index'])->name('admin.visit-logs');
+    Route::get('admin/visit-logs', [AdminVisitLogsController::class, 'index'])->name('admin.visit-logs');
     Route::get('admin/visit-progress/{audience}', [AdminVisitProgressController::class, 'index'])
         ->whereIn('audience', ['students', 'employees'])
         ->name('admin.visit-progress.audience');
     Route::get('admin/visit-progress', [AdminVisitProgressController::class, 'index'])->name('admin.visit-progress');
-    Route::get('admin/visits-history/{audience}', [AdminVisitHistoryController::class, 'index'])
+    Route::get('admin/visits-history/{audience}', [AdminVisitLogsController::class, 'index'])
         ->whereIn('audience', ['students', 'employees'])
         ->name('admin.visits-history.audience');
-    Route::get('admin/visits-history', [AdminVisitHistoryController::class, 'index'])->name('admin.visits-history');
+    Route::get('admin/visits-history', [AdminVisitLogsController::class, 'index'])->name('admin.visits-history');
     Route::get('admin/settings', [AdminSettingsController::class, 'index'])->name('admin.settings');
     Route::patch('admin/profile', [AdminProfileController::class, 'update'])->name('admin.profile.update');
     Route::patch('admin/scan-settings', [AdminScanSettingsController::class, 'update'])->name('admin.scan-settings.update');

@@ -1,5 +1,5 @@
-import type { VisitHistoryVisitor } from '@/types/dashboard';
-import { visitsInDateRange, type VisitLogStatusFilter, type VisitorTypeFilter, type VisitorWithRangeVisits } from './visit-history-helpers';
+import type { VisitLogVisitor } from '@/types/dashboard';
+import { visitsInDateRange, type VisitLogStatusFilter, type VisitorTypeFilter, type VisitorWithRangeVisits } from './visit-logs-helpers';
 
 interface VisitLogFilterState {
     visitorType: VisitorTypeFilter;
@@ -10,7 +10,7 @@ interface VisitLogFilterState {
 }
 
 export function visitorsWithDateCoverage(
-    visitors: VisitHistoryVisitor[],
+    visitors: VisitLogVisitor[],
     startDate: string,
     endDate: string,
     today: string,

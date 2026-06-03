@@ -32,14 +32,14 @@
             width: 6.55in;
         }
 
-        th,
         td {
             border: 1px solid #111827;
             mso-number-format: '\@';
             padding: 4pt 6pt;
             text-align: left;
             vertical-align: middle;
-            white-space: nowrap;
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
 
         th {
@@ -47,6 +47,9 @@
             color: #111827;
             font-size: 11pt;
             font-weight: 700;
+            padding: 4pt 6pt;
+            text-align: left;
+            vertical-align: middle;
         }
 
         tbody tr:nth-child(even) td {

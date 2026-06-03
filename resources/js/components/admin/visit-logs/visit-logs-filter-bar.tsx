@@ -1,13 +1,13 @@
-import { VisitTypeTab } from '@/components/admin/visits-history/visit-history-ui';
+import { VisitTypeTab } from '@/components/admin/visit-logs/visit-logs-ui';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { SelectInput } from '@/components/ui/select-input';
-import type { AdminVisitHistory } from '@/types/dashboard';
+import type { AdminVisitLogs } from '@/types/dashboard';
 import { BriefcaseBusiness, GraduationCap, Search, X } from 'lucide-react';
-import type { SortColumn, SortDirection, VisitorTypeFilter } from './visit-history-helpers';
+import type { SortColumn, SortDirection, VisitorTypeFilter } from './visit-logs-helpers';
 
-interface VisitHistoryFilterBarProps {
-    filters: AdminVisitHistory['filters'];
-    metrics: AdminVisitHistory['metrics'];
+interface VisitLogsFilterBarProps {
+    filters: AdminVisitLogs['filters'];
+    metrics: AdminVisitLogs['metrics'];
     visitorType: VisitorTypeFilter;
     yearLevel: string;
     section: string;
@@ -25,7 +25,7 @@ interface VisitHistoryFilterBarProps {
     showVisitorType?: boolean;
 }
 
-export function VisitHistoryFilterBar({
+export function VisitLogsFilterBar({
     filters,
     metrics,
     visitorType,
@@ -43,7 +43,7 @@ export function VisitHistoryFilterBar({
     onQuickSortChange,
     onClearFilters,
     showVisitorType = true,
-}: VisitHistoryFilterBarProps) {
+}: VisitLogsFilterBarProps) {
     const sortValue = `${sortColumn}:${sortDirection}`;
     const hasFilters = Boolean(search || yearLevel || section || department || sortColumn !== 'lastVisit' || sortDirection !== 'desc');
     const searchPlaceholder = visitorType === 'student' ? 'Search ID, name, section' : 'Search ID, name, department';

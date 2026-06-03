@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 class AdminVisitMonitorService
 {
     public function __construct(
-        private readonly AdminVisitHistoryService $history,
+        private readonly AdminVisitLogsService $logs,
         private readonly AdminVisitPayloadService $payloads,
         private readonly LibraryScanSettingsService $scanSettings,
         private readonly AdminScanTargetSearchService $scanTargets,
@@ -36,9 +36,9 @@ class AdminVisitMonitorService
         ];
     }
 
-    public function getHistoryData(): array
+    public function getVisitLogs(): array
     {
-        return $this->history->getData();
+        return $this->logs->getData();
     }
 
     public function searchScanTargets(string $search, int $limit = 8): array

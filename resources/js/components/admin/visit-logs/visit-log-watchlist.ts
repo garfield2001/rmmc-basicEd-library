@@ -1,4 +1,4 @@
-import { parseVisitDate, toLocalIsoDate, type VisitorWithRangeVisits } from './visit-history-helpers';
+import { parseVisitDate, toLocalIsoDate, type VisitorWithRangeVisits } from './visit-logs-helpers';
 
 export type WatchlistGroup = { kind: 'yearLevel' | 'section' | 'department'; label: string } | null;
 

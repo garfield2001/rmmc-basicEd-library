@@ -1,7 +1,7 @@
 import { TableHead } from '@/components/ui/table';
 import type { LucideIcon } from 'lucide-react';
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
-import type { SortColumn, SortDirection, VisitorTypeFilter } from './visit-history-helpers';
+import type { SortColumn, SortDirection, VisitorTypeFilter } from './visit-logs-helpers';
 
 export function VisitTypeTab({
     value,

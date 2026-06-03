@@ -76,6 +76,7 @@ class VisitReportExcelStyler
             $sheet->getStyle("A{$start}:E{$end}")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
             if ($end > $start) {
+                $sheet->getStyle("A".($start + 1).":A{$end}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
                 $sheet->getStyle('D'.($start + 1).":D{$end}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
             }
         }

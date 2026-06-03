@@ -7,7 +7,7 @@ use App\Models\LibraryVisit;
 use App\Models\SchoolYear;
 use App\Support\Academics\AcademicLevels;
 
-class AdminVisitHistoryService
+class AdminVisitLogsService
 {
     public function __construct(private readonly AdminVisitPayloadService $payloads) {}
 

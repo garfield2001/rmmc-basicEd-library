@@ -33,13 +33,14 @@
                 <div><span class="meta-label">To:</span> {{ $toDate }}</div>
             </section>
 
+            @php $colTotal = collect($columns)->sum(fn ($c) => (float) $c['width']); @endphp
             @foreach ($groups as $group)
                 <div class="group-title">{{ $groupPrefix }}: {{ $group['label'] }}</div>
                 <table class="report-table">
                     <thead>
                         <tr>
                             @foreach ($columns as $column)
-                                <th style="width: {{ $column['width'] }}">{{ $column['label'] }}</th>
+                                <th style="width: {{ round(rtrim($column['width'], 'in') / $colTotal * 100, 1) }}%">{{ $column['label'] }}</th>
                             @endforeach
                         </tr>
                     </thead>
@@ -70,16 +71,12 @@
                             </tr>
                         @endforeach
                     </tbody>
-                    <tfoot>
-                        <tr class="summary-row">
-                            <td>Visitors: {{ $group['summary']['visitors'] ?? count($group['rows']) }}</td>
-                            <td class="summary-center">Total Visits: {{ $group['summary']['total_visits'] ?? collect($group['rows'])->sum('visit_count') }}</td>
-                            <td>Excess Visits: {{ $group['summary']['excess_visits'] ?? collect($group['rows'])->sum('excess_visits') }}</td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
                 </table>
+                <div class="group-summary">
+                    <div>Visitors: {{ $group['summary']['visitors'] ?? count($group['rows']) }}</div>
+                    <div class="summary-center">Total Visits: {{ $group['summary']['total_visits'] ?? collect($group['rows'])->sum('visit_count') }}</div>
+                    <div>Excess Visits: {{ $group['summary']['excess_visits'] ?? collect($group['rows'])->sum('excess_visits') }}</div>
+                </div>
             @endforeach
         </main>
 

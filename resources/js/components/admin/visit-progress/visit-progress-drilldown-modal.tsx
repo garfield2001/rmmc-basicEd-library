@@ -4,8 +4,8 @@ import { PaginationControls, type RowsPerPageOption } from '@/components/ui/pagi
 import { SelectInput } from '@/components/ui/select-input';
 import { Search, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import type { VisitorTypeFilter, VisitorWithRangeVisits } from '../visits-history/visit-history-helpers';
-import { formatVisitDateTime, groupLabel } from '../visits-history/visit-history-helpers';
+import type { VisitorTypeFilter, VisitorWithRangeVisits } from '../visit-logs/visit-logs-helpers';
+import { formatVisitDateTime, groupLabel } from '../visit-logs/visit-logs-helpers';
 import { matchesDrilldownSearch } from './visit-progress-drilldown-utils';
 import { matchesProgressStatus, progressPercent, type ProgressStatusFilter } from './visit-progress-helpers';
 

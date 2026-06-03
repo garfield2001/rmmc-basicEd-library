@@ -1,8 +1,8 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PaginationControls, type RowsPerPageOption } from '@/components/ui/pagination-controls';
 import { useEffect, useMemo, useState } from 'react';
-import { formatVisitDateTime, type VisitorTypeFilter, type VisitorWithRangeVisits } from './visit-history-helpers';
-import type { ActivityInsight, GroupInsight } from './visit-history-insights';
+import { formatVisitDateTime, type VisitorTypeFilter, type VisitorWithRangeVisits } from './visit-logs-helpers';
+import type { ActivityInsight, GroupInsight } from './visit-logs-insights';
 
 export type InsightModalState = { kind: 'activity' } | { kind: 'group'; group: GroupInsight };
 

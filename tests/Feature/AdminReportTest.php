@@ -57,19 +57,19 @@ class AdminReportTest extends TestCase
             ->get('/admin/visit-logs/students')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('admin/visits-history')
+                ->component('admin/visit-logs')
                 ->where('initialVisitorType', LibraryMember::TYPE_STUDENT)
                 ->where('pagePath', '/admin/visit-logs/students')
-                ->has('visitHistory'));
+                ->has('visitLogs'));
 
         $this->actingAs(User::factory()->create(['role' => 'admin']))
             ->get('/admin/visit-logs/employees')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('admin/visits-history')
+                ->component('admin/visit-logs')
                 ->where('initialVisitorType', LibraryMember::TYPE_EMPLOYEE)
                 ->where('pagePath', '/admin/visit-logs/employees')
-                ->has('visitHistory'));
+                ->has('visitLogs'));
     }
 
     public function test_authenticated_user_can_view_separate_visit_progress_pages(): void
@@ -83,7 +83,7 @@ class AdminReportTest extends TestCase
                 ->component('admin/visit-progress')
                 ->where('initialVisitorType', LibraryMember::TYPE_STUDENT)
                 ->where('pagePath', '/admin/visit-progress/students')
-                ->has('visitHistory'));
+                ->has('visitLogs'));
 
         $this->actingAs(User::factory()->create(['role' => 'admin']))
             ->get('/admin/visit-progress/employees')
@@ -92,7 +92,7 @@ class AdminReportTest extends TestCase
                 ->component('admin/visit-progress')
                 ->where('initialVisitorType', LibraryMember::TYPE_EMPLOYEE)
                 ->where('pagePath', '/admin/visit-progress/employees')
-                ->has('visitHistory'));
+                ->has('visitLogs'));
     }
 
     public function test_admin_can_search_limited_live_visit_scan_targets(): void

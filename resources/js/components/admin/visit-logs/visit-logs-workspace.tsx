@@ -1,15 +1,15 @@
 import { BarChart3, ClipboardList, ListChecks, type LucideIcon } from 'lucide-react';
-import type { VisitorTypeFilter } from './visit-history-helpers';
+import type { VisitorTypeFilter } from './visit-logs-helpers';
 
-export type VisitHistoryView = 'records' | 'watchlist' | 'progress';
+export type VisitLogsView = 'records' | 'watchlist' | 'progress';
 
-interface VisitHistoryWorkspaceProps {
-    activeView: VisitHistoryView;
+interface VisitLogsWorkspaceProps {
+    activeView: VisitLogsView;
     visitorType: VisitorTypeFilter;
-    onViewChange: (view: VisitHistoryView) => void;
+    onViewChange: (view: VisitLogsView) => void;
 }
 
-const viewItems: Array<{ value: VisitHistoryView; label: string; detail: string; icon: LucideIcon }> = [
+const viewItems: Array<{ value: VisitLogsView; label: string; detail: string; icon: LucideIcon }> = [
     {
         value: 'records',
         label: 'Records',
@@ -30,7 +30,7 @@ const viewItems: Array<{ value: VisitHistoryView; label: string; detail: string;
     },
 ];
 
-export function VisitHistoryWorkspace({ activeView, visitorType, onViewChange }: VisitHistoryWorkspaceProps) {
+export function VisitLogsWorkspace({ activeView, visitorType, onViewChange }: VisitLogsWorkspaceProps) {
     const audienceLabel = visitorType === 'student' ? 'Student' : 'Employee';
 
     return (

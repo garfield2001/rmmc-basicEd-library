@@ -8,7 +8,7 @@ import { VisitorFormSkeleton, VisitorsSkeleton } from '@/layouts/admin/loading-s
 export type AdminLoadingTarget =
     | 'dashboard'
     | 'live-visits'
-    | 'visit-history'
+    | 'visit-logs'
     | 'visit-progress'
     | 'visitors-index'
     | 'visitors-form'
@@ -28,7 +28,7 @@ export function AdminContentLoadingSkeleton({ target }: { target: AdminLoadingTa
             )}
             {target === 'dashboard' && <DashboardSkeleton />}
             {target === 'live-visits' && <LiveVisitsSkeleton />}
-            {target === 'visit-history' && <VisitorsSkeleton />}
+            {target === 'visit-logs' && <VisitorsSkeleton />}
             {target === 'visit-progress' && <ReportsSkeleton />}
             {target === 'visitors-index' && <VisitorsSkeleton />}
             {target === 'visitors-form' && <VisitorFormSkeleton />}

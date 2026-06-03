@@ -1,30 +1,28 @@
 import { VisitProgressDrilldownModal, type VisitProgressDrilldown } from '@/components/admin/visit-progress/visit-progress-drilldown-modal';
-import type { ProgressStatusFilter } from '@/components/admin/visit-progress/visit-progress-helpers';
 import { VisitProgressOverview } from '@/components/admin/visit-progress/visit-progress-overview';
 import { VisitProgressRanking } from '@/components/admin/visit-progress/visit-progress-ranking';
 import { PageExportActions } from '@/components/admin/exports/page-export-actions';
-import { useVisitsHistoryPage } from '@/components/admin/visits-history/use-visits-history-page';
-import { VisitHistoryFilterPanel } from '@/components/admin/visits-history/visit-history-filter-panel';
-import type { VisitorTypeFilter, VisitorWithRangeVisits } from '@/components/admin/visits-history/visit-history-helpers';
-import { VisitorHistoryModal } from '@/components/admin/visits-history/visitor-history-modal';
+import { useVisitLogsPage } from '@/components/admin/visit-logs/use-visit-logs-page';
+import { VisitLogsFilterPanel } from '@/components/admin/visit-logs/visit-logs-filter-panel';
+import type { VisitorTypeFilter, VisitorWithRangeVisits } from '@/components/admin/visit-logs/visit-logs-helpers';
+import { VisitorHistoryModal } from '@/components/admin/visit-logs/visitor-history-modal';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
-import type { AdminVisitHistory } from '@/types/dashboard';
+import type { AdminVisitLogs } from '@/types/dashboard';
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 
 interface VisitProgressProps {
-    visitHistory: AdminVisitHistory;
+    visitLogs: AdminVisitLogs;
     initialVisitorType: VisitorTypeFilter;
 }
 
-export default function VisitProgress({ visitHistory, initialVisitorType }: VisitProgressProps) {
-    const page = useVisitsHistoryPage(visitHistory, initialVisitorType);
+export default function VisitProgress({ visitLogs, initialVisitorType }: VisitProgressProps) {
+    const page = useVisitLogsPage(visitLogs, initialVisitorType);
     const [drilldown, setDrilldown] = useState<VisitProgressDrilldown | null>(null);
-    const [progressStatus, setProgressStatus] = useState<ProgressStatusFilter>('all');
     const audienceLabel = page.visitorType === 'student' ? 'Student' : 'Employee';
     const requiredVisits =
-        page.visitorType === 'student' ? (visitHistory.schoolYear?.student_required_visits ?? 0) : (visitHistory.schoolYear?.employee_required_visits ?? 0);
+        page.visitorType === 'student' ? (visitLogs.schoolYear?.student_required_visits ?? 0) : (visitLogs.schoolYear?.employee_required_visits ?? 0);
     const openVisitor = (visitor: VisitorWithRangeVisits) => {
         page.setSelectedVisitor(visitor);
     };
@@ -48,14 +46,13 @@ export default function VisitProgress({ visitHistory, initialVisitorType }: Visi
                                     page="visit-progress"
                                     audience={page.visitorType === 'student' ? 'students' : 'employees'}
                                     query={{
-                                        school_year_id: visitHistory.schoolYear?.id,
+                                        school_year_id: visitLogs.schoolYear?.id,
                                         start_date: page.effectiveStartDate,
                                         end_date: page.effectiveEndDate,
                                         year_level: page.yearLevel,
                                         section: page.section,
                                         department: page.department,
                                         search: page.search,
-                                        status: progressStatus,
                                         sort: page.sortColumn,
                                         direction: page.sortDirection,
                                     }}
@@ -68,40 +65,31 @@ export default function VisitProgress({ visitHistory, initialVisitorType }: Visi
                             visitorType={page.visitorType}
                             requiredVisits={requiredVisits}
                             search={page.search}
-                            statusFilter={progressStatus}
                             sortColumn={page.sortColumn}
                             sortDirection={page.sortDirection}
+                            filters={visitLogs.filters}
+                            yearLevel={page.yearLevel}
+                            section={page.section}
+                            department={page.department}
+                            onYearLevelChange={page.changeYearLevel}
+                            onSectionChange={page.setSection}
+                            onDepartmentChange={page.setDepartment}
                             filterPanel={
-                                <VisitHistoryFilterPanel
-                                    filters={visitHistory.filters}
-                                    schoolYearName={visitHistory.schoolYear?.name}
+                                <VisitLogsFilterPanel
+                                    schoolYearName={visitLogs.schoolYear?.name}
                                     schoolYearStart={page.schoolYearStart}
                                     schoolYearEnd={page.schoolYearEnd}
                                     startDate={page.startDate}
                                     endDate={page.endDate}
-                                    visitorType={page.visitorType}
-                                    yearLevel={page.yearLevel}
-                                    section={page.section}
-                                    department={page.department}
-                                    search={page.search}
-                                    sortColumn={page.sortColumn}
-                                    sortDirection={page.sortDirection}
                                     onStartDateChange={page.setStartDate}
                                     onEndDateChange={page.setEndDate}
                                     onResetDateCoverage={page.resetDateCoverage}
-                                    onYearLevelChange={page.changeYearLevel}
-                                    onSectionChange={page.setSection}
-                                    onDepartmentChange={page.setDepartment}
-                                    onSearchChange={page.setSearch}
-                                    onQuickSortChange={page.changeQuickSort}
                                     onClearFilters={page.clearFilters}
-                                    showTableControls={false}
                                     framed={false}
                                 />
                             }
                             onSearchChange={page.setSearch}
-                            onStatusFilterChange={setProgressStatus}
-                            onQuickSortChange={page.changeQuickSort}
+                            onSortChange={page.changeSort}
                             onVisitorOpen={openVisitor}
                         />
 

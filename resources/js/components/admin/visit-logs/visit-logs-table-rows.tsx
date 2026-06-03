@@ -1,15 +1,15 @@
 import { TableCell, TableRow } from '@/components/ui/table';
 import { VisitorAvatar } from '@/components/ui/visitor-avatar';
-import { formatVisitDateTime, groupLabel, type VisitorWithRangeVisits } from './visit-history-helpers';
+import { formatVisitDateTime, groupLabel, type VisitorWithRangeVisits } from './visit-logs-helpers';
 
-interface VisitHistoryTableRowProps {
+interface VisitLogsTableRowProps {
     visitor: VisitorWithRangeVisits;
     requiredVisits: number;
     selected?: boolean;
     onOpen: (visitor: VisitorWithRangeVisits) => void;
 }
 
-export function VisitHistoryTableRow({ visitor, requiredVisits, selected, onOpen }: VisitHistoryTableRowProps) {
+export function VisitLogsTableRow({ visitor, requiredVisits, selected, onOpen }: VisitLogsTableRowProps) {
     const progressText =
         requiredVisits > 0 ? `${Math.min(visitor.rangeVisits.length, requiredVisits)}/${requiredVisits}` : `${visitor.rangeVisits.length}`;
     const complete = requiredVisits > 0 && visitor.rangeVisits.length >= requiredVisits;
@@ -51,7 +51,7 @@ export function VisitHistoryTableRow({ visitor, requiredVisits, selected, onOpen
     );
 }
 
-export function VisitHistoryEmptyRow() {
+export function VisitLogsEmptyRow() {
     return (
         <TableRow>
             <TableCell colSpan={5} className="px-5 py-14 text-center">

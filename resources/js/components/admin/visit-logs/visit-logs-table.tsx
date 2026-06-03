@@ -1,15 +1,16 @@
-import { SortableHead } from '@/components/admin/visits-history/visit-history-ui';
+import { SortableHead } from '@/components/admin/visit-logs/visit-logs-ui';
 import { formatDisplayDate } from '@/components/ui/date-input';
 import { PaginationControls, type RowsPerPageOption } from '@/components/ui/pagination-controls';
-import { SelectInput } from '@/components/ui/select-input';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Table, TableBody, TableHeader, TablePlaceholderRows, TableRow } from '@/components/ui/table';
+import type { AdminVisitLogs } from '@/types/dashboard';
 import { Funnel } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
-import type { SortColumn, SortDirection, VisitLogStatusFilter, VisitorWithRangeVisits } from './visit-history-helpers';
-import { VisitHistoryEmptyRow, VisitHistoryTableRow } from './visit-history-table-rows';
-import { VisitSearchControl, VisitSortOptions, VisitStatusOptions } from './visit-table-controls';
+import { useCallback, useState, type ReactNode } from 'react';
+import type { SortColumn, SortDirection, VisitLogStatusFilter, VisitorWithRangeVisits } from './visit-logs-helpers';
+import { VisitLogsEmptyRow, VisitLogsTableRow } from './visit-logs-table-rows';
+import { VisitSearchControl } from './visit-table-controls';
 
-interface VisitHistoryTableProps {
+interface VisitLogsTableProps {
     visitors: VisitorWithRangeVisits[];
     visitorType: 'student' | 'employee';
     totalVisitors: number;
@@ -21,15 +22,19 @@ interface VisitHistoryTableProps {
     rowsPerPage: RowsPerPageOption;
     activeVisitorCount: number;
     search: string;
-    logStatus: VisitLogStatusFilter;
     sortColumn: SortColumn;
     sortDirection: SortDirection;
     selectedVisitorId?: number | null;
     filterPanel?: ReactNode;
+    filters: AdminVisitLogs['filters'];
+    yearLevel: string;
+    section: string;
+    department: string;
+    onYearLevelChange: (value: string) => void;
+    onSectionChange: (value: string) => void;
+    onDepartmentChange: (value: string) => void;
     onSortChange: (column: SortColumn) => void;
     onSearchChange: (value: string) => void;
-    onLogStatusChange: (value: VisitLogStatusFilter) => void;
-    onQuickSortChange: (value: string) => void;
     onRowsPerPageChange: (rows: RowsPerPageOption) => void;
     onPrevious: () => void;
     onNext: () => void;
@@ -37,7 +42,7 @@ interface VisitHistoryTableProps {
     onVisitorOpen: (visitor: VisitorWithRangeVisits) => void;
 }
 
-export function VisitHistoryTable({
+export function VisitLogsTable({
     visitors,
     visitorType,
     totalVisitors,
@@ -49,26 +54,47 @@ export function VisitHistoryTable({
     rowsPerPage,
     activeVisitorCount,
     search,
-    logStatus,
     sortColumn,
     sortDirection,
     selectedVisitorId,
     filterPanel,
+    filters,
+    yearLevel,
+    section,
+    department,
+    onYearLevelChange,
+    onSectionChange,
+    onDepartmentChange,
     onSortChange,
     onSearchChange,
-    onLogStatusChange,
-    onQuickSortChange,
     onRowsPerPageChange,
     onPrevious,
     onNext,
     onPageChange,
     onVisitorOpen,
-}: VisitHistoryTableProps) {
+}: VisitLogsTableProps) {
     const [filtersOpen, setFiltersOpen] = useState(false);
     const groupHeader = visitorType === 'student' ? 'Year / section' : 'Department';
     const searchPlaceholder = visitorType === 'student' ? 'Search ID, name, section' : 'Search ID, name, department';
     const placeholderRows = rowsPerPage === 'all' || visitors.length === 0 ? 0 : Math.max(0, rowsPerPage - visitors.length);
-    const sortValue = `${sortColumn}:${sortDirection}`;
+    const yearLevelOptions = [{ value: '', label: 'All year levels' }, ...filters.yearLevels.map((level) => ({ value: level, label: level }))];
+    const sectionsForYear = filters.sectionsByYearLevel[yearLevel] ?? [];
+    const sectionOptions = [
+        { value: '', label: 'All sections' },
+        ...(yearLevel ? sectionsForYear : [...new Set(Object.values(filters.sectionsByYearLevel).flat())]).map((option) => ({ value: option, label: option })),
+    ];
+    const departmentOptions = [{ value: '', label: 'All departments' }, ...filters.departments.map((option) => ({ value: option, label: option }))];
+
+    const handleYearLevelChange = useCallback(
+        (value: string) => {
+            onYearLevelChange(value);
+            const sectionsForNewYear = filters.sectionsByYearLevel[value] ?? [];
+            if (sectionsForNewYear.length === 1) {
+                onSectionChange(sectionsForNewYear[0]);
+            }
+        },
+        [filters.sectionsByYearLevel, onSectionChange, onYearLevelChange],
+    );
 
     return (
         <>
@@ -91,23 +117,50 @@ export function VisitHistoryTable({
                         Filters
                     </button>
                 </div>
-                <div className="mt-4 grid gap-3 md:grid-cols-3 xl:grid-cols-[minmax(14rem,20rem)_12rem_13rem]">
-                    <VisitSearchControl search={search} placeholder={searchPlaceholder} className="" onSearchChange={onSearchChange} />
-                    <label className="grid gap-1 text-xs font-semibold text-[#030A8C]">
-                        Sort
-                        <SelectInput value={sortValue} onChange={(event) => onQuickSortChange(event.target.value)}>
-                            <VisitSortOptions />
-                        </SelectInput>
-                    </label>
-                    <label className="grid gap-1 text-xs font-semibold text-[#030A8C]">
-                        Requirement status
-                        <SelectInput value={logStatus} onChange={(event) => onLogStatusChange(event.target.value as VisitLogStatusFilter)}>
-                            <VisitStatusOptions />
-                        </SelectInput>
-                    </label>
+                {filtersOpen && filterPanel}
+                <div className={`mt-4 grid gap-3 ${visitorType === 'student' ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                    <div>
+                        <label className="mb-1 block text-xs font-semibold text-[#030A8C]">Search</label>
+                        <VisitSearchControl search={search} placeholder={searchPlaceholder} onSearchChange={onSearchChange} />
+                    </div>
+                    {visitorType === 'student' ? (
+                        <>
+                            <div>
+                                <label className="mb-1 block text-xs font-semibold text-[#030A8C]">Year level</label>
+                                <SearchableSelect
+                                    value={yearLevel}
+                                    options={yearLevelOptions}
+                                    placeholder="All year levels"
+                                    searchPlaceholder="Search year level"
+                                    onChange={handleYearLevelChange}
+                                />
+                            </div>
+                            <div>
+                                <label className="mb-1 block text-xs font-semibold text-[#030A8C]">Section</label>
+                                <SearchableSelect
+                                    value={section}
+                                    options={sectionOptions}
+                                    placeholder="All sections"
+                                    searchPlaceholder="Search section"
+                                    disabled={!yearLevel}
+                                    onChange={onSectionChange}
+                                />
+                            </div>
+                        </>
+                    ) : (
+                        <div>
+                            <label className="mb-1 block text-xs font-semibold text-[#030A8C]">Department</label>
+                            <SearchableSelect
+                                value={department}
+                                options={departmentOptions}
+                                placeholder="All departments"
+                                searchPlaceholder="Search department"
+                                onChange={onDepartmentChange}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
-            {filtersOpen && filterPanel}
             <div className="overflow-x-auto">
                 <Table className="w-full min-w-205">
                     <TableHeader className="bg-[#f6f8ff]">
@@ -141,7 +194,7 @@ export function VisitHistoryTable({
                         {visitors.length > 0 ? (
                             <>
                                 {visitors.map((visitor) => (
-                                    <VisitHistoryTableRow
+                                    <VisitLogsTableRow
                                         key={visitor.id}
                                         visitor={visitor}
                                         requiredVisits={requiredVisits}
@@ -152,7 +205,7 @@ export function VisitHistoryTable({
                                 <TablePlaceholderRows rowCount={placeholderRows} colSpan={5} />
                             </>
                         ) : (
-                            <VisitHistoryEmptyRow />
+                            <VisitLogsEmptyRow />
                         )}
                     </TableBody>
                 </Table>

@@ -21,7 +21,7 @@ export const navItems: AdminNavItem[] = [
         icon: Activity,
     },
     {
-        key: 'visits-history',
+        key: 'visit-logs',
         label: 'Visit Logs',
         icon: ClipboardList,
         children: [

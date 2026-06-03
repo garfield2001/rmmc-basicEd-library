@@ -121,7 +121,7 @@ function loadingTargetFromPath(pathname: string): AdminLoadingTarget {
     }
 
     if (pathname.startsWith('/admin/visit-logs') || pathname.startsWith('/admin/visits-history')) {
-        return 'visit-history';
+        return 'visit-logs';
     }
 
     if (pathname.startsWith('/admin/visit-progress')) {
@@ -160,7 +160,7 @@ function activePathFromSection(active: AdminLayoutProps['active']) {
         return '/admin/registered-visitors/students';
     }
 
-    if (active === 'visits-history') {
+    if (active === 'visit-logs') {
         return '/admin/visit-logs/students';
     }
 

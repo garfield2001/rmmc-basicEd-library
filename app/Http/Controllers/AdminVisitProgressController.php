@@ -15,7 +15,7 @@ class AdminVisitProgressController extends Controller
         $audienceSlug = $audience ?? ($type === 'employee' ? 'employees' : 'students');
 
         return Inertia::render('admin/visit-progress', [
-            'visitHistory' => $visitMonitor->getHistoryData(),
+            'visitLogs' => $visitMonitor->getVisitLogs(),
             'initialVisitorType' => $type,
             'pagePath' => "/admin/visit-progress/{$audienceSlug}",
         ]);

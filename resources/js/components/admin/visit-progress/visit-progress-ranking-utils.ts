@@ -1,4 +1,4 @@
-import { formatVisitDateTime, groupLabel, type SortColumn, type SortDirection, type VisitorWithRangeVisits } from '../visits-history/visit-history-helpers';
+import { formatVisitDateTime, groupLabel, yearLevelOrder, type SortColumn, type SortDirection, type VisitorWithRangeVisits } from '../visit-logs/visit-logs-helpers';
 import { progressPercent } from './visit-progress-helpers';
 
 export function toProgressRow(visitor: VisitorWithRangeVisits, requiredVisits: number) {
@@ -31,11 +31,23 @@ function progressSortValue(row: ProgressRow, column: SortColumn) {
     }
 
     if (column === 'group') {
-        return groupLabel(row.visitor);
+        if (row.visitor.type === 'student') {
+            const rank = yearLevelOrder.indexOf(row.visitor.yearLevel ?? '');
+            return `${String(rank >= 0 ? rank : 99).padStart(2, '0')} ${row.visitor.section ?? ''}`;
+        }
+        return row.visitor.department ?? '';
     }
 
     if (column === 'visitCount') {
         return row.visits;
+    }
+
+    if (column === 'remaining') {
+        return row.remaining;
+    }
+
+    if (column === 'progress') {
+        return row.percent;
     }
 
     return row.visitor.rangeVisits[0]?.visitedAt ? new Date(row.visitor.rangeVisits[0].visitedAt).getTime() : 0;

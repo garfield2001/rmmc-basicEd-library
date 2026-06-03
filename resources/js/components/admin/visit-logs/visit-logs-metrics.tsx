@@ -1,10 +1,10 @@
-import { HistoryMetricCard } from '@/components/admin/visits-history/visit-history-ui';
-import type { AdminVisitHistory } from '@/types/dashboard';
+import { HistoryMetricCard } from '@/components/admin/visit-logs/visit-logs-ui';
+import type { AdminVisitLogs } from '@/types/dashboard';
 import { BriefcaseBusiness, GraduationCap, UserRound } from 'lucide-react';
-import type { VisitorTypeFilter } from './visit-history-helpers';
+import type { VisitorTypeFilter } from './visit-logs-helpers';
 
-interface VisitHistoryMetricsProps {
-    metrics: AdminVisitHistory['metrics'];
+interface VisitLogsMetricsProps {
+    metrics: AdminVisitLogs['metrics'];
     rangeMetrics: {
         studentVisits: number;
         employeeVisits: number;
@@ -16,7 +16,7 @@ interface VisitHistoryMetricsProps {
     visitorType: VisitorTypeFilter;
 }
 
-export function VisitHistoryMetrics({ metrics, rangeMetrics, visitorType }: VisitHistoryMetricsProps) {
+export function VisitLogsMetrics({ metrics, rangeMetrics, visitorType }: VisitLogsMetricsProps) {
     const isEmployee = visitorType === 'employee';
     const rosterCount = isEmployee ? metrics.employeeVisitors : metrics.studentVisitors;
     const visitCount = isEmployee ? rangeMetrics.employeeVisits : rangeMetrics.studentVisits;

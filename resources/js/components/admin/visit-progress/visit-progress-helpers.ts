@@ -1,4 +1,4 @@
-import type { VisitorWithRangeVisits } from '../visits-history/visit-history-helpers';
+import type { VisitorWithRangeVisits } from '../visit-logs/visit-logs-helpers';
 
 export type ProgressBucketKey = 'none' | 'low' | 'mid' | 'near' | 'complete';
 export type ProgressStatusFilter = 'all' | 'in-progress' | 'complete' | 'no-visits';

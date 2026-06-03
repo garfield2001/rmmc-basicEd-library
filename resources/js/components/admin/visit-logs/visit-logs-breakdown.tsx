@@ -3,7 +3,7 @@ import { formatDisplayDate } from '@/components/ui/date-input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertTriangle, BriefcaseBusiness, CalendarDays, GraduationCap, ListChecks, Target } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import type { VisitorWithRangeVisits } from './visit-history-helpers';
+import type { VisitorWithRangeVisits } from './visit-logs-helpers';
 import {
     BreakdownList,
     employeeCount,
@@ -14,16 +14,16 @@ import {
     WatchlistTab,
     WatchlistTable,
     WeakGroupChart,
-} from './visit-history-watchlist-parts';
+} from './visit-logs-watchlist-parts';
 import { buildWatchlist, matchesWatchlistGroup, type WatchlistGroup } from './visit-log-watchlist';
 
-interface VisitHistoryBreakdownProps {
+interface VisitLogsBreakdownProps {
     visitors: VisitorWithRangeVisits[];
     studentRequiredVisits: number;
     employeeRequiredVisits: number;
 }
 
-export function VisitHistoryBreakdown({ visitors, studentRequiredVisits, employeeRequiredVisits }: VisitHistoryBreakdownProps) {
+export function VisitLogsBreakdown({ visitors, studentRequiredVisits, employeeRequiredVisits }: VisitLogsBreakdownProps) {
     const [open, setOpen] = useState(false);
     const watchlist = useMemo(
         () => buildWatchlist(visitors, studentRequiredVisits, employeeRequiredVisits),
@@ -62,13 +62,13 @@ export function VisitHistoryBreakdown({ visitors, studentRequiredVisits, employe
     );
 }
 
-export function VisitHistoryWatchlistPanel({
+export function VisitLogsWatchlistPanel({
     visitors,
     studentRequiredVisits,
     employeeRequiredVisits,
     activeType,
     onActiveTypeChange,
-}: VisitHistoryBreakdownProps & {
+}: VisitLogsBreakdownProps & {
     activeType: 'student' | 'employee';
     onActiveTypeChange: (type: 'student' | 'employee') => void;
 }) {

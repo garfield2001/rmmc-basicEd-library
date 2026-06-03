@@ -23,13 +23,14 @@
                 <div><span class="meta-label">Date Range:</span> {{ $payload['date_range'] }}</div>
             </section>
 
+            @php $colTotal = collect($payload['columns'])->sum(fn ($c) => $c['excel_width'] ?? 18); @endphp
             @foreach ($payload['groups'] as $group)
                 <div class="group-title">{{ $payload['group_label'] }}: {{ $group['label'] }}</div>
                 <table class="report-table">
                     <thead>
                         <tr>
                             @foreach ($payload['columns'] as $column)
-                                <th>{{ $column['label'] }}</th>
+                                <th style="width: {{ round(($column['excel_width'] ?? 18) / $colTotal * 100, 1) }}%">{{ $column['label'] }}</th>
                             @endforeach
                         </tr>
                     </thead>
@@ -46,19 +47,12 @@
                             </tr>
                         @endforelse
                     </tbody>
-                    <tfoot>
-                        <tr class="summary-row">
-                            @foreach ($payload['columns'] as $index => $column)
-                                @php($summary = $group['summary'][$index] ?? null)
-                                <td @class(['summary-center' => $index === 1])>
-                                    @if ($summary)
-                                        {{ $summary['label'] }}: {{ $summary['value'] }}
-                                    @endif
-                                </td>
-                            @endforeach
-                        </tr>
-                    </tfoot>
                 </table>
+                <div class="group-summary">
+                    @foreach ($group['summary'] as $index => $item)
+                        <div @class(['summary-center' => $index === 1])>{{ $item['label'] }}: {{ $item['value'] }}</div>
+                    @endforeach
+                </div>
             @endforeach
         </main>
 

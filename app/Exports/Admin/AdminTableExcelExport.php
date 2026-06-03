@@ -89,6 +89,8 @@ class AdminTableExcelExport implements FromArray, WithColumnWidths, WithDrawings
                 foreach ($this->summaryRows as $row) {
                     $sheet->getStyle("A{$row}:{$lastColumn}{$row}")->getFont()->setBold(true);
                 }
+
+                $sheet->getStyle('A1:A'.$sheet->getHighestRow())->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
             },
         ];
     }

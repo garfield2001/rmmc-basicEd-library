@@ -68,13 +68,14 @@
                 </tbody>
             </table>
 
+            @php $colTotal = collect($columns)->sum(fn ($c) => (float) rtrim($c['width'] ?? '1in', 'in')); @endphp
             @foreach ($groups as $group)
                 <div class="group-title">{{ $groupPrefix }}: {{ $group['label'] }}</div>
                 <table class="report-table" align="center">
                     <thead>
                         <tr>
                             @foreach ($columns as $column)
-                                <th style="width: {{ $column['width'] }}">{{ $column['label'] }}</th>
+                                <th style="width: {{ round(rtrim($column['width'] ?? '1in', 'in') / $colTotal * 100, 1) }}%">{{ $column['label'] }}</th>
                             @endforeach
                         </tr>
                     </thead>
@@ -82,7 +83,7 @@
                         @foreach ($group['rows'] as $row)
                             <tr>
                                 @foreach ($columns as $column)
-                                    <td class="{{ in_array($column['key'], ['school_id', 'visits'], true) ? 'text-cell' : '' }}">
+                                    <td class="{{ $column['key'] === 'school_id' ? 'text-cell' : '' }}">
                                         @switch($column['key'])
                                             @case('school_id')
                                                 {{ $row['school_id'] }}
@@ -105,15 +106,13 @@
                             </tr>
                         @endforeach
                     </tbody>
-                    <tfoot>
-                        <tr class="summary-row">
-                            <td>Visitors: {{ $group['summary']['visitors'] ?? count($group['rows']) }}</td>
-                            <td class="summary-center">Total Visits: {{ $group['summary']['total_visits'] ?? collect($group['rows'])->sum('visit_count') }}</td>
-                            <td>Excess Visits: {{ $group['summary']['excess_visits'] ?? collect($group['rows'])->sum('excess_visits') }}</td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
+                </table>
+                <table class="group-summary">
+                    <tr>
+                        <td>Visitors: {{ $group['summary']['visitors'] ?? count($group['rows']) }}</td>
+                        <td class="summary-center">Total Visits: {{ $group['summary']['total_visits'] ?? collect($group['rows'])->sum('visit_count') }}</td>
+                        <td>Excess Visits: {{ $group['summary']['excess_visits'] ?? collect($group['rows'])->sum('excess_visits') }}</td>
+                    </tr>
                 </table>
             @endforeach
         </div>

@@ -2,12 +2,12 @@ import { formatDisplayDate } from '@/components/ui/date-input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { VisitorAvatar } from '@/components/ui/visitor-avatar';
-import type { VisitHistoryVisit, VisitHistoryVisitor } from '@/types/dashboard';
-import { groupLabel, parseVisitDate, summarizeDateRange, toLocalIsoDate } from './visit-history-helpers';
+import type { VisitLogVisit, VisitLogVisitor } from '@/types/dashboard';
+import { groupLabel, parseVisitDate, summarizeDateRange, toLocalIsoDate } from './visit-logs-helpers';
 
 interface VisitorHistoryModalProps {
-    visitor: VisitHistoryVisitor | null;
-    visits: VisitHistoryVisit[];
+    visitor: VisitLogVisitor | null;
+    visits: VisitLogVisit[];
     startDate: string;
     endDate: string;
     open: boolean;

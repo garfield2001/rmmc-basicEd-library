@@ -1,15 +1,15 @@
 import { formatDisplayDate } from '@/components/ui/date-input';
-import type { VisitHistoryVisit, VisitHistoryVisitor } from '@/types/dashboard';
+import type { VisitLogVisit, VisitLogVisitor } from '@/types/dashboard';
 
 export type VisitorTypeFilter = 'student' | 'employee';
-export type SortColumn = 'schoolId' | 'name' | 'group' | 'visitCount' | 'lastVisit';
+export type SortColumn = 'schoolId' | 'name' | 'group' | 'visitCount' | 'lastVisit' | 'remaining' | 'progress';
 export type SortDirection = 'asc' | 'desc';
 export type VisitLogStatusFilter = 'all' | 'below' | 'met' | 'excess';
-export type VisitorWithRangeVisits = VisitHistoryVisitor & { rangeVisits: VisitHistoryVisit[] };
+export type VisitorWithRangeVisits = VisitLogVisitor & { rangeVisits: VisitLogVisit[] };
 
 export const defaultRowsPerPage = 5;
 
-const yearLevelOrder = [
+export const yearLevelOrder = [
     'Kindergarten 1',
     'Kindergarten 2',
     'Grade 1',
@@ -32,7 +32,7 @@ export function sortVisitors(visitors: VisitorWithRangeVisits[], column: SortCol
     });
 }
 
-export function visitsInDateRange(visits: VisitHistoryVisit[], startDate: string, endDate: string) {
+export function visitsInDateRange(visits: VisitLogVisit[], startDate: string, endDate: string) {
     return visits
         .filter((visit) => {
             const visitedAt = parseVisitDate(visit.visitedAt);
@@ -48,7 +48,7 @@ export function visitsInDateRange(visits: VisitHistoryVisit[], startDate: string
         .sort((first, second) => (parseVisitDate(second.visitedAt)?.getTime() ?? 0) - (parseVisitDate(first.visitedAt)?.getTime() ?? 0));
 }
 
-export function groupLabel(visitor: VisitHistoryVisitor) {
+export function groupLabel(visitor: VisitLogVisitor) {
     if (visitor.type === 'employee') {
         return visitor.department || 'No department';
     }
@@ -118,6 +118,14 @@ function sortValue(visitor: VisitorWithRangeVisits, column: SortColumn) {
 
     if (column === 'lastVisit') {
         return parseVisitDate(visitor.rangeVisits[0]?.visitedAt)?.getTime() ?? 0;
+    }
+
+    if (column === 'remaining') {
+        return 0;
+    }
+
+    if (column === 'progress') {
+        return 0;
     }
 
     if (visitor.type === 'student') {

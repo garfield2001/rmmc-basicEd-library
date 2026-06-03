@@ -3,10 +3,10 @@ import { formatDisplayDate } from '@/components/ui/date-input';
 import type React from 'react';
 import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { VisitInsightModal, type InsightModalState } from './visit-history-insight-modal';
-import { parseVisitDate, toLocalIsoDate, type VisitorTypeFilter, type VisitorWithRangeVisits } from './visit-history-helpers';
+import { VisitInsightModal, type InsightModalState } from './visit-logs-insight-modal';
+import { parseVisitDate, toLocalIsoDate, type VisitorTypeFilter, type VisitorWithRangeVisits } from './visit-logs-helpers';
 
-interface VisitHistoryInsightsProps {
+interface VisitLogsInsightsProps {
     visitors: VisitorWithRangeVisits[];
     visitorType: VisitorTypeFilter;
     onStudentGroupSelect: (yearLevel: string, section: string) => void;
@@ -17,7 +17,7 @@ const chartConfig = {
     visits: { label: 'Visits', color: '#2563eb' },
 } satisfies ChartConfig;
 
-export function VisitHistoryInsights({ visitors, visitorType, onStudentGroupSelect, onDepartmentSelect }: VisitHistoryInsightsProps) {
+export function VisitLogsInsights({ visitors, visitorType, onStudentGroupSelect, onDepartmentSelect }: VisitLogsInsightsProps) {
     const [modal, setModal] = useState<InsightModalState | null>(null);
     const activity = buildActivity(visitors);
     const groups = buildGroups(visitors, visitorType);
@@ -153,6 +153,7 @@ function buildGroups(visitors: VisitorWithRangeVisits[], visitorType: VisitorTyp
             label,
             visits: 0,
             visitors: 0,
+            percent: 0,
             yearLevel: visitor.yearLevel ?? '',
             section: visitor.section ?? '',
             department: visitor.department ?? '',

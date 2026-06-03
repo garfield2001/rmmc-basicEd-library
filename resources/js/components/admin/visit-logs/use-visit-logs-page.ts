@@ -6,10 +6,10 @@ import {
     type SortDirection,
     type VisitLogStatusFilter,
     type VisitorTypeFilter,
-} from '@/components/admin/visits-history/visit-history-helpers';
+} from '@/components/admin/visit-logs/visit-logs-helpers';
 import { toIsoDate } from '@/components/ui/date-input-utils';
 import type { RowsPerPageOption } from '@/components/ui/pagination-controls';
-import type { AdminVisitHistory, VisitHistoryVisitor } from '@/types/dashboard';
+import type { AdminVisitLogs, VisitLogVisitor } from '@/types/dashboard';
 import { router } from '@inertiajs/react';
 import { useEchoPublic } from '@laravel/echo-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -21,9 +21,9 @@ import {
     visitorsWithDateCoverage,
 } from './visit-log-filtering';
 
-export function useVisitsHistoryPage(visitHistory: AdminVisitHistory, initialVisitorType: VisitorTypeFilter = 'student') {
-    const schoolYearStart = visitHistory.schoolYear?.starts_at ?? '';
-    const schoolYearEnd = visitHistory.schoolYear?.ends_at ?? '';
+export function useVisitLogsPage(visitLogs: AdminVisitLogs, initialVisitorType: VisitorTypeFilter = 'student') {
+    const schoolYearStart = visitLogs.schoolYear?.starts_at ?? '';
+    const schoolYearEnd = visitLogs.schoolYear?.ends_at ?? '';
     const today = useMemo(() => toIsoDate(new Date()), []);
     const defaultEndDate = schoolYearEnd && schoolYearEnd < today ? schoolYearEnd : today;
     const [startDate, setStartDate] = useState('');
@@ -38,10 +38,10 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory, initialVis
     const [rowsPerPage, setRowsPerPage] = useState<RowsPerPageOption>(defaultRowsPerPage);
     const [sortColumn, setSortColumn] = useState<SortColumn>('lastVisit');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-    const [selectedVisitor, setSelectedVisitor] = useState<VisitHistoryVisitor | null>(null);
+    const [selectedVisitor, setSelectedVisitor] = useState<VisitLogVisitor | null>(null);
 
     useEchoPublic('library-visits', '.LibraryVisitRecorded', () => {
-        router.reload({ only: ['visitHistory'] });
+        router.reload({ only: ['visitLogs'] });
     });
 
     useEffect(() => {
@@ -49,19 +49,23 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory, initialVis
         setYearLevel('');
         setSection('');
         setDepartment('');
+
+        if (initialVisitorType === 'employee' && visitLogs.filters.departments.length === 1) {
+            setDepartment(visitLogs.filters.departments[0]);
+        }
     }, [initialVisitorType]);
 
     const effectiveStartDate = startDate || schoolYearStart;
     const effectiveEndDate = endDate || defaultEndDate;
 
     const visitorsWithRangeVisits = useMemo(() => {
-        return visitorsWithDateCoverage(visitHistory.visitors, effectiveStartDate, effectiveEndDate, today);
-    }, [effectiveEndDate, effectiveStartDate, today, visitHistory.visitors]);
+        return visitorsWithDateCoverage(visitLogs.visitors, effectiveStartDate, effectiveEndDate, today);
+    }, [effectiveEndDate, effectiveStartDate, today, visitLogs.visitors]);
 
     const requiredVisits =
         visitorType === 'student'
-            ? (visitHistory.schoolYear?.student_required_visits ?? 0)
-            : (visitHistory.schoolYear?.employee_required_visits ?? 0);
+            ? (visitLogs.schoolYear?.student_required_visits ?? 0)
+            : (visitLogs.schoolYear?.employee_required_visits ?? 0);
 
     const filteredVisitors = useMemo(() => {
         return filterVisitLogStatus(
@@ -95,6 +99,10 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory, initialVis
         setSection('');
         setDepartment('');
         setLogStatus('all');
+
+        if (value === 'employee' && visitLogs.filters.departments.length === 1) {
+            setDepartment(visitLogs.filters.departments[0]);
+        }
     };
 
     const changeYearLevel = (value: string) => {
@@ -118,17 +126,18 @@ export function useVisitsHistoryPage(visitHistory: AdminVisitHistory, initialVis
     };
 
     const changeSort = (column: SortColumn) => {
-        setSortColumn((currentColumn) => {
-            if (currentColumn === column) {
-                setSortDirection((direction) => (direction === 'asc' ? 'desc' : 'asc'));
-
-                return currentColumn;
+        if (sortColumn === column) {
+            const initialDirection = column === 'visitCount' || column === 'lastVisit' ? 'desc' : 'asc';
+            if (sortDirection === initialDirection) {
+                setSortDirection(initialDirection === 'asc' ? 'desc' : 'asc');
+            } else {
+                setSortColumn('lastVisit');
+                setSortDirection('desc');
             }
-
+        } else {
+            setSortColumn(column);
             setSortDirection(column === 'visitCount' || column === 'lastVisit' ? 'desc' : 'asc');
-
-            return column;
-        });
+        }
     };
 
     const changeQuickSort = (value: string) => {

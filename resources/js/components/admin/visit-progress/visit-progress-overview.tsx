@@ -2,7 +2,7 @@ import { ProgressBar } from '@/components/admin/reports/report-table-parts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 import { useMemo } from 'react';
 import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from 'recharts';
-import type { VisitorTypeFilter, VisitorWithRangeVisits } from '../visits-history/visit-history-helpers';
+import type { VisitorTypeFilter, VisitorWithRangeVisits } from '../visit-logs/visit-logs-helpers';
 import type { VisitProgressDrilldown } from './visit-progress-drilldown-modal';
 import { progressBucketDefinitions, progressBucketForVisitor, progressPercent } from './visit-progress-helpers';
 import { Panel } from './visit-progress-panels';

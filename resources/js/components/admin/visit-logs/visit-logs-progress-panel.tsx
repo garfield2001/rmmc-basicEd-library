@@ -2,10 +2,10 @@ import { ProgressBar } from '@/components/admin/reports/report-table-parts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 import { BarChart3 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import type { VisitorTypeFilter, VisitorWithRangeVisits } from './visit-history-helpers';
+import type { VisitorTypeFilter, VisitorWithRangeVisits } from './visit-logs-helpers';
 import { watchlistGroupLabel } from './visit-log-watchlist';
 
-interface VisitHistoryProgressPanelProps {
+interface VisitLogsProgressPanelProps {
     visitors: VisitorWithRangeVisits[];
     visitorType: VisitorTypeFilter;
     studentRequiredVisits: number;
@@ -20,13 +20,13 @@ const progressConfig = {
     },
 } satisfies ChartConfig;
 
-export function VisitHistoryProgressPanel({
+export function VisitLogsProgressPanel({
     visitors,
     visitorType,
     studentRequiredVisits,
     employeeRequiredVisits,
     onVisitorOpen,
-}: VisitHistoryProgressPanelProps) {
+}: VisitLogsProgressPanelProps) {
     const required = visitorType === 'employee' ? employeeRequiredVisits : studentRequiredVisits;
     const rows = visitors
         .filter((visitor) => visitor.type === visitorType && required > 0)

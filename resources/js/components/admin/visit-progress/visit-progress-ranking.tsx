@@ -1,19 +1,19 @@
 import { ProgressBar } from '@/components/admin/reports/report-table-parts';
 import { PaginationControls, type RowsPerPageOption } from '@/components/ui/pagination-controls';
-import { SelectInput } from '@/components/ui/select-input';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { TablePlaceholderRows } from '@/components/ui/table';
-import { Funnel } from 'lucide-react';
+import type { AdminVisitLogs } from '@/types/dashboard';
+import { ArrowDown, ArrowUp, ChevronsUpDown, Funnel } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     groupLabel,
     type SortColumn,
     type SortDirection,
     type VisitorTypeFilter,
     type VisitorWithRangeVisits,
-} from '../visits-history/visit-history-helpers';
-import { VisitSearchControl, VisitSortOptions } from '../visits-history/visit-table-controls';
-import { matchesProgressStatus, type ProgressStatusFilter } from './visit-progress-helpers';
+} from '../visit-logs/visit-logs-helpers';
+import { VisitSearchControl } from '../visit-logs/visit-table-controls';
 import { compareProgressRows, toProgressRow } from './visit-progress-ranking-utils';
 
 interface VisitProgressRankingProps {
@@ -21,13 +21,18 @@ interface VisitProgressRankingProps {
     visitorType: VisitorTypeFilter;
     requiredVisits: number;
     search: string;
-    statusFilter: ProgressStatusFilter;
     sortColumn: SortColumn;
     sortDirection: SortDirection;
     filterPanel?: ReactNode;
+    filters: AdminVisitLogs['filters'];
+    yearLevel: string;
+    section: string;
+    department: string;
+    onYearLevelChange: (value: string) => void;
+    onSectionChange: (value: string) => void;
+    onDepartmentChange: (value: string) => void;
     onSearchChange: (value: string) => void;
-    onStatusFilterChange: (value: ProgressStatusFilter) => void;
-    onQuickSortChange: (value: string) => void;
+    onSortChange: (column: SortColumn) => void;
     onVisitorOpen: (visitor: VisitorWithRangeVisits) => void;
 }
 
@@ -38,13 +43,18 @@ export function VisitProgressRanking({
     visitorType,
     requiredVisits,
     search,
-    statusFilter,
     sortColumn,
     sortDirection,
     filterPanel,
+    filters,
+    yearLevel,
+    section,
+    department,
+    onYearLevelChange,
+    onSectionChange,
+    onDepartmentChange,
     onSearchChange,
-    onStatusFilterChange,
-    onQuickSortChange,
+    onSortChange,
     onVisitorOpen,
 }: VisitProgressRankingProps) {
     const [filtersOpen, setFiltersOpen] = useState(false);
@@ -58,10 +68,7 @@ export function VisitProgressRanking({
                 .sort((first, second) => compareProgressRows(first, second, sortColumn, sortDirection)),
         [requiredVisits, sortColumn, sortDirection, visitorType, visitors],
     );
-    const rows = useMemo(
-        () => allRows.filter((row) => matchesProgressStatus(row.visitor, requiredVisits, statusFilter)),
-        [allRows, requiredVisits, statusFilter],
-    );
+    const rows = allRows;
     const totalPages = rowsPerPage === 'all' ? 1 : Math.max(1, Math.ceil(rows.length / rowsPerPage));
     const visibleRows = rowsPerPage === 'all' ? rows : rows.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
     const from = rows.length === 0 ? 0 : (currentPage - 1) * (rowsPerPage === 'all' ? rows.length : rowsPerPage) + 1;
@@ -69,14 +76,31 @@ export function VisitProgressRanking({
     const placeholderRows = rowsPerPage === 'all' || visibleRows.length === 0 ? 0 : Math.max(0, rowsPerPage - visibleRows.length);
     const groupHeader = visitorType === 'student' ? 'Year / section' : 'Department';
     const searchPlaceholder = visitorType === 'student' ? 'Search ID, name, section' : 'Search ID, name, department';
-    const sortValue = `${sortColumn}:${sortDirection}`;
     const complete = allRows.filter((row) => row.percent >= 100).length;
     const noVisits = allRows.filter((row) => row.visits === 0).length;
     const average = allRows.length > 0 ? Math.round(allRows.reduce((sum, row) => sum + row.percent, 0) / allRows.length) : 0;
+    const yearLevelOptions = [{ value: '', label: 'All year levels' }, ...filters.yearLevels.map((level) => ({ value: level, label: level }))];
+    const sectionsForYear = filters.sectionsByYearLevel[yearLevel] ?? [];
+    const sectionOptions = [
+        { value: '', label: 'All sections' },
+        ...(yearLevel ? sectionsForYear : [...new Set(Object.values(filters.sectionsByYearLevel).flat())]).map((option) => ({ value: option, label: option })),
+    ];
+    const departmentOptions = [{ value: '', label: 'All departments' }, ...filters.departments.map((option) => ({ value: option, label: option }))];
+
+    const handleYearLevelChange = useCallback(
+        (value: string) => {
+            onYearLevelChange(value);
+            const sectionsForNewYear = filters.sectionsByYearLevel[value] ?? [];
+            if (sectionsForNewYear.length === 1) {
+                onSectionChange(sectionsForNewYear[0]);
+            }
+        },
+        [filters.sectionsByYearLevel, onSectionChange, onYearLevelChange],
+    );
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [rowsPerPage, search, statusFilter, visitorType, visitors]);
+    }, [rowsPerPage, search, visitorType, visitors]);
 
     useEffect(() => {
         setCurrentPage((page) => Math.min(page, totalPages));
@@ -105,23 +129,47 @@ export function VisitProgressRanking({
                         </button>
                     )}
                 </div>
-                <div className="mt-4 grid gap-3 md:grid-cols-3 xl:grid-cols-[minmax(14rem,20rem)_12rem_12rem]">
-                    <VisitSearchControl search={search} placeholder={searchPlaceholder} className="" onSearchChange={onSearchChange} />
-                    <label className="grid gap-1 text-xs font-semibold text-[#030A8C]">
-                        Sort
-                        <SelectInput value={sortValue} onChange={(event) => onQuickSortChange(event.target.value)}>
-                            <VisitSortOptions />
-                        </SelectInput>
-                    </label>
-                    <label className="grid gap-1 text-xs font-semibold text-[#030A8C]">
-                        Progress
-                        <SelectInput value={statusFilter} onChange={(event) => onStatusFilterChange(event.target.value as ProgressStatusFilter)}>
-                            <option value="all">All progress</option>
-                            <option value="in-progress">In progress</option>
-                            <option value="complete">Complete</option>
-                            <option value="no-visits">No visits</option>
-                        </SelectInput>
-                    </label>
+                <div className={`mt-4 grid gap-3 ${visitorType === 'student' ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                    <div>
+                        <label className="mb-1 block text-xs font-semibold text-[#030A8C]">Search</label>
+                        <VisitSearchControl search={search} placeholder={searchPlaceholder} onSearchChange={onSearchChange} />
+                    </div>
+                    {visitorType === 'student' ? (
+                        <>
+                            <div>
+                                <label className="mb-1 block text-xs font-semibold text-[#030A8C]">Year level</label>
+                                <SearchableSelect
+                                    value={yearLevel}
+                                    options={yearLevelOptions}
+                                    placeholder="All year levels"
+                                    searchPlaceholder="Search year level"
+                                    onChange={handleYearLevelChange}
+                                />
+                            </div>
+                            <div>
+                                <label className="mb-1 block text-xs font-semibold text-[#030A8C]">Section</label>
+                                <SearchableSelect
+                                    value={section}
+                                    options={sectionOptions}
+                                    placeholder="All sections"
+                                    searchPlaceholder="Search section"
+                                    disabled={!yearLevel}
+                                    onChange={onSectionChange}
+                                />
+                            </div>
+                        </>
+                    ) : (
+                        <div>
+                            <label className="mb-1 block text-xs font-semibold text-[#030A8C]">Department</label>
+                            <SearchableSelect
+                                value={department}
+                                options={departmentOptions}
+                                placeholder="All departments"
+                                searchPlaceholder="Search department"
+                                onChange={onDepartmentChange}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
             {filtersOpen && filterPanel}
@@ -129,12 +177,12 @@ export function VisitProgressRanking({
                 <table className="w-full min-w-[820px] text-left text-sm">
                     <thead className="border-b border-[#040DBF]/10 bg-[#f6f8ff] text-[#020659]/70">
                         <tr>
-                            <th className="px-4 py-3">Name</th>
-                            <th className="px-4 py-3">{groupHeader}</th>
-                            <th className="px-4 py-3">Visits</th>
-                            <th className="px-4 py-3">Remaining</th>
-                            <th className="px-4 py-3">Last visit</th>
-                            <th className="px-4 py-3">Progress</th>
+                            <SortableTh column="name" label="Name" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
+                            <SortableTh column="group" label={groupHeader} sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
+                            <SortableTh column="visitCount" label="Visits" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
+                            <SortableTh column="remaining" label="Remaining" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
+                            <SortableTh column="lastVisit" label="Last visit" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
+                            <SortableTh column="progress" label="Progress" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
                         </tr>
                     </thead>
                     <tbody>
@@ -191,5 +239,31 @@ export function VisitProgressRanking({
                 onPageChange={(page) => setCurrentPage(Math.min(totalPages, Math.max(1, page)))}
             />
         </section>
+    );
+}
+
+function SortableTh({
+    column,
+    label,
+    sort,
+    direction,
+    onSortChange,
+}: {
+    column: SortColumn;
+    label: string;
+    sort: SortColumn;
+    direction: SortDirection;
+    onSortChange: (column: SortColumn) => void;
+}) {
+    const active = sort === column;
+    const Icon = active ? (direction === 'asc' ? ArrowUp : ArrowDown) : ChevronsUpDown;
+
+    return (
+        <th className="px-4 py-3 font-medium text-[#020659]/70">
+            <button type="button" onClick={() => onSortChange(column)} className="inline-flex items-center gap-1.5 hover:text-[#010440]">
+                {label}
+                <Icon className="size-3.5" />
+            </button>
+        </th>
     );
 }

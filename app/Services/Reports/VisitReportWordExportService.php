@@ -14,7 +14,7 @@ class VisitReportWordExportService
 {
     public function download(array $report, array $groups, string $filename): BinaryFileResponse
     {
-        $path = tempnam(sys_get_temp_dir(), 'visit-report-').'.docx';
+        $path = tempnam(sys_get_temp_dir(), 'visit-report-') . '.docx';
         Settings::setOutputEscapingEnabled(true);
         IOFactory::createWriter($this->document($report, $groups), 'Word2007')->save($path);
         app(WordDocumentCleaner::class)->clean($path);
@@ -51,9 +51,10 @@ class VisitReportWordExportService
         $table = $section->addTable(['borderSize' => 0, 'borderColor' => 'FFFFFF', 'cellMargin' => 0, 'alignment' => Jc::CENTER]);
         $table->addRow();
         $logo = public_path('images/rmmc-logo.jpg');
-        $left = $table->addCell(1500);
-        $center = $table->addCell(6300);
-        $right = $table->addCell(1500);
+        $cellStyle = ['borderSize' => 0, 'borderColor' => 'FFFFFF'];
+        $left = $table->addCell(1500, $cellStyle);
+        $center = $table->addCell(6300, $cellStyle);
+        $right = $table->addCell(1500, $cellStyle);
 
         if (is_file($logo)) {
             $left->addImage($logo, ['width' => 68, 'height' => 68, 'alignment' => Jc::CENTER]);
@@ -75,54 +76,66 @@ class VisitReportWordExportService
 
     private function metaRow($table, string $leftLabel, string $leftValue, string $rightLabel, string $rightValue): void
     {
+        $cellStyle = ['borderSize' => 0, 'borderColor' => 'FFFFFF'];
         $table->addRow();
-        $this->metaCell($table->addCell(2700), $leftLabel, $leftValue);
-        $this->metaCell($table->addCell(2700), $rightLabel, $rightValue);
+        $this->metaCell($table->addCell(2700, $cellStyle), $leftLabel, $leftValue);
+        $this->metaCell($table->addCell(2700, $cellStyle), $rightLabel, $rightValue);
     }
 
     private function metaCell($cell, string $label, string $value): void
     {
         $run = $cell->addTextRun(['spaceAfter' => 0]);
-        $run->addText($label.' ', ['bold' => true]);
+        $run->addText($label . ' ', ['bold' => true]);
         $run->addText($value);
     }
 
     private function group($section, array $report, array $group): void
     {
-        $section->addText($this->groupPrefix($report).': '.$group['label'], ['bold' => true, 'color' => '010440'], ['alignment' => Jc::CENTER, 'spaceBefore' => 180, 'spaceAfter' => 80]);
+        $section->addText($this->groupPrefix($report) . ': ' . $group['label'], ['bold' => true, 'color' => '010440'], ['alignment' => Jc::CENTER, 'spaceBefore' => 180, 'spaceAfter' => 80]);
         $table = $section->addTable('report-table');
-        $this->tableRow($table, ['School ID', 'Name', 'Visits', 'Excess', 'Progress'], true);
+        $this->headerRow($table, ['School ID', 'Name', 'Visits', 'Excess', 'Progress'], self::COLUMN_WIDTHS);
 
         foreach ($group['rows'] as $row) {
-            $this->tableRow($table, [$row['school_id'], $row['name'], $row['visit_count'].' / '.($report['summary']['required_visits'] ?? 0), $row['excess_visits'] ?? 0, $row['progress_percent'].'%']);
+            $this->dataRow($table, [$row['school_id'], $row['name'], $row['visit_count'] . ' / ' . ($report['summary']['required_visits'] ?? 0), $row['excess_visits'] ?? 0, $row['progress_percent'] . '%'], self::COLUMN_WIDTHS);
         }
 
         $this->summary($section, $group['summary']);
     }
 
-    private function summary($section, array $summary): void
-    {
-        $table = $section->addTable(['borderSize' => 0, 'borderColor' => 'FFFFFF', 'cellMargin' => 0, 'alignment' => Jc::START]);
-        $table->addRow();
-        $widths = [1500, 5000, 1000, 1000, 1100];
-        $values = ["Visitors: {$summary['visitors']}", "Total Visits: {$summary['total_visits']}", "Excess Visits: {$summary['excess_visits']}", '', ''];
+    private const COLUMN_WIDTHS = [1500, 5000, 1000, 1000, 1100];
 
-        foreach ($values as $index => $text) {
-            $table->addCell($widths[$index])->addText($text, ['bold' => true], [
-                'alignment' => $index === 1 ? Jc::CENTER : Jc::START,
-                'spaceBefore' => 90,
-                'spaceAfter' => 180,
-            ]);
-        }
-    }
-
-    private function tableRow($table, array $values, bool $header = false): void
+    private function headerRow($table, array $values, array $widths): void
     {
-        $widths = [1500, 5000, 1000, 1000, 1100];
         $table->addRow();
 
         foreach ($values as $index => $value) {
-            $table->addCell($widths[$index])->addText((string) $value, ['bold' => $header], ['spaceAfter' => 0]);
+            $table->addCell($widths[$index], ['borderSize' => 0, 'borderColor' => 'FFFFFF', 'bgColor' => 'E8EEFC'])
+                ->addText((string) $value, ['bold' => true], ['spaceAfter' => 0]);
+        }
+    }
+
+    private function dataRow($table, array $values, array $widths): void
+    {
+        $table->addRow();
+
+        foreach ($values as $index => $value) {
+            $table->addCell($widths[$index])->addText((string) $value, [], ['spaceAfter' => 0]);
+        }
+    }
+
+    private function summary($section, array $summary): void
+    {
+        $cellStyle = ['borderSize' => 0, 'borderColor' => 'FFFFFF'];
+        $table = $section->addTable(['borderSize' => 0, 'cellMargin' => 0, 'borderColor' => 'FFFFFF', 'alignment' => Jc::START]);
+        $table->addRow();
+        $values = ["Visitors: {$summary['visitors']}", "Total Visits: {$summary['total_visits']}", "Excess Visits: {$summary['excess_visits']}"];
+
+        foreach ($values as $index => $text) {
+            $table->addCell(3000, $cellStyle)->addText($text, ['bold' => true], [
+                'alignment' => $index === 1 ? Jc::CENTER : Jc::START,
+                'spaceBefore' => 120,
+                'spaceAfter' => 180,
+            ]);
         }
     }
 
