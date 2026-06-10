@@ -4,16 +4,15 @@ import type { VisitReportRow, VisitReportSchoolYear } from '@/types/reports';
 export type VisitorType = 'student' | 'employee';
 export type VisitorTypeFilter = '' | VisitorType;
 export type DateRangeMode = '' | 'school_year' | 'custom';
-export type AllFilterValue = '__all__';
 export type ReportSortColumn = 'school_id' | 'name' | 'group' | 'visit_count' | 'progress_percent';
 export type SortDirection = 'asc' | 'desc';
 export type SchoolYearBounds = {
     start: string;
     end: string;
 };
+type QueryValue = string | number | Array<string | number> | null | undefined;
 
 export const rowsPerPage = 10;
-export const allFilterValue: AllFilterValue = '__all__';
 
 export function sortReportRows(
     rows: VisitReportRow[],
@@ -34,10 +33,15 @@ export function sortReportRows(
     });
 }
 
-export function toSearchParams(query: Record<string, string | number | null | undefined>) {
+export function toSearchParams(query: Record<string, QueryValue>) {
     const params = new URLSearchParams();
 
     Object.entries(cleanQuery(query)).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+            value.forEach((item) => params.append(`${key}[]`, String(item)));
+            return;
+        }
+
         params.set(key, String(value));
     });
 
@@ -111,8 +115,16 @@ function compareReportValues(first: string | number | boolean, second: string | 
     return String(first).localeCompare(String(second), undefined, { numeric: true, sensitivity: 'base' });
 }
 
-export function cleanQuery(query: Record<string, string | number | null | undefined>) {
-    return Object.fromEntries(Object.entries(query).filter(([, value]) => value !== '' && value !== null && value !== undefined));
+export function cleanQuery(query: Record<string, QueryValue>) {
+    return Object.fromEntries(
+        Object.entries(query).filter(([, value]) => {
+            if (Array.isArray(value)) {
+                return value.length > 0;
+            }
+
+            return value !== '' && value !== null && value !== undefined;
+        }),
+    );
 }
 
 function dateOnly(value: VisitReportSchoolYear['starts_at']) {

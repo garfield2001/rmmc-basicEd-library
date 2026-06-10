@@ -98,8 +98,6 @@ class VisitReportWordExportService
         foreach ($group['rows'] as $row) {
             $this->dataRow($table, [$row['school_id'], $row['name'], $row['visit_count'] . ' / ' . ($report['summary']['required_visits'] ?? 0), $row['excess_visits'] ?? 0, $row['progress_percent'] . '%'], self::COLUMN_WIDTHS);
         }
-
-        $this->summary($section, $group['summary']);
     }
 
     private const COLUMN_WIDTHS = [1500, 5000, 1000, 1000, 1100];
@@ -109,8 +107,8 @@ class VisitReportWordExportService
         $table->addRow();
 
         foreach ($values as $index => $value) {
-            $table->addCell($widths[$index], ['borderSize' => 0, 'borderColor' => 'FFFFFF', 'bgColor' => 'E8EEFC'])
-                ->addText((string) $value, ['bold' => true], ['spaceAfter' => 0]);
+            $table->addCell($widths[$index], ['borderSize' => 6, 'borderColor' => '111827', 'bgColor' => 'E8EEFC'])
+                ->addText((string) $value, ['bold' => true], ['alignment' => Jc::START, 'spaceAfter' => 0]);
         }
     }
 
@@ -123,22 +121,6 @@ class VisitReportWordExportService
         }
     }
 
-    private function summary($section, array $summary): void
-    {
-        $cellStyle = ['borderSize' => 0, 'borderColor' => 'FFFFFF'];
-        $table = $section->addTable(['borderSize' => 0, 'cellMargin' => 0, 'borderColor' => 'FFFFFF', 'alignment' => Jc::START]);
-        $table->addRow();
-        $values = ["Visitors: {$summary['visitors']}", "Total Visits: {$summary['total_visits']}", "Excess Visits: {$summary['excess_visits']}"];
-
-        foreach ($values as $index => $text) {
-            $table->addCell(3000, $cellStyle)->addText($text, ['bold' => true], [
-                'alignment' => $index === 1 ? Jc::CENTER : Jc::START,
-                'spaceBefore' => 120,
-                'spaceAfter' => 180,
-            ]);
-        }
-    }
-
     private function tableStyle(): array
     {
         return ['borderSize' => 6, 'borderColor' => '111827', 'cellMargin' => 80, 'alignment' => Jc::CENTER];
@@ -146,7 +128,19 @@ class VisitReportWordExportService
 
     private function groupPrefix(array $report): string
     {
-        return ($report['summary']['visitor_type'] ?? null) === 'student' ? 'Year & Section' : 'Department';
+        if (($report['summary']['visitor_type'] ?? null) !== 'student') {
+            return 'Department';
+        }
+
+        if (! empty($report['filters']['sections']) || empty($report['filters']['year_levels'])) {
+            return 'Year & Section';
+        }
+
+        if (count($report['filters']['year_levels'] ?? []) === 1) {
+            return 'Section';
+        }
+
+        return 'Year Level';
     }
 
     private function date(array $report, string $key): string

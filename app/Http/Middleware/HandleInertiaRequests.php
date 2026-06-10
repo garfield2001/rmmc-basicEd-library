@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\SchoolYear;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -24,7 +25,11 @@ class HandleInertiaRequests extends Middleware
      */
     public function version(Request $request): ?string
     {
-        return parent::version($request);
+        $manifest = public_path('build/manifest.json');
+
+        return File::exists($manifest)
+            ? md5_file($manifest) ?: parent::version($request)
+            : parent::version($request);
     }
 
     /**
@@ -51,6 +56,7 @@ class HandleInertiaRequests extends Middleware
                     'email' => $request->user()->email,
                     'role' => $request->user()->role,
                     'sessionId' => $request->session()->getId(),
+                    'activeSessionId' => $request->user()->active_session_id,
                 ] : null,
             ],
             'flash' => [

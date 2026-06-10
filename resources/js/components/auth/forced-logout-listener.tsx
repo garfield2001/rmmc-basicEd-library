@@ -17,11 +17,11 @@ export function ForcedLogoutListener() {
         return null;
     }
 
-    return <ForcedLogoutChannel userId={auth.user.id} sessionId={auth.user.sessionId ?? ''} />;
+    return <ForcedLogoutChannel userId={auth.user.id} sessionId={auth.user.sessionId ?? ''} activeSessionId={auth.user.activeSessionId ?? null} />;
 }
 
-function ForcedLogoutChannel({ userId, sessionId }: { userId: number; sessionId: string }) {
-    const [isForcedLogout, setIsForcedLogout] = useState(false);
+function ForcedLogoutChannel({ userId, sessionId, activeSessionId }: { userId: number; sessionId: string; activeSessionId: string | null }) {
+    const [isForcedLogout, setIsForcedLogout] = useState(() => Boolean(activeSessionId && activeSessionId !== sessionId));
 
     useEcho<SessionReplacedEvent>(
         `App.Models.User.${userId}`,
@@ -62,9 +62,9 @@ function ForcedLogoutChannel({ userId, sessionId }: { userId: number; sessionId:
                     return;
                 }
 
-                const status = (await response.json()) as { authenticated?: boolean; sessionId?: string };
+                const status = (await response.json()) as { authenticated?: boolean; sessionId?: string; activeSessionId?: string | null };
 
-                if (!status.authenticated || (status.sessionId && status.sessionId !== sessionId)) {
+                if (!status.authenticated || (status.activeSessionId && status.activeSessionId !== sessionId)) {
                     setIsForcedLogout(true);
                 }
             } catch (error) {
@@ -74,7 +74,7 @@ function ForcedLogoutChannel({ userId, sessionId }: { userId: number; sessionId:
             }
         };
 
-        const timer = window.setInterval(checkSession, 15000);
+        const timer = window.setInterval(checkSession, 5000);
         void checkSession();
 
         return () => {

@@ -23,9 +23,12 @@ class VisitReportService
         $yearLevel = $filters['year_level'] ?? null;
         $section = $filters['section'] ?? null;
         $department = $filters['department'] ?? null;
+        $yearLevels = $this->selectedValues($filters['year_levels'] ?? [], $yearLevel);
+        $sections = $this->selectedValues($filters['sections'] ?? [], $section);
+        $departments = $this->selectedValues($filters['departments'] ?? [], $department);
         $requiredVisits = $this->summary->requiredVisitsForType($schoolYear, $visitorType);
 
-        $visitors = $this->visitors->get($schoolYear, $startDate, $endDate, $visitorType, $yearLevel, $section, $department);
+        $visitors = $this->visitors->get($schoolYear, $startDate, $endDate, $visitorType, $yearLevels, $sections, $departments);
 
         $rows = $visitors
             ->map(fn (LibraryMember $visitor): array => $this->rows->visitorRow($visitor, $requiredVisits))
@@ -41,11 +44,30 @@ class VisitReportService
                 'year_level' => $visitorType === LibraryMember::TYPE_STUDENT ? $yearLevel : null,
                 'section' => $visitorType === LibraryMember::TYPE_STUDENT ? $section : null,
                 'department' => $visitorType === LibraryMember::TYPE_EMPLOYEE ? $department : null,
+                'year_levels' => $visitorType === LibraryMember::TYPE_STUDENT ? $yearLevels : [],
+                'sections' => $visitorType === LibraryMember::TYPE_STUDENT ? $sections : [],
+                'departments' => $visitorType === LibraryMember::TYPE_EMPLOYEE ? $departments : [],
             ],
             'school_year' => $schoolYear ? $this->schoolYearData($schoolYear) : null,
             'summary' => $this->summary->fromVisitors($visitors, $visitorType, $requiredVisits),
             'rows' => $rows,
         ];
+    }
+
+    private function selectedValues(mixed $values, ?string $fallback): array
+    {
+        $selected = is_array($values) ? $values : [];
+
+        if ($selected === [] && $fallback) {
+            $selected = [$fallback];
+        }
+
+        return collect($selected)
+            ->filter(fn ($value): bool => is_string($value) && trim($value) !== '' && trim($value) !== '__all__')
+            ->map(fn (string $value): string => trim($value))
+            ->unique()
+            ->values()
+            ->all();
     }
 
     private function resolveSchoolYear(array $filters): ?SchoolYear

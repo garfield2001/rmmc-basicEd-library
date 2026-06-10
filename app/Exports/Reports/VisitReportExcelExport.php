@@ -22,8 +22,6 @@ class VisitReportExcelExport implements FromArray, WithColumnFormatting, WithCol
 
     private array $groupTitleRows = [];
 
-    private array $summaryRows = [];
-
     public function __construct(private readonly array $report, private readonly array $groups) {}
 
     public function array(): array
@@ -49,9 +47,6 @@ class VisitReportExcelExport implements FromArray, WithColumnFormatting, WithCol
             }
 
             $this->tableRanges[] = [$tableStart, count($rows)];
-            $summary = $group['summary'];
-            $rows[] = ["Visitors: {$summary['visitors']}", "Total Visits: {$summary['total_visits']}", "Excess Visits: {$summary['excess_visits']}"];
-            $this->summaryRows[] = count($rows);
         }
 
         return $rows;
@@ -89,7 +84,8 @@ class VisitReportExcelExport implements FromArray, WithColumnFormatting, WithCol
                 $this->headerRows,
                 $this->tableRanges,
                 $this->groupTitleRows,
-                $this->summaryRows,
+                [],
+                [],
             ))($event),
         ];
     }
@@ -119,7 +115,19 @@ class VisitReportExcelExport implements FromArray, WithColumnFormatting, WithCol
 
     private function groupPrefix(): string
     {
-        return ($this->report['summary']['visitor_type'] ?? null) === 'student' ? 'Year & Section' : 'Department';
+        if (($this->report['summary']['visitor_type'] ?? null) !== 'student') {
+            return 'Department';
+        }
+
+        if (! empty($this->report['filters']['sections']) || empty($this->report['filters']['year_levels'])) {
+            return 'Year & Section';
+        }
+
+        if (count($this->report['filters']['year_levels'] ?? []) === 1) {
+            return 'Section';
+        }
+
+        return 'Year Level';
     }
 
     private function requiredVisits(): int

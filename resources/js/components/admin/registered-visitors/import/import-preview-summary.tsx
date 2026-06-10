@@ -11,6 +11,10 @@ export function ImportPreviewSummary({ preview }: { preview: LibraryMemberImport
                 <ImportStat label="New" value={preview.create_count} />
                 <ImportStat label="RFID fills" value={preview.update_count} />
             </div>
+            <p className="mt-3 text-xs leading-5 text-[#020659]/70">
+                Only School ID, First Name, Middle Name, Last Name, optional RFID, and visitor group details are used. Existing matching visitors are
+                not overwritten; imports only fill a missing RFID when the School ID and name match.
+            </p>
             <div className="mt-3 space-y-1 text-sm">
                 {preview.importable_count === 0 && preview.skipped_count > 0 && (
                     <div className="flex gap-2 rounded-lg border border-red-200 bg-red-50 p-3 font-medium text-red-700">

@@ -13,7 +13,7 @@ import { useAdminThemePreference } from './use-admin-theme-preference';
 
 const pageLoadingDelayMs = 500;
 
-export function AdminLayout({ active, children }: AdminLayoutProps) {
+export function AdminLayout({ active, children, themeOverride }: AdminLayoutProps) {
     const [isPageLoading, setIsPageLoading] = useState(false);
     const [loadingTarget, setLoadingTarget] = useState<AdminLoadingTarget>(() => loadingTargetFromPath(activePathFromSection(active)));
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -26,7 +26,7 @@ export function AdminLayout({ active, children }: AdminLayoutProps) {
         return window.localStorage.getItem(sidebarCollapsedStorageKey) === 'true';
     });
 
-    const { resolvedTheme, setThemePreference } = useAdminThemePreference();
+    const { resolvedTheme, setThemePreference } = useAdminThemePreference(themeOverride);
 
     useEffect(() => {
         const clearPageLoadingTimer = () => {
@@ -92,7 +92,7 @@ export function AdminLayout({ active, children }: AdminLayoutProps) {
                 />
 
                 <section
-                    className={`min-w-0 space-y-6 overflow-x-hidden transition-[padding-left] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    className={`admin-main-shell min-w-0 space-y-6 overflow-x-hidden ${
                         isSidebarCollapsed ? 'lg:pl-[72px] 2xl:pl-[84px]' : 'lg:pl-[280px] 2xl:pl-[304px]'
                     }`}
                 >

@@ -98,7 +98,7 @@ function ChartContainer({
                 style={{ ...chartVars, ...props.style }}
                 {...props}
             >
-                {chartCanRender ? React.cloneElement(children, { width: chartWidth, height: chartHeight }) : null}
+                {chartCanRender ? React.cloneElement(children, { width: chartWidth, height: chartHeight } as Partial<unknown>) : null}
             </div>
         </ChartContext.Provider>
     );

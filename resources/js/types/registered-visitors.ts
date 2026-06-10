@@ -47,21 +47,3 @@ export interface LibraryMemberImportPreview {
         reason: string;
     }[];
 }
-
-export interface StudentAssignmentPreview {
-    inputCount: number;
-    uniqueCount: number;
-    matchedCount: number;
-    targetSection: string | null;
-    visitorIds: number[];
-    matchedStudents: {
-        id: number;
-        schoolId: string;
-        name: string;
-        currentYearLevel: string | null;
-        currentSection: string | null;
-    }[];
-    notFoundIds: string[];
-    duplicateIds: string[];
-    incompleteDetailIds: string[];
-}

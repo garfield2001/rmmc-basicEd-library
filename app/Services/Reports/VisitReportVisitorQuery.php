@@ -18,9 +18,9 @@ class VisitReportVisitorQuery
         Carbon $startDate,
         Carbon $endDate,
         string $visitorType,
-        ?string $yearLevel,
-        ?string $section,
-        ?string $department,
+        array $yearLevels = [],
+        array $sections = [],
+        array $departments = [],
     ): Collection {
         $schoolYearId = $schoolYear?->id;
 
@@ -45,32 +45,60 @@ class VisitReportVisitorQuery
                     ->forRequiredSchoolYear($schoolYearId),
             ], 'visited_at')
             ->where('type', $visitorType)
-            ->when($visitorType === LibraryMember::TYPE_STUDENT, fn (Builder $query) => $this->studentFilter($query, $schoolYearId, $yearLevel, $section))
-            ->when($visitorType === LibraryMember::TYPE_EMPLOYEE, fn (Builder $query) => $this->employeeFilter($query, $schoolYearId, $department))
+            ->when($visitorType === LibraryMember::TYPE_STUDENT, fn (Builder $query) => $this->studentFilter($query, $schoolYearId, $yearLevels, $sections))
+            ->when($visitorType === LibraryMember::TYPE_EMPLOYEE, fn (Builder $query) => $this->employeeFilter($query, $schoolYearId, $departments))
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->get();
     }
 
-    private function studentFilter(Builder $query, ?int $schoolYearId, ?string $yearLevel, ?string $section): Builder
+    private function studentFilter(Builder $query, ?int $schoolYearId, array $yearLevels, array $sections): Builder
     {
         return $query->when($schoolYearId, fn (Builder $query) => $query->whereHas(
             'studentSchoolYearRecords',
-            fn (Builder $query) => $query
-                ->forSchoolYear($schoolYearId)
-                ->when($yearLevel, fn (Builder $query) => $query->where('year_level', $yearLevel))
-                ->when($section, fn (Builder $query) => $query->where('section', $section)),
+            function (Builder $query) use ($schoolYearId, $yearLevels, $sections): void {
+                $query->forSchoolYear($schoolYearId);
+
+                if ($sections !== []) {
+                    $this->whereSectionSelections($query, $sections);
+
+                    return;
+                }
+
+                if ($yearLevels !== []) {
+                    $query->whereIn('year_level', $yearLevels);
+                }
+            },
         ), fn (Builder $query) => $query->whereKey([]));
     }
 
-    private function employeeFilter(Builder $query, ?int $schoolYearId, ?string $department): Builder
+    private function employeeFilter(Builder $query, ?int $schoolYearId, array $departments): Builder
     {
         return $query->when($schoolYearId, fn (Builder $query) => $query->whereHas(
             'employeeSchoolYearRecords',
             fn (Builder $query) => $query
                 ->forSchoolYear($schoolYearId)
-                ->when($department, fn (Builder $query) => $query->where('department', $department)),
+                ->when($departments !== [], fn (Builder $query) => $query->whereIn('department', $departments)),
         ), fn (Builder $query) => $query->whereKey([]));
+    }
+
+    private function whereSectionSelections(Builder $query, array $sections): void
+    {
+        $query->where(function (Builder $query) use ($sections): void {
+            foreach ($sections as $section) {
+                [$yearLevel, $sectionName] = array_pad(explode('::', (string) $section, 2), 2, null);
+
+                if (! $sectionName) {
+                    $query->orWhere('section', $yearLevel);
+
+                    continue;
+                }
+
+                $query->orWhere(fn (Builder $query) => $query
+                    ->where('year_level', $yearLevel)
+                    ->where('section', $sectionName));
+            }
+        });
     }
 
     private function historyEndDate(Carbon $reportEndDate, ?SchoolYear $schoolYear): Carbon

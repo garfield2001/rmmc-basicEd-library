@@ -38,9 +38,7 @@ class VisitReportExportService
         $groups = [];
 
         foreach ($report['rows'] as $row) {
-            $label = $isStudent
-                ? (($row['year_section_label'] ?? trim(collect([$row['year_level'] ?? null, $row['section'] ?? null])->filter()->implode(' - '))) ?: 'Unassigned')
-                : (($row['department'] ?? null) ?: 'Unassigned');
+            $label = $isStudent ? $this->studentGroupLabel($report, $row) : (($row['department'] ?? null) ?: 'Unassigned');
 
             $groups[$label] ??= ['label' => $label, 'rows' => [], 'summary' => $this->emptyGroupSummary()];
             $groups[$label]['rows'][] = $row;
@@ -49,7 +47,10 @@ class VisitReportExportService
             $groups[$label]['summary']['excess_visits'] += (int) ($row['excess_visits'] ?? 0);
         }
 
-        return array_values($groups);
+        return collect($groups)
+            ->sortKeysUsing(fn (string $first, string $second): int => strnatcasecmp($first, $second))
+            ->values()
+            ->all();
     }
 
     public function row(array $columns, array $report, array $row): array
@@ -88,14 +89,35 @@ class VisitReportExportService
 
     public function viewData(array $report, bool $showActions = true): array
     {
+        $groups = $this->groups($report);
+
         return [
             'report' => $report,
             'columns' => $this->columns($report, includeGroupColumn: false),
-            'groups' => $this->groups($report),
+            'groups' => $groups,
+            'groupPrefix' => $this->groupPrefix($report),
+            'groupComparison' => [],
             'logoDataUri' => $this->logoDataUri(),
             'showActions' => $showActions,
             'titleColor' => $this->titleColor(),
         ];
+    }
+
+    public function groupPrefix(array $report): string
+    {
+        if (($report['summary']['visitor_type'] ?? null) !== 'student') {
+            return 'Department';
+        }
+
+        if (! empty($report['filters']['sections']) || empty($report['filters']['year_levels'])) {
+            return 'Year & Section';
+        }
+
+        if (count($report['filters']['year_levels'] ?? []) === 1) {
+            return 'Section';
+        }
+
+        return 'Year Level';
     }
 
     public function logoDataUri(): ?string
@@ -120,6 +142,20 @@ class VisitReportExportService
             'visitors' => 0,
             'total_visits' => 0,
             'excess_visits' => 0,
+            'met_required' => 0,
         ];
+    }
+
+    private function studentGroupLabel(array $report, array $row): string
+    {
+        if (! empty($report['filters']['sections']) || empty($report['filters']['year_levels'])) {
+            return ($row['year_section_label'] ?? trim(collect([$row['year_level'] ?? null, $row['section'] ?? null])->filter()->implode(' - '))) ?: 'Unassigned';
+        }
+
+        if (count($report['filters']['year_levels'] ?? []) === 1) {
+            return ($row['section'] ?? null) ?: 'Unassigned';
+        }
+
+        return ($row['year_level'] ?? null) ?: 'Unassigned';
     }
 }

@@ -25,6 +25,7 @@
 
             @php $colTotal = collect($payload['columns'])->sum(fn ($c) => $c['excel_width'] ?? 18); @endphp
             @foreach ($payload['groups'] as $group)
+                <section class="report-group">
                 <div class="group-title">{{ $payload['group_label'] }}: {{ $group['label'] }}</div>
                 <table class="report-table">
                     <thead>
@@ -48,11 +49,7 @@
                         @endforelse
                     </tbody>
                 </table>
-                <div class="group-summary">
-                    @foreach ($group['summary'] as $index => $item)
-                        <div @class(['summary-center' => $index === 1])>{{ $item['label'] }}: {{ $item['value'] }}</div>
-                    @endforeach
-                </div>
+                </section>
             @endforeach
         </main>
 

@@ -14,10 +14,10 @@ interface ReportFilterPanelProps {
     startDate: string;
     endDate: string;
     visitorType: VisitorTypeFilter;
-    yearLevel: string;
-    section: string;
-    department: string;
-    availableSections: string[];
+    yearLevels: string[];
+    sections: string[];
+    departments: string[];
+    availableSections: Array<{ value: string; label: string }>;
     showVisitorTypeSelector?: boolean;
     dateRangeIsValid: boolean;
     dateRangeSummary: string;
@@ -25,9 +25,9 @@ interface ReportFilterPanelProps {
     onDateRangeModeChange: (value: DateRangeMode) => void;
     onCustomDateRangeChange: (startDate: string, endDate: string) => void;
     onVisitorTypeChange: (value: VisitorTypeFilter) => void;
-    onYearLevelChange: (value: string) => void;
-    onSectionChange: (value: string) => void;
-    onDepartmentChange: (value: string) => void;
+    onYearLevelsChange: (value: string[]) => void;
+    onSectionsChange: (value: string[]) => void;
+    onDepartmentsChange: (value: string[]) => void;
 }
 
 export function ReportFilterPanel({
@@ -39,9 +39,9 @@ export function ReportFilterPanel({
     startDate,
     endDate,
     visitorType,
-    yearLevel,
-    section,
-    department,
+    yearLevels,
+    sections,
+    departments,
     availableSections,
     showVisitorTypeSelector = true,
     dateRangeIsValid,
@@ -50,9 +50,9 @@ export function ReportFilterPanel({
     onDateRangeModeChange,
     onCustomDateRangeChange,
     onVisitorTypeChange,
-    onYearLevelChange,
-    onSectionChange,
-    onDepartmentChange,
+    onYearLevelsChange,
+    onSectionsChange,
+    onDepartmentsChange,
 }: ReportFilterPanelProps) {
     const schoolYearDateLabel = schoolYearBounds ? `${formatDisplayDate(schoolYearBounds.start)} to ${formatDisplayDate(schoolYearBounds.end)}` : '';
 
@@ -119,13 +119,13 @@ export function ReportFilterPanel({
                     <ReportVisitorFilters
                         reportOptions={reportOptions}
                         visitorType={visitorType}
-                        yearLevel={yearLevel}
-                        section={section}
-                        department={department}
+                        yearLevels={yearLevels}
+                        sections={sections}
+                        departments={departments}
                         availableSections={availableSections}
-                        onYearLevelChange={onYearLevelChange}
-                        onSectionChange={onSectionChange}
-                        onDepartmentChange={onDepartmentChange}
+                        onYearLevelsChange={onYearLevelsChange}
+                        onSectionsChange={onSectionsChange}
+                        onDepartmentsChange={onDepartmentsChange}
                     />
                 )}
             </div>

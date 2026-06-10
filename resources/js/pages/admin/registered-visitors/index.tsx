@@ -1,5 +1,5 @@
-import { VisitorFormModal } from '@/components/admin/registered-visitors/form/visitor-form-modal';
 import { PageExportActions } from '@/components/admin/exports/page-export-actions';
+import { VisitorFormModal } from '@/components/admin/registered-visitors/form/visitor-form-modal';
 import { RegisteredVisitorsHeaderActions } from '@/components/admin/registered-visitors/import/header-actions';
 import { ImportPreviewDialog } from '@/components/admin/registered-visitors/import/import-preview-dialog';
 import { ImportProgressOverlay } from '@/components/admin/registered-visitors/import/import-progress-overlay';
@@ -7,13 +7,14 @@ import { useVisitorImport } from '@/components/admin/registered-visitors/import/
 import { useVisitorsTableControls } from '@/components/admin/registered-visitors/table/use-visitors-table-controls';
 import type { VisitorsIndexProps } from '@/components/admin/registered-visitors/table/visitors-index-types';
 import { VisitorsTable } from '@/components/admin/registered-visitors/table/visitors-table';
+import { VisitorDistributionChart } from '@/components/admin/registered-visitors/visitor-distribution-chart';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
 import { type LibraryMemberRow } from '@/types/registered-visitors';
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function VisitorsIndex({ visitors, pagePath, filters, filterOptions }: VisitorsIndexProps) {
+export default function VisitorsIndex({ visitors, pagePath, filters, filterOptions, distribution }: VisitorsIndexProps) {
     const table = useVisitorsTableControls(filters, filterOptions, pagePath);
     const importer = useVisitorImport();
     const [visitorFormOpen, setVisitorFormOpen] = useState(false);
@@ -86,6 +87,7 @@ export default function VisitorsIndex({ visitors, pagePath, filters, filterOptio
                             onNext={() => table.visitUrl(visitors.next_page_url ?? visitors.links.find((link) => link.label.includes('Next'))?.url)}
                             onPageChange={table.requestPage}
                         />
+                        <VisitorDistributionChart activeType={table.activeType} distribution={distribution} />
                         {importer.importError && (
                             <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
                                 {importer.importError}

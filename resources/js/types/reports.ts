@@ -39,6 +39,9 @@ export interface VisitReport {
         year_level: string | null;
         section: string | null;
         department: string | null;
+        year_levels: string[];
+        sections: string[];
+        departments: string[];
     };
     school_year: VisitReportSchoolYear | null;
     summary: {

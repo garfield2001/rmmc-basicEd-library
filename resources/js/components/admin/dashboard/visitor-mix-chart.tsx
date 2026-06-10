@@ -40,10 +40,10 @@ export function VisitorMixChart({ students, employees }: VisitorMixChartProps) {
 
     return (
         <div className="grid min-w-0 gap-4 sm:grid-cols-[minmax(0,1fr)_11rem] xl:grid-cols-1">
-            <ChartContainer config={visitorMixChartConfig} className="mx-auto h-56 w-full max-w-xs min-w-0 sm:h-64 sm:max-w-sm">
+            <ChartContainer config={visitorMixChartConfig} className="admin-chart-frame mx-auto h-56 w-full max-w-xs min-w-0 sm:h-64 sm:max-w-sm">
                 <PieChart>
                     <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                    <Pie data={data} dataKey="value" nameKey="label" innerRadius={58} outerRadius={92} strokeWidth={5}>
+                    <Pie data={data} dataKey="value" nameKey="label" innerRadius={58} outerRadius={92} strokeWidth={5} isAnimationActive={false}>
                         {data.map((entry) => (
                             <Cell key={entry.key} fill={entry.fill} />
                         ))}

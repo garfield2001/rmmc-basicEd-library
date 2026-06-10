@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-export type AdminSection = 'dashboard' | 'live-visits' | 'visit-logs' | 'visit-progress' | 'visitors' | 'reports' | 'settings';
+type AdminSection = 'dashboard' | 'live-visits' | 'visit-logs' | 'visit-progress' | 'visitors' | 'reports' | 'settings';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 
@@ -20,6 +20,7 @@ export type AdminNavItem = {
 export interface AdminLayoutProps {
     active: AdminSection;
     children: ReactNode;
+    themeOverride?: Extract<ThemePreference, 'light' | 'dark'>;
 }
 
 export interface AdminSidebarProps {

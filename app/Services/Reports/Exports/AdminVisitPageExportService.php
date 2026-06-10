@@ -63,6 +63,7 @@ class AdminVisitPageExportService
         $rows = $this->applySearch($rows, (string) ($filters['search'] ?? ''));
         $rows = $this->applyStatus($rows, $mode, (string) ($filters['status'] ?? 'all'), (int) ($report['summary']['required_visits'] ?? 0));
         $report['rows'] = $this->sortRows($rows, (string) ($filters['sort'] ?? 'lastVisit'), (string) ($filters['direction'] ?? 'desc'))->values()->all();
+        $groups = $this->groups($report, $mode);
 
         return [
             'title' => ucfirst($report['summary']['visitor_type'])." {$title}",
@@ -74,7 +75,8 @@ class AdminVisitPageExportService
             'filters' => $report['filters'],
             'school_year' => $report['school_year'],
             'columns' => $this->columns($mode),
-            'groups' => $this->groups($report, $mode),
+            'groups' => $groups,
+            'group_comparison' => $this->comparison($groups),
         ];
     }
 
@@ -113,12 +115,17 @@ class AdminVisitPageExportService
      */
     private function groups(array $report, string $mode): array
     {
-        return collect($this->grouping->groups($report))->map(function (array $group) use ($mode, $report): array {
+        $overallVisits = max(1, collect($report['rows'])->sum('visit_count'));
+
+        return collect($this->grouping->groups($report))->map(function (array $group) use ($mode, $report, $overallVisits): array {
             $required = (int) ($report['summary']['required_visits'] ?? 0);
+            $rawRows = collect($group['rows']);
             $group['rows'] = collect($group['rows'])->map(fn (array $row): array => $this->row($row, $required, $mode))->all();
+            $group['statistics'] = $this->statistics($rawRows, $required, $overallVisits);
             $group['summary'] = [
                 ['label' => 'Visitors', 'value' => count($group['rows'])],
                 ['label' => 'Total Visits', 'value' => collect($group['rows'])->sum('visit_count')],
+                ['label' => 'Met Required', 'value' => $group['statistics']['met_required']],
                 ['label' => 'Excess Visits', 'value' => collect($group['rows'])->sum('excess_visits')],
             ];
 
@@ -148,6 +155,56 @@ class AdminVisitPageExportService
         ];
 
         return $mode === 'progress' ? $base + ['remaining' => max(0, $required - $visits)] : $base;
+    }
+
+    private function statistics(Collection $rows, int $required, int $overallVisits): array
+    {
+        $visitors = $rows->count();
+        $totalVisits = $rows->sum(fn (array $row): int => (int) ($row['visit_count'] ?? 0));
+        $metRequired = $required > 0 ? $rows->filter(fn (array $row): bool => (int) ($row['visit_count'] ?? 0) >= $required)->count() : 0;
+        $noVisits = $rows->filter(fn (array $row): bool => (int) ($row['visit_count'] ?? 0) === 0)->count();
+        $completionPercent = $visitors > 0 ? (int) round($metRequired / $visitors * 100) : 0;
+        $visitSharePercent = (int) round($totalVisits / $overallVisits * 100);
+
+        return [
+            'visitors' => $visitors,
+            'total_visits' => $totalVisits,
+            'average_visits' => $visitors > 0 ? round($totalVisits / $visitors, 1) : 0,
+            'met_required' => $metRequired,
+            'below_required' => max(0, $visitors - $metRequired),
+            'no_visits' => $noVisits,
+            'completion_percent' => $completionPercent,
+            'visit_share_percent' => $visitSharePercent,
+            'completion_bar' => $this->asciiBar($completionPercent),
+            'visit_share_bar' => $this->asciiBar($visitSharePercent),
+        ];
+    }
+
+    private function asciiBar(int $percent): string
+    {
+        $filled = (int) round(max(0, min(100, $percent)) / 10);
+
+        return str_repeat('#', $filled).str_repeat('-', 10 - $filled);
+    }
+
+    private function comparison(array $groups): array
+    {
+        if (count($groups) < 2) {
+            return [];
+        }
+
+        return collect($groups)
+            ->map(fn (array $group): array => [
+                'label' => $group['label'],
+                'completion_percent' => (int) ($group['statistics']['completion_percent'] ?? 0),
+                'visit_share_percent' => (int) ($group['statistics']['visit_share_percent'] ?? 0),
+                'total_visits' => (int) ($group['statistics']['total_visits'] ?? 0),
+                'average_visits' => $group['statistics']['average_visits'] ?? 0,
+                'met_required' => (int) ($group['statistics']['met_required'] ?? 0),
+            ])
+            ->sortByDesc('completion_percent')
+            ->values()
+            ->all();
     }
 
     /**

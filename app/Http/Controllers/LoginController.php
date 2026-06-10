@@ -22,6 +22,9 @@ class LoginController extends Controller
     {
         $request->authenticate();
         $request->session()->regenerate();
+        $request->user()->forceFill([
+            'active_session_id' => $request->session()->getId(),
+        ])->save();
         Auth::logoutOtherDevices($request->string('password')->toString());
 
         try {
@@ -47,6 +50,7 @@ class LoginController extends Controller
         return response()->json([
             'authenticated' => $request->user() !== null,
             'sessionId' => $request->session()->getId(),
+            'activeSessionId' => $request->user()?->active_session_id,
         ]);
     }
 

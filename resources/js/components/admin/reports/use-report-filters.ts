@@ -2,13 +2,14 @@ import type { VisitReport, VisitReportOptions } from '@/types/reports';
 import { useEffect, useMemo, useState } from 'react';
 import { reportFilterValidation } from './report-filter-validation';
 import {
-    allFilterValue,
     getSchoolYearBounds,
     inferDateRangeMode,
     summarizeDateRange,
     type DateRangeMode,
     type VisitorTypeFilter,
 } from './report-helpers';
+
+const reportSectionKeySeparator = '::';
 
 export function useReportFilters(
     report: VisitReport | null,
@@ -32,9 +33,9 @@ export function useReportFilters(
         report ? inferDateRangeMode(initialSchoolYear, report.filters.start_date, report.filters.end_date) : '',
     );
     const [visitorType, setVisitorType] = useState<VisitorTypeFilter>(initialVisitorType);
-    const [yearLevel, setYearLevel] = useState(report ? (report.filters.year_level ?? allFilterValue) : '');
-    const [section, setSection] = useState(report ? (report.filters.section ?? allFilterValue) : '');
-    const [department, setDepartment] = useState(report ? (report.filters.department ?? allFilterValue) : '');
+    const [yearLevels, setYearLevels] = useState<string[]>(() => initialYearLevels(report, reportOptions.yearLevels));
+    const [sections, setSections] = useState<string[]>(() => initialSections(report));
+    const [departments, setDepartments] = useState<string[]>(() => initialDepartments(report, reportOptions.departments));
 
     const selectedSchoolYear = useMemo(
         () => reportOptions.schoolYears.find((schoolYear) => String(schoolYear.id) === schoolYearId) ?? null,
@@ -45,44 +46,41 @@ export function useReportFilters(
         () => (schoolYearId ? (reportOptions.sectionsBySchoolYear[schoolYearId] ?? {}) : reportOptions.sectionsByYearLevel),
         [reportOptions.sectionsBySchoolYear, reportOptions.sectionsByYearLevel, schoolYearId],
     );
-    const availableSections = useMemo(
-        () => (visitorType === 'student' && yearLevel && yearLevel !== allFilterValue ? (sectionSource[yearLevel] ?? []) : []),
-        [visitorType, sectionSource, yearLevel],
-    );
+    const availableSections = useMemo(() => {
+        if (visitorType !== 'student' || yearLevels.length === 0) {
+            return [];
+        }
+
+        return yearLevels.flatMap((yearLevel) =>
+            (sectionSource[yearLevel] ?? []).map((section) => ({
+                value: sectionKey(yearLevel, section),
+                label: `${yearLevel} - ${section}`,
+            })),
+        );
+    }, [visitorType, sectionSource, yearLevels]);
     const dateRangeSummary = summarizeDateRange(startDate, endDate);
-    const validation = reportFilterValidation({ schoolYearId, startDate, endDate, visitorType, yearLevel, section, department, schoolYearBounds });
+    const validation = reportFilterValidation({ schoolYearId, startDate, endDate, visitorType, yearLevels, departments, schoolYearBounds });
 
     useEffect(() => {
-        if (visitorType !== 'student' || !section || section === allFilterValue || availableSections.includes(section)) {
+        if (visitorType !== 'student') {
             return;
         }
 
-        setSection('');
-    }, [availableSections, visitorType, section]);
+        const available = new Set(availableSections.map((section) => section.value));
+        setSections((current) => current.filter((section) => available.has(section)));
+    }, [availableSections, visitorType]);
 
     useEffect(() => {
-        if (
-            visitorType === 'student' &&
-            yearLevel &&
-            yearLevel !== allFilterValue &&
-            availableSections.length === 1 &&
-            section !== availableSections[0]
-        ) {
-            setSection(availableSections[0]);
+        if (visitorType === 'employee' && reportOptions.departments.length === 1 && departments[0] !== reportOptions.departments[0]) {
+            setDepartments([reportOptions.departments[0]]);
         }
-    }, [availableSections, visitorType, section, yearLevel]);
-
-    useEffect(() => {
-        if (visitorType === 'employee' && reportOptions.departments.length === 1 && department !== reportOptions.departments[0]) {
-            setDepartment(reportOptions.departments[0]);
-        }
-    }, [department, visitorType, reportOptions.departments]);
+    }, [departments, visitorType, reportOptions.departments]);
 
     const resetDependentFilters = () => {
         setVisitorType(initialVisitorTypeFromPage === 'employee' ? 'employee' : 'student');
-        setYearLevel('');
-        setSection('');
-        setDepartment('');
+        setYearLevels([]);
+        setSections([]);
+        setDepartments([]);
     };
 
     const chooseSchoolYear = (value: string) => {
@@ -122,12 +120,12 @@ export function useReportFilters(
         }
 
         if (value === 'student') {
-            setDepartment('');
+            setDepartments([]);
             return;
         }
 
-        setYearLevel('');
-        setSection('');
+        setYearLevels([]);
+        setSections([]);
     };
 
     return {
@@ -136,9 +134,9 @@ export function useReportFilters(
             startDate,
             endDate,
             visitorType,
-            yearLevel,
-            section,
-            department,
+            yearLevels,
+            sections,
+            departments,
             selectedSchoolYear,
             dateRangeSummary,
             reportCanFetch: validation.reportCanFetch,
@@ -152,9 +150,9 @@ export function useReportFilters(
             startDate,
             endDate,
             visitorType,
-            yearLevel,
-            section,
-            department,
+            yearLevels,
+            sections,
+            departments,
             availableSections,
             showVisitorTypeSelector: false,
             dateRangeIsValid: validation.dateRangeIsValid,
@@ -166,12 +164,64 @@ export function useReportFilters(
                 setEndDate(nextEndDate);
             },
             onVisitorTypeChange: chooseVisitorType,
-            onYearLevelChange: (value: string) => {
-                setYearLevel(value);
-                setSection('');
+            onYearLevelsChange: (values: string[]) => {
+                setYearLevels(values);
+                setSections([]);
             },
-            onSectionChange: setSection,
-            onDepartmentChange: setDepartment,
+            onSectionsChange: setSections,
+            onDepartmentsChange: setDepartments,
         },
     };
+}
+
+function sectionKey(yearLevel: string, section: string): string {
+    return `${yearLevel}${reportSectionKeySeparator}${section}`;
+}
+
+function initialYearLevels(report: VisitReport | null, yearLevelOptions: string[]) {
+    if (!report) {
+        return [];
+    }
+
+    if (report.filters.year_levels?.length) {
+        return report.filters.year_levels;
+    }
+
+    if (!report.filters.year_level || report.filters.year_level === '__all__') {
+        return yearLevelOptions;
+    }
+
+    return [report.filters.year_level];
+}
+
+function initialSections(report: VisitReport | null) {
+    if (!report) {
+        return [];
+    }
+
+    if (report.filters.sections?.length) {
+        return report.filters.sections;
+    }
+
+    if (report.filters.year_level && report.filters.year_level !== '__all__' && report.filters.section && report.filters.section !== '__all__') {
+        return [sectionKey(report.filters.year_level, report.filters.section)];
+    }
+
+    return [];
+}
+
+function initialDepartments(report: VisitReport | null, departmentOptions: string[]) {
+    if (!report) {
+        return [];
+    }
+
+    if (report.filters.departments?.length) {
+        return report.filters.departments;
+    }
+
+    if (!report.filters.department || report.filters.department === '__all__') {
+        return departmentOptions;
+    }
+
+    return [report.filters.department];
 }

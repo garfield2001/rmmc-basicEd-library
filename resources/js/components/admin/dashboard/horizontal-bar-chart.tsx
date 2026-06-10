@@ -23,14 +23,16 @@ export function HorizontalBarChart({ data, emptyMessage, labelWidth = 104, heigh
     }
 
     return (
-        <ChartContainer config={studentGroupChartConfig} className="w-full" style={{ height }}>
-            <BarChart data={data} layout="vertical" margin={{ top: 4, right: 20, left: 0, bottom: 4 }}>
-                <CartesianGrid horizontal={false} strokeDasharray="4 4" />
-                <XAxis type="number" hide allowDecimals={false} />
-                <YAxis dataKey="label" type="category" tickLine={false} axisLine={false} width={labelWidth} tickMargin={10} className="text-xs" />
-                <ChartTooltip cursor={{ fill: 'rgb(4 13 191 / 0.06)' }} content={<ChartTooltipContent hideLabel />} />
-                <Bar dataKey="value" fill="#6ea0ee" radius={[0, 6, 6, 0]} />
-            </BarChart>
-        </ChartContainer>
+        <div className="admin-chart-frame">
+            <ChartContainer config={studentGroupChartConfig} className="w-full" style={{ height }}>
+                <BarChart data={data} layout="vertical" margin={{ top: 4, right: 20, left: 0, bottom: 4 }}>
+                    <CartesianGrid horizontal={false} strokeDasharray="4 4" />
+                    <XAxis type="number" hide allowDecimals={false} />
+                    <YAxis dataKey="label" type="category" tickLine={false} axisLine={false} width={labelWidth} tickMargin={10} className="text-xs" />
+                    <ChartTooltip cursor={{ fill: 'rgb(4 13 191 / 0.06)' }} content={<ChartTooltipContent hideLabel />} />
+                    <Bar dataKey="value" fill="#6ea0ee" radius={[0, 6, 6, 0]} isAnimationActive={false} />
+                </BarChart>
+            </ChartContainer>
+        </div>
     );
 }

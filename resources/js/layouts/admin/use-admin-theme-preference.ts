@@ -4,7 +4,7 @@ import { resolveStoredThemePreference } from './admin-layout.theme';
 import type { ThemePreference } from './admin-layout.types';
 import { useAdminTheme } from './use-admin-theme';
 
-export function useAdminThemePreference() {
+export function useAdminThemePreference(themeOverride?: Extract<ThemePreference, 'light' | 'dark'>) {
     const [themePreference, setThemePreferenceState] = useState<ThemePreference>(() => {
         if (typeof window === 'undefined') {
             return 'system';
@@ -18,7 +18,7 @@ export function useAdminThemePreference() {
         window.localStorage.setItem(adminThemePreferenceStorageKey, preference);
     };
 
-    const resolvedTheme = useAdminTheme(themePreference);
+    const resolvedTheme = useAdminTheme(themeOverride ?? themePreference);
 
     return {
         themePreference,

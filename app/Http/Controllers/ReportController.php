@@ -73,20 +73,16 @@ class ReportController extends Controller
             fputcsv($file, ['School year: '.($report['school_year']['name'] ?? 'No school year'), 'Visitor type: '.ucfirst((string) ($report['summary']['visitor_type'] ?? 'visitor')).'s']);
             fputcsv($file, ['From '.$report['filters']['start_date'].' to '.$report['filters']['end_date']]);
 
+            $groupPrefix = $exports->groupPrefix($report);
+
             foreach ($exports->groups($report) as $group) {
                 fputcsv($file, []);
-                fputcsv($file, [$group['label']]);
+                fputcsv($file, [$groupPrefix.': '.$group['label']]);
                 fputcsv($file, array_column($columns, 'label'));
 
                 foreach ($group['rows'] as $row) {
                     fputcsv($file, $exports->row($columns, $report, $row));
                 }
-
-                fputcsv($file, [
-                    'Visitors: '.$group['summary']['visitors'],
-                    'Total Visits: '.$group['summary']['total_visits'],
-                    'Excess Visits: '.$group['summary']['excess_visits'],
-                ]);
             }
 
             fclose($file);

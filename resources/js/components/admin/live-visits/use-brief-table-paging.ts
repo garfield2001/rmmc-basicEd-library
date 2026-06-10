@@ -1,6 +1,6 @@
 import { defaultVisitsPerPage } from '@/components/admin/live-visits/live-visits-table-helpers';
 import type { RowsPerPageOption } from '@/components/ui/pagination-controls';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type MutableRefObject } from 'react';
 
 export function useBriefTablePaging() {
     const [currentPage, setCurrentPage] = useState(1);
@@ -9,9 +9,11 @@ export function useBriefTablePaging() {
     const pagingTimerRef = useRef<number | null>(null);
 
     useEffect(() => {
+        const pagingTimer = pagingTimerRef.current;
+
         return () => {
-            if (pagingTimerRef.current) {
-                window.clearTimeout(pagingTimerRef.current);
+            if (pagingTimer) {
+                window.clearTimeout(pagingTimer);
             }
         };
     }, []);

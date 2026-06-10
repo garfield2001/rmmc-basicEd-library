@@ -21,10 +21,26 @@ export interface VisitorsIndexFilterOptions {
     departments: string[];
 }
 
+export interface VisitorDistributionPoint {
+    label: string;
+    count: number;
+}
+
+export interface VisitorDistribution {
+    students: {
+        yearLevels: VisitorDistributionPoint[];
+        sectionsByYearLevel: Record<string, VisitorDistributionPoint[]>;
+    };
+    employees: {
+        departments: VisitorDistributionPoint[];
+    };
+}
+
 export interface VisitorsIndexProps {
     visitors: Paginated<LibraryMemberRow>;
     audienceType: VisitorType;
     pagePath: string;
     filters: VisitorsIndexFilters;
     filterOptions: VisitorsIndexFilterOptions;
+    distribution: VisitorDistribution;
 }

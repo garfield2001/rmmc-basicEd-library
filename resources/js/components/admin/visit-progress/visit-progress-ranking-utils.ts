@@ -1,4 +1,4 @@
-import { formatVisitDateTime, groupLabel, yearLevelOrder, type SortColumn, type SortDirection, type VisitorWithRangeVisits } from '../visit-logs/visit-logs-helpers';
+import { formatVisitDateTime, yearLevelOrder, type SortColumn, type SortDirection, type VisitorWithRangeVisits } from '../visit-logs/visit-logs-helpers';
 import { progressPercent } from './visit-progress-helpers';
 
 export function toProgressRow(visitor: VisitorWithRangeVisits, requiredVisits: number) {
@@ -13,7 +13,7 @@ export function toProgressRow(visitor: VisitorWithRangeVisits, requiredVisits: n
     };
 }
 
-export type ProgressRow = ReturnType<typeof toProgressRow>;
+type ProgressRow = ReturnType<typeof toProgressRow>;
 
 export function compareProgressRows(first: ProgressRow, second: ProgressRow, column: SortColumn, direction: SortDirection) {
     const comparison = compareProgressValues(progressSortValue(first, column), progressSortValue(second, column));

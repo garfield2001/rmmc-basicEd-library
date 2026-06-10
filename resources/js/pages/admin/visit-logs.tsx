@@ -20,6 +20,7 @@ export default function VisitLogs({ visitLogs, initialVisitorType }: VisitLogsPr
     const logsPage = useVisitLogsPage(visitLogs, initialVisitorType);
     const [highlightedVisitorId, setHighlightedVisitorId] = useState<number | null>(null);
     const audienceLabel = logsPage.visitorType === 'student' ? 'Student' : 'Employee';
+    const audienceClass = logsPage.visitorType === 'student' ? 'visit-logs-audience-student' : 'visit-logs-audience-employee';
     const visitorCount = logsPage.visitorType === 'student' ? visitLogs.metrics.studentVisitors : visitLogs.metrics.employeeVisitors;
     const requiredVisits =
         logsPage.visitorType === 'student'
@@ -36,7 +37,9 @@ export default function VisitLogs({ visitLogs, initialVisitorType }: VisitLogsPr
                             title={`${audienceLabel} Visit Logs`}
                             description={`Audit exact ${audienceLabel.toLowerCase()} visit records, timestamps, and date coverage for the active school year.`}
                             badge={
-                                <span className="rounded-full border border-[#040DBF]/10 bg-white px-3 py-1 text-sm font-semibold text-[#030A8C] shadow-sm">
+                                <span
+                                    className={`visit-logs-audience-badge ${audienceClass} rounded-full border px-3 py-1 text-sm font-semibold shadow-sm`}
+                                >
                                     {visitorCount.toLocaleString()} {audienceLabel.toLowerCase()}
                                     {visitorCount === 1 ? '' : 's'}
                                 </span>
@@ -61,7 +64,9 @@ export default function VisitLogs({ visitLogs, initialVisitorType }: VisitLogsPr
                             }
                         />
 
-                        <section className="admin-surface overflow-hidden rounded-lg border border-[#040DBF]/10 bg-white/95 shadow-sm">
+                        <section
+                            className={`admin-surface visit-logs-audience-surface ${audienceClass} overflow-hidden rounded-lg border border-[#040DBF]/10 bg-white/95 shadow-sm`}
+                        >
                             <VisitLogsTable
                                 visitors={logsPage.visibleVisitors}
                                 visitorType={logsPage.visitorType}

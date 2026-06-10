@@ -11,7 +11,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
 }
 
 function TableBody({ className, ...props }: React.ComponentProps<'tbody'>) {
-    return <tbody className={cn('[&_tr:last-child]:border-0', className)} {...props} />;
+    return <tbody className={cn('[&_tr]:h-[4.25rem] [&_tr:last-child]:border-0', className)} {...props} />;
 }
 
 function TableFooter({ className, ...props }: React.ComponentProps<'tfoot'>) {
@@ -27,7 +27,7 @@ function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
 }
 
 function TableCell({ className, ...props }: React.ComponentProps<'td'>) {
-    return <td className={cn('px-5 py-4 align-middle', className)} {...props} />;
+    return <td className={cn('h-[4.25rem] px-5 py-3 align-middle', className)} {...props} />;
 }
 
 function TableCaption({ className, ...props }: React.ComponentProps<'caption'>) {
@@ -50,8 +50,8 @@ function TablePlaceholderRows({
     return (
         <>
             {Array.from({ length: rowCount }).map((_, index) => (
-                <TableRow key={`placeholder-${index}`} aria-hidden="true" className="hover:bg-transparent">
-                    <TableCell colSpan={colSpan} className="h-[4.25rem] text-center text-sm text-[#020659]/35 dark:text-slate-400/45">
+                <TableRow key={`placeholder-${index}`} aria-hidden="true" className="h-[4.25rem] hover:bg-transparent">
+                    <TableCell colSpan={colSpan} className="h-[4.25rem] py-3 text-center text-sm text-[#020659]/35 dark:text-slate-400/45">
                         {label}
                     </TableCell>
                 </TableRow>

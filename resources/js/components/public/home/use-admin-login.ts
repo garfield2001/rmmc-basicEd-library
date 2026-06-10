@@ -1,6 +1,6 @@
 import { csrfFetch } from '@/lib/http';
 import { router } from '@inertiajs/react';
-import { useState, type FormEventHandler } from 'react';
+import { useCallback, useState, type FormEventHandler } from 'react';
 import type { LoginForm } from './types';
 
 type LoginErrors = Partial<Record<keyof LoginForm, string>>;
@@ -55,6 +55,19 @@ export function useAdminLogin() {
         }
     };
 
+    const visitAdmin = useCallback(() => {
+        if (processing || loadingAdmin) {
+            return;
+        }
+
+        setLoadingAdmin(true);
+        router.visit('/admin', {
+            preserveScroll: false,
+            onError: () => setLoadingAdmin(false),
+            onCancel: () => setLoadingAdmin(false),
+        });
+    }, [loadingAdmin, processing]);
+
     return {
         data,
         errors,
@@ -62,6 +75,7 @@ export function useAdminLogin() {
         loadingAdmin,
         setEmail: (value: string) => setField('email', value),
         setPassword: (value: string) => setField('password', value),
+        visitAdmin,
         submit,
     };
 }

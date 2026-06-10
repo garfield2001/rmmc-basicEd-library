@@ -99,7 +99,10 @@ export function ImportPreviewDialog({ open, preview, processing, onCancel, onCon
             >
                 <DialogHeader>
                     <DialogTitle className="text-2xl text-[#010440]">Confirm visitor import</DialogTitle>
-                    <DialogDescription>Review the parsed members before saving them. Choose No if this is not the correct file.</DialogDescription>
+                    <DialogDescription>
+                        Review the parsed students or employees before saving. Imports require School ID, First Name, and Last Name. Middle Name and
+                        RFID are optional.
+                    </DialogDescription>
                 </DialogHeader>
 
                 {preview && (

@@ -64,8 +64,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     Route::post('admin/registered-visitors/import/preview', [LibraryMemberController::class, 'importPreview'])->name('admin.registered-visitors.import.preview');
     Route::post('admin/registered-visitors/import', [LibraryMemberController::class, 'import'])
-        ->name('admin.registered-visitors.import')
-        ->middleware('throttle:10,1'); // 10 uploads per minute
+        ->name('admin.registered-visitors.import');
+    /* ->middleware('throttle:10,1'); // 10 uploads per minute */
     Route::get('admin/registered-visitors/{audience}', [LibraryMemberController::class, 'index'])
         ->whereIn('audience', ['students', 'employees'])
         ->name('admin.registered-visitors.audience');
@@ -82,9 +82,4 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('admin/reports/visits.doc', [ReportController::class, 'exportWord'])->name('admin.reports.visits.doc');
     Route::get('admin/reports/visits.pdf', [ReportController::class, 'exportPdf'])->name('admin.reports.visits.pdf');
     Route::get('admin/reports/visits/print', [ReportController::class, 'print'])->name('admin.reports.visits.print');
-});
-
-//testing
-Route::get('/tunnel-test', function () {
-    return 'Tunnel is working: ' . now();
 });

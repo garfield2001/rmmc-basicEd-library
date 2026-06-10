@@ -1,6 +1,7 @@
-.DS_Store
+    .DS_Store
 .env
 .env.backup
+.env.devtunnel
 .env.production
 .phpactor.json
 .phpunit.result.cache

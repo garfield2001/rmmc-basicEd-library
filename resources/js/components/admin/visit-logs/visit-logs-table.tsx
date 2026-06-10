@@ -6,7 +6,7 @@ import { Table, TableBody, TableHeader, TablePlaceholderRows, TableRow } from '@
 import type { AdminVisitLogs } from '@/types/dashboard';
 import { Funnel } from 'lucide-react';
 import { useCallback, useState, type ReactNode } from 'react';
-import type { SortColumn, SortDirection, VisitLogStatusFilter, VisitorWithRangeVisits } from './visit-logs-helpers';
+import type { SortColumn, SortDirection, VisitorWithRangeVisits } from './visit-logs-helpers';
 import { VisitLogsEmptyRow, VisitLogsTableRow } from './visit-logs-table-rows';
 import { VisitSearchControl } from './visit-table-controls';
 

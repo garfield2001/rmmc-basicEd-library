@@ -25,7 +25,7 @@ export function RequiredProgressPanel({ progress, framed = true }: { progress: R
                                 <span className="text-2xl font-semibold text-[#010440] tabular-nums">{item.percent}%</span>
                             </div>
                             <div className="admin-progress-track mt-4 h-3 overflow-hidden rounded-full bg-[#040DBF]/10">
-                                <div className="admin-progress-fill h-full rounded-full bg-[var(--chart-4)]" style={{ width: `${item.percent}%` }} />
+                                <div className="admin-progress-fill h-full rounded-full" style={{ width: `${item.percent}%` }} />
                             </div>
                             <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs font-medium text-[#020659]/70">
                                 <span>{item.visits.toLocaleString()} visits</span>

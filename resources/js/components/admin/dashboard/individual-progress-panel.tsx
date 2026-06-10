@@ -67,7 +67,7 @@ export function IndividualProgressPanel({ progress }: { progress: IndividualProg
                         </p>
                     </div>
                     {chartRows.length > 0 ? (
-                        <ChartContainer config={individualProgressConfig} className="h-80 w-full">
+                        <ChartContainer config={individualProgressConfig} className="admin-chart-frame h-80 w-full">
                             <BarChart data={chartRows} layout="vertical" margin={{ top: 4, right: 24, left: 8, bottom: 4 }}>
                                 <CartesianGrid horizontal={false} strokeDasharray="4 4" />
                                 <XAxis type="number" domain={[0, 100]} tickFormatter={(value) => `${value}%`} tickLine={false} axisLine={false} />
@@ -81,7 +81,7 @@ export function IndividualProgressPanel({ progress }: { progress: IndividualProg
                                     className="text-xs"
                                 />
                                 <ChartTooltip cursor={{ fill: 'rgb(4 13 191 / 0.06)' }} content={<ChartTooltipContent hideLabel />} />
-                                <Bar dataKey="percent" fill="#2563eb" radius={[0, 6, 6, 0]} />
+                                <Bar dataKey="percent" fill="#2563eb" radius={[0, 6, 6, 0]} isAnimationActive={false} />
                             </BarChart>
                         </ChartContainer>
                     ) : (

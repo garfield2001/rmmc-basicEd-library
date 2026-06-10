@@ -300,6 +300,32 @@ CSV));
         $this->assertSame(2, LibraryMember::query()->count());
     }
 
+    public function test_import_rejects_school_id_rows_without_first_and_last_name(): void
+    {
+        $this->activeSchoolYear();
+
+        $imports = app(LibraryMemberImportService::class);
+        $summary = $imports->import($this->csvUpload(<<<'CSV'
+type,first_name,middle_name,last_name,school_id,year_level,section,department
+student,,Santos,Dela Cruz,1000000001,Grade 5,Rizal,
+employee,Ana,Marie,,2000000001,,,Faculty
+CSV));
+
+        $this->assertSame(0, $summary['created']);
+        $this->assertSame(2, $summary['skipped']);
+        $this->assertSame(0, LibraryMember::query()->count());
+
+        $preview = $imports->preview($this->csvUpload(<<<'CSV'
+type,first_name,middle_name,last_name,school_id,year_level,section,department
+student,,Santos,Dela Cruz,1000000001,Grade 5,Rizal,
+employee,Ana,Marie,,2000000001,,,Faculty
+CSV));
+
+        $this->assertSame(0, $preview['importable_count']);
+        $this->assertSame(2, $preview['skipped_count']);
+        $this->assertStringContainsString('First Name, Last Name, and School ID are required', $preview['skipped'][0]['reason']);
+    }
+
     public function test_reimport_does_not_fill_profile_or_detail_gaps(): void
     {
         $this->activeSchoolYear();

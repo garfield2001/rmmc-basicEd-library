@@ -23,6 +23,7 @@
         }
 
         .report-table {
+            border: 1px solid #111827;
             border-collapse: collapse;
             font-size: 11pt;
             margin-left: auto;
@@ -32,8 +33,10 @@
             width: 6.55in;
         }
 
-        td {
+        .report-table th,
+        .report-table td {
             border: 1px solid #111827;
+            box-sizing: border-box;
             mso-number-format: '\@';
             padding: 4pt 6pt;
             text-align: left;
@@ -42,14 +45,12 @@
             overflow-wrap: break-word;
         }
 
-        th {
+        .report-table th {
             background: #e8eefc;
             color: #111827;
             font-size: 11pt;
             font-weight: 700;
-            padding: 4pt 6pt;
-            text-align: left;
-            vertical-align: middle;
+            line-height: 1.15;
         }
 
         tbody tr:nth-child(even) td {

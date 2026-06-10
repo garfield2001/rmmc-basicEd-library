@@ -1,6 +1,7 @@
 import { ActivityBreakdownCard } from '@/components/admin/dashboard/activity-breakdown-card';
 import { ChartCard } from '@/components/admin/dashboard/chart-card';
 import { DashboardActions } from '@/components/admin/dashboard/dashboard-actions';
+import { DashboardErrorBoundary } from '@/components/admin/dashboard/dashboard-error-boundary';
 import { DashboardOperationsPanel } from '@/components/admin/dashboard/dashboard-operations-panel';
 import { getOverviewMetrics, getSchoolYearDateRange } from '@/components/admin/dashboard/dashboard-summary';
 import { MetricCard } from '@/components/admin/dashboard/metric-card';
@@ -41,13 +42,14 @@ export default function Dashboard({ dashboard }: DashboardProps) {
         <>
             <Head title="Dashboard" />
             <main className="min-h-screen">
-                <AdminLayout active="dashboard">
-                    <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
-                        <AdminPageHeader
-                            title="Dashboard"
-                            description="A bird's-eye view of library visit operations, scanning activity, visitor coverage, and required progress."
-                            actions={<DashboardActions requiredProgress={dashboard.charts.requiredProgress} />}
-                        />
+                <AdminLayout active="dashboard" themeOverride="light">
+                    <DashboardErrorBoundary>
+                        <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
+                            <AdminPageHeader
+                                title="Dashboard"
+                                description="A bird's-eye view of library visit operations, scanning activity, visitor coverage, and required progress."
+                                actions={<DashboardActions requiredProgress={dashboard.charts.requiredProgress} />}
+                            />
 
                         <section className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
                             {metrics.map((metric) => (
@@ -107,7 +109,8 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                         <section className="min-w-0">
                             <ActivityBreakdownCard dashboard={dashboard} />
                         </section>
-                    </div>
+                        </div>
+                    </DashboardErrorBoundary>
                 </AdminLayout>
             </main>
         </>

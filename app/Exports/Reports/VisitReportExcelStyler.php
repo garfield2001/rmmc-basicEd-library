@@ -14,6 +14,7 @@ class VisitReportExcelStyler
         private readonly array $headerRows,
         private readonly array $tableRanges,
         private readonly array $groupTitleRows,
+        private readonly array $statRows,
         private readonly array $summaryRows,
     ) {}
 
@@ -28,6 +29,7 @@ class VisitReportExcelStyler
 
         $this->styleTitle($sheet);
         $this->styleGroups($sheet);
+        $this->styleStatistics($sheet);
         $this->styleTables($sheet);
         $this->styleSummaries($sheet);
     }
@@ -79,6 +81,16 @@ class VisitReportExcelStyler
                 $sheet->getStyle("A".($start + 1).":A{$end}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
                 $sheet->getStyle('D'.($start + 1).":D{$end}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
             }
+        }
+    }
+
+    private function styleStatistics($sheet): void
+    {
+        foreach ($this->statRows as $row) {
+            $sheet->getStyle("A{$row}:E{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F6F8FF');
+            $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true)->getColor()->setRGB('010440');
+            $sheet->getStyle("A{$row}:E{$row}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_HAIR);
+            $sheet->getStyle("A{$row}:E{$row}")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
         }
     }
 

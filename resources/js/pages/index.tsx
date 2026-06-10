@@ -14,7 +14,7 @@ import { ToastProvider } from '@/components/ui/toaster';
 import { ScanSuccessModal } from '@/components/visits/scan-success-modal';
 import type { DashboardVisit } from '@/types/dashboard';
 import { type SharedData } from '@/types/shared';
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useEchoPublic } from '@laravel/echo-react';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -25,6 +25,7 @@ export default function Index({ home }: IndexProps) {
     const scanValidationError = typeof errors.rfid_uid === 'string' ? errors.rfid_uid : undefined;
     const { formattedManilaTime } = useManilaClock();
     const login = useAdminLogin();
+    const visitAdmin = login.visitAdmin;
     const {
         isOpen: isScanErrorOpen,
         setIsOpen: setScanErrorOpen,
@@ -65,17 +66,18 @@ export default function Index({ home }: IndexProps) {
             return;
         }
 
-        if (auth.user) {
-            router.visit('/admin');
-            return;
-        }
-
-        setShowLogin(true);
         searchParams.delete('login');
 
         const nextSearch = searchParams.toString();
         window.history.replaceState({}, '', `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}${window.location.hash}`);
-    }, [auth.user]);
+
+        if (auth.user) {
+            visitAdmin();
+            return;
+        }
+
+        setShowLogin(true);
+    }, [auth.user, visitAdmin]);
 
     useEffect(() => {
         if (login.errors.email || login.errors.password) {
@@ -85,7 +87,7 @@ export default function Index({ home }: IndexProps) {
 
     const openAdminAccess = () => {
         if (auth.user) {
-            router.visit('/admin');
+            visitAdmin();
             return;
         }
 

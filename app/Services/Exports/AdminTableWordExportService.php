@@ -54,6 +54,7 @@ class AdminTableWordExportService
         $this->letterhead($section);
         $section->addText($payload['title'], ['bold' => true, 'size' => 17, 'color' => '010440'], ['alignment' => Jc::CENTER, 'spaceAfter' => 120]);
         $this->metadata($section, $payload);
+        $this->comparison($section, $payload);
 
         foreach ($payload['groups'] as $group) {
             $this->group($section, $payload, $group);
@@ -139,8 +140,8 @@ class AdminTableWordExportService
 
         foreach ($values as $index => $value) {
             $width = (int) round(($columns[$index]['excel_width'] ?? 18) / $total * $available);
-            $table->addCell($width, ['borderSize' => 0, 'borderColor' => 'FFFFFF', 'bgColor' => 'E8EEFC'])
-                ->addText((string) $value, ['bold' => true], ['spaceAfter' => 0]);
+            $table->addCell($width, ['borderSize' => 6, 'borderColor' => '111827', 'bgColor' => 'E8EEFC'])
+                ->addText((string) $value, ['bold' => true], ['alignment' => Jc::START, 'spaceAfter' => 0]);
         }
     }
 
@@ -175,6 +176,49 @@ class AdminTableWordExportService
                 'spaceAfter' => 150,
             ]);
         }
+    }
+
+    private function comparison($section, array $payload): void
+    {
+        $comparison = $payload['group_comparison'] ?? [];
+
+        if (count($comparison) < 2) {
+            return;
+        }
+
+        $section->addText($payload['group_label'].' Progress Comparison', ['bold' => true, 'color' => '010440'], [
+            'alignment' => Jc::CENTER,
+            'spaceBefore' => 160,
+            'spaceAfter' => 80,
+        ]);
+
+        $table = $section->addTable([
+            'borderSize' => 6,
+            'borderColor' => 'BFC9F5',
+            'cellMargin' => 70,
+            'alignment' => Jc::CENTER,
+        ]);
+        $table->addRow();
+        foreach ([$payload['group_label'], 'Completion', 'Visit Share', 'Visits', 'Avg / Met'] as $index => $label) {
+            $table->addCell([2200, 2200, 2200, 1100, 1500][$index], ['bgColor' => 'F6F8FF', 'borderSize' => 6, 'borderColor' => 'BFC9F5'])
+                ->addText($label, ['bold' => true, 'color' => '010440'], ['spaceAfter' => 0]);
+        }
+
+        foreach ($comparison as $item) {
+            $table->addRow();
+            $table->addCell(2200)->addText((string) ($item['label'] ?? ''), ['bold' => true], ['spaceAfter' => 0]);
+            $table->addCell(2200)->addText($this->barText((int) ($item['completion_percent'] ?? 0)).' '.($item['completion_percent'] ?? 0).'%', [], ['spaceAfter' => 0]);
+            $table->addCell(2200)->addText($this->barText((int) ($item['visit_share_percent'] ?? 0)).' '.($item['visit_share_percent'] ?? 0).'%', [], ['spaceAfter' => 0]);
+            $table->addCell(1100)->addText((string) ($item['total_visits'] ?? 0), [], ['spaceAfter' => 0]);
+            $table->addCell(1500)->addText(($item['average_visits'] ?? 0).' avg / '.($item['met_required'] ?? 0).' met', [], ['spaceAfter' => 0]);
+        }
+    }
+
+    private function barText(int $percent): string
+    {
+        $filled = (int) round(max(0, min(100, $percent)) / 10);
+
+        return str_repeat('|', $filled).str_repeat('.', 10 - $filled);
     }
 
     /**

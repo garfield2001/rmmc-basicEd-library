@@ -92,6 +92,56 @@ class LibraryMemberTableService
             ->select('library_members.*');
     }
 
+    public function distribution(string $search, ?int $activeSchoolYearId): array
+    {
+        $students = $this->filteredQuery(LibraryMember::TYPE_STUDENT, $search, '', '', $activeSchoolYearId)->get();
+        $employees = $this->filteredQuery(LibraryMember::TYPE_EMPLOYEE, $search, '', '', $activeSchoolYearId)->get();
+        $yearLevelCounts = collect(AcademicLevels::options())->mapWithKeys(fn (string $yearLevel): array => [$yearLevel => 0]);
+        $sectionCounts = [];
+        $departmentCounts = [];
+
+        foreach ($students as $student) {
+            $yearLevel = $student->student?->year_level ?: 'Unassigned';
+            $section = $student->student?->section ?: 'Unassigned';
+
+            $yearLevelCounts[$yearLevel] = ($yearLevelCounts[$yearLevel] ?? 0) + 1;
+            $sectionCounts[$yearLevel][$section] = ($sectionCounts[$yearLevel][$section] ?? 0) + 1;
+        }
+
+        foreach ($employees as $employee) {
+            $department = $employee->employee?->department ?: 'Unassigned';
+            $departmentCounts[$department] = ($departmentCounts[$department] ?? 0) + 1;
+        }
+
+        ksort($departmentCounts, SORT_NATURAL | SORT_FLAG_CASE);
+
+        foreach ($sectionCounts as $yearLevel => $sections) {
+            ksort($sections, SORT_NATURAL | SORT_FLAG_CASE);
+            $sectionCounts[$yearLevel] = $sections;
+        }
+
+        return [
+            'students' => [
+                'yearLevels' => $yearLevelCounts
+                    ->map(fn (int $count, string $label): array => ['label' => $label, 'count' => $count])
+                    ->values()
+                    ->all(),
+                'sectionsByYearLevel' => collect($sectionCounts)
+                    ->map(fn (array $sections): array => collect($sections)
+                        ->map(fn (int $count, string $label): array => ['label' => $label, 'count' => $count])
+                        ->values()
+                        ->all())
+                    ->all(),
+            ],
+            'employees' => [
+                'departments' => collect($departmentCounts)
+                    ->map(fn (int $count, string $label): array => ['label' => $label, 'count' => $count])
+                    ->values()
+                    ->all(),
+            ],
+        ];
+    }
+
     public function applySort(Builder $query, string $sort, string $direction, ?int $activeSchoolYearId): void
     {
         match ($sort) {

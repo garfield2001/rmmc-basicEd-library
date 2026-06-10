@@ -98,7 +98,12 @@ export function useLiveVisitsPage(visitMonitor: AdminVisitMonitor) {
         enabled: !processing,
         onScanStart: () => setScanError(undefined),
         onError: (errors) => setScanError(typeof errors.rfid_uid === 'string' ? errors.rfid_uid : 'Unable to record this visit.'),
-        onFinish: () => router.reload({ only: ['visitMonitor'] }),
+        onFinish: () => {
+            setData('rfid_uid', '');
+            reset('rfid_uid');
+            setScanTargets([]);
+            router.reload({ only: ['visitMonitor'] });
+        },
     });
 
     useEffect(() => {

@@ -1,6 +1,5 @@
-import type { ChartPoint, EmployeeActivityVisit, StudentActivityVisit, VisitTrafficRange } from '@/types/dashboard';
+import type { ChartPoint, EmployeeActivityVisit, StudentActivityVisit } from '@/types/dashboard';
 import { BriefcaseBusiness, GraduationCap, Target, type LucideIcon } from 'lucide-react';
-import { rangeDetail } from './range-controls';
 
 export type ActivityPanel = 'yearLevel' | 'section' | 'department';
 
@@ -40,10 +39,6 @@ export function filterStudentActivityVisits(visits: StudentActivityVisit[], star
 
 export function filterEmployeeActivityVisits(visits: EmployeeActivityVisit[], startDate: string, endDate: string) {
     return visits.filter((visit) => visit.visitedAt && (!startDate || visit.visitedAt >= startDate) && (!endDate || visit.visitedAt <= endDate));
-}
-
-export function activityRangeDetail(range: VisitTrafficRange, startDate: string, endDate: string) {
-    return rangeDetail(range, startDate, endDate);
 }
 
 export function groupStudentActivity(visits: StudentActivityVisit[], mode: 'yearLevel' | 'section', labels: string[]): ChartPoint[] {

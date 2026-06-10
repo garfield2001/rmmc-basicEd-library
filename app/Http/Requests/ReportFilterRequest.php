@@ -24,6 +24,12 @@ class ReportFilterRequest extends FormRequest
             'year_level' => ['nullable', 'string', 'max:255'],
             'section' => ['nullable', 'string', 'max:255'],
             'department' => ['nullable', 'string', 'max:255'],
+            'year_levels' => ['nullable', 'array'],
+            'year_levels.*' => ['string', 'max:255'],
+            'sections' => ['nullable', 'array'],
+            'sections.*' => ['string', 'max:255'],
+            'departments' => ['nullable', 'array'],
+            'departments.*' => ['string', 'max:255'],
         ];
     }
 

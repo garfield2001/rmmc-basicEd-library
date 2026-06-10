@@ -17,6 +17,7 @@ export function useVisitorFormModal({ visitor, open, defaultType = 'student', on
     const [attemptedStep, setAttemptedStep] = useState<number | null>(null);
     const [confirmMergeOpen, setConfirmMergeOpen] = useState(false);
     const form = useForm<VisitorFormData>(initialVisitorData(visitor, defaultType));
+    const { clearErrors, reset, setData } = form;
     const currentStepComplete = isStepComplete(step, form.data);
     const currentStepHasErrors = stepHasErrors(step, form.errors);
 
@@ -28,17 +29,17 @@ export function useVisitorFormModal({ visitor, open, defaultType = 'student', on
         setStep(0);
         setAttemptedStep(null);
         setConfirmMergeOpen(false);
-        form.clearErrors();
-        form.reset();
-        form.setData(initialVisitorData(visitor, defaultType));
-    }, [defaultType, form.clearErrors, visitor, open, form.reset, form.setData]);
+        clearErrors();
+        reset();
+        setData(initialVisitorData(visitor, defaultType));
+    }, [clearErrors, defaultType, open, reset, setData, visitor]);
 
     const acceptScan = useCallback(
         (rfidUid: string) => {
-            form.setData('rfid_uid', rfidUid);
+            setData('rfid_uid', rfidUid);
             setStep(0);
         },
-        [form.setData],
+        [setData],
     );
 
     useRfidScanBuffer({ enabled: open && !isEditing, onScan: acceptScan });

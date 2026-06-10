@@ -11,6 +11,7 @@ use App\Services\Library\Imports\LibraryMemberImportWriter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class LibraryMemberImportService
 {
@@ -27,7 +28,7 @@ class LibraryMemberImportService
      */
     public function import(UploadedFile $file): array
     {
-        $rows = $this->files->read($file);
+        $rows = $this->readRows($file);
 
         return DB::transaction(function () use ($rows): array {
             $schoolYear = SchoolYear::active()->first();
@@ -97,6 +98,30 @@ class LibraryMemberImportService
             ]);
         }
 
-        return $this->preview->build($file);
+        try {
+            return $this->preview->build($file);
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
+            throw ValidationException::withMessages([
+                'visitors_file' => 'The import file could not be read. Please check that it uses separate First Name, Last Name, and School ID columns, then try again.',
+            ]);
+        }
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function readRows(UploadedFile $file): array
+    {
+        try {
+            return $this->files->read($file);
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
+            throw ValidationException::withMessages([
+                'visitors_file' => 'The import file could not be read. Please check that it uses separate First Name, Last Name, and School ID columns, then try again.',
+            ]);
+        }
     }
 }

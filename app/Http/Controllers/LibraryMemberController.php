@@ -66,6 +66,7 @@ class LibraryMemberController extends Controller
                 'sectionsByYearLevel' => $sections->groupedByYearLevel($activeSchoolYearId),
                 'departments' => $this->departmentOptions($activeSchoolYearId),
             ],
+            'distribution' => $visitorTable->distribution($search, $activeSchoolYearId),
         ]);
     }
 

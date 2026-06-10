@@ -80,7 +80,7 @@ export function useLiveVisitsTable({ visits, studentCount, employeeCount, mode }
     });
     const visibleVisits = usesVirtualRows ? pagedVisits.slice(virtualRows.startIndex, virtualRows.endIndex) : pagedVisits;
 
-    useEffect(() => setCurrentPage(1), [search, visitTab, rowsPerPage, yearLevel, section]);
+    useEffect(() => setCurrentPage(1), [rowsPerPage, search, section, setCurrentPage, visitTab, yearLevel]);
 
     useEffect(() => {
         if (visitTab === 'employee') {
@@ -91,7 +91,7 @@ export function useLiveVisitsTable({ visits, studentCount, employeeCount, mode }
         }
     }, [visitTab]);
 
-    useEffect(() => setCurrentPage((page) => Math.min(page, totalPages)), [totalPages]);
+    useEffect(() => setCurrentPage((page) => Math.min(page, totalPages)), [setCurrentPage, totalPages]);
 
     const changeYearLevel = (value: string) => {
         setYearLevel(value);

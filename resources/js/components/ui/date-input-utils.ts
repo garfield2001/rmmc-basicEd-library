@@ -1,5 +1,5 @@
 import { displayFormatter, monthIndex } from './date-input-months';
-export { displayFormatter, monthFormatter, monthOptions } from './date-input-months';
+export { displayFormatter, monthOptions } from './date-input-months';
 
 export function formatDisplayDate(value: string) {
     const date = parseIsoDate(value);

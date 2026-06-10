@@ -1,7 +1,7 @@
 import { initialVisitorPageFormData, type VisitorPageFormData } from '@/components/admin/registered-visitors/page-form/visitor-page-form-state';
 import type { LibraryMemberRow } from '@/types/registered-visitors';
 import { useForm } from '@inertiajs/react';
-import { type FormEventHandler, useEffect, useRef, useState } from 'react';
+import { type FormEventHandler, useCallback, useEffect, useRef, useState } from 'react';
 
 export function useVisitorPageForm(visitor: LibraryMemberRow | null) {
     const isEditing = Boolean(visitor);
@@ -9,6 +9,33 @@ export function useVisitorPageForm(visitor: LibraryMemberRow | null) {
     const scanTimer = useRef<number | null>(null);
     const [scanStatus, setScanStatus] = useState('Ready for RFID scan');
     const form = useForm<VisitorPageFormData>(initialVisitorPageFormData(visitor));
+    const { setData } = form;
+
+    const clearScanTimer = useCallback(() => {
+        if (scanTimer.current) {
+            window.clearTimeout(scanTimer.current);
+        }
+    }, []);
+
+    const captureScanBuffer = useCallback(() => {
+        if (scanBuffer.current) {
+            setData('rfid_uid', scanBuffer.current);
+            setScanStatus('RFID captured');
+            scanBuffer.current = '';
+        }
+    }, [setData]);
+
+    const queueScanCapture = useCallback(() => {
+        clearScanTimer();
+        scanTimer.current = window.setTimeout(() => {
+            if (scanBuffer.current.length >= 10) {
+                setData('rfid_uid', scanBuffer.current);
+                setScanStatus('RFID captured');
+            }
+
+            scanBuffer.current = '';
+        }, 80);
+    }, [clearScanTimer, setData]);
 
     useEffect(() => {
         if (isEditing) {
@@ -41,33 +68,7 @@ export function useVisitorPageForm(visitor: LibraryMemberRow | null) {
             window.removeEventListener('keydown', listener);
             clearScanTimer();
         };
-    }, [form.setData, isEditing]);
-
-    const clearScanTimer = () => {
-        if (scanTimer.current) {
-            window.clearTimeout(scanTimer.current);
-        }
-    };
-
-    const captureScanBuffer = () => {
-        if (scanBuffer.current) {
-            form.setData('rfid_uid', scanBuffer.current);
-            setScanStatus('RFID captured');
-            scanBuffer.current = '';
-        }
-    };
-
-    const queueScanCapture = () => {
-        clearScanTimer();
-        scanTimer.current = window.setTimeout(() => {
-            if (scanBuffer.current.length >= 10) {
-                form.setData('rfid_uid', scanBuffer.current);
-                setScanStatus('RFID captured');
-            }
-
-            scanBuffer.current = '';
-        }, 80);
-    };
+    }, [captureScanBuffer, clearScanTimer, isEditing, queueScanCapture]);
 
     const submit: FormEventHandler = (event) => {
         event.preventDefault();

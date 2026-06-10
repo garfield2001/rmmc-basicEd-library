@@ -1,13 +1,12 @@
-import { allFilterValue, type VisitorTypeFilter } from './report-helpers';
+import { type VisitorTypeFilter } from './report-helpers';
 
 interface ReportFilterValidationOptions {
     schoolYearId: string;
     startDate: string;
     endDate: string;
     visitorType: VisitorTypeFilter;
-    yearLevel: string;
-    section: string;
-    department: string;
+    yearLevels: string[];
+    departments: string[];
     schoolYearBounds: { start: string; end: string } | null;
 }
 
@@ -16,9 +15,8 @@ export function reportFilterValidation({
     startDate,
     endDate,
     visitorType,
-    yearLevel,
-    section,
-    department,
+    yearLevels,
+    departments,
     schoolYearBounds,
 }: ReportFilterValidationOptions) {
     const dateRangeIsValid = Boolean(
@@ -28,8 +26,8 @@ export function reportFilterValidation({
             startDate <= endDate &&
             (!schoolYearBounds || (startDate >= schoolYearBounds.start && endDate <= schoolYearBounds.end)),
     );
-    const studentFiltersComplete = visitorType !== 'student' || Boolean(yearLevel && (yearLevel === allFilterValue || section));
-    const employeeFiltersComplete = visitorType !== 'employee' || Boolean(department);
+    const studentFiltersComplete = visitorType !== 'student' || yearLevels.length > 0;
+    const employeeFiltersComplete = visitorType !== 'employee' || departments.length > 0;
 
     return {
         dateRangeIsValid,

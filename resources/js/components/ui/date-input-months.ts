@@ -1,4 +1,4 @@
-export const monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'long' });
+const monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'long' });
 export const displayFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
 export const monthOptions = Array.from({ length: 12 }, (_, month) => ({

@@ -1,9 +1,9 @@
 import type { VisitorWithRangeVisits } from '../visit-logs/visit-logs-helpers';
 
-export type ProgressBucketKey = 'none' | 'low' | 'mid' | 'near' | 'complete';
+type ProgressBucketKey = 'none' | 'low' | 'mid' | 'near' | 'complete';
 export type ProgressStatusFilter = 'all' | 'in-progress' | 'complete' | 'no-visits';
 
-export interface ProgressBucketDefinition {
+interface ProgressBucketDefinition {
     key: ProgressBucketKey;
     label: string;
     value: number;
@@ -46,10 +46,6 @@ export function progressBucketForVisitor(visitor: VisitorWithRangeVisits, requir
     }
 
     return 'complete';
-}
-
-export function matchesProgressBucket(visitor: VisitorWithRangeVisits, requiredVisits: number, bucket: ProgressBucketKey | null) {
-    return bucket === null || progressBucketForVisitor(visitor, requiredVisits) === bucket;
 }
 
 export function matchesProgressStatus(visitor: VisitorWithRangeVisits, requiredVisits: number, status: ProgressStatusFilter) {

@@ -4,7 +4,6 @@ import { useEchoPublic } from '@laravel/echo-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { reportExportUrls } from './report-export-url-builder';
 import {
-    allFilterValue,
     cleanQuery,
     rowsPerPage,
     sortReportRows,
@@ -16,14 +15,14 @@ import {
 import { useReportFilters } from './use-report-filters';
 
 interface ReportQuery {
-    [key: string]: string;
+    [key: string]: string | string[];
     school_year_id: string;
     start_date: string;
     end_date: string;
     visitor_type: VisitorTypeFilter;
-    year_level: string;
-    section: string;
-    department: string;
+    year_levels: string[];
+    sections: string[];
+    departments: string[];
 }
 
 export function useReportPage(
@@ -33,7 +32,7 @@ export function useReportPage(
     pagePath = '/admin/reports',
 ) {
     const filters = useReportFilters(report, reportOptions, initialVisitorType);
-    const { schoolYearId, startDate, endDate, visitorType, yearLevel, section, department, selectedSchoolYear, dateRangeSummary, reportCanFetch } =
+    const { schoolYearId, startDate, endDate, visitorType, yearLevels, sections, departments, selectedSchoolYear, dateRangeSummary, reportCanFetch } =
         filters.values;
     const [currentPage, setCurrentPage] = useState(1);
     const [sortColumn, setSortColumn] = useState<ReportSortColumn | null>(null);
@@ -57,11 +56,11 @@ export function useReportPage(
             start_date: startDate,
             end_date: endDate,
             visitor_type: visitorType,
-            year_level: visitorType === 'student' && yearLevel !== allFilterValue ? yearLevel : '',
-            section: visitorType === 'student' && yearLevel !== allFilterValue && section !== allFilterValue ? section : '',
-            department: visitorType === 'employee' && department !== allFilterValue ? department : '',
+            year_levels: visitorType === 'student' ? yearLevels : [],
+            sections: visitorType === 'student' ? sections : [],
+            departments: visitorType === 'employee' ? departments : [],
         }),
-        [department, endDate, visitorType, schoolYearId, section, startDate, yearLevel],
+        [departments, endDate, visitorType, schoolYearId, sections, startDate, yearLevels],
     );
     const queryString = useMemo(() => toSearchParams(query).toString(), [query]);
     const reportQueryString = useMemo(() => (report ? toSearchParams(report.filters).toString() : ''), [report]);

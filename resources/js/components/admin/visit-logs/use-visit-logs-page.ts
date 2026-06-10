@@ -53,7 +53,7 @@ export function useVisitLogsPage(visitLogs: AdminVisitLogs, initialVisitorType: 
         if (initialVisitorType === 'employee' && visitLogs.filters.departments.length === 1) {
             setDepartment(visitLogs.filters.departments[0]);
         }
-    }, [initialVisitorType]);
+    }, [initialVisitorType, visitLogs.filters.departments]);
 
     const effectiveStartDate = startDate || schoolYearStart;
     const effectiveEndDate = endDate || defaultEndDate;

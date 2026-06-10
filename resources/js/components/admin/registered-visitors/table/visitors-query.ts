@@ -1,7 +1,7 @@
 import type { RowsPerPageOption } from '@/components/ui/pagination-controls';
 import type { VisitorType } from './visitors-index-types';
 
-export interface VisitorsQueryState {
+interface VisitorsQueryState {
     search: string;
     yearLevel: string;
     section: string;

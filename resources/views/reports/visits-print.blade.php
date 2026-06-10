@@ -11,7 +11,7 @@
             $columns ??= [];
             $groups ??= [['label' => 'All visitors', 'rows' => $report['rows']]];
             $visitorType = ucfirst((string) ($report['summary']['visitor_type'] ?? 'visitor'));
-            $groupPrefix = ($report['summary']['visitor_type'] ?? null) === 'student' ? 'Year & Section' : 'Department';
+            $groupPrefix = $groupPrefix ?? (($report['summary']['visitor_type'] ?? null) === 'student' ? 'Year & Section' : 'Department');
             $fromDate = \Carbon\Carbon::parse($report['filters']['start_date'])->format('F j, Y');
             $toDate = \Carbon\Carbon::parse($report['filters']['end_date'])->format('F j, Y');
         @endphp
@@ -35,6 +35,7 @@
 
             @php $colTotal = collect($columns)->sum(fn ($c) => (float) $c['width']); @endphp
             @foreach ($groups as $group)
+                <section class="report-group">
                 <div class="group-title">{{ $groupPrefix }}: {{ $group['label'] }}</div>
                 <table class="report-table">
                     <thead>
@@ -72,11 +73,7 @@
                         @endforeach
                     </tbody>
                 </table>
-                <div class="group-summary">
-                    <div>Visitors: {{ $group['summary']['visitors'] ?? count($group['rows']) }}</div>
-                    <div class="summary-center">Total Visits: {{ $group['summary']['total_visits'] ?? collect($group['rows'])->sum('visit_count') }}</div>
-                    <div>Excess Visits: {{ $group['summary']['excess_visits'] ?? collect($group['rows'])->sum('excess_visits') }}</div>
-                </div>
+                </section>
             @endforeach
         </main>
 

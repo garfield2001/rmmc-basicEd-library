@@ -84,7 +84,13 @@ export function useVisitorsTableControls(
         [direction, pagePath, sort, startTableLoading, stopTableLoading],
     );
 
-    useEffect(() => () => loadingTimerRef.current && window.clearTimeout(loadingTimerRef.current), []);
+    useEffect(() => {
+        return () => {
+            if (loadingTimerRef.current) {
+                window.clearTimeout(loadingTimerRef.current);
+            }
+        };
+    }, []);
 
     useEffect(() => {
         setSelectedType(filters.type === 'employee' ? 'employee' : 'student');

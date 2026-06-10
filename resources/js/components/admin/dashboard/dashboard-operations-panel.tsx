@@ -3,6 +3,7 @@ import { formatTime } from '@/components/admin/dashboard/dashboard-summary';
 import type { DashboardScanSettings } from '@/types/dashboard';
 import { Clock3, Settings2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface DashboardOperationsPanelProps {
     dashboard: {
@@ -26,9 +27,15 @@ export function DashboardOperationsPanel({ dashboard, scanSettings }: DashboardO
 
         const closeOnEscape = (event: KeyboardEvent) => event.key === 'Escape' && setShowDrawer(false);
 
+        document.documentElement.classList.add('modal-scroll-locked');
+        document.body.classList.add('modal-scroll-locked');
         document.addEventListener('keydown', closeOnEscape);
 
-        return () => document.removeEventListener('keydown', closeOnEscape);
+        return () => {
+            document.removeEventListener('keydown', closeOnEscape);
+            document.documentElement.classList.remove('modal-scroll-locked');
+            document.body.classList.remove('modal-scroll-locked');
+        };
     }, [showDrawer]);
 
     return (
@@ -58,38 +65,41 @@ export function DashboardOperationsPanel({ dashboard, scanSettings }: DashboardO
                 </div>
             </section>
 
-            <div
-                className={`fixed inset-0 z-[60] transition-all ${motion} ${showDrawer ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
-                ref={drawerRef}
-            >
-                <div
-                    className="absolute inset-0 bg-[#010440]/20 backdrop-blur-[2px]"
-                    aria-hidden="true"
-                    onClick={() => setShowDrawer(false)}
-                />
-                <div
-                    className={`absolute bottom-0 right-0 top-0 flex w-full max-w-lg transform-gpu flex-col bg-white shadow-2xl shadow-[#010440]/20 transition-transform ${motion} ${
-                        showDrawer ? 'translate-x-0' : 'translate-x-full'
-                    }`}
-                >
-                    <div className="flex items-center justify-between border-b border-[#040DBF]/10 px-6 py-5">
-                        <div>
-                            <h2 className="text-lg font-semibold text-[#010440]">Scan rules</h2>
-                            <p className="text-sm text-[#020659]/70">Edit repeat-scan interval and daily visit scanning window.</p>
-                        </div>
-                        <button
-                            type="button"
+            {typeof document !== 'undefined' &&
+                createPortal(
+                    <div className={`admin-theme-root fixed inset-0 z-[60] h-[100dvh] ${showDrawer ? '' : 'pointer-events-none'}`} ref={drawerRef}>
+                        <div
+                            className={`fixed inset-0 h-[100dvh] bg-[#010440]/22 backdrop-blur-[4px] transition-opacity duration-150 ease-out ${
+                                showDrawer ? 'opacity-100' : 'opacity-0'
+                            }`}
+                            aria-hidden="true"
                             onClick={() => setShowDrawer(false)}
-                            className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg text-[#020659] transition-all hover:bg-[#040DBF]/5 hover:text-[#040DBF]"
+                        />
+                        <div
+                            className={`admin-surface fixed inset-y-0 right-0 flex h-[100dvh] w-full max-w-lg transform-gpu flex-col overflow-hidden bg-white shadow-2xl shadow-[#010440]/20 transition-transform ${motion} ${
+                                showDrawer ? 'translate-x-0' : 'translate-x-full'
+                            }`}
                         >
-                            <X className="size-5" />
-                        </button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto px-6 pt-5 pb-0">
-                        <ScanSettingsForm settings={scanSettings as unknown as ScanSettings} noWrapper />
-                    </div>
-                </div>
-            </div>
+                            <div className="flex shrink-0 items-center justify-between border-b border-[#040DBF]/10 px-6 py-5">
+                                <div>
+                                    <h2 className="text-lg font-semibold text-[#010440]">Scan rules</h2>
+                                    <p className="text-sm text-[#020659]/70">Edit repeat-scan interval and daily visit scanning window.</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowDrawer(false)}
+                                    className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg text-[#020659] transition-all hover:bg-[#040DBF]/5 hover:text-[#040DBF]"
+                                >
+                                    <X className="size-5" />
+                                </button>
+                            </div>
+                            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+                                <ScanSettingsForm settings={scanSettings as unknown as ScanSettings} noWrapper />
+                            </div>
+                        </div>
+                    </div>,
+                    document.body,
+                )}
         </>
     );
 }
