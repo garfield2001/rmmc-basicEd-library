@@ -22,6 +22,10 @@ class VisitReportExcelExport implements FromArray, WithColumnFormatting, WithCol
 
     private array $groupTitleRows = [];
 
+    private array $summaryHeaderRows = [];
+
+    private array $summaryTableRanges = [];
+
     public function __construct(private readonly array $report, private readonly array $groups) {}
 
     public function array(): array
@@ -49,12 +53,42 @@ class VisitReportExcelExport implements FromArray, WithColumnFormatting, WithCol
             $this->tableRanges[] = [$tableStart, count($rows)];
         }
 
+        $overallVisits = max(1, collect($this->report['rows'])->sum('visit_count'));
+        $comparison = (new \App\Services\Reports\VisitReportExportService())->comparison($this->groups, $overallVisits);
+
+        if (count($comparison) > 1) {
+            $rows[] = ['', '', '', '', ''];
+            $rows[] = ['Analysis Summary', '', '', '', ''];
+            $this->groupTitleRows[] = count($rows);
+            
+            $tableStart = count($rows) + 1;
+
+            foreach ($comparison as $comp) {
+                $rows[] = [
+                    $comp['label'],
+                    $this->barText((int) $comp['completion_percent']) . '  ' . $comp['completion_percent'].'% (Completion)',
+                    $this->barText((int) $comp['visit_share_percent']) . '  ' . $comp['visit_share_percent'].'% (Share)',
+                    $comp['total_visits'] . ' Visits',
+                    $comp['average_visits'] . ' Avg / ' . $comp['met_required'] . ' Met',
+                    '',
+                ];
+            }
+
+            $this->summaryTableRanges[] = [$tableStart, count($rows)];
+        }
+
         return $rows;
+    }
+
+    private function barText(int $percent): string
+    {
+        $filled = (int) round(max(0, min(100, $percent)) / 10);
+        return str_repeat('█', $filled) . str_repeat('░', 10 - $filled);
     }
 
     public function columnWidths(): array
     {
-        return ['A' => 18, 'B' => 36, 'C' => 13, 'D' => 12, 'E' => 13];
+        return ['A' => 18, 'B' => 36, 'C' => 18, 'D' => 12, 'E' => 13, 'F' => 13];
     }
 
     public function columnFormats(): array
@@ -68,13 +102,22 @@ class VisitReportExcelExport implements FromArray, WithColumnFormatting, WithCol
 
     public function drawings(): array
     {
-        $logoPath = public_path('images/rmmc-logo.jpg');
+        $leftLogo = public_path('images/rmmc-left-logo.jpg');
+        $rightLogo = public_path('images/rmmc-right-logo.jpg');
+        $defaultLogo = public_path('images/rmmc-logo.jpg');
 
-        if (! is_file($logoPath)) {
-            return [];
+        $leftLogoPath = is_file($leftLogo) ? $leftLogo : (is_file($defaultLogo) ? $defaultLogo : null);
+        $rightLogoPath = is_file($rightLogo) ? $rightLogo : (is_file($defaultLogo) ? $defaultLogo : null);
+
+        $drawings = [];
+        if ($leftLogoPath) {
+            $drawings[] = $this->logo($leftLogoPath, 'A1');
+        }
+        if ($rightLogoPath) {
+            $drawings[] = $this->logo($rightLogoPath, 'F1');
         }
 
-        return [$this->logo($logoPath, 'A1'), $this->logo($logoPath, 'E1')];
+        return $drawings;
     }
 
     public function registerEvents(): array
@@ -86,6 +129,8 @@ class VisitReportExcelExport implements FromArray, WithColumnFormatting, WithCol
                 $this->groupTitleRows,
                 [],
                 [],
+                $this->summaryHeaderRows,
+                $this->summaryTableRanges
             ))($event),
         ];
     }

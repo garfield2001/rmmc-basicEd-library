@@ -41,7 +41,9 @@ export function VisitorFormFieldsFlow({
                 />
             )}
 
-            {(isEditing || step === 1) && <ProfileSection data={data} errors={errors} setData={setData} inputClass={inputClass} sectionClass={sectionClass} />}
+            {(isEditing || step === 1) && (
+                <ProfileSection data={data} errors={errors} setData={setData} inputClass={inputClass} sectionClass={sectionClass} />
+            )}
 
             {(isEditing || step === 2) && (
                 <DetailsSection

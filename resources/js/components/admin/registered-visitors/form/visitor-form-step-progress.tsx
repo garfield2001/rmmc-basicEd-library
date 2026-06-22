@@ -10,7 +10,10 @@ export function VisitorFormStepProgress({ step }: { step: number }) {
                 <span>{visitorFormSteps[step].title}</span>
             </div>
             <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#040DBF]/10">
-                <div className="h-full rounded-full bg-[#040DBF] transition-[width] duration-300" style={{ width: `${((step + 1) / visitorFormSteps.length) * 100}%` }} />
+                <div
+                    className="h-full rounded-full bg-[#040DBF] transition-[width] duration-300"
+                    style={{ width: `${((step + 1) / visitorFormSteps.length) * 100}%` }}
+                />
             </div>
             <p className="mt-3 text-sm leading-6 text-[#020659]">{visitorFormSteps[step].description}</p>
         </div>

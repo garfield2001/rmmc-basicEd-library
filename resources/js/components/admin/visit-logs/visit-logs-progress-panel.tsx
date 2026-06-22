@@ -2,8 +2,8 @@ import { ProgressBar } from '@/components/admin/reports/report-table-parts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 import { BarChart3 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import type { VisitorTypeFilter, VisitorWithRangeVisits } from './visit-logs-helpers';
 import { watchlistGroupLabel } from './visit-log-watchlist';
+import type { VisitorTypeFilter, VisitorWithRangeVisits } from './visit-logs-helpers';
 
 interface VisitLogsProgressPanelProps {
     visitors: VisitorWithRangeVisits[];
@@ -16,7 +16,7 @@ interface VisitLogsProgressPanelProps {
 const progressConfig = {
     percent: {
         label: 'Progress',
-        color: '#2563eb',
+        color: '#14b8a6',
     },
 } satisfies ChartConfig;
 
@@ -90,7 +90,7 @@ export function VisitLogsProgressPanel({
                                     className="text-xs"
                                 />
                                 <ChartTooltip cursor={{ fill: 'rgb(4 13 191 / 0.06)' }} content={<ChartTooltipContent hideLabel />} />
-                                <Bar dataKey="percent" fill="#2563eb" radius={[0, 6, 6, 0]} />
+                                <Bar dataKey="percent" fill="#14b8a6" radius={[0, 6, 6, 0]} />
                             </BarChart>
                         </ChartContainer>
                     ) : (

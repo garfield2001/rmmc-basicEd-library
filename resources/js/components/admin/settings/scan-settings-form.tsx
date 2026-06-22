@@ -35,56 +35,58 @@ export function ScanSettingsForm({ settings, noWrapper = false }: ScanSettingsFo
         });
     };
 
-    const fields = () => (<>
-        <NumberField
-            label="Repeat scan interval"
-            suffix="hours"
-            min={1}
-            max={24}
-            value={data.repeat_scan_interval_hours}
-            error={errors.repeat_scan_interval_hours}
-            onChange={(value) => setData('repeat_scan_interval_hours', value)}
-        />
-        <TimeField
-            label="Scan opens"
-            value={data.scan_starts_at}
-            error={errors.scan_starts_at}
-            onChange={(value) => setData('scan_starts_at', value)}
-        />
-        <TimeField
-            label="Scan closes"
-            value={data.scan_ends_at}
-            error={errors.scan_ends_at}
-            onChange={(value) => setData('scan_ends_at', value)}
-        />
-        <NumberField
-            label="Success modal closes"
-            suffix="seconds"
-            min={1}
-            max={60}
-            value={data.success_modal_close_seconds}
-            error={errors.success_modal_close_seconds}
-            onChange={(value) => setData('success_modal_close_seconds', value)}
-        />
-        <NumberField
-            label="Error modal closes"
-            suffix="seconds"
-            min={1}
-            max={60}
-            value={data.error_modal_close_seconds}
-            error={errors.error_modal_close_seconds}
-            onChange={(value) => setData('error_modal_close_seconds', value)}
-        />
-        <NumberField
-            label="Scanner preparing time"
-            suffix="seconds"
-            min={0}
-            max={60}
-            value={data.scanner_cooldown_seconds}
-            error={errors.scanner_cooldown_seconds}
-            onChange={(value) => setData('scanner_cooldown_seconds', value)}
-        />
-    </>);
+    const fields = () => (
+        <>
+            <NumberField
+                label="Repeat scan interval"
+                suffix="hours"
+                min={1}
+                max={24}
+                value={data.repeat_scan_interval_hours}
+                error={errors.repeat_scan_interval_hours}
+                onChange={(value) => setData('repeat_scan_interval_hours', value)}
+            />
+            <TimeField
+                label="Scan opens"
+                value={data.scan_starts_at}
+                error={errors.scan_starts_at}
+                onChange={(value) => setData('scan_starts_at', value)}
+            />
+            <TimeField
+                label="Scan closes"
+                value={data.scan_ends_at}
+                error={errors.scan_ends_at}
+                onChange={(value) => setData('scan_ends_at', value)}
+            />
+            <NumberField
+                label="Success modal closes"
+                suffix="seconds"
+                min={1}
+                max={60}
+                value={data.success_modal_close_seconds}
+                error={errors.success_modal_close_seconds}
+                onChange={(value) => setData('success_modal_close_seconds', value)}
+            />
+            <NumberField
+                label="Error modal closes"
+                suffix="seconds"
+                min={1}
+                max={60}
+                value={data.error_modal_close_seconds}
+                error={errors.error_modal_close_seconds}
+                onChange={(value) => setData('error_modal_close_seconds', value)}
+            />
+            <NumberField
+                label="Scanner preparing time"
+                suffix="seconds"
+                min={0}
+                max={60}
+                value={data.scanner_cooldown_seconds}
+                error={errors.scanner_cooldown_seconds}
+                onChange={(value) => setData('scanner_cooldown_seconds', value)}
+            />
+        </>
+    );
 
     return noWrapper ? (
         <form onSubmit={submit} className="grid gap-4 lg:grid-cols-2">
@@ -148,9 +150,7 @@ function NumberField({
                     onChange={(event) => onChange(Number(event.target.value))}
                     className="min-w-0 flex-1 border-0 bg-transparent px-3 text-sm text-[#010440] outline-none"
                 />
-                <span className="flex items-center border-l border-[#040DBF]/10 bg-[#f6f8ff] px-3 text-sm font-medium text-[#030A8C]">
-                    {suffix}
-                </span>
+                <span className="flex items-center border-l border-[#040DBF]/10 bg-[#f6f8ff] px-3 text-sm font-medium text-[#030A8C]">{suffix}</span>
             </div>
             {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         </label>

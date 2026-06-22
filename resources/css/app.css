@@ -14,14 +14,8 @@
         color-scheme: only light;
         font-family: var(--font-sans);
         overflow-y: scroll;
-        scrollbar-color: rgb(4 13 191 / 0.35) rgb(246 248 255);
+        scrollbar-color: rgb(100 116 139 / 0.34) rgb(246 248 255);
         scrollbar-width: thin;
-    }
-
-    html.admin-theme-dark {
-        background-color: #020617;
-        color: #e5edff;
-        color-scheme: dark;
     }
 
     html::-webkit-scrollbar {
@@ -36,32 +30,29 @@
     html::-webkit-scrollbar-thumb {
         border: 3px solid #f6f8ff;
         border-radius: 999px;
-        background: rgb(4 13 191 / 0.35);
+        background: rgb(100 116 139 / 0.34);
     }
 
     html::-webkit-scrollbar-thumb:hover {
-        background: rgb(3 10 140 / 0.55);
+        background: rgb(71 85 105 / 0.52);
     }
 
-    html.admin-theme-dark body {
-        --chart-1: #60a5fa;
-        --chart-2: #34d399;
-        --chart-3: #a78bfa;
-        --chart-4: #fbbf24;
-        --chart-5: #f87171;
+    html:has(.admin-theme-root.admin-theme-dark) {
+        background-color: #040617;
+        scrollbar-color: rgb(148 163 184 / 0.36) rgb(15 23 42 / 0.48);
     }
 
-    html.admin-theme-dark::-webkit-scrollbar-track {
-        background: rgb(15 23 42);
+    html:has(.admin-theme-root.admin-theme-dark)::-webkit-scrollbar-track {
+        background: #050817;
     }
 
-    html.admin-theme-dark::-webkit-scrollbar-thumb {
-        border-color: rgb(15 23 42);
-        background: rgb(96 165 250 / 0.52);
+    html:has(.admin-theme-root.admin-theme-dark)::-webkit-scrollbar-thumb {
+        border-color: #050817;
+        background: rgb(148 163 184 / 0.34);
     }
 
-    html.admin-theme-dark::-webkit-scrollbar-thumb:hover {
-        background: rgb(147 197 253 / 0.72);
+    html:has(.admin-theme-root.admin-theme-dark)::-webkit-scrollbar-thumb:hover {
+        background: rgb(203 213 225 / 0.48);
     }
 
     html.public-scrollbar-hidden {
@@ -84,12 +75,6 @@
         --chart-3: #7c3aed;
         --chart-4: #f59e0b;
         --chart-5: #dc2626;
-    }
-
-    html.admin-theme-dark body {
-        background-color: #020617;
-        color: #e5edff;
-        color-scheme: dark;
     }
 
     input,
@@ -265,8 +250,7 @@
 
     .admin-main-shell {
         background:
-            radial-gradient(circle at top right, rgb(255 255 255 / 0.68), transparent 22rem),
-            linear-gradient(180deg, #f5f7ff 0%, #eef3ff 100%);
+            radial-gradient(circle at top right, rgb(255 255 255 / 0.68), transparent 22rem), linear-gradient(180deg, #f5f7ff 0%, #eef3ff 100%);
     }
 
     .admin-chart-surface {
@@ -543,7 +527,7 @@
 
     .admin-contained-scroll {
         scrollbar-width: thin;
-        scrollbar-color: rgb(4 13 191 / 0.38) transparent;
+        scrollbar-color: rgb(100 116 139 / 0.38) transparent;
     }
 
     .admin-contained-scroll::-webkit-scrollbar {
@@ -558,17 +542,51 @@
     .admin-contained-scroll::-webkit-scrollbar-thumb {
         border: 3px solid transparent;
         border-radius: 999px;
-        background: rgb(4 13 191 / 0.38);
+        background: rgb(100 116 139 / 0.38);
         background-clip: padding-box;
     }
 
-    .admin-theme-root tbody tr {
+    .admin-theme-root :is(thead, .admin-table-header),
+    .dialog-content :is(thead, .admin-table-header) {
+        border-color: rgb(4 13 191 / 0.12) !important;
+        background: linear-gradient(180deg, #f7f9ff 0%, #eef3ff 100%) !important;
+        color: rgb(2 6 89 / 0.76) !important;
+    }
+
+    .admin-theme-root :is(thead, .admin-table-header) th,
+    .dialog-content :is(thead, .admin-table-header) th {
+        border-color: rgb(4 13 191 / 0.1) !important;
+        color: rgb(2 6 89 / 0.76) !important;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: uppercase;
+    }
+
+    .admin-theme-root :is(thead, .admin-table-header) tr,
+    .dialog-content :is(thead, .admin-table-header) tr {
+        border-color: rgb(4 13 191 / 0.12) !important;
+    }
+
+    .admin-theme-root tbody tr,
+    .dialog-content tbody tr {
         height: 4.25rem;
     }
 
-    .admin-theme-root tbody td {
+    .admin-theme-root tbody td,
+    .dialog-content tbody td {
         min-height: 4.25rem;
         vertical-align: middle;
+    }
+
+    .admin-theme-root tbody tr:nth-child(even):not(:hover),
+    .dialog-content tbody tr:nth-child(even):not(:hover) {
+        background-color: rgb(248 250 252 / 0.72);
+    }
+
+    .admin-theme-root tbody tr:hover,
+    .dialog-content tbody tr:hover {
+        background-color: rgb(239 246 255 / 0.78);
     }
 
     .admin-theme-root .admin-sidebar-child-link {
@@ -601,52 +619,104 @@
         color: #b91c1c !important;
     }
 
-    html.admin-theme-dark .admin-theme-root {
+    .admin-theme-root.admin-theme-dark {
+        --chart-1: #60a5fa;
+        --chart-2: #34d399;
+        --chart-3: #a78bfa;
+        --chart-4: #fbbf24;
+        --chart-5: #f87171;
         background: linear-gradient(180deg, #040617 0%, #070b1d 45%, #0b1020 100%) !important;
         color: #e5edff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-main-shell {
+    .admin-theme-root.admin-theme-dark .admin-main-shell {
         background:
             radial-gradient(circle at top right, rgb(37 99 235 / 0.16), transparent 24rem),
             linear-gradient(180deg, #040617 0%, #070b1d 45%, #0b1020 100%) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-surface {
+    .admin-theme-root.admin-theme-dark .admin-surface {
         border-color: rgb(96 165 250 / 0.2) !important;
         background-color: rgb(15 23 42 / 0.94) !important;
         color: #e5edff !important;
         box-shadow: 0 18px 50px rgb(0 0 0 / 0.24) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(.bg-zinc-50, .bg-zinc-100, .bg-zinc-200),
-    html.admin-theme-dark .admin-theme-root [class*='bg-zinc-50'],
-    html.admin-theme-dark .admin-theme-root [class*='bg-zinc-100'],
-    html.admin-theme-dark .admin-theme-root [class*='bg-zinc-200'],
-    html.admin-theme-dark .admin-theme-root [class*='bg-[#f8fbff]'],
-    html.admin-theme-dark .admin-theme-root [class*='bg-[#f6f8ff]'] {
-        background-color: rgb(30 41 59 / 0.78) !important;
+    .admin-theme-root.admin-theme-dark .admin-contained-scroll,
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content .admin-contained-scroll {
+        scrollbar-color: rgb(148 163 184 / 0.36) transparent;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(.border-zinc-100, .border-zinc-200, .border-zinc-300),
-    html.admin-theme-dark .admin-theme-root [class*='border-zinc-'],
-    html.admin-theme-dark .admin-theme-root [class*='border-[#040DBF]'],
-    html.admin-theme-dark .admin-theme-root [class*='border-[#030A8C]'] {
+    .admin-theme-root.admin-theme-dark .admin-contained-scroll::-webkit-scrollbar-thumb,
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content .admin-contained-scroll::-webkit-scrollbar-thumb {
+        background: rgb(148 163 184 / 0.34);
+    }
+
+    .admin-theme-root.admin-theme-dark :is(section, article, div, form, header)[class*='bg-white'] {
         border-color: rgb(96 165 250 / 0.2) !important;
+        background-color: rgb(15 23 42 / 0.92) !important;
+        color: #e5edff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(.text-zinc-950, .text-zinc-900, .text-zinc-800, .text-zinc-700),
-    html.admin-theme-dark .admin-theme-root [class*='text-[#010440]'] {
+    body:has(.admin-theme-root.admin-theme-dark) > .admin-theme-root.fixed,
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content {
+        border-color: rgb(96 165 250 / 0.24) !important;
+        background-color: rgb(15 23 42 / 0.98) !important;
+        color: #e5edff !important;
+    }
+
+    body:has(.admin-theme-root.admin-theme-dark) > .admin-theme-root.fixed .admin-surface {
+        border-color: rgb(96 165 250 / 0.2) !important;
+        background-color: rgb(15 23 42 / 0.98) !important;
+        color: #e5edff !important;
+    }
+
+    body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) [class*='text-[#010440]'],
+    body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) :is(.text-zinc-950, .text-zinc-900) {
         color: #f8fbff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(.text-zinc-600, .text-zinc-500, .text-zinc-400),
-    html.admin-theme-dark .admin-theme-root [class*='text-[#020659]'],
-    html.admin-theme-dark .admin-theme-root [class*='text-[#030A8C]'] {
+    body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) [class*='text-[#020659]'],
+    body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) [class*='text-[#030A8C]'],
+    body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) :is(.text-zinc-600, .text-zinc-500, .text-zinc-400) {
         color: #b9c8ff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(input, select, textarea) {
+    body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) :is(input, select, textarea) {
+        border-color: rgb(96 165 250 / 0.24) !important;
+        background-color: rgb(2 6 23 / 0.9) !important;
+        color: #f8fbff !important;
+        color-scheme: dark;
+    }
+
+    .admin-theme-root.admin-theme-dark :is(.bg-zinc-50, .bg-zinc-100, .bg-zinc-200),
+    .admin-theme-root.admin-theme-dark [class*='bg-zinc-50'],
+    .admin-theme-root.admin-theme-dark [class*='bg-zinc-100'],
+    .admin-theme-root.admin-theme-dark [class*='bg-zinc-200'],
+    .admin-theme-root.admin-theme-dark [class*='bg-[#f8fbff]'],
+    .admin-theme-root.admin-theme-dark [class*='bg-[#f6f8ff]'] {
+        background-color: rgb(30 41 59 / 0.78) !important;
+    }
+
+    .admin-theme-root.admin-theme-dark :is(.border-zinc-100, .border-zinc-200, .border-zinc-300),
+    .admin-theme-root.admin-theme-dark [class*='border-zinc-'],
+    .admin-theme-root.admin-theme-dark [class*='border-[#040DBF]'],
+    .admin-theme-root.admin-theme-dark [class*='border-[#030A8C]'] {
+        border-color: rgb(96 165 250 / 0.2) !important;
+    }
+
+    .admin-theme-root.admin-theme-dark :is(.text-zinc-950, .text-zinc-900, .text-zinc-800, .text-zinc-700),
+    .admin-theme-root.admin-theme-dark [class*='text-[#010440]'] {
+        color: #f8fbff !important;
+    }
+
+    .admin-theme-root.admin-theme-dark :is(.text-zinc-600, .text-zinc-500, .text-zinc-400),
+    .admin-theme-root.admin-theme-dark [class*='text-[#020659]'],
+    .admin-theme-root.admin-theme-dark [class*='text-[#030A8C]'] {
+        color: #b9c8ff !important;
+    }
+
+    .admin-theme-root.admin-theme-dark :is(input, select, textarea) {
         border-color: rgb(96 165 250 / 0.24) !important;
         background-color: rgb(2 6 23 / 0.9) !important;
         color: #f8fbff !important;
@@ -654,50 +724,60 @@
         color-scheme: dark;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(input, textarea)::placeholder {
+    .admin-theme-root.admin-theme-dark :is(input, textarea)::placeholder {
         color: #7182a3 !important;
     }
 
-    html.admin-theme-dark .admin-theme-root input[type='file']::file-selector-button {
+    .admin-theme-root.admin-theme-dark input[type='file']::file-selector-button {
         background-color: #172554 !important;
         color: #dbeafe !important;
     }
 
-    html.admin-theme-dark .admin-theme-root input[type='checkbox'] {
+    .admin-theme-root.admin-theme-dark input[type='checkbox'] {
         accent-color: #4f7cff;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(table, thead, tbody, tr, th, td) {
+    .admin-theme-root.admin-theme-dark :is(table, thead, tbody, tr, th, td),
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content :is(table, thead, tbody, tr, th, td) {
         border-color: rgb(96 165 250 / 0.16) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root thead,
-    html.admin-theme-dark .admin-theme-root [class*='TableHeader'],
-    html.admin-theme-dark .admin-theme-root [class*='bg-zinc-50'] {
-        background-color: rgb(15 23 42 / 0.9) !important;
+    .admin-theme-root.admin-theme-dark thead,
+    .admin-theme-root.admin-theme-dark .admin-table-header,
+    .admin-theme-root.admin-theme-dark [class*='TableHeader'],
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content :is(thead, .admin-table-header) {
+        background: linear-gradient(180deg, rgb(30 41 59 / 0.96) 0%, rgb(15 23 42 / 0.96) 100%) !important;
+        color: #c7d7ff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root tr:hover {
-        background-color: rgb(30 41 59 / 0.58) !important;
+    .admin-theme-root.admin-theme-dark :is(thead, .admin-table-header) th,
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content :is(thead, .admin-table-header) th {
+        color: #c7d7ff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root tbody tr:nth-child(even):not(:hover) {
-        background-color: rgb(15 23 42 / 0.28) !important;
+    .admin-theme-root.admin-theme-dark tbody tr:hover,
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content tbody tr:hover {
+        background-color: rgb(30 41 59 / 0.62) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .report-table-icon {
+    .admin-theme-root.admin-theme-dark tbody tr:nth-child(even):not(:hover),
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content tbody tr:nth-child(even):not(:hover) {
+        background-color: rgb(15 23 42 / 0.34) !important;
+    }
+
+    .admin-theme-root.admin-theme-dark .report-table-icon {
         color: #93c5fd !important;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(button, a)[class*='bg-white'],
-    html.admin-theme-dark .admin-theme-root :is(button, a)[class*='hover:bg-zinc-100']:hover,
-    html.admin-theme-dark .admin-theme-root :is(button, a)[class*='hover:bg-white']:hover {
+    .admin-theme-root.admin-theme-dark :is(button, a)[class*='bg-white'],
+    .admin-theme-root.admin-theme-dark :is(button, a)[class*='hover:bg-zinc-100']:hover,
+    .admin-theme-root.admin-theme-dark :is(button, a)[class*='hover:bg-white']:hover {
         background-color: rgb(30 41 59 / 0.94) !important;
         color: #f8fbff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-icon-button,
-    html.admin-theme-dark .dialog-content .admin-icon-button {
+    .admin-theme-root.admin-theme-dark .admin-icon-button,
+    .admin-theme-root.admin-theme-dark .dialog-content .admin-icon-button {
         border-color: rgb(96 165 250 / 0.24) !important;
         background-color: rgb(15 23 42 / 0.94) !important;
         color: #dbeafe !important;
@@ -706,31 +786,31 @@
             0 10px 24px rgb(0 0 0 / 0.16) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-icon-button:hover,
-    html.admin-theme-dark .dialog-content .admin-icon-button:hover {
+    .admin-theme-root.admin-theme-dark .admin-icon-button:hover,
+    .admin-theme-root.admin-theme-dark .dialog-content .admin-icon-button:hover {
         border-color: rgb(147 197 253 / 0.36) !important;
         background-color: rgb(30 41 59 / 0.98) !important;
         color: #ffffff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(button, a)[class*='bg-zinc-950'] {
+    .admin-theme-root.admin-theme-dark :is(button, a)[class*='bg-zinc-950'] {
         background-color: #1d4ed8 !important;
         color: #ffffff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-danger-action {
+    .admin-theme-root.admin-theme-dark .admin-danger-action {
         border-color: rgb(248 113 113 / 0.45) !important;
         background-color: rgb(127 29 29 / 0.18) !important;
         color: #fca5a5 !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-danger-action:hover {
+    .admin-theme-root.admin-theme-dark .admin-danger-action:hover {
         border-color: rgb(252 165 165 / 0.62) !important;
         background-color: rgb(127 29 29 / 0.32) !important;
         color: #fecaca !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-school-year-badge {
+    .admin-theme-root.admin-theme-dark .admin-school-year-badge {
         border-color: rgb(96 165 250 / 0.28) !important;
         background-color: rgb(15 23 42 / 0.92) !important;
         color: #e5edff !important;
@@ -739,19 +819,19 @@
             0 10px 26px rgb(0 0 0 / 0.18) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-school-year-label {
+    .admin-theme-root.admin-theme-dark .admin-school-year-label {
         border-color: rgb(96 165 250 / 0.24) !important;
         background-color: rgb(30 41 59 / 0.88) !important;
         color: #b9c8ff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-school-year-value {
+    .admin-theme-root.admin-theme-dark .admin-school-year-value {
         color: #f8fbff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-school-year-popover,
-    html.admin-theme-dark .admin-school-year-popover,
-    html.admin-theme-dark .admin-floating-popover {
+    .admin-theme-root.admin-theme-dark .admin-school-year-popover,
+    .admin-theme-root.admin-theme-dark .admin-school-year-popover,
+    .admin-theme-root.admin-theme-dark .admin-floating-popover {
         border-color: rgb(96 165 250 / 0.24) !important;
         background-color: rgb(15 23 42 / 0.98) !important;
         color: #e5edff !important;
@@ -760,55 +840,63 @@
             0 24px 70px rgb(0 0 0 / 0.34) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-school-year-popover-icon,
-    html.admin-theme-dark .admin-school-year-popover-icon {
+    .admin-theme-root.admin-theme-dark .admin-school-year-popover-icon,
+    .admin-theme-root.admin-theme-dark .admin-school-year-popover-icon {
         border: 1px solid rgb(96 165 250 / 0.22) !important;
         background-color: rgb(29 78 216 / 0.18) !important;
         color: #93c5fd !important;
         box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-school-year-mini-stat,
-    html.admin-theme-dark .admin-school-year-mini-stat {
+    .admin-theme-root.admin-theme-dark .admin-school-year-mini-stat {
         border-color: rgb(96 165 250 / 0.22) !important;
         background-color: rgb(30 41 59 / 0.72) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-school-year-popover :is(p, span, button),
-    html.admin-theme-dark .admin-school-year-popover :is(p, span, button),
-    html.admin-theme-dark .admin-floating-popover :is(a, button, span) {
+    .admin-theme-root.admin-theme-dark .admin-school-year-popover :is(p, span, button),
+    .admin-theme-root.admin-theme-dark .admin-school-year-popover :is(p, span, button),
+    .admin-theme-root.admin-theme-dark .admin-floating-popover :is(a, button, span) {
         color: #e5edff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-school-year-popover [class*='text-[#030A8C]'],
-    html.admin-theme-dark .admin-theme-root .admin-school-year-popover [class*='text-[#020659]'],
-    html.admin-theme-dark .admin-school-year-popover [class*='text-[#030A8C]'],
-    html.admin-theme-dark .admin-school-year-popover [class*='text-[#020659]'],
-    html.admin-theme-dark .admin-floating-popover [class*='text-[#030A8C]'],
-    html.admin-theme-dark .admin-floating-popover [class*='text-[#020659]'] {
+    .admin-theme-root.admin-theme-dark .admin-school-year-popover [class*='text-[#030A8C]'],
+    .admin-theme-root.admin-theme-dark .admin-school-year-popover [class*='text-[#020659]'],
+    .admin-theme-root.admin-theme-dark .admin-school-year-popover [class*='text-[#030A8C]'],
+    .admin-theme-root.admin-theme-dark .admin-school-year-popover [class*='text-[#020659]'],
+    .admin-theme-root.admin-theme-dark .admin-floating-popover [class*='text-[#030A8C]'],
+    .admin-theme-root.admin-theme-dark .admin-floating-popover [class*='text-[#020659]'] {
         color: #b9c8ff !important;
     }
 
-    html.admin-theme-dark .admin-floating-popover :is(a, button):hover {
+    .admin-theme-root.admin-theme-dark .admin-floating-popover :is(a, button):hover {
         border-color: rgb(96 165 250 / 0.24) !important;
         background-color: rgb(30 41 59 / 0.9) !important;
         color: #ffffff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-progress-track,
-    html.admin-theme-dark .dialog-content .admin-progress-track {
+    .admin-theme-root.admin-theme-dark .admin-progress-track,
+    .admin-theme-root.admin-theme-dark .dialog-content .admin-progress-track,
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content .admin-progress-track {
         background-color: rgb(15 23 42 / 0.92) !important;
         box-shadow: inset 0 0 0 1px rgb(148 163 184 / 0.18) !important;
     }
 
     .admin-progress-track {
-        background-color: rgb(4 13 191 / 0.12) !important;
-        box-shadow: inset 0 0 0 1px rgb(4 13 191 / 0.08);
+        background-color: rgb(15 118 110 / 0.13) !important;
+        box-shadow: inset 0 0 0 1px rgb(15 118 110 / 0.1);
     }
 
     .admin-progress-fill {
-        background: linear-gradient(90deg, #0284c7 0%, #2563eb 48%, #16a34a 100%);
-        box-shadow: 0 0 14px rgb(37 99 235 / 0.22);
+        background: linear-gradient(90deg, #0f766e 0%, #14b8a6 52%, #22c55e 100%);
+        box-shadow: 0 0 14px rgb(20 184 166 / 0.24);
+    }
+
+    .admin-required-visits-badge,
+    .admin-soft-count-badge {
+        border: 1px solid rgb(15 118 110 / 0.14);
+        background: linear-gradient(180deg, #f8fbff 0%, #eefbf7 100%);
+        color: #0f766e;
+        box-shadow: 0 8px 20px rgb(15 23 42 / 0.06);
     }
 
     .visit-logs-audience-badge {
@@ -847,153 +935,163 @@
         background: linear-gradient(90deg, #059669, #0d9488, #2563eb);
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-progress-fill,
-    html.admin-theme-dark .dialog-content .admin-progress-fill {
-        background: linear-gradient(90deg, #38bdf8 0%, #818cf8 48%, #34d399 100%) !important;
-        box-shadow: 0 0 18px rgb(56 189 248 / 0.3) !important;
+    .admin-theme-root.admin-theme-dark .admin-progress-fill,
+    .admin-theme-root.admin-theme-dark .dialog-content .admin-progress-fill,
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content .admin-progress-fill {
+        background: linear-gradient(90deg, #2dd4bf 0%, #34d399 52%, #a3e635 100%) !important;
+        box-shadow: 0 0 18px rgb(45 212 191 / 0.24) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .visit-logs-audience-badge {
+    .admin-theme-root.admin-theme-dark .admin-required-visits-badge,
+    .admin-theme-root.admin-theme-dark .admin-soft-count-badge,
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content .admin-soft-count-badge {
+        border-color: rgb(45 212 191 / 0.24) !important;
+        background: rgb(20 83 75 / 0.36) !important;
+        color: #ccfbf1 !important;
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05) !important;
+    }
+
+    .admin-theme-root.admin-theme-dark .visit-logs-audience-badge {
         background-color: rgb(15 23 42 / 0.92) !important;
         box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .visit-logs-audience-badge.visit-logs-audience-student {
+    .admin-theme-root.admin-theme-dark .visit-logs-audience-badge.visit-logs-audience-student {
         border-color: rgb(96 165 250 / 0.34) !important;
         color: #bfdbfe !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .visit-logs-audience-badge.visit-logs-audience-employee {
+    .admin-theme-root.admin-theme-dark .visit-logs-audience-badge.visit-logs-audience-employee {
         border-color: rgb(52 211 153 / 0.34) !important;
         color: #bbf7d0 !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-segmented-tabs {
+    .admin-theme-root.admin-theme-dark .admin-segmented-tabs {
         border-color: rgb(96 165 250 / 0.24) !important;
         background: rgb(30 41 59 / 0.82) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-segmented-tab {
+    .admin-theme-root.admin-theme-dark .admin-segmented-tab {
         color: #b9c8ff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-segmented-tab:hover {
+    .admin-theme-root.admin-theme-dark .admin-segmented-tab:hover {
         border-color: rgb(96 165 250 / 0.2) !important;
         background: rgb(51 65 85 / 0.7) !important;
         color: #f8fbff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-segmented-tab-active {
+    .admin-theme-root.admin-theme-dark .admin-segmented-tab-active {
         border-color: #60a5fa !important;
         background: #1d4ed8 !important;
         color: #ffffff !important;
         box-shadow: 0 10px 22px rgb(29 78 216 / 0.22) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root [data-chart] {
+    .admin-theme-root.admin-theme-dark [data-chart] {
         color: #b9c8ff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root [data-chart] .recharts-cartesian-axis-tick text {
+    .admin-theme-root.admin-theme-dark [data-chart] .recharts-cartesian-axis-tick text {
         fill: #b9c8ff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root [data-chart] .admin-chart-tick {
+    .admin-theme-root.admin-theme-dark [data-chart] .admin-chart-tick {
         fill: #b9c8ff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root [data-chart] .admin-today-tick-active {
+    .admin-theme-root.admin-theme-dark [data-chart] .admin-today-tick-active {
         fill: #bbf7d0 !important;
     }
 
-    html.admin-theme-dark .admin-theme-root [data-chart] .admin-today-tick-bg {
+    .admin-theme-root.admin-theme-dark [data-chart] .admin-today-tick-bg {
         fill: rgb(22 101 52 / 0.45) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root [data-chart] .recharts-cartesian-grid line {
+    .admin-theme-root.admin-theme-dark [data-chart] .recharts-cartesian-grid line {
         stroke: rgb(96 165 250 / 0.16) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root [data-chart] .recharts-tooltip-cursor {
+    .admin-theme-root.admin-theme-dark [data-chart] .recharts-tooltip-cursor {
         fill: rgb(96 165 250 / 0.08) !important;
         stroke: rgb(96 165 250 / 0.2) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root [data-chart] .recharts-active-bar,
-    html.admin-theme-dark .admin-theme-root [data-chart] .recharts-active-shape {
+    .admin-theme-root.admin-theme-dark [data-chart] .recharts-active-bar,
+    .admin-theme-root.admin-theme-dark [data-chart] .recharts-active-shape {
         filter: brightness(1.08);
     }
 
-    html.admin-theme-dark .admin-theme-root [data-chart] :is(.recharts-tooltip-wrapper [class*='bg-white']) {
+    .admin-theme-root.admin-theme-dark [data-chart] :is(.recharts-tooltip-wrapper [class*='bg-white']) {
         border-color: rgb(96 165 250 / 0.24) !important;
         background-color: rgb(15 23 42 / 0.98) !important;
         color: #e5edff !important;
         box-shadow: 0 18px 44px rgb(0 0 0 / 0.34) !important;
     }
 
-    html.admin-theme-dark .admin-icon-badge,
-    html.admin-theme-dark .dialog-content .admin-icon-badge {
+    .admin-theme-root.admin-theme-dark .admin-icon-badge,
+    .admin-theme-root.admin-theme-dark .dialog-content .admin-icon-badge {
         border-color: rgb(96 165 250 / 0.26) !important;
         background-color: rgb(29 78 216 / 0.22) !important;
         color: #dbeafe !important;
         box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-sidebar-child-link {
+    .admin-theme-root.admin-theme-dark .admin-sidebar-child-link {
         color: rgb(219 234 254 / 0.82) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-sidebar-child-link:hover,
-    html.admin-theme-dark .admin-theme-root .admin-sidebar-child-active {
+    .admin-theme-root.admin-theme-dark .admin-sidebar-child-link:hover,
+    .admin-theme-root.admin-theme-dark .admin-sidebar-child-active {
         color: #f8fbff !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .admin-sidebar-child-active {
+    .admin-theme-root.admin-theme-dark .admin-sidebar-child-active {
         border-color: rgb(147 197 253 / 0.35) !important;
         background-color: rgb(56 189 248 / 0.14) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(.bg-emerald-50, [class*='bg-emerald-50']) {
+    .admin-theme-root.admin-theme-dark :is(.bg-emerald-50, [class*='bg-emerald-50']) {
         background-color: rgb(6 78 59 / 0.35) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(.text-emerald-700, [class*='text-emerald-700']) {
+    .admin-theme-root.admin-theme-dark :is(.text-emerald-700, [class*='text-emerald-700']) {
         color: #86efac !important;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(.bg-amber-50, [class*='bg-amber-50']) {
+    .admin-theme-root.admin-theme-dark :is(.bg-amber-50, [class*='bg-amber-50']) {
         background-color: rgb(146 64 14 / 0.32) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(.text-amber-700, [class*='text-amber-700']) {
+    .admin-theme-root.admin-theme-dark :is(.text-amber-700, [class*='text-amber-700']) {
         color: #fcd34d !important;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(.bg-blue-50, [class*='bg-blue-50']) {
+    .admin-theme-root.admin-theme-dark :is(.bg-blue-50, [class*='bg-blue-50']) {
         background-color: rgb(30 64 175 / 0.28) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(.text-blue-700, [class*='text-blue-700']) {
+    .admin-theme-root.admin-theme-dark :is(.text-blue-700, [class*='text-blue-700']) {
         color: #93c5fd !important;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(.bg-violet-50, [class*='bg-violet-50']) {
+    .admin-theme-root.admin-theme-dark :is(.bg-violet-50, [class*='bg-violet-50']) {
         background-color: rgb(91 33 182 / 0.28) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(.text-violet-700, [class*='text-violet-700']) {
+    .admin-theme-root.admin-theme-dark :is(.text-violet-700, [class*='text-violet-700']) {
         color: #c4b5fd !important;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(.bg-red-50, [class*='bg-red-50']) {
+    .admin-theme-root.admin-theme-dark :is(.bg-red-50, [class*='bg-red-50']) {
         background-color: rgb(127 29 29 / 0.28) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root :is(.text-red-700, [class*='text-red-700']) {
+    .admin-theme-root.admin-theme-dark :is(.text-red-700, [class*='text-red-700']) {
         color: #fca5a5 !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .live-visit-avatar {
+    .admin-theme-root.admin-theme-dark .live-visit-avatar {
         background-color: rgb(30 41 59 / 0.92) !important;
         color: #dbeafe !important;
         box-shadow:
@@ -1001,30 +1099,37 @@
             0 8px 18px rgb(0 0 0 / 0.16) !important;
     }
 
-    html.admin-theme-dark .admin-theme-root .live-visit-avatar img {
+    .admin-theme-root.admin-theme-dark .live-visit-avatar img {
         background-color: rgb(15 23 42 / 0.9);
     }
 
-    html.admin-theme-dark .dialog-content {
+    .admin-theme-root.admin-theme-dark .dialog-content,
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content {
         border-color: rgb(96 165 250 / 0.22) !important;
         background-color: rgb(15 23 42 / 0.98) !important;
         color: #f8fbff !important;
         box-shadow: 0 24px 70px rgb(0 0 0 / 0.42) !important;
     }
 
-    html.admin-theme-dark .dialog-content [class*='bg-white'],
-    html.admin-theme-dark .dialog-content [class*='bg-zinc-50'],
-    html.admin-theme-dark .dialog-content [class*='bg-zinc-100'],
-    html.admin-theme-dark .dialog-content [class*='bg-[#f6f8ff]'] {
+    .admin-theme-root.admin-theme-dark .dialog-content [class*='bg-white'],
+    .admin-theme-root.admin-theme-dark .dialog-content [class*='bg-zinc-50'],
+    .admin-theme-root.admin-theme-dark .dialog-content [class*='bg-zinc-100'],
+    .admin-theme-root.admin-theme-dark .dialog-content [class*='bg-[#f6f8ff]'],
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content [class*='bg-white'],
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content [class*='bg-zinc-50'],
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content [class*='bg-zinc-100'],
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content [class*='bg-[#f6f8ff]'] {
         border-color: rgb(96 165 250 / 0.18) !important;
         background-color: rgb(30 41 59 / 0.86) !important;
     }
 
-    html.admin-theme-dark .dialog-content [class*='border-zinc-'] {
+    .admin-theme-root.admin-theme-dark .dialog-content [class*='border-zinc-'],
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content [class*='border-zinc-'] {
         border-color: rgb(96 165 250 / 0.2) !important;
     }
 
-    html.admin-theme-dark .dialog-content :is(input, select, textarea) {
+    .admin-theme-root.admin-theme-dark .dialog-content :is(input, select, textarea),
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content :is(input, select, textarea) {
         border-color: rgb(96 165 250 / 0.24) !important;
         background-color: rgb(2 6 23 / 0.9) !important;
         color: #f8fbff !important;
@@ -1032,69 +1137,84 @@
         color-scheme: dark;
     }
 
-    html.admin-theme-dark .admin-theme-root select option,
-    html.admin-theme-dark .dialog-content select option {
+    .admin-theme-root.admin-theme-dark select option,
+    .admin-theme-root.admin-theme-dark .dialog-content select option,
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content select option {
         background-color: #020617 !important;
         color: #f8fbff !important;
     }
 
-    html.admin-theme-dark .dialog-content :is(input, textarea)::placeholder {
+    .admin-theme-root.admin-theme-dark .dialog-content :is(input, textarea)::placeholder,
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content :is(input, textarea)::placeholder {
         color: #7182a3 !important;
     }
 
-    html.admin-theme-dark .dialog-content [class*='bg-red-50'] {
+    .admin-theme-root.admin-theme-dark .dialog-content [class*='bg-red-50'],
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content [class*='bg-red-50'] {
         background-color: rgb(127 29 29 / 0.28) !important;
         color: #fca5a5 !important;
     }
 
-    html.admin-theme-dark .dialog-content :is(.text-zinc-950, .text-zinc-900, [class*='text-[#010440]']) {
+    .admin-theme-root.admin-theme-dark .dialog-content :is(.text-zinc-950, .text-zinc-900, [class*='text-[#010440]']),
+    body:has(.admin-theme-root.admin-theme-dark) .dialog-content :is(.text-zinc-950, .text-zinc-900, [class*='text-[#010440]']) {
         color: #f8fbff !important;
     }
 
-    html.admin-theme-dark
+    .admin-theme-root.admin-theme-dark
+        .dialog-content
+        :is(.text-zinc-600, .text-zinc-500, .text-zinc-400, [class*='text-[#020659]'], [class*='text-[#030A8C]']),
+    body:has(.admin-theme-root.admin-theme-dark)
         .dialog-content
         :is(.text-zinc-600, .text-zinc-500, .text-zinc-400, [class*='text-[#020659]'], [class*='text-[#030A8C]']) {
         color: #b9c8ff !important;
     }
 
-    html.admin-theme-dark .toast-enter {
+    .admin-theme-root.admin-theme-dark .toast-enter,
+    body:has(.admin-theme-root.admin-theme-dark) .toast-enter {
         border-color: rgb(96 165 250 / 0.22) !important;
         background-color: rgb(15 23 42 / 0.96) !important;
         color: #f8fbff !important;
         box-shadow: 0 18px 50px rgb(0 0 0 / 0.3) !important;
     }
 
-    html.admin-theme-dark .toast-enter :is(.text-zinc-950, .text-zinc-900) {
+    .admin-theme-root.admin-theme-dark .toast-enter :is(.text-zinc-950, .text-zinc-900),
+    body:has(.admin-theme-root.admin-theme-dark) .toast-enter :is(.text-zinc-950, .text-zinc-900) {
         color: #f8fbff !important;
     }
 
-    html.admin-theme-dark .toast-enter :is(.text-zinc-500, .text-zinc-400) {
+    .admin-theme-root.admin-theme-dark .toast-enter :is(.text-zinc-500, .text-zinc-400),
+    body:has(.admin-theme-root.admin-theme-dark) .toast-enter :is(.text-zinc-500, .text-zinc-400) {
         color: #b9c8ff !important;
     }
 
-    html.admin-theme-dark .toast-enter :is(.text-red-950, [class*='text-[#010440]']) {
+    .admin-theme-root.admin-theme-dark .toast-enter :is(.text-red-950, [class*='text-[#010440]']),
+    body:has(.admin-theme-root.admin-theme-dark) .toast-enter :is(.text-red-950, [class*='text-[#010440]']) {
         color: #f8fbff !important;
     }
 
-    html.admin-theme-dark .toast-enter :is(.text-red-800, .text-red-500, [class*='text-[#020659]'], [class*='text-[#030A8C]']) {
+    .admin-theme-root.admin-theme-dark .toast-enter :is(.text-red-800, .text-red-500, [class*='text-[#020659]'], [class*='text-[#030A8C]']),
+    body:has(.admin-theme-root.admin-theme-dark)
+        .toast-enter
+        :is(.text-red-800, .text-red-500, [class*='text-[#020659]'], [class*='text-[#030A8C]']) {
         color: #b9c8ff !important;
     }
 
-    html.admin-theme-dark .toast-enter button:hover {
+    .admin-theme-root.admin-theme-dark .toast-enter button:hover,
+    body:has(.admin-theme-root.admin-theme-dark) .toast-enter button:hover {
         background-color: rgb(30 41 59 / 0.92) !important;
         color: #ffffff !important;
     }
 
-    html.admin-theme-dark .admin-page-loading-surface {
+    .admin-theme-root.admin-theme-dark .admin-page-loading-surface {
         border-color: rgb(96 165 250 / 0.2);
         background: rgb(15 23 42 / 0.94);
         box-shadow: 0 18px 50px rgb(0 0 0 / 0.18);
     }
 
-    html.admin-theme-dark .admin-page-loading-block,
-    html.admin-theme-dark .admin-page-loading-line,
-    html.admin-theme-dark .admin-page-loading-photo,
-    html.admin-theme-dark .admin-page-loading-icon {
+    .admin-theme-root.admin-theme-dark .admin-page-loading-block,
+    .admin-theme-root.admin-theme-dark .admin-page-loading-line,
+    .admin-theme-root.admin-theme-dark .admin-page-loading-photo,
+    .admin-theme-root.admin-theme-dark .admin-page-loading-icon {
         background: linear-gradient(90deg, rgb(51 65 85 / 0.86) 0%, rgb(71 85 105 / 0.88) 42%, rgb(51 65 85 / 0.86) 84%);
         background-size: 220% 100%;
     }
@@ -1321,4 +1441,3 @@
         transform: scale(1.06);
     }
 }
-

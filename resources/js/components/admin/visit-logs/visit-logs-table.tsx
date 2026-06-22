@@ -81,7 +81,10 @@ export function VisitLogsTable({
     const sectionsForYear = filters.sectionsByYearLevel[yearLevel] ?? [];
     const sectionOptions = [
         { value: '', label: 'All sections' },
-        ...(yearLevel ? sectionsForYear : [...new Set(Object.values(filters.sectionsByYearLevel).flat())]).map((option) => ({ value: option, label: option })),
+        ...(yearLevel ? sectionsForYear : [...new Set(Object.values(filters.sectionsByYearLevel).flat())]).map((option) => ({
+            value: option,
+            label: option,
+        })),
     ];
     const departmentOptions = [{ value: '', label: 'All departments' }, ...filters.departments.map((option) => ({ value: option, label: option }))];
 

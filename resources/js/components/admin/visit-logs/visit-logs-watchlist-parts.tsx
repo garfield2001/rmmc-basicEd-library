@@ -96,11 +96,11 @@ export function WatchlistChart({ title, detail, children }: { title: string; det
 }
 
 const watchlistChartConfig = {
-    value: { label: 'Visitors', color: '#2563eb' },
-    percent: { label: 'Average progress', color: '#2563eb' },
+    value: { label: 'Visitors', color: '#14b8a6' },
+    percent: { label: 'Average progress', color: '#14b8a6' },
 } satisfies ChartConfig;
 
-const bucketColors = ['#dc2626', '#f59e0b', '#2563eb', '#7c3aed', '#059669'];
+const bucketColors = ['#dc2626', '#f59e0b', '#14b8a6', '#7c3aed', '#059669'];
 
 export function ProgressDistributionChart({ data }: { data: Array<{ label: string; value: number }> }) {
     if (!data.some((item) => item.value > 0)) {
@@ -136,7 +136,7 @@ export function WeakGroupChart({ data }: { data: Array<{ label: string; percent:
                 <XAxis type="number" domain={[0, 100]} tickFormatter={(value) => `${value}%`} tickLine={false} axisLine={false} />
                 <YAxis dataKey="label" type="category" width={128} tickLine={false} axisLine={false} tickMargin={8} className="text-xs" />
                 <ChartTooltip cursor={{ fill: 'rgb(4 13 191 / 0.06)' }} content={<ChartTooltipContent hideLabel />} />
-                <Bar dataKey="percent" name="Average progress" fill="#2563eb" radius={[0, 6, 6, 0]} />
+                <Bar dataKey="percent" name="Average progress" fill="#14b8a6" radius={[0, 6, 6, 0]} />
             </BarChart>
         </ChartContainer>
     );

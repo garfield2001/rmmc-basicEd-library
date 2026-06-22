@@ -21,7 +21,7 @@ interface AdminLoginDialogProps {
 export function AdminLoginDialog({ open, onOpenChange, data, errors, processing, onEmailChange, onPasswordChange, onSubmit }: AdminLoginDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="overflow-hidden border-[#040DBF]/20 p-0 shadow-2xl shadow-[#010440]/25 sm:max-w-md">
+            <DialogContent className="overflow-hidden border-white/20 bg-white/80 p-0 shadow-2xl backdrop-blur-md sm:max-w-md">
                 <div className="h-2 bg-[linear-gradient(90deg,#040DBF_0%,#030A8C_52%,#010440_100%)]" />
                 <div className="p-6">
                     <DialogHeader>
@@ -30,8 +30,8 @@ export function AdminLoginDialog({ open, onOpenChange, data, errors, processing,
                                 <ShieldCheck className="size-5" />
                             </div>
                             <div>
-                                <DialogTitle className="text-2xl text-[#010440]">Admin login</DialogTitle>
-                                <DialogDescription className="mt-1 text-sm leading-5 text-[#030A8C]">
+                                <DialogTitle className="text-2xl tracking-tight text-slate-900">Admin login</DialogTitle>
+                                <DialogDescription className="mt-1 text-sm leading-5 font-normal text-slate-500">
                                     Staff access for records and library tools.
                                 </DialogDescription>
                             </div>
@@ -40,7 +40,7 @@ export function AdminLoginDialog({ open, onOpenChange, data, errors, processing,
 
                     <form onSubmit={onSubmit} className="mt-6 space-y-4">
                         <div>
-                            <label htmlFor="admin-email" className="text-sm font-medium text-[#010440]">
+                            <label htmlFor="admin-email" className="text-sm font-medium text-slate-900">
                                 Email
                             </label>
                             <input
@@ -48,14 +48,14 @@ export function AdminLoginDialog({ open, onOpenChange, data, errors, processing,
                                 type="email"
                                 value={data.email}
                                 onChange={(event) => onEmailChange(event.target.value)}
-                                className="mt-2 h-11 w-full rounded-lg border border-[#030A8C]/20 bg-[#f6f8ff] px-3 text-sm text-[#010440] transition outline-none focus:border-[#040DBF] focus:bg-white focus:ring-4 focus:ring-[#040DBF]/10"
+                                className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-900 transition-all duration-200 outline-none focus:border-blue-500 focus:bg-white focus:shadow-md focus:ring-4 focus:shadow-blue-500/5 focus:ring-blue-500/10"
                                 autoComplete="email"
                             />
                             {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email}</p>}
                         </div>
 
                         <div>
-                            <label htmlFor="admin-password" className="text-sm font-medium text-[#010440]">
+                            <label htmlFor="admin-password" className="text-sm font-medium text-slate-900">
                                 Password
                             </label>
                             <input
@@ -63,7 +63,7 @@ export function AdminLoginDialog({ open, onOpenChange, data, errors, processing,
                                 type="password"
                                 value={data.password}
                                 onChange={(event) => onPasswordChange(event.target.value)}
-                                className="mt-2 h-11 w-full rounded-lg border border-[#030A8C]/20 bg-[#f6f8ff] px-3 text-sm text-[#010440] transition outline-none focus:border-[#040DBF] focus:bg-white focus:ring-4 focus:ring-[#040DBF]/10"
+                                className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-900 transition-all duration-200 outline-none focus:border-blue-500 focus:bg-white focus:shadow-md focus:ring-4 focus:shadow-blue-500/5 focus:ring-blue-500/10"
                                 autoComplete="current-password"
                             />
                             {errors.password && <p className="mt-2 text-sm text-red-600">{errors.password}</p>}
@@ -74,11 +74,15 @@ export function AdminLoginDialog({ open, onOpenChange, data, errors, processing,
                                 type="button"
                                 variant="outline"
                                 onClick={() => onOpenChange(false)}
-                                className="border-[#030A8C]/20 text-[#020659] hover:bg-[#f6f8ff]"
+                                className="border-slate-200 text-slate-600 hover:bg-slate-50"
                             >
                                 Cancel
                             </Button>
-                            <Button type="submit" disabled={processing} className="bg-[#040DBF] text-white shadow-sm hover:bg-[#030A8C]">
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 transition-all hover:from-blue-700 hover:to-indigo-700 active:scale-95"
+                            >
                                 <LogIn className="size-4" />
                                 {processing ? 'Signing in...' : 'Sign in'}
                             </Button>

@@ -3,8 +3,8 @@ import { formatDisplayDate } from '@/components/ui/date-input';
 import type React from 'react';
 import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { VisitInsightModal, type InsightModalState } from './visit-logs-insight-modal';
 import { parseVisitDate, toLocalIsoDate, type VisitorTypeFilter, type VisitorWithRangeVisits } from './visit-logs-helpers';
+import { VisitInsightModal, type InsightModalState } from './visit-logs-insight-modal';
 
 interface VisitLogsInsightsProps {
     visitors: VisitorWithRangeVisits[];
@@ -14,7 +14,7 @@ interface VisitLogsInsightsProps {
 }
 
 const chartConfig = {
-    visits: { label: 'Visits', color: '#2563eb' },
+    visits: { label: 'Visits', color: '#14b8a6' },
 } satisfies ChartConfig;
 
 export function VisitLogsInsights({ visitors, visitorType, onStudentGroupSelect, onDepartmentSelect }: VisitLogsInsightsProps) {
@@ -25,7 +25,11 @@ export function VisitLogsInsights({ visitors, visitorType, onStudentGroupSelect,
 
     return (
         <section className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-            <InsightPanel title="Visit activity" detail="Recorded visits from the current filters, grouped for the selected date span." onOpen={() => setModal({ kind: 'activity' })}>
+            <InsightPanel
+                title="Visit activity"
+                detail="Recorded visits from the current filters, grouped for the selected date span."
+                onOpen={() => setModal({ kind: 'activity' })}
+            >
                 {activity.length > 0 ? (
                     <ChartContainer config={chartConfig} className="h-64 w-full">
                         <BarChart data={activity} margin={{ top: 8, right: 12, left: -18, bottom: 0 }}>
@@ -64,8 +68,8 @@ export function VisitLogsInsights({ visitors, visitorType, onStudentGroupSelect,
                                 <span className="min-w-0">
                                     <span className="block truncate text-sm font-semibold text-[#010440]">{group.label}</span>
                                     <span className="mt-2 flex items-center gap-3">
-                                        <span className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-[#040DBF]/10">
-                                            <span className="block h-full rounded-full bg-[#040DBF]" style={{ width: `${group.percent}%` }} />
+                                        <span className="admin-progress-track h-2 min-w-0 flex-1 overflow-hidden rounded-full">
+                                            <span className="admin-progress-fill block h-full rounded-full" style={{ width: `${group.percent}%` }} />
                                         </span>
                                         <span className="text-xs text-[#020659]/70">{group.visitors} people</span>
                                     </span>
@@ -78,7 +82,13 @@ export function VisitLogsInsights({ visitors, visitorType, onStudentGroupSelect,
                     <EmptyInsight>No group activity matches the current filters.</EmptyInsight>
                 )}
             </InsightPanel>
-            <VisitInsightModal modal={modal} visitors={visitors} visitorType={visitorType} activity={activity} onOpenChange={(open) => !open && setModal(null)} />
+            <VisitInsightModal
+                modal={modal}
+                visitors={visitors}
+                visitorType={visitorType}
+                activity={activity}
+                onOpenChange={(open) => !open && setModal(null)}
+            />
         </section>
     );
 }
@@ -148,7 +158,9 @@ function buildGroups(visitors: VisitorWithRangeVisits[], visitorType: VisitorTyp
 
     visitors.forEach((visitor) => {
         const label =
-            visitorType === 'student' ? [visitor.yearLevel, visitor.section].filter(Boolean).join(' - ') || 'Unassigned' : visitor.department || 'Unassigned';
+            visitorType === 'student'
+                ? [visitor.yearLevel, visitor.section].filter(Boolean).join(' - ') || 'Unassigned'
+                : visitor.department || 'Unassigned';
         const current = groups.get(label) ?? {
             label,
             visits: 0,

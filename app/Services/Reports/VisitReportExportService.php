@@ -45,6 +45,11 @@ class VisitReportExportService
             $groups[$label]['summary']['visitors']++;
             $groups[$label]['summary']['total_visits'] += (int) ($row['visit_count'] ?? 0);
             $groups[$label]['summary']['excess_visits'] += (int) ($row['excess_visits'] ?? 0);
+            
+            $requiredVisits = (int) ($report['summary']['required_visits'] ?? 0);
+            if ($requiredVisits > 0 && ((int) ($row['visit_count'] ?? 0)) >= $requiredVisits) {
+                $groups[$label]['summary']['met_required']++;
+            }
         }
 
         return collect($groups)
@@ -87,16 +92,44 @@ class VisitReportExportService
         return "Visitors: {$summary['visitors']}    Total Visits: {$summary['total_visits']}    Excess Visits: {$summary['excess_visits']}";
     }
 
+    public function comparison(array $groups, int $overallVisits): array
+    {
+        if (count($groups) < 2) {
+            return [];
+        }
+
+        return collect($groups)->map(function (array $group) use ($overallVisits): array {
+            $visitors = $group['summary']['visitors'] ?? 0;
+            $totalVisits = $group['summary']['total_visits'] ?? 0;
+            $metRequired = $group['summary']['met_required'] ?? 0;
+
+            $completionPercent = $visitors > 0 ? (int) round($metRequired / $visitors * 100) : 0;
+            $visitSharePercent = $overallVisits > 0 ? (int) round($totalVisits / $overallVisits * 100) : 0;
+            $averageVisits = $visitors > 0 ? round($totalVisits / $visitors, 1) : 0;
+
+            return [
+                'label' => $group['label'],
+                'completion_percent' => $completionPercent,
+                'visit_share_percent' => $visitSharePercent,
+                'total_visits' => $totalVisits,
+                'average_visits' => $averageVisits,
+                'met_required' => $metRequired,
+            ];
+        })->sortByDesc('completion_percent')->values()->all();
+    }
+
     public function viewData(array $report, bool $showActions = true): array
     {
         $groups = $this->groups($report);
+        $overallVisits = max(1, collect($report['rows'])->sum('visit_count'));
+        $groupComparison = $this->comparison($groups, $overallVisits);
 
         return [
             'report' => $report,
             'columns' => $this->columns($report, includeGroupColumn: false),
             'groups' => $groups,
             'groupPrefix' => $this->groupPrefix($report),
-            'groupComparison' => [],
+            'groupComparison' => $groupComparison,
             'logoDataUri' => $this->logoDataUri(),
             'showActions' => $showActions,
             'titleColor' => $this->titleColor(),

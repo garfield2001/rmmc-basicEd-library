@@ -13,7 +13,7 @@ import { useAdminThemePreference } from './use-admin-theme-preference';
 
 const pageLoadingDelayMs = 500;
 
-export function AdminLayout({ active, children, themeOverride }: AdminLayoutProps) {
+export function AdminLayout({ active, children }: AdminLayoutProps) {
     const [isPageLoading, setIsPageLoading] = useState(false);
     const [loadingTarget, setLoadingTarget] = useState<AdminLoadingTarget>(() => loadingTargetFromPath(activePathFromSection(active)));
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -26,7 +26,7 @@ export function AdminLayout({ active, children, themeOverride }: AdminLayoutProp
         return window.localStorage.getItem(sidebarCollapsedStorageKey) === 'true';
     });
 
-    const { resolvedTheme, setThemePreference } = useAdminThemePreference(themeOverride);
+    const { resolvedTheme, setThemePreference } = useAdminThemePreference();
 
     useEffect(() => {
         const clearPageLoadingTimer = () => {
@@ -67,47 +67,49 @@ export function AdminLayout({ active, children, themeOverride }: AdminLayoutProp
     };
 
     return (
-        <ToastProvider>
+        <>
             <ForcedLogoutListener />
             <AdminRoutePreloader />
             <div
-                className={`admin-theme-root admin-readable min-h-screen overflow-x-hidden bg-[#f5f7ff] text-[#010440] ${
+                className={`admin-theme-root admin-theme-${resolvedTheme} admin-readable min-h-screen overflow-x-hidden bg-[#f5f7ff] text-[#010440] ${
                     isSidebarCollapsed ? 'admin-sidebar-collapsed' : ''
                 }`}
             >
-                {isMobileSidebarOpen && (
-                    <button
-                        type="button"
-                        className="fixed inset-0 z-[45] bg-black/45 backdrop-blur-[1px] lg:hidden"
-                        aria-label="Close sidebar"
-                        onClick={() => setIsMobileSidebarOpen(false)}
-                    />
-                )}
+                <ToastProvider>
+                    {isMobileSidebarOpen && (
+                        <button
+                            type="button"
+                            className="fixed inset-0 z-[45] bg-black/45 backdrop-blur-[1px] lg:hidden"
+                            aria-label="Close sidebar"
+                            onClick={() => setIsMobileSidebarOpen(false)}
+                        />
+                    )}
 
-                <AdminSidebar
-                    active={active}
-                    collapsed={isSidebarCollapsed}
-                    mobileOpen={isMobileSidebarOpen}
-                    onNavigate={() => setIsMobileSidebarOpen(false)}
-                />
-
-                <section
-                    className={`admin-main-shell min-w-0 space-y-6 overflow-x-hidden ${
-                        isSidebarCollapsed ? 'lg:pl-[72px] 2xl:pl-[84px]' : 'lg:pl-[280px] 2xl:pl-[304px]'
-                    }`}
-                >
-                    <AdminNavbar
+                    <AdminSidebar
+                        active={active}
                         collapsed={isSidebarCollapsed}
-                        mobileSidebarOpen={isMobileSidebarOpen}
-                        resolvedTheme={resolvedTheme}
-                        onCollapsedChange={changeSidebarCollapsed}
-                        onMobileSidebarToggle={() => setIsMobileSidebarOpen((open) => !open)}
-                        onThemeToggle={() => setThemePreference(resolvedTheme === 'dark' ? 'light' : 'dark')}
+                        mobileOpen={isMobileSidebarOpen}
+                        onNavigate={() => setIsMobileSidebarOpen(false)}
                     />
-                    {isPageLoading ? <AdminContentLoadingSkeleton target={loadingTarget} /> : children}
-                </section>
+
+                    <section
+                        className={`admin-main-shell min-w-0 space-y-6 overflow-x-hidden ${
+                            isSidebarCollapsed ? 'lg:pl-[72px] 2xl:pl-[84px]' : 'lg:pl-[280px] 2xl:pl-[304px]'
+                        }`}
+                    >
+                        <AdminNavbar
+                            collapsed={isSidebarCollapsed}
+                            mobileSidebarOpen={isMobileSidebarOpen}
+                            resolvedTheme={resolvedTheme}
+                            onCollapsedChange={changeSidebarCollapsed}
+                            onMobileSidebarToggle={() => setIsMobileSidebarOpen((open) => !open)}
+                            onThemeToggle={() => setThemePreference(resolvedTheme === 'dark' ? 'light' : 'dark')}
+                        />
+                        {isPageLoading ? <AdminContentLoadingSkeleton target={loadingTarget} /> : children}
+                    </section>
+                </ToastProvider>
             </div>
-        </ToastProvider>
+        </>
     );
 }
 

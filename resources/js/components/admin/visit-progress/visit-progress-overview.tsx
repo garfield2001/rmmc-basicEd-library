@@ -15,11 +15,11 @@ interface VisitProgressOverviewProps {
 }
 
 const chartConfig = {
-    value: { label: 'Visitors', color: '#2563eb' },
-    percent: { label: 'Progress', color: '#2563eb' },
+    value: { label: 'Visitors', color: '#14b8a6' },
+    percent: { label: 'Progress', color: '#14b8a6' },
 } satisfies ChartConfig;
 
-const bucketColors = ['#dc2626', '#f59e0b', '#2563eb', '#7c3aed', '#059669'];
+const bucketColors = ['#dc2626', '#f59e0b', '#14b8a6', '#7c3aed', '#059669'];
 
 export function VisitProgressOverview({ visitors, visitorType, requiredVisits, onDrilldownOpen }: VisitProgressOverviewProps) {
     const progress = useMemo(() => buildProgress(visitors, visitorType, requiredVisits), [requiredVisits, visitorType, visitors]);

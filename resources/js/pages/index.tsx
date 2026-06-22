@@ -122,7 +122,7 @@ export default function Index({ home }: IndexProps) {
 
             <ScanErrorDialog open={isScanErrorOpen} error={scanValidationError} countdown={scanErrorCountdown} onOpenChange={setScanErrorOpen} />
 
-            <main className="page-lift relative min-h-screen bg-[linear-gradient(180deg,#f6f8ff_0%,#ffffff_46%,#eef2ff_100%)] text-[#010440]">
+            <main className="page-lift relative min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-50 via-slate-50 to-white text-slate-900">
                 <ScannerSection
                     schoolName={name}
                     data={scanner.data}

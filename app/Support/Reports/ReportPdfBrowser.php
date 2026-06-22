@@ -9,6 +9,11 @@ class ReportPdfBrowser
     public function configure(Browsershot $browser): Browsershot
     {
         $chromePath = $this->executablePath();
+        $userDataDir = $this->userDataDir();
+
+        if (! is_dir($userDataDir)) {
+            mkdir($userDataDir, 0755, true);
+        }
 
         if ($chromePath) {
             $browser->setChromePath($chromePath);
@@ -18,6 +23,15 @@ class ReportPdfBrowser
             ->setNodeModulePath(base_path('node_modules'))
             ->noSandbox()
             ->newHeadless()
+            ->setUserDataDir($userDataDir)
+            ->addChromiumArguments([
+                'disable-dev-shm-usage',
+                'disable-gpu',
+                'disable-extensions',
+                'disable-background-networking',
+                'no-first-run',
+                'no-default-browser-check',
+            ])
             ->timeout(120)
             ->protocolTimeout(120);
     }
@@ -41,6 +55,14 @@ class ReportPdfBrowser
         }
 
         return null;
+    }
+
+    private function userDataDir(): string
+    {
+        return rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR)
+            . DIRECTORY_SEPARATOR
+            . 'rmmc-basiced-library-browsershot-'
+            . substr(sha1(base_path()), 0, 12);
     }
 
     private function windowsBrowserPaths(): array

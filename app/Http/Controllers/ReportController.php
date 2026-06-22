@@ -34,30 +34,7 @@ class ReportController extends Controller
             'report' => isset($filters['school_year_id']) ? $reports->getData($filters) : null,
             'initialVisitorType' => $visitorType,
             'pagePath' => route('admin.reports.audience', ['audience' => $this->audienceSlug($visitorType)], false),
-            'reportOptions' => [
-                'schoolYears' => SchoolYear::query()
-                    ->orderByDesc('starts_at')
-                    ->get(['id', 'name', 'starts_at', 'ends_at', 'student_required_visits', 'employee_required_visits', 'is_active'])
-                    ->map(fn (SchoolYear $schoolYear): array => [
-                        'id' => $schoolYear->id,
-                        'name' => $schoolYear->name,
-                        'starts_at' => $schoolYear->startDateString(),
-                        'ends_at' => $schoolYear->endDateString(),
-                        'student_required_visits' => $schoolYear->student_required_visits,
-                        'employee_required_visits' => $schoolYear->employee_required_visits,
-                        'is_active' => $schoolYear->is_active,
-                    ]),
-                'yearLevels' => AcademicLevels::options(),
-                'sectionsByYearLevel' => $sections->groupedByYearLevel($request->integer('school_year_id') ?: SchoolYear::active()->value('id')),
-                'sectionsBySchoolYear' => $sections->groupedBySchoolYear(),
-                'departments' => EmployeeSchoolYearRecord::query()
-                    ->when($request->integer('school_year_id'), fn ($query, $schoolYearId) => $query->where('school_year_id', $schoolYearId))
-                    ->whereNotNull('department')
-                    ->distinct()
-                    ->orderBy('department')
-                    ->pluck('department')
-                    ->values(),
-            ],
+            'reportOptions' => $reports->getReportOptions($sections, $request->integer('school_year_id') ?: null),
         ]);
     }
 

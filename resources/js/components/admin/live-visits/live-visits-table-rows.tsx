@@ -1,9 +1,9 @@
-import { formatVisitTime, type LiveVisitsTableMode, type VisitTab } from './live-visits-table-helpers';
 import { LiveVisitLoadingRows, VisitVisitorCell } from '@/components/admin/live-visits/live-visits-table-ui';
 import type { RowsPerPageOption } from '@/components/ui/pagination-controls';
 import { TableCell, TablePlaceholderRows, TableRow } from '@/components/ui/table';
 import { VirtualTableSpacerRow } from '@/components/ui/virtual-table-spacer-row';
 import type { DashboardVisit } from '@/types/dashboard';
+import { formatVisitTime, type LiveVisitsTableMode, type VisitTab } from './live-visits-table-helpers';
 
 interface LiveVisitsTableRowsProps {
     mode: LiveVisitsTableMode;
@@ -47,7 +47,9 @@ export function LiveVisitsTableRows({
             {visits.map((visit) => (
                 <LiveVisitRow key={visit.id} mode={mode} visitTab={visitTab} visit={visit} onVisitSelect={onVisitSelect} />
             ))}
-            {!usesVirtualRows && rowsPerPage !== 'all' && <TablePlaceholderRows rowCount={Math.max(0, rowsPerPage - visits.length)} colSpan={columns} />}
+            {!usesVirtualRows && rowsPerPage !== 'all' && (
+                <TablePlaceholderRows rowCount={Math.max(0, rowsPerPage - visits.length)} colSpan={columns} />
+            )}
             {usesVirtualRows && virtualRows.paddingBottom > 0 && <VirtualTableSpacerRow height={virtualRows.paddingBottom} colSpan={columns} />}
         </>
     );

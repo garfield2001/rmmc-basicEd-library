@@ -53,7 +53,12 @@ export function IdentitySection({ data, errors, setData, inputClass, sectionClas
                 <div className="mt-4 text-sm font-medium text-[#010440]">
                     Visitor type
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                        <VisitorTypeButton active={data.type === 'student'} icon={GraduationCap} label="Student" onClick={() => onTypeChange('student')} />
+                        <VisitorTypeButton
+                            active={data.type === 'student'}
+                            icon={GraduationCap}
+                            label="Student"
+                            onClick={() => onTypeChange('student')}
+                        />
                         <VisitorTypeButton
                             active={data.type === 'employee'}
                             icon={BriefcaseBusiness}

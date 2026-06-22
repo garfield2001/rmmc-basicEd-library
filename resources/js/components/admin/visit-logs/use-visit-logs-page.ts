@@ -63,9 +63,7 @@ export function useVisitLogsPage(visitLogs: AdminVisitLogs, initialVisitorType: 
     }, [effectiveEndDate, effectiveStartDate, today, visitLogs.visitors]);
 
     const requiredVisits =
-        visitorType === 'student'
-            ? (visitLogs.schoolYear?.student_required_visits ?? 0)
-            : (visitLogs.schoolYear?.employee_required_visits ?? 0);
+        visitorType === 'student' ? (visitLogs.schoolYear?.student_required_visits ?? 0) : (visitLogs.schoolYear?.employee_required_visits ?? 0);
 
     const filteredVisitors = useMemo(() => {
         return filterVisitLogStatus(

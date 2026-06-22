@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { adminThemePreferenceStorageKey } from './admin-layout.constants';
 import { resolveStoredThemePreference } from './admin-layout.theme';
 import type { ThemePreference } from './admin-layout.types';
 import { useAdminTheme } from './use-admin-theme';
 
-export function useAdminThemePreference(themeOverride?: Extract<ThemePreference, 'light' | 'dark'>) {
+export function useAdminThemePreference() {
     const [themePreference, setThemePreferenceState] = useState<ThemePreference>(() => {
         if (typeof window === 'undefined') {
             return 'system';
@@ -18,7 +18,21 @@ export function useAdminThemePreference(themeOverride?: Extract<ThemePreference,
         window.localStorage.setItem(adminThemePreferenceStorageKey, preference);
     };
 
-    const resolvedTheme = useAdminTheme(themeOverride ?? themePreference);
+    const resolvedTheme = useAdminTheme(themePreference);
+
+    useEffect(() => {
+        const syncThemePreference = (event: StorageEvent) => {
+            if (event.key !== adminThemePreferenceStorageKey) {
+                return;
+            }
+
+            setThemePreferenceState(resolveStoredThemePreference(event.newValue));
+        };
+
+        window.addEventListener('storage', syncThemePreference);
+
+        return () => window.removeEventListener('storage', syncThemePreference);
+    }, []);
 
     return {
         themePreference,

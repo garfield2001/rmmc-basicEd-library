@@ -61,11 +61,7 @@ class LibraryMemberController extends Controller
                 'direction' => $direction,
                 'per_page' => $perPage,
             ],
-            'filterOptions' => [
-                'yearLevels' => $this->yearLevelOptions(),
-                'sectionsByYearLevel' => $sections->groupedByYearLevel($activeSchoolYearId),
-                'departments' => $this->departmentOptions($activeSchoolYearId),
-            ],
+            'filterOptions' => $visitorTable->filterOptions($sections, $activeSchoolYearId),
             'distribution' => $visitorTable->distribution($search, $activeSchoolYearId),
         ]);
     }
@@ -119,25 +115,6 @@ class LibraryMemberController extends Controller
         return redirect()
             ->route('admin.registered-visitors.audience', ['audience' => $this->audienceSlug($visitor->type)])
             ->with('success', 'registered visitor has been updated.');
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    private function yearLevelOptions(): array
-    {
-        return AcademicLevels::options();
-    }
-
-    private function departmentOptions(?int $schoolYearId)
-    {
-        return EmployeeSchoolYearRecord::query()
-            ->forRequiredSchoolYear($schoolYearId)
-            ->distinct()
-            ->orderBy('department')
-            ->pluck('department')
-            ->filter()
-            ->values();
     }
 
     private function visitorType(?string $audience, string $fallback, LibraryMemberTableService $visitorTable): string

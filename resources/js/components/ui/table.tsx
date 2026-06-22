@@ -7,7 +7,7 @@ function Table({ className, ...props }: React.ComponentProps<'table'>) {
 }
 
 function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
-    return <thead className={cn('[&_tr]:border-b', className)} {...props} />;
+    return <thead className={cn('admin-table-header [&_tr]:border-b', className)} {...props} />;
 }
 
 function TableBody({ className, ...props }: React.ComponentProps<'tbody'>) {

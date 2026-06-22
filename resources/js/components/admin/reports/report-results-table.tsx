@@ -51,7 +51,8 @@ export function ReportResultsTable({
     const placeholderRows = visibleRows.length > 0 ? Math.max(0, rowsPerPage - visibleRows.length) : 0;
 
     return (
-        <section className="admin-surface overflow-hidden rounded-lg border border-[#040DBF]/10 bg-white/95 shadow-sm">
+        <section className="admin-surface overflow-hidden rounded-xl border border-[#040DBF]/10 bg-white/95 shadow-sm">
+            <div className="h-2 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800" />
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#040DBF]/10 bg-[#f6f8ff] px-5 py-3">
                 <ReportExportActions {...exportUrls} />
                 {sortColumn && (
@@ -65,7 +66,13 @@ export function ReportResultsTable({
                 <Table className="min-w-180">
                     <TableHeader className="bg-[#f6f8ff]">
                         <TableRow>
-                            <ReportSortableHead column="school_id" label="School ID" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
+                            <ReportSortableHead
+                                column="school_id"
+                                label="School ID"
+                                sort={sortColumn}
+                                direction={sortDirection}
+                                onSortChange={onSortChange}
+                            />
                             <ReportSortableHead column="name" label="Name" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
                             <ReportSortableHead
                                 column="group"
@@ -74,7 +81,13 @@ export function ReportResultsTable({
                                 direction={sortDirection}
                                 onSortChange={onSortChange}
                             />
-                            <ReportSortableHead column="visit_count" label="Visits" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
+                            <ReportSortableHead
+                                column="visit_count"
+                                label="Visits"
+                                sort={sortColumn}
+                                direction={sortDirection}
+                                onSortChange={onSortChange}
+                            />
                             <ReportSortableHead
                                 column="progress_percent"
                                 label="Progress"
@@ -87,7 +100,9 @@ export function ReportResultsTable({
                     <TableBody>
                         {visibleRows.length > 0 ? (
                             <>
-                                {visibleRows.map((row) => <ReportRow key={row.id} row={row} visitorType={visitorType} requiredVisits={requiredVisits} />)}
+                                {visibleRows.map((row) => (
+                                    <ReportRow key={row.id} row={row} visitorType={visitorType} requiredVisits={requiredVisits} />
+                                ))}
                                 <TablePlaceholderRows rowCount={placeholderRows} colSpan={5} />
                             </>
                         ) : (

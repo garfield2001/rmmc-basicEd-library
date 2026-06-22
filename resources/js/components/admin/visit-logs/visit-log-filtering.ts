@@ -9,12 +9,7 @@ interface VisitLogFilterState {
     search: string;
 }
 
-export function visitorsWithDateCoverage(
-    visitors: VisitLogVisitor[],
-    startDate: string,
-    endDate: string,
-    today: string,
-): VisitorWithRangeVisits[] {
+export function visitorsWithDateCoverage(visitors: VisitLogVisitor[], startDate: string, endDate: string, today: string): VisitorWithRangeVisits[] {
     return visitors.map((visitor) => ({
         ...visitor,
         rangeVisits: visitsInDateRange(visitor.visits, startDate, endDate || today),
@@ -25,7 +20,11 @@ export function filterVisitLogVisitors(visitors: VisitorWithRangeVisits[], filte
     return filterVisitors(visitors, filters).filter((visitor) => visitor.rangeVisits.length > 0);
 }
 
-export function filterVisitLogStatus(visitors: VisitorWithRangeVisits[], status: VisitLogStatusFilter, requiredVisits: number): VisitorWithRangeVisits[] {
+export function filterVisitLogStatus(
+    visitors: VisitorWithRangeVisits[],
+    status: VisitLogStatusFilter,
+    requiredVisits: number,
+): VisitorWithRangeVisits[] {
     if (status === 'all' || requiredVisits <= 0) {
         return visitors;
     }

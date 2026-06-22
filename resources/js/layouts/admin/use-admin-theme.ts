@@ -11,8 +11,6 @@ export function useAdminTheme(preference: ThemePreference) {
             const root = document.documentElement;
 
             root.removeAttribute('data-admin-theme');
-            root.classList.toggle('admin-theme-dark', theme === 'dark');
-            root.classList.toggle('admin-theme-light', theme === 'light');
             root.style.colorScheme = theme === 'dark' ? 'dark' : 'only light';
             setResolvedTheme(theme);
         };
@@ -40,6 +38,5 @@ function clearAdminTheme() {
     const root = document.documentElement;
 
     root.removeAttribute('data-admin-theme');
-    root.classList.remove('admin-theme-dark', 'admin-theme-light');
     root.style.colorScheme = 'only light';
 }

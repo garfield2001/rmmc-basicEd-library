@@ -1,9 +1,9 @@
 import type { VisitReport, VisitReportRow, VisitReportSchoolYear } from '@/types/reports';
 import { Activity, Target, UsersRound } from 'lucide-react';
+import type { ReportSortColumn, SortDirection, VisitorType } from './report-helpers';
 import { ReportMetricCard } from './report-metric-card';
 import { ReportResultsTable } from './report-results-table';
 import { ProgressBar } from './report-table-parts';
-import type { ReportSortColumn, SortDirection, VisitorType } from './report-helpers';
 
 interface ReportExportUrls {
     excelUrl: string;
@@ -60,7 +60,12 @@ export function ReportResults({
                     value={report.summary.total_visits}
                     detail={`${report.summary.average_visits} average, ${report.summary.required_visits} target`}
                 />
-                <ReportMetricCard icon={Target} label="Excess visits" value={report.summary.excess_visits} detail="Visits beyond the required target" />
+                <ReportMetricCard
+                    icon={Target}
+                    label="Excess visits"
+                    value={report.summary.excess_visits}
+                    detail="Visits beyond the required target"
+                />
                 <ReportMetricCard
                     icon={Target}
                     label="No visits"

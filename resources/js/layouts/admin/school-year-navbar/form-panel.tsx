@@ -82,7 +82,7 @@ export function SchoolYearFormPanel({
                         yearWindowEnd={editingSchoolYear ? undefined : transitionYearEnd}
                     />
                 </SchoolYearField>
-                <p className="sm:col-span-2 -mt-2 text-xs leading-5 text-[#020659]/70">
+                <p className="-mt-2 text-xs leading-5 text-[#020659]/70 sm:col-span-2">
                     You can type dates like March 6 2027, March 6, 2027, or 03/06/2027. Numeric dates add slashes while typing.
                 </p>
                 <SchoolYearField label="Required student visits" error={errors.student_required_visits}>
@@ -90,9 +90,7 @@ export function SchoolYearFormPanel({
                         type="number"
                         min="0"
                         value={data.student_required_visits}
-                        onChange={(event) =>
-                            onFieldChange('student_required_visits', event.target.value === '' ? '' : Number(event.target.value))
-                        }
+                        onChange={(event) => onFieldChange('student_required_visits', event.target.value === '' ? '' : Number(event.target.value))}
                         className={schoolYearInputClass}
                     />
                 </SchoolYearField>
@@ -101,9 +99,7 @@ export function SchoolYearFormPanel({
                         type="number"
                         min="0"
                         value={data.employee_required_visits}
-                        onChange={(event) =>
-                            onFieldChange('employee_required_visits', event.target.value === '' ? '' : Number(event.target.value))
-                        }
+                        onChange={(event) => onFieldChange('employee_required_visits', event.target.value === '' ? '' : Number(event.target.value))}
                         className={schoolYearInputClass}
                     />
                 </SchoolYearField>

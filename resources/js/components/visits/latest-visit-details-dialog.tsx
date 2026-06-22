@@ -2,8 +2,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { VisitorAvatar } from '@/components/ui/visitor-avatar';
 import { type DashboardVisit } from '@/types/dashboard';
 import { BriefcaseBusiness, CalendarClock, GraduationCap, IdCard, ScanLine } from 'lucide-react';
-import { LatestVisitDetailItem } from './latest-visit-detail-item';
 import { formatVisitDateTime, visitorTypeLabel } from './latest-visit-card-utils';
+import { LatestVisitDetailItem } from './latest-visit-detail-item';
 
 interface LatestVisitDetailsDialogProps {
     open: boolean;
@@ -47,13 +47,29 @@ export function LatestVisitDetailsDialog({ open, visit, onOpenChange }: LatestVi
                         </p>
 
                         <div className="mt-6 divide-y divide-[#040DBF]/10 rounded-lg border border-[#040DBF]/10 text-sm">
-                            <LatestVisitDetailItem className="grid gap-1 px-4 py-4 sm:grid-cols-[11rem_minmax(0,1fr)]" label="Visitor type" value={visitorTypeLabel(visit)} />
+                            <LatestVisitDetailItem
+                                className="grid gap-1 px-4 py-4 sm:grid-cols-[11rem_minmax(0,1fr)]"
+                                label="Visitor type"
+                                value={visitorTypeLabel(visit)}
+                            />
                             {visit.visitor.type === 'employee' ? (
-                                <LatestVisitDetailItem className="grid gap-1 px-4 py-4 sm:grid-cols-[11rem_minmax(0,1fr)]" label="Department" value={visit.visitor.department} />
+                                <LatestVisitDetailItem
+                                    className="grid gap-1 px-4 py-4 sm:grid-cols-[11rem_minmax(0,1fr)]"
+                                    label="Department"
+                                    value={visit.visitor.department}
+                                />
                             ) : (
                                 <>
-                                    <LatestVisitDetailItem className="grid gap-1 px-4 py-4 sm:grid-cols-[11rem_minmax(0,1fr)]" label="Year level" value={visit.visitor.yearLevel} />
-                                    <LatestVisitDetailItem className="grid gap-1 px-4 py-4 sm:grid-cols-[11rem_minmax(0,1fr)]" label="Section" value={visit.visitor.section} />
+                                    <LatestVisitDetailItem
+                                        className="grid gap-1 px-4 py-4 sm:grid-cols-[11rem_minmax(0,1fr)]"
+                                        label="Year level"
+                                        value={visit.visitor.yearLevel}
+                                    />
+                                    <LatestVisitDetailItem
+                                        className="grid gap-1 px-4 py-4 sm:grid-cols-[11rem_minmax(0,1fr)]"
+                                        label="Section"
+                                        value={visit.visitor.section}
+                                    />
                                 </>
                             )}
                         </div>
@@ -61,7 +77,8 @@ export function LatestVisitDetailsDialog({ open, visit, onOpenChange }: LatestVi
                         <div className="mt-5 flex items-start gap-3 text-sm text-[#020659]/75">
                             <ScanLine className="mt-0.5 size-4 shrink-0 text-[#040DBF]" />
                             <p className="leading-6">
-                                Read-only visit record. Edit profile information from Registered Visitors when a name, photo, or department needs correction.
+                                Read-only visit record. Edit profile information from Registered Visitors when a name, photo, or department needs
+                                correction.
                             </p>
                         </div>
                     </div>

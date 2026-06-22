@@ -83,7 +83,10 @@ export function VisitProgressRanking({
     const sectionsForYear = filters.sectionsByYearLevel[yearLevel] ?? [];
     const sectionOptions = [
         { value: '', label: 'All sections' },
-        ...(yearLevel ? sectionsForYear : [...new Set(Object.values(filters.sectionsByYearLevel).flat())]).map((option) => ({ value: option, label: option })),
+        ...(yearLevel ? sectionsForYear : [...new Set(Object.values(filters.sectionsByYearLevel).flat())]).map((option) => ({
+            value: option,
+            label: option,
+        })),
     ];
     const departmentOptions = [{ value: '', label: 'All departments' }, ...filters.departments.map((option) => ({ value: option, label: option }))];
 
@@ -108,6 +111,7 @@ export function VisitProgressRanking({
 
     return (
         <section className="admin-surface overflow-hidden rounded-lg border border-[#040DBF]/10 bg-white/95 shadow-sm">
+            <div className="h-2 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800" />
             <div className="border-b border-[#040DBF]/10 px-5 py-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
@@ -180,8 +184,20 @@ export function VisitProgressRanking({
                             <SortableTh column="name" label="Name" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
                             <SortableTh column="group" label={groupHeader} sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
                             <SortableTh column="visitCount" label="Visits" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
-                            <SortableTh column="remaining" label="Remaining" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
-                            <SortableTh column="lastVisit" label="Last visit" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
+                            <SortableTh
+                                column="remaining"
+                                label="Remaining"
+                                sort={sortColumn}
+                                direction={sortDirection}
+                                onSortChange={onSortChange}
+                            />
+                            <SortableTh
+                                column="lastVisit"
+                                label="Last visit"
+                                sort={sortColumn}
+                                direction={sortDirection}
+                                onSortChange={onSortChange}
+                            />
                             <SortableTh column="progress" label="Progress" sort={sortColumn} direction={sortDirection} onSortChange={onSortChange} />
                         </tr>
                     </thead>

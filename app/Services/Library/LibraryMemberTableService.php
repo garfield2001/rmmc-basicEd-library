@@ -142,6 +142,21 @@ class LibraryMemberTableService
         ];
     }
 
+    public function filterOptions(\App\Services\SchoolYears\SchoolYearSectionService $sections, ?int $activeSchoolYearId): array
+    {
+        return [
+            'yearLevels' => AcademicLevels::options(),
+            'sectionsByYearLevel' => $sections->groupedByYearLevel($activeSchoolYearId),
+            'departments' => \App\Models\EmployeeSchoolYearRecord::query()
+                ->forRequiredSchoolYear($activeSchoolYearId)
+                ->distinct()
+                ->orderBy('department')
+                ->pluck('department')
+                ->filter()
+                ->values(),
+        ];
+    }
+
     public function applySort(Builder $query, string $sort, string $direction, ?int $activeSchoolYearId): void
     {
         match ($sort) {

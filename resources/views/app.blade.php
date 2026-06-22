@@ -18,7 +18,7 @@
             }
 
             try {
-                const key = 'rmmc-admin-theme-preference-v2';
+                const key = 'rmmc-admin-theme-preference-v3';
                 const preference = window.localStorage.getItem(key);
                 const theme = preference === 'light' || preference === 'dark' ?
                     preference :

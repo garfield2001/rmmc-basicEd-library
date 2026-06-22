@@ -87,8 +87,12 @@ export function VisitProgressDrilldownModal({
                 <div className="overflow-hidden rounded-lg border border-[#040DBF]/10">
                     <div className="grid gap-3 border-b border-[#040DBF]/10 bg-[#f6f8ff] px-4 py-3 lg:grid-cols-[minmax(0,1fr)_12rem_18rem] lg:items-end">
                         <div>
-                            <p className="text-sm font-semibold text-[#010440]">{rows.length.toLocaleString()} matching visitor{rows.length === 1 ? '' : 's'}</p>
-                            <p className="mt-1 text-xs font-medium text-[#020659]/70">Click a row to open exact visit timestamps. The drilldown stays open behind it.</p>
+                            <p className="text-sm font-semibold text-[#010440]">
+                                {rows.length.toLocaleString()} matching visitor{rows.length === 1 ? '' : 's'}
+                            </p>
+                            <p className="mt-1 text-xs font-medium text-[#020659]/70">
+                                Click a row to open exact visit timestamps. The drilldown stays open behind it.
+                            </p>
                         </div>
                         <label className="grid gap-1 text-xs font-semibold text-[#030A8C]">
                             Progress
@@ -148,7 +152,7 @@ export function VisitProgressDrilldownModal({
                                                     openVisitor(visitor);
                                                 }
                                             }}
-                                            className={`cursor-pointer border-b border-[#040DBF]/5 last:border-0 transition-colors hover:bg-[#f6f8ff] focus-visible:bg-[#f6f8ff] focus-visible:outline-none ${
+                                            className={`cursor-pointer border-b border-[#040DBF]/5 transition-colors last:border-0 hover:bg-[#f6f8ff] focus-visible:bg-[#f6f8ff] focus-visible:outline-none ${
                                                 highlightedVisitorId === visitor.id ? 'bg-amber-50' : ''
                                             }`}
                                         >

@@ -21,10 +21,10 @@ export function reportFilterValidation({
 }: ReportFilterValidationOptions) {
     const dateRangeIsValid = Boolean(
         schoolYearId &&
-            startDate &&
-            endDate &&
-            startDate <= endDate &&
-            (!schoolYearBounds || (startDate >= schoolYearBounds.start && endDate <= schoolYearBounds.end)),
+        startDate &&
+        endDate &&
+        startDate <= endDate &&
+        (!schoolYearBounds || (startDate >= schoolYearBounds.start && endDate <= schoolYearBounds.end)),
     );
     const studentFiltersComplete = visitorType !== 'student' || yearLevels.length > 0;
     const employeeFiltersComplete = visitorType !== 'employee' || departments.length > 0;

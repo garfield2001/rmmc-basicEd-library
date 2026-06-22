@@ -1,5 +1,5 @@
-import type React from 'react';
 import type { LibraryMemberImportPreview } from '@/types/registered-visitors';
+import type React from 'react';
 import { ImportPreviewRow, SortableImportHead } from './import-preview-table-parts';
 import type { ImportPreviewSort } from './import-preview-types';
 

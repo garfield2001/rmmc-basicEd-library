@@ -29,7 +29,9 @@ export function VisitLogsDateRangeCard({
     const maxSelectableDate = schoolYearEnd && schoolYearEnd < today ? schoolYearEnd : today;
     const [dateMode, setDateMode] = useState(startDate || endDate ? 'custom' : 'school_year');
     const dateRangeLabel =
-        schoolYearStart && maxSelectableDate ? `${formatDisplayDate(schoolYearStart)} to ${formatDisplayDate(maxSelectableDate)}` : 'Active school-year dates';
+        schoolYearStart && maxSelectableDate
+            ? `${formatDisplayDate(schoolYearStart)} to ${formatDisplayDate(maxSelectableDate)}`
+            : 'Active school-year dates';
 
     useEffect(() => {
         if (startDate || endDate) {

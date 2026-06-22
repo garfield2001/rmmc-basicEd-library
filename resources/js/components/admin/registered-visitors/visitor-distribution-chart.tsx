@@ -107,7 +107,7 @@ function DistributionBar({
                     style={{ width: `${percent}%` }}
                 />
             </span>
-            <span className="text-right text-sm font-semibold tabular-nums text-[#030A8C]">{point.count.toLocaleString()}</span>
+            <span className="text-right text-sm font-semibold text-[#030A8C] tabular-nums">{point.count.toLocaleString()}</span>
         </Wrapper>
     );
 }

@@ -18,8 +18,8 @@ export function SchoolYearPreviewOverlay({
 }) {
     return (
         <>
-            <div className="admin-floating-scrim fixed inset-0 z-[55] bg-[#010440]/10 backdrop-blur-[3px] transition" aria-hidden="true" />
-            <div ref={previewRef} className="fixed z-[70] w-[min(20rem,calc(100vw-2rem))]" style={{ top: position.top, right: position.right }}>
+            <div className="admin-floating-scrim fixed inset-0 z-55 bg-[#010440]/10 backdrop-blur-[3px] transition" aria-hidden="true" />
+            <div ref={previewRef} className="fixed z-70 w-[min(20rem,calc(100vw-2rem))]" style={{ top: position.top, right: position.right }}>
                 <div className="admin-school-year-popover rounded-lg border border-[#040DBF]/10 bg-white p-4 text-sm shadow-xl shadow-[#040DBF]/10">
                     <div className="flex items-start gap-3">
                         <span className="admin-school-year-popover-icon flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#f6f8ff] text-[#040DBF]">

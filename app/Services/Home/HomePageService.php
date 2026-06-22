@@ -52,6 +52,10 @@ class HomePageService
                         $query->where('type', LibraryMember::TYPE_EMPLOYEE);
                     })
                     ->count(),
+
+                'visitsThisSchoolYear' => LibraryVisit::query()
+                    ->forRequiredSchoolYear($schoolYear?->id)
+                    ->count(),
             ],
         ];
     }

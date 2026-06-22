@@ -17,7 +17,7 @@ export function LatestVisitSummary({ visit, emptyMessage, onDetailsOpen }: Lates
 
     if (!visit) {
         return (
-            <div className="rounded-xl border border-zinc-200 bg-white/90 p-5 shadow-sm">
+            <div className="admin-surface rounded-xl border border-zinc-200 bg-white/90 p-5 shadow-sm">
                 <div className="flex items-center gap-3">
                     <IconBadge icon={Clock3} className="size-11 bg-[#040DBF] text-white" />
                     <div>
@@ -42,7 +42,7 @@ export function LatestVisitSummary({ visit, emptyMessage, onDetailsOpen }: Lates
                     y: event.clientY - bounds.top - 12,
                 });
             }}
-            className="group relative cursor-pointer rounded-xl border border-zinc-200 bg-white/90 p-5 text-left shadow-sm transition duration-200 ease-out hover:scale-[1.01] hover:border-zinc-300 hover:bg-white hover:shadow-md focus:ring-4 focus:ring-zinc-100 focus:outline-none"
+            className="admin-surface group relative cursor-pointer rounded-xl border border-zinc-200 bg-white/90 p-5 text-left shadow-sm transition duration-200 ease-out hover:scale-[1.01] hover:border-zinc-300 hover:bg-white hover:shadow-md focus:ring-4 focus:ring-zinc-100 focus:outline-none"
             aria-label={`View full details for ${visit.visitor.name ?? 'latest scanned visitor'}`}
             aria-describedby={tooltipId}
         >
@@ -59,7 +59,10 @@ export function LatestVisitSummary({ visit, emptyMessage, onDetailsOpen }: Lates
             <div className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
                 <LatestVisitDetailItem label="Name" value={visit.visitor.name ?? 'Unknown visitor'} />
                 <LatestVisitDetailItem label="ID" value={visit.visitor.schoolId ?? 'No ID'} />
-                <LatestVisitDetailItem label={visit.visitor.type === 'student' ? 'Year and section' : 'Department'} value={academicOrWorkDetail(visit)} />
+                <LatestVisitDetailItem
+                    label={visit.visitor.type === 'student' ? 'Year and section' : 'Department'}
+                    value={academicOrWorkDetail(visit)}
+                />
             </div>
 
             <div

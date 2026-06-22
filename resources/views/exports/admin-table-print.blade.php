@@ -51,6 +51,49 @@
                 </table>
                 </section>
             @endforeach
+
+            @if (!empty($payload['group_comparison']))
+                <section class="pdf-analytics-page">
+                    <h2>Analysis Summary</h2>
+                    <p class="analytics-subtitle">Comparing metrics across selected groups</p>
+                                        <div class="analytics-vertical-chart">
+                            <div class="analytics-legend">
+                                <span><b class="legend-green"></b> Completion %</span>
+                                <span><b class="legend-blue"></b> Visit Share %</span>
+                            </div>
+                            <div class="comparison-axis">
+                                <span>0%</span>
+                                <span>50%</span>
+                                <span>100%</span>
+                            </div>
+                            @foreach ($payload['group_comparison'] as $comparison)
+                                <div class="comparison-row">
+                                    <div class="comparison-label">{{ $comparison['label'] }}</div>
+                                    <div class="comparison-bars">
+                                        <div class="comparison-bar-line">
+                                            <div class="comparison-bar-caption">Completion</div>
+                                            <div class="comparison-bar">
+                                                <span style="width: {{ min(100, max(0, $comparison['completion_percent'])) }}%;"></span>
+                                            </div>
+                                            <div class="comparison-value">{{ $comparison['completion_percent'] }}%</div>
+                                        </div>
+                                        <div class="comparison-bar-line">
+                                            <div class="comparison-bar-caption">Visit Share</div>
+                                            <div class="comparison-bar comparison-bar-secondary">
+                                                <span style="width: {{ min(100, max(0, $comparison['visit_share_percent'])) }}%;"></span>
+                                            </div>
+                                            <div class="comparison-value">{{ $comparison['visit_share_percent'] }}%</div>
+                                        </div>
+                                    </div>
+                                    <div class="comparison-facts">
+                                        {{ $comparison['total_visits'] }} Visits<br>
+                                        <span style="font-size: 8pt; color: #6B7280;">{{ $comparison['average_visits'] }} Avg / {{ $comparison['met_required'] }} Met</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                </section>
+            @endif
         </main>
 
         @if ($showActions ?? true)

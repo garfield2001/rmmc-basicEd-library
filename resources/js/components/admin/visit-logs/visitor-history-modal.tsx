@@ -17,7 +17,10 @@ interface VisitorHistoryModalProps {
 export function VisitorHistoryModal({ visitor, visits, startDate, endDate, open, onOpenChange }: VisitorHistoryModalProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-3xl" onOpenAutoFocus={(event) => event.preventDefault()}>
+            <DialogContent
+                className="admin-contained-scroll max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-3xl"
+                onOpenAutoFocus={(event) => event.preventDefault()}
+            >
                 <DialogHeader>
                     <div className="flex items-center gap-3 pr-8">
                         <VisitorAvatar
@@ -41,15 +44,15 @@ export function VisitorHistoryModal({ visitor, visits, startDate, endDate, open,
                             <h3 className="font-semibold text-[#010440]">Visit log</h3>
                             <p className="mt-1 text-sm text-[#020659]/70">{summarizeDateRange(startDate, endDate)}</p>
                         </div>
-                        <span className="rounded-full bg-[#040DBF]/10 px-3 py-1.5 text-xs font-semibold text-[#030A8C]">
+                        <span className="admin-soft-count-badge rounded-full px-3 py-1.5 text-xs font-semibold">
                             Total visits: {visits.length.toLocaleString()}
                         </span>
                     </div>
 
                     {visits.length > 0 ? (
-                        <div className="max-h-[24rem] overflow-y-auto overscroll-contain">
+                        <div className="admin-contained-scroll max-h-[24rem] overflow-y-auto overscroll-contain">
                             <Table>
-                                <TableHeader className="sticky top-0 z-10 bg-white">
+                                <TableHeader className="sticky top-0 z-10">
                                     <TableRow>
                                         <TableHead>Date</TableHead>
                                         <TableHead>Time</TableHead>

@@ -18,7 +18,8 @@ interface ImportPreviewDialogProps {
     onConfirm: () => void;
 }
 
-const rowHeight = 58, overscan = 10;
+const rowHeight = 58,
+    overscan = 10;
 
 export function ImportPreviewDialog({ open, preview, processing, onCancel, onConfirm }: ImportPreviewDialogProps) {
     const members = useMemo(() => preview?.members ?? [], [preview?.members]);

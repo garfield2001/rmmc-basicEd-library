@@ -36,8 +36,8 @@ export function useLiveVisitsPage(visitMonitor: AdminVisitMonitor) {
                     value: scanValue,
                     label: target.name,
                     meta: `${schoolId} - ${target.type}${target.detail ? ` - ${target.detail}` : ''}`,
-                    idTerms: [target.RFIDUid, target.schoolId, ...(target.schoolId ?? '').split(/[^a-zA-Z0-9]+/)].filter(
-                        (term): term is string => Boolean(term),
+                    idTerms: [target.RFIDUid, target.schoolId, ...(target.schoolId ?? '').split(/[^a-zA-Z0-9]+/)].filter((term): term is string =>
+                        Boolean(term),
                     ),
                     textTerms: [target.name, target.firstName, target.lastName, target.type, target.detail].filter((term): term is string =>
                         Boolean(term),

@@ -22,7 +22,11 @@ export function VisitorDataRow({ visitor, activeType, onEdit }: { visitor: Libra
             )}
             <TableCell>
                 <div className="flex justify-end">
-                    <ActionButton label={activeType === 'student' ? 'Edit student details' : 'Edit employee details'} icon={Pencil} onClick={onEdit} />
+                    <ActionButton
+                        label={activeType === 'student' ? 'Edit student details' : 'Edit employee details'}
+                        icon={Pencil}
+                        onClick={onEdit}
+                    />
                 </div>
             </TableCell>
         </TableRow>

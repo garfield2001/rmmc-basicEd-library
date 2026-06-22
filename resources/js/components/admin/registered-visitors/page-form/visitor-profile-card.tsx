@@ -13,9 +13,19 @@ export function VisitorProfileCard({ data, errors, visitor, onFieldChange }: Vis
         <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
             <h2 className="font-semibold">Profile</h2>
             <div className="mt-5 grid gap-4 md:grid-cols-3">
-                <NameField label="First name" value={data.first_name} error={errors.first_name} onChange={(value) => onFieldChange('first_name', value)} />
+                <NameField
+                    label="First name"
+                    value={data.first_name}
+                    error={errors.first_name}
+                    onChange={(value) => onFieldChange('first_name', value)}
+                />
                 <NameField label="Middle name" value={data.middle_name} onChange={(value) => onFieldChange('middle_name', value)} />
-                <NameField label="Last name" value={data.last_name} error={errors.last_name} onChange={(value) => onFieldChange('last_name', value)} />
+                <NameField
+                    label="Last name"
+                    value={data.last_name}
+                    error={errors.last_name}
+                    onChange={(value) => onFieldChange('last_name', value)}
+                />
                 <div className="md:col-span-2">
                     <label className="text-sm font-medium">
                         Photo upload
@@ -38,17 +48,7 @@ export function VisitorProfileCard({ data, errors, visitor, onFieldChange }: Vis
     );
 }
 
-function NameField({
-    label,
-    value,
-    error,
-    onChange,
-}: {
-    label: string;
-    value: string;
-    error?: string;
-    onChange: (value: string) => void;
-}) {
+function NameField({ label, value, error, onChange }: { label: string; value: string; error?: string; onChange: (value: string) => void }) {
     return (
         <label className="text-sm font-medium">
             {label}

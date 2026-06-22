@@ -1,13 +1,7 @@
 import type { VisitReport, VisitReportOptions } from '@/types/reports';
 import { useEffect, useMemo, useState } from 'react';
 import { reportFilterValidation } from './report-filter-validation';
-import {
-    getSchoolYearBounds,
-    inferDateRangeMode,
-    summarizeDateRange,
-    type DateRangeMode,
-    type VisitorTypeFilter,
-} from './report-helpers';
+import { getSchoolYearBounds, inferDateRangeMode, summarizeDateRange, type DateRangeMode, type VisitorTypeFilter } from './report-helpers';
 
 const reportSectionKeySeparator = '::';
 

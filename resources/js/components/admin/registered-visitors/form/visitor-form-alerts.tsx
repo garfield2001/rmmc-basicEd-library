@@ -1,19 +1,15 @@
 import type { VisitorFormData } from './visitor-form-state';
 
-export function VisitorFormStepAlert({
-    show,
-    hasErrors,
-}: {
-    show: boolean;
-    hasErrors: boolean;
-}) {
+export function VisitorFormStepAlert({ show, hasErrors }: { show: boolean; hasErrors: boolean }) {
     if (!show) {
         return null;
     }
 
     return (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
-            {hasErrors ? 'Resolve the highlighted errors in this step before continuing.' : 'Complete the required fields in this step before continuing.'}
+            {hasErrors
+                ? 'Resolve the highlighted errors in this step before continuing.'
+                : 'Complete the required fields in this step before continuing.'}
         </p>
     );
 }

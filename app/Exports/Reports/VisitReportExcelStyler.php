@@ -16,6 +16,8 @@ class VisitReportExcelStyler
         private readonly array $groupTitleRows,
         private readonly array $statRows,
         private readonly array $summaryRows,
+        private readonly array $summaryHeaderRows = [],
+        private readonly array $summaryTableRanges = [],
     ) {}
 
     public function __invoke(AfterSheet $event): void
@@ -32,6 +34,7 @@ class VisitReportExcelStyler
         $this->styleStatistics($sheet);
         $this->styleTables($sheet);
         $this->styleSummaries($sheet);
+        $this->styleSummaryTables($sheet);
     }
 
     private function styleTitle($sheet): void
@@ -46,16 +49,16 @@ class VisitReportExcelStyler
 
         $sheet->getRowDimension(5)->setRowHeight(28);
         $sheet->getStyle('A1:E7')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
-        $sheet->getStyle('B1:B2')->getFont()->setBold(true)->setSize(18);
-        $sheet->getStyle('A5')->getFont()->setBold(true)->setSize(18)->getColor()->setRGB('010440');
-        $sheet->getStyle('A6:E7')->getFont()->setSize(12);
+        $sheet->getStyle('B1:B2')->getFont()->setBold(true)->setSize(18)->getColor()->setRGB('111827');
+        $sheet->getStyle('A5')->getFont()->setBold(true)->setSize(18)->getColor()->setRGB('111827');
+        $sheet->getStyle('A6:E7')->getFont()->setSize(12)->getColor()->setRGB('374151');
     }
 
     private function styleGroups($sheet): void
     {
         foreach ($this->groupTitleRows as $row) {
             $sheet->mergeCells("A{$row}:E{$row}");
-            $sheet->getStyle("A{$row}")->getFont()->setBold(true)->setSize(12)->getColor()->setRGB('010440');
+            $sheet->getStyle("A{$row}")->getFont()->setBold(true)->setSize(12)->getColor()->setRGB('111827');
             $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         }
     }
@@ -67,14 +70,14 @@ class VisitReportExcelStyler
                 $sheet->setCellValue("{$column}{$row}", $label);
             }
 
-            $sheet->getStyle("A{$row}:E{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('E8EEFC');
-            $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true);
+            $sheet->getStyle("A{$row}:E{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F3F4F6');
+            $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true)->getColor()->setRGB('374151');
             $sheet->getStyle("A{$row}:E{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("A{$row}:E{$row}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle("A{$row}:E{$row}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('D1D5DB');
         }
 
         foreach ($this->tableRanges as [$start, $end]) {
-            $sheet->getStyle("A{$start}:E{$end}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle("A{$start}:E{$end}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('D1D5DB');
             $sheet->getStyle("A{$start}:E{$end}")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
             if ($end > $start) {
@@ -87,9 +90,9 @@ class VisitReportExcelStyler
     private function styleStatistics($sheet): void
     {
         foreach ($this->statRows as $row) {
-            $sheet->getStyle("A{$row}:E{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F6F8FF');
-            $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true)->getColor()->setRGB('010440');
-            $sheet->getStyle("A{$row}:E{$row}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_HAIR);
+            $sheet->getStyle("A{$row}:E{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F9FAFB');
+            $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true)->getColor()->setRGB('111827');
+            $sheet->getStyle("A{$row}:E{$row}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('E5E7EB');
             $sheet->getStyle("A{$row}:E{$row}")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
         }
     }
@@ -97,8 +100,24 @@ class VisitReportExcelStyler
     private function styleSummaries($sheet): void
     {
         foreach ($this->summaryRows as $row) {
-            $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true);
+            $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true)->getColor()->setRGB('111827');
             $sheet->getStyle("A{$row}:E{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
+    }
+
+    private function styleSummaryTables($sheet): void
+    {
+        foreach ($this->summaryHeaderRows as $row) {
+            $sheet->getStyle("A{$row}:F{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F3F4F6');
+            $sheet->getStyle("A{$row}:F{$row}")->getFont()->setBold(true)->getColor()->setRGB('374151');
+            $sheet->getStyle("A{$row}:F{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("A{$row}:F{$row}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('D1D5DB');
+        }
+
+        foreach ($this->summaryTableRanges as [$start, $end]) {
+            if ($end >= $start) {
+                $sheet->getStyle("A{$start}:E{$end}")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER)->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            }
         }
     }
 }

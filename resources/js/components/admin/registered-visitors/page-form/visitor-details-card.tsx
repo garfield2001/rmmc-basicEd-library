@@ -15,7 +15,12 @@ export function VisitorDetailsCard({ data, errors, onFieldChange }: VisitorDetai
                 <h2 className="font-semibold">Student details</h2>
             </div>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <VisitorTextField label="Year level" value={data.year_level} error={errors.year_level} onChange={(value) => onFieldChange('year_level', value)} />
+                <VisitorTextField
+                    label="Year level"
+                    value={data.year_level}
+                    error={errors.year_level}
+                    onChange={(value) => onFieldChange('year_level', value)}
+                />
                 <VisitorTextField label="Section" value={data.section} error={errors.section} onChange={(value) => onFieldChange('section', value)} />
             </div>
         </section>
@@ -37,17 +42,7 @@ export function VisitorDetailsCard({ data, errors, onFieldChange }: VisitorDetai
     );
 }
 
-function VisitorTextField({
-    label,
-    value,
-    error,
-    onChange,
-}: {
-    label: string;
-    value: string;
-    error?: string;
-    onChange: (value: string) => void;
-}) {
+function VisitorTextField({ label, value, error, onChange }: { label: string; value: string; error?: string; onChange: (value: string) => void }) {
     return (
         <label className="text-sm font-medium">
             {label}

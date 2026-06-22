@@ -33,7 +33,12 @@ export function VisitorTypeTabs({ activeType, onTypeChange }: { activeType: Visi
                 const isActive = activeType === tab.value;
 
                 return (
-                    <button key={tab.value} type="button" onClick={() => onTypeChange(tab.value)} className={`admin-segmented-tab ${isActive ? 'admin-segmented-tab-active' : ''}`}>
+                    <button
+                        key={tab.value}
+                        type="button"
+                        onClick={() => onTypeChange(tab.value)}
+                        className={`admin-segmented-tab ${isActive ? 'admin-segmented-tab-active' : ''}`}
+                    >
                         <Icon className="size-4" />
                         {tab.label}
                     </button>
@@ -43,7 +48,15 @@ export function VisitorTypeTabs({ activeType, onTypeChange }: { activeType: Visi
     );
 }
 
-export function VisitorSearchInput({ activeType, search, onSearchChange }: { activeType: VisitorType; search: string; onSearchChange: (value: string) => void }) {
+export function VisitorSearchInput({
+    activeType,
+    search,
+    onSearchChange,
+}: {
+    activeType: VisitorType;
+    search: string;
+    onSearchChange: (value: string) => void;
+}) {
     return (
         <div className="relative min-w-0">
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />

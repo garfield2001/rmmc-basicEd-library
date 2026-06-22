@@ -3,8 +3,8 @@ import { VirtualTableSpacerRow } from '@/components/ui/virtual-table-spacer-row'
 import type { LibraryMemberRow } from '@/types/registered-visitors';
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
 import type React from 'react';
-import type { ColumnOption, SortDirection, VisitorType } from './visitors-table-types';
 import { LoadingRows, VisitorDataRow } from './visitors-table-rows';
+import type { ColumnOption, SortDirection, VisitorType } from './visitors-table-types';
 
 interface VisitorsTableContentProps {
     activeType: VisitorType;
@@ -42,14 +42,22 @@ export function VisitorsTableContent({
     onEdit,
 }: VisitorsTableContentProps) {
     const placeholderRows =
-        !isLoading && !usesVirtualRows && rowsPerPage !== 'all' && displayedVisitors.length > 0 ? Math.max(0, rowsPerPage - displayedVisitors.length) : 0;
+        !isLoading && !usesVirtualRows && rowsPerPage !== 'all' && displayedVisitors.length > 0
+            ? Math.max(0, rowsPerPage - displayedVisitors.length)
+            : 0;
 
     return (
         <div className="overflow-x-auto">
             <Table className={activeType === 'student' ? 'min-w-170' : 'min-w-140'}>
                 <TableHeader className="bg-zinc-50">
                     <TableRow>
-                        <SortableHead column="name" label={activeType === 'student' ? 'Student' : 'Employee'} sort={sort} direction={direction} onSortChange={onSortChange} />
+                        <SortableHead
+                            column="name"
+                            label={activeType === 'student' ? 'Student' : 'Employee'}
+                            sort={sort}
+                            direction={direction}
+                            onSortChange={onSortChange}
+                        />
                         <TableHead>School ID</TableHead>
                         {activeType === 'student' ? (
                             <>

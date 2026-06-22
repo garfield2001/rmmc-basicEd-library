@@ -1,5 +1,5 @@
-import { ScanSettingsForm, type ScanSettings } from '@/components/admin/settings/scan-settings-form';
 import { formatTime } from '@/components/admin/dashboard/dashboard-summary';
+import { ScanSettingsForm, type ScanSettings } from '@/components/admin/settings/scan-settings-form';
 import type { DashboardScanSettings } from '@/types/dashboard';
 import { Clock3, Settings2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -65,20 +65,17 @@ export function DashboardOperationsPanel({ dashboard, scanSettings }: DashboardO
                 </div>
             </section>
 
-            {typeof document !== 'undefined' &&
+            {showDrawer &&
+                typeof document !== 'undefined' &&
                 createPortal(
-                    <div className={`admin-theme-root fixed inset-0 z-[60] h-[100dvh] ${showDrawer ? '' : 'pointer-events-none'}`} ref={drawerRef}>
+                    <div className="admin-theme-root fixed inset-0 z-[60] h-[100dvh]" ref={drawerRef}>
                         <div
-                            className={`fixed inset-0 h-[100dvh] bg-[#010440]/22 backdrop-blur-[4px] transition-opacity duration-150 ease-out ${
-                                showDrawer ? 'opacity-100' : 'opacity-0'
-                            }`}
+                            className="fixed inset-0 h-[100dvh] bg-[#010440]/22 backdrop-blur-[4px] transition-opacity duration-150 ease-out"
                             aria-hidden="true"
                             onClick={() => setShowDrawer(false)}
                         />
                         <div
-                            className={`admin-surface fixed inset-y-0 right-0 flex h-[100dvh] w-full max-w-lg transform-gpu flex-col overflow-hidden bg-white shadow-2xl shadow-[#010440]/20 transition-transform ${motion} ${
-                                showDrawer ? 'translate-x-0' : 'translate-x-full'
-                            }`}
+                            className={`admin-surface fixed inset-y-0 right-0 flex h-[100dvh] w-full max-w-lg transform-gpu flex-col overflow-hidden bg-white shadow-2xl shadow-[#010440]/20 transition-transform ${motion}`}
                         >
                             <div className="flex shrink-0 items-center justify-between border-b border-[#040DBF]/10 px-6 py-5">
                                 <div>

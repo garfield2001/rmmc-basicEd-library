@@ -57,7 +57,8 @@ export function VisitorsTable({
     const displayedVisitors = usesVirtualRows ? visitors.data.slice(virtualRows.startIndex, virtualRows.endIndex) : visitors.data;
 
     return (
-        <div className="relative rounded-xl border border-zinc-200 bg-white shadow-sm" aria-busy={isLoading}>
+        <div className="relative overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm" aria-busy={isLoading}>
+            <div className="h-2 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800" />
             <VisitorsTableToolbar
                 activeType={activeType}
                 search={search}

@@ -4,13 +4,7 @@ import type { SchoolYearRow } from '@/types/school-year';
 import { CheckCircle2, Pencil } from 'lucide-react';
 import { MiniStat } from './mini-stat';
 
-export function SchoolYearHistoryList({
-    schoolYears,
-    onEdit,
-}: {
-    schoolYears: SchoolYearRow[];
-    onEdit: (schoolYear: SchoolYearRow) => void;
-}) {
+export function SchoolYearHistoryList({ schoolYears, onEdit }: { schoolYears: SchoolYearRow[]; onEdit: (schoolYear: SchoolYearRow) => void }) {
     return (
         <div className="max-h-[min(31rem,calc(100vh-13rem))] space-y-3 overflow-y-auto pr-1">
             {schoolYears.length > 0 ? (

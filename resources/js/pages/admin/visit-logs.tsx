@@ -1,8 +1,8 @@
-import { useVisitLogsPage } from '@/components/admin/visit-logs/use-visit-logs-page';
 import { PageExportActions } from '@/components/admin/exports/page-export-actions';
+import { useVisitLogsPage } from '@/components/admin/visit-logs/use-visit-logs-page';
 import { VisitLogsFilterPanel } from '@/components/admin/visit-logs/visit-logs-filter-panel';
-import { VisitLogsInsights } from '@/components/admin/visit-logs/visit-logs-insights';
 import type { VisitorTypeFilter } from '@/components/admin/visit-logs/visit-logs-helpers';
+import { VisitLogsInsights } from '@/components/admin/visit-logs/visit-logs-insights';
 import { VisitLogsTable } from '@/components/admin/visit-logs/visit-logs-table';
 import { VisitorHistoryModal } from '@/components/admin/visit-logs/visitor-history-modal';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
@@ -65,8 +65,9 @@ export default function VisitLogs({ visitLogs, initialVisitorType }: VisitLogsPr
                         />
 
                         <section
-                            className={`admin-surface visit-logs-audience-surface ${audienceClass} overflow-hidden rounded-lg border border-[#040DBF]/10 bg-white/95 shadow-sm`}
+                            className={`admin-surface visit-logs-audience-surface ${audienceClass} overflow-hidden rounded-xl border border-[#040DBF]/10 bg-white/95 shadow-sm`}
                         >
+                            <div className="h-2 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800" />
                             <VisitLogsTable
                                 visitors={logsPage.visibleVisitors}
                                 visitorType={logsPage.visitorType}

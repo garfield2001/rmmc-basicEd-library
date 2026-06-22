@@ -9,7 +9,7 @@ import { ChartCard } from './chart-card';
 const individualProgressConfig = {
     percent: {
         label: 'Progress',
-        color: '#2563eb',
+        color: '#14b8a6',
     },
 } satisfies ChartConfig;
 
@@ -81,7 +81,7 @@ export function IndividualProgressPanel({ progress }: { progress: IndividualProg
                                     className="text-xs"
                                 />
                                 <ChartTooltip cursor={{ fill: 'rgb(4 13 191 / 0.06)' }} content={<ChartTooltipContent hideLabel />} />
-                                <Bar dataKey="percent" fill="#2563eb" radius={[0, 6, 6, 0]} isAnimationActive={false} />
+                                <Bar dataKey="percent" fill="#14b8a6" radius={[0, 6, 6, 0]} isAnimationActive={false} />
                             </BarChart>
                         </ChartContainer>
                     ) : (

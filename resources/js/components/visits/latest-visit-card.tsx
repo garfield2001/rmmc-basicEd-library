@@ -2,9 +2,9 @@ import { IconBadge } from '@/components/ui/icon-badge';
 import { type DashboardVisit } from '@/types/dashboard';
 import { Clock3 } from 'lucide-react';
 import { useId, useState } from 'react';
+import { academicOrWorkDetail, formatVisitTime } from './latest-visit-card-utils';
 import { LatestVisitDetailItem } from './latest-visit-detail-item';
 import { LatestVisitDetailsDialog } from './latest-visit-details-dialog';
-import { academicOrWorkDetail, formatVisitTime } from './latest-visit-card-utils';
 
 interface LatestVisitCardProps {
     visit: DashboardVisit | null;
@@ -31,7 +31,7 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                                 y: event.clientY - bounds.top - 12,
                             });
                         }}
-                        className="group relative cursor-pointer rounded-xl border border-zinc-200 bg-white/90 p-5 text-left shadow-sm transition duration-200 ease-out hover:scale-[1.01] hover:border-zinc-300 hover:bg-white hover:shadow-md focus:ring-4 focus:ring-zinc-100 focus:outline-none"
+                        className="admin-surface group relative cursor-pointer rounded-xl border border-zinc-200 bg-white/90 p-5 text-left shadow-sm transition duration-200 ease-out hover:scale-[1.01] hover:border-zinc-300 hover:bg-white hover:shadow-md focus:ring-4 focus:ring-zinc-100 focus:outline-none"
                         aria-label={`View full details for ${visit.visitor.name ?? 'latest scanned visitor'}`}
                         aria-describedby={tooltipId}
                     >
@@ -64,7 +64,7 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                         </div>
                     </button>
                 ) : (
-                    <div className="rounded-xl border border-zinc-200 bg-white/90 p-5 shadow-sm">
+                    <div className="admin-surface rounded-xl border border-zinc-200 bg-white/90 p-5 shadow-sm">
                         <div className="flex items-center gap-3">
                             <IconBadge icon={Clock3} className="size-11 bg-[#040DBF] text-white" />
                             <div>

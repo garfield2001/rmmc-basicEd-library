@@ -1,9 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, LogIn } from 'lucide-react';
 import type { RefObject } from 'react';
-import { AdministrationStatCard } from './administration-stat-card';
-import { AdministrationStatusCard } from './administration-status-card';
-import { getAdministrationStats, getAdministrationStatus } from './metrics';
 import type { IndexProps } from './types';
 
 interface AdministrationSectionProps {
@@ -25,8 +22,9 @@ export function AdministrationSection({
     onLoginClick,
     onReturnToScanner,
 }: AdministrationSectionProps) {
-    const administrationStats = getAdministrationStats(home);
-    const administrationStatus = getAdministrationStatus(home);
+    const { metrics, schoolYear, scanSettings } = home;
+    const registeredTotal = metrics.students + metrics.employees;
+    const scanWindowLabel = `${scanSettings.scan_starts_at} – ${scanSettings.scan_ends_at}`;
 
     return (
         <section
@@ -47,6 +45,7 @@ export function AdministrationSection({
                     isRevealed ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-85'
                 }`}
             >
+                {/* Header */}
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between lg:gap-8 2xl:gap-12">
                     <div className="max-w-5xl">
                         <p className="public-display-label font-semibold text-blue-200">Staff Area</p>
@@ -66,31 +65,55 @@ export function AdministrationSection({
                     </Button>
                 </div>
 
-                <div className="mt-8 grid gap-8 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_minmax(360px,30rem)] lg:items-start lg:gap-10 2xl:mt-14 2xl:gap-14">
-                    <div className="divide-y divide-white/15 border-y border-white/15">
-                        {administrationStats.map((stat) => (
-                            <AdministrationStatCard key={stat.label} label={stat.label} value={stat.value} detail={stat.detail} icon={stat.icon} />
-                        ))}
+                {/* Body */}
+                <div className="mt-8 space-y-6 lg:mt-10 2xl:mt-14">
+                    {/* Hero stat — visits today */}
+                    <div className="rounded-2xl border border-white/12 bg-white/8 px-6 py-8 sm:px-8 sm:py-10 2xl:px-10 2xl:py-12">
+                        <p className="text-sm font-medium tracking-wide text-blue-200 sm:text-base">Visits recorded today</p>
+                        <p className="mt-3 text-6xl font-bold tracking-tight text-white tabular-nums sm:text-7xl 2xl:text-8xl">
+                            {metrics.visitsToday.toLocaleString()}
+                        </p>
+                        <p className="mt-3 text-sm text-blue-200/70 sm:text-base">
+                            from {registeredTotal.toLocaleString()} registered visitor{registeredTotal === 1 ? '' : 's'}
+                        </p>
+                        {metrics.visitsThisSchoolYear > 0 && (
+                            <p className="mt-1 text-sm text-blue-200/50">{metrics.visitsThisSchoolYear.toLocaleString()} total this school year</p>
+                        )}
                     </div>
 
-                    <div className="border-y border-white/15 py-4 sm:py-5 2xl:py-7">
-                        <p className="public-display-label font-semibold text-blue-200">Current setup</p>
-                        <div className="mt-5 space-y-5 2xl:mt-7 2xl:space-y-7">
-                            {administrationStatus.map((item) => (
-                                <AdministrationStatusCard
-                                    key={item.label}
-                                    label={item.label}
-                                    value={item.value}
-                                    detail={item.detail}
-                                    icon={item.icon}
-                                />
-                            ))}
-                        </div>
-                        <div className="mt-6 border-t border-white/15 pt-5 2xl:mt-8 2xl:pt-7">
-                            <p className="public-admin-copy text-blue-100">
-                                Administrative tools are kept behind staff login so the scanner station stays focused on visitor flow.
+                    {/* Breakdown — student & employee */}
+                    <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
+                        <div className="rounded-xl border border-l-2 border-white/8 border-l-blue-400 bg-white/5 px-5 py-5 sm:px-6 2xl:px-7 2xl:py-6">
+                            <p className="text-sm font-medium text-blue-200/80">Student visits</p>
+                            <p className="mt-2 text-3xl font-semibold text-white tabular-nums 2xl:text-4xl">
+                                {metrics.studentVisitsToday.toLocaleString()}
+                            </p>
+                            <p className="mt-1.5 text-sm text-blue-200/50">
+                                {metrics.students.toLocaleString()} registered student{metrics.students === 1 ? '' : 's'}
                             </p>
                         </div>
+                        <div className="rounded-xl border border-l-2 border-white/8 border-l-teal-400 bg-white/5 px-5 py-5 sm:px-6 2xl:px-7 2xl:py-6">
+                            <p className="text-sm font-medium text-blue-200/80">Employee visits</p>
+                            <p className="mt-2 text-3xl font-semibold text-white tabular-nums 2xl:text-4xl">
+                                {metrics.employeeVisitsToday.toLocaleString()}
+                            </p>
+                            <p className="mt-1.5 text-sm text-blue-200/50">
+                                {metrics.employees.toLocaleString()} registered employee{metrics.employees === 1 ? '' : 's'}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* System info strip */}
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-white/10 pt-5 text-sm text-blue-200/60 2xl:pt-6">
+                        <span>
+                            <span className="font-medium text-blue-200/80">School year</span> {schoolYear?.name ?? 'Not configured'}
+                        </span>
+                        <span className="hidden text-white/20 sm:inline" aria-hidden="true">
+                            ·
+                        </span>
+                        <span>
+                            <span className="font-medium text-blue-200/80">Scan window</span> {scanWindowLabel}
+                        </span>
                     </div>
                 </div>
             </div>

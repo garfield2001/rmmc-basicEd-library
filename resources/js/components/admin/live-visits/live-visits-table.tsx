@@ -1,6 +1,6 @@
 import { LiveVisitsTableContent } from '@/components/admin/live-visits/live-visits-table-content';
-import { type LiveVisitsTableMode } from '@/components/admin/live-visits/live-visits-table-helpers';
 import { LiveVisitsTableHeader } from '@/components/admin/live-visits/live-visits-table-header';
+import { type LiveVisitsTableMode } from '@/components/admin/live-visits/live-visits-table-helpers';
 import { useLiveVisitsTable } from '@/components/admin/live-visits/use-live-visits-table';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import type { DashboardVisit } from '@/types/dashboard';
@@ -17,7 +17,8 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount, mode = 'l
     const table = useLiveVisitsTable({ visits, studentCount, employeeCount, mode });
 
     return (
-        <section className="admin-surface overflow-hidden rounded-lg border border-[#040DBF]/10 bg-white/95 shadow-sm">
+        <section className="admin-surface overflow-hidden rounded-xl border border-[#040DBF]/10 bg-white/95 shadow-sm">
+            <div className="h-2 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800" />
             <LiveVisitsTableHeader
                 title={table.title}
                 description={table.description}
@@ -59,7 +60,11 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount, mode = 'l
                 currentPage={table.currentPage}
                 totalPages={table.totalPages}
                 from={table.sortedVisits.length === 0 ? 0 : table.rowsPerPage === 'all' ? 1 : (table.currentPage - 1) * table.rowsPerPage + 1}
-                to={table.rowsPerPage === 'all' ? table.sortedVisits.length : Math.min(table.currentPage * table.rowsPerPage, table.sortedVisits.length)}
+                to={
+                    table.rowsPerPage === 'all'
+                        ? table.sortedVisits.length
+                        : Math.min(table.currentPage * table.rowsPerPage, table.sortedVisits.length)
+                }
                 total={table.sortedVisits.length}
                 rowsPerPage={table.rowsPerPage}
                 rowsPerPageOptions={[5, 10, 30, 50, 100, 'all']}

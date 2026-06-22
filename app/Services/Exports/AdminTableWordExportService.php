@@ -54,11 +54,11 @@ class AdminTableWordExportService
         $this->letterhead($section);
         $section->addText($payload['title'], ['bold' => true, 'size' => 17, 'color' => '010440'], ['alignment' => Jc::CENTER, 'spaceAfter' => 120]);
         $this->metadata($section, $payload);
-        $this->comparison($section, $payload);
-
         foreach ($payload['groups'] as $group) {
             $this->group($section, $payload, $group);
         }
+
+        $this->comparison($section, $payload);
 
         return $word;
     }
@@ -73,15 +73,23 @@ class AdminTableWordExportService
     {
         $table = $section->addTable(['borderSize' => 0, 'cellMargin' => 0, 'alignment' => Jc::CENTER]);
         $table->addRow();
-        $logo = public_path('images/rmmc-logo.jpg');
         $cellStyle = ['borderSize' => 0, 'borderColor' => 'FFFFFF'];
         $left = $table->addCell(1300, $cellStyle);
         $center = $table->addCell(6600, $cellStyle);
         $right = $table->addCell(1300, $cellStyle);
+        
+        $leftLogo = public_path('images/rmmc-left-logo.jpg');
+        $rightLogo = public_path('images/rmmc-right-logo.jpg');
+        $defaultLogo = public_path('images/rmmc-logo.jpg');
+        
+        $leftLogoPath = is_file($leftLogo) ? $leftLogo : (is_file($defaultLogo) ? $defaultLogo : null);
+        $rightLogoPath = is_file($rightLogo) ? $rightLogo : (is_file($defaultLogo) ? $defaultLogo : null);
 
-        if (is_file($logo)) {
-            $left->addImage($logo, ['width' => 62, 'height' => 62, 'alignment' => Jc::CENTER]);
-            $right->addImage($logo, ['width' => 62, 'height' => 62, 'alignment' => Jc::CENTER]);
+        if ($leftLogoPath) {
+            $left->addImage($leftLogoPath, ['width' => 62, 'height' => 62, 'alignment' => Jc::CENTER]);
+        }
+        if ($rightLogoPath) {
+            $right->addImage($rightLogoPath, ['width' => 62, 'height' => 62, 'alignment' => Jc::CENTER]);
         }
 
         $center->addText('RAMON MAGSAYSAY MEMORIAL', ['bold' => true, 'size' => 16], ['alignment' => Jc::CENTER, 'spaceAfter' => 0]);
@@ -99,13 +107,37 @@ class AdminTableWordExportService
      */
     private function metadata($section, array $payload): void
     {
-        $table = $section->addTable(['borderSize' => 0, 'cellMargin' => 60, 'alignment' => Jc::CENTER]);
-        $cellStyle = ['borderSize' => 0, 'borderColor' => 'FFFFFF'];
+        $table = $section->addTable([
+            'borderSize' => 6,
+            'borderColor' => 'E5E7EB',
+            'cellMargin' => 120,
+            'alignment' => Jc::CENTER,
+        ]);
         $table->addRow();
-        $table->addCell(3600, $cellStyle)->addText('School Year: '.($payload['school_year']['name'] ?? 'No school year'), ['bold' => true]);
-        $table->addCell(3600, $cellStyle)->addText('Visitor Type: '.$payload['visitor_label'], ['bold' => true]);
-        $table->addRow();
-        $table->addCell(7200, $cellStyle + ['gridSpan' => 2])->addText('Date Range: '.$payload['date_range'], ['bold' => true]);
+        
+        $cellStyle = ['bgColor' => 'F9FAFB', 'valign' => 'center'];
+        
+        $run1 = $table->addCell(2400, $cellStyle)->addTextRun(['alignment' => Jc::CENTER]);
+        $run1->addText('SCHOOL YEAR: ', ['color' => '6B7280', 'bold' => true, 'size' => 8]);
+        $run1->addText($payload['school_year']['name'] ?? 'No school year', ['color' => '374151', 'bold' => true, 'size' => 9]);
+        
+        $run2 = $table->addCell(2400, $cellStyle)->addTextRun(['alignment' => Jc::CENTER]);
+        $run2->addText('VISITOR TYPE: ', ['color' => '6B7280', 'bold' => true, 'size' => 8]);
+        $run2->addText($payload['visitor_label'], ['color' => '374151', 'bold' => true, 'size' => 9]);
+        
+        $dates = explode(' to ', $payload['date_range']);
+        $start = $dates[0] ?? '';
+        $end = $dates[1] ?? '';
+        
+        $run3 = $table->addCell(2400, $cellStyle)->addTextRun(['alignment' => Jc::CENTER]);
+        $run3->addText('FROM: ', ['color' => '6B7280', 'bold' => true, 'size' => 8]);
+        $run3->addText($start, ['color' => '374151', 'bold' => true, 'size' => 9]);
+        
+        $run4 = $table->addCell(2400, $cellStyle)->addTextRun(['alignment' => Jc::CENTER]);
+        $run4->addText('TO: ', ['color' => '6B7280', 'bold' => true, 'size' => 8]);
+        $run4->addText($end, ['color' => '374151', 'bold' => true, 'size' => 9]);
+        
+        $section->addText('', [], ['spaceAfter' => 240]);
     }
 
     /**
@@ -186,31 +218,49 @@ class AdminTableWordExportService
             return;
         }
 
-        $section->addText($payload['group_label'].' Progress Comparison', ['bold' => true, 'color' => '010440'], [
+        $section->addPageBreak();
+
+        $section->addText($payload['group_label'].' Progress Comparison (Analysis Summary)', ['bold' => true, 'color' => '010440', 'size' => 14], [
             'alignment' => Jc::CENTER,
             'spaceBefore' => 160,
             'spaceAfter' => 80,
         ]);
 
         $table = $section->addTable([
-            'borderSize' => 6,
-            'borderColor' => 'BFC9F5',
+            'borderSize' => 0,
+            'borderColor' => 'FFFFFF',
             'cellMargin' => 70,
             'alignment' => Jc::CENTER,
         ]);
-        $table->addRow();
-        foreach ([$payload['group_label'], 'Completion', 'Visit Share', 'Visits', 'Avg / Met'] as $index => $label) {
-            $table->addCell([2200, 2200, 2200, 1100, 1500][$index], ['bgColor' => 'F6F8FF', 'borderSize' => 6, 'borderColor' => 'BFC9F5'])
-                ->addText($label, ['bold' => true, 'color' => '010440'], ['spaceAfter' => 0]);
-        }
 
         foreach ($comparison as $item) {
             $table->addRow();
-            $table->addCell(2200)->addText((string) ($item['label'] ?? ''), ['bold' => true], ['spaceAfter' => 0]);
-            $table->addCell(2200)->addText($this->barText((int) ($item['completion_percent'] ?? 0)).' '.($item['completion_percent'] ?? 0).'%', [], ['spaceAfter' => 0]);
-            $table->addCell(2200)->addText($this->barText((int) ($item['visit_share_percent'] ?? 0)).' '.($item['visit_share_percent'] ?? 0).'%', [], ['spaceAfter' => 0]);
-            $table->addCell(1100)->addText((string) ($item['total_visits'] ?? 0), [], ['spaceAfter' => 0]);
-            $table->addCell(1500)->addText(($item['average_visits'] ?? 0).' avg / '.($item['met_required'] ?? 0).' met', [], ['spaceAfter' => 0]);
+            
+            // Left Column: Label
+            $labelCell = $table->addCell(3000, ['valign' => 'center']);
+            $labelCell->addText((string) ($item['label'] ?? ''), ['bold' => true, 'size' => 11, 'color' => '111827'], ['alignment' => Jc::END, 'spaceAfter' => 0]);
+            
+            // Right Column: Stacked Bars & Stats
+            $chartCell = $table->addCell(6000);
+            
+            // Completion Bar
+            $compRun = $chartCell->addTextRun(['spaceAfter' => 0]);
+            $compRun->addText('Completion: ', ['color' => '6B7280', 'size' => 9]);
+            $compRun->addText($this->barText((int) ($item['completion_percent'] ?? 0)), ['color' => '10B981']);
+            $compRun->addText(' ' . ($item['completion_percent'] ?? 0) . '%', ['bold' => true, 'color' => '374151', 'size' => 10]);
+            
+            // Visit Share Bar
+            $shareRun = $chartCell->addTextRun(['spaceAfter' => 0]);
+            $shareRun->addText('Visit Share: ', ['color' => '6B7280', 'size' => 9]);
+            $shareRun->addText($this->barText((int) ($item['visit_share_percent'] ?? 0)), ['color' => '3B82F6']);
+            $shareRun->addText(' ' . ($item['visit_share_percent'] ?? 0) . '%', ['bold' => true, 'color' => '374151', 'size' => 10]);
+            
+            // Metrics
+            $metricRun = $chartCell->addTextRun(['spaceAfter' => 180]);
+            $metricRun->addText('Total Visits: ', ['color' => '6B7280', 'size' => 9]);
+            $metricRun->addText((string) ($item['total_visits'] ?? 0), ['bold' => true, 'color' => '374151', 'size' => 10]);
+            $metricRun->addText('  |  Avg/Met: ', ['color' => '6B7280', 'size' => 9]);
+            $metricRun->addText(($item['average_visits'] ?? 0) . ' avg / ' . ($item['met_required'] ?? 0) . ' met', ['bold' => true, 'color' => '374151', 'size' => 10]);
         }
     }
 
@@ -218,7 +268,7 @@ class AdminTableWordExportService
     {
         $filled = (int) round(max(0, min(100, $percent)) / 10);
 
-        return str_repeat('|', $filled).str_repeat('.', 10 - $filled);
+        return str_repeat('█', $filled).str_repeat('░', 10 - $filled);
     }
 
     /**

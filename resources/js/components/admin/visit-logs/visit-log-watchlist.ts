@@ -9,9 +9,7 @@ export function buildWatchlist(visitors: VisitorWithRangeVisits[], studentRequir
             const required = visitor.type === 'employee' ? employeeRequiredVisits : studentRequiredVisits;
             const visits = visitor.rangeVisits.length;
             const percent = required > 0 ? Math.min(100, Math.round((visits / required) * 100)) : 0;
-            const todayVisits = visitor.visits.filter(
-                (visit) => toLocalIsoDate(parseVisitDate(visit.visitedAt) ?? new Date(0)) === today,
-            ).length;
+            const todayVisits = visitor.visits.filter((visit) => toLocalIsoDate(parseVisitDate(visit.visitedAt) ?? new Date(0)) === today).length;
 
             return {
                 visitor,

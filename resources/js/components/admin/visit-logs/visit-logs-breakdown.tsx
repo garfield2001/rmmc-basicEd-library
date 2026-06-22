@@ -3,6 +3,7 @@ import { formatDisplayDate } from '@/components/ui/date-input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertTriangle, BriefcaseBusiness, CalendarDays, GraduationCap, ListChecks, Target } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { buildWatchlist, matchesWatchlistGroup, type WatchlistGroup } from './visit-log-watchlist';
 import type { VisitorWithRangeVisits } from './visit-logs-helpers';
 import {
     BreakdownList,
@@ -15,7 +16,6 @@ import {
     WatchlistTable,
     WeakGroupChart,
 } from './visit-logs-watchlist-parts';
-import { buildWatchlist, matchesWatchlistGroup, type WatchlistGroup } from './visit-log-watchlist';
 
 interface VisitLogsBreakdownProps {
     visitors: VisitorWithRangeVisits[];

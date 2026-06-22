@@ -20,7 +20,6 @@ export type AdminNavItem = {
 export interface AdminLayoutProps {
     active: AdminSection;
     children: ReactNode;
-    themeOverride?: Extract<ThemePreference, 'light' | 'dark'>;
 }
 
 export interface AdminSidebarProps {

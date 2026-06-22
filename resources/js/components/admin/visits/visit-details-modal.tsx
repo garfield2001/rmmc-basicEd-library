@@ -35,7 +35,10 @@ export function VisitDetailsModal({ visit, open, onOpenChange }: VisitDetailsMod
                             <DialogDescription>{visit?.visitor.schoolId ?? 'No school ID'}</DialogDescription>
                             <div className="mt-4 flex flex-wrap gap-2">
                                 <VisitPill icon={<UsersRound className="size-3.5" />} label={visitorType} />
-                                <VisitPill icon={<CalendarClock className="size-3.5" />} label={validVisitedAt ? formatDisplayDate(toIsoDate(validVisitedAt)) : '-'} />
+                                <VisitPill
+                                    icon={<CalendarClock className="size-3.5" />}
+                                    label={validVisitedAt ? formatDisplayDate(toIsoDate(validVisitedAt)) : '-'}
+                                />
                                 <VisitPill
                                     icon={<IdCard className="size-3.5" />}
                                     label={

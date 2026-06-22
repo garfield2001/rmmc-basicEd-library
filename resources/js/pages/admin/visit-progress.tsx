@@ -1,11 +1,11 @@
-import { VisitProgressDrilldownModal, type VisitProgressDrilldown } from '@/components/admin/visit-progress/visit-progress-drilldown-modal';
-import { VisitProgressOverview } from '@/components/admin/visit-progress/visit-progress-overview';
-import { VisitProgressRanking } from '@/components/admin/visit-progress/visit-progress-ranking';
 import { PageExportActions } from '@/components/admin/exports/page-export-actions';
 import { useVisitLogsPage } from '@/components/admin/visit-logs/use-visit-logs-page';
 import { VisitLogsFilterPanel } from '@/components/admin/visit-logs/visit-logs-filter-panel';
 import type { VisitorTypeFilter, VisitorWithRangeVisits } from '@/components/admin/visit-logs/visit-logs-helpers';
 import { VisitorHistoryModal } from '@/components/admin/visit-logs/visitor-history-modal';
+import { VisitProgressDrilldownModal, type VisitProgressDrilldown } from '@/components/admin/visit-progress/visit-progress-drilldown-modal';
+import { VisitProgressOverview } from '@/components/admin/visit-progress/visit-progress-overview';
+import { VisitProgressRanking } from '@/components/admin/visit-progress/visit-progress-ranking';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
 import type { AdminVisitLogs } from '@/types/dashboard';
@@ -37,7 +37,7 @@ export default function VisitProgress({ visitLogs, initialVisitorType }: VisitPr
                             title={`${audienceLabel} Visit Progress`}
                             description={`Track required-visit completion for ${audienceLabel.toLowerCase()}s in the active school year.`}
                             badge={
-                                <span className="rounded-full border border-[#040DBF]/10 bg-white px-3 py-1 text-sm font-semibold text-[#030A8C] shadow-sm">
+                                <span className="admin-required-visits-badge rounded-full px-3 py-1 text-sm font-semibold">
                                     {requiredVisits} required visits
                                 </span>
                             }

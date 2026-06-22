@@ -6,11 +6,7 @@ interface UsePublicPreviewResetOptions {
     setShowAdministrationScrollHint: Dispatch<SetStateAction<boolean>>;
 }
 
-export function usePublicPreviewReset({
-    enabled,
-    isAdministrationRevealed,
-    setShowAdministrationScrollHint,
-}: UsePublicPreviewResetOptions) {
+export function usePublicPreviewReset({ enabled, isAdministrationRevealed, setShowAdministrationScrollHint }: UsePublicPreviewResetOptions) {
     useEffect(() => {
         if (!enabled) {
             return;

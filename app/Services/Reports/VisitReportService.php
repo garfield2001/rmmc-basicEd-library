@@ -118,4 +118,32 @@ class VisitReportService
             'is_active' => $schoolYear->is_active,
         ];
     }
+
+    public function getReportOptions(\App\Services\SchoolYears\SchoolYearSectionService $sections, ?int $activeSchoolYearId): array
+    {
+        return [
+            'schoolYears' => SchoolYear::query()
+                ->orderByDesc('starts_at')
+                ->get(['id', 'name', 'starts_at', 'ends_at', 'student_required_visits', 'employee_required_visits', 'is_active'])
+                ->map(fn (SchoolYear $schoolYear): array => [
+                    'id' => $schoolYear->id,
+                    'name' => $schoolYear->name,
+                    'starts_at' => $schoolYear->startDateString(),
+                    'ends_at' => $schoolYear->endDateString(),
+                    'student_required_visits' => $schoolYear->student_required_visits,
+                    'employee_required_visits' => $schoolYear->employee_required_visits,
+                    'is_active' => $schoolYear->is_active,
+                ]),
+            'yearLevels' => \App\Support\Academics\AcademicLevels::options(),
+            'sectionsByYearLevel' => $sections->groupedByYearLevel($activeSchoolYearId ?: SchoolYear::active()->value('id')),
+            'sectionsBySchoolYear' => $sections->groupedBySchoolYear(),
+            'departments' => \App\Models\EmployeeSchoolYearRecord::query()
+                ->when($activeSchoolYearId, fn ($query, $schoolYearId) => $query->where('school_year_id', $schoolYearId))
+                ->whereNotNull('department')
+                ->distinct()
+                ->orderBy('department')
+                ->pluck('department')
+                ->values(),
+        ];
+    }
 }

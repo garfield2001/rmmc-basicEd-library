@@ -1,12 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export function useRfidScanBuffer({
-    enabled,
-    onScan,
-}: {
-    enabled: boolean;
-    onScan: (rfidUid: string) => void;
-}) {
+export function useRfidScanBuffer({ enabled, onScan }: { enabled: boolean; onScan: (rfidUid: string) => void }) {
     const scanBuffer = useRef('');
     const scanTimer = useRef<number | null>(null);
 

@@ -43,6 +43,8 @@ class VisitReportWordExportService
             $this->group($section, $report, $group);
         }
 
+        $this->comparison($section, $report, $groups);
+
         return $word;
     }
 
@@ -69,24 +71,33 @@ class VisitReportWordExportService
 
     private function metadata($section, array $report): void
     {
-        $table = $section->addTable(['borderSize' => 0, 'borderColor' => 'FFFFFF', 'alignment' => Jc::CENTER, 'cellMargin' => 60]);
-        $this->metaRow($table, 'School Year:', $report['school_year']['name'] ?? 'No school year', 'Visitor Type:', ucfirst($report['summary']['visitor_type'] ?? 'visitor'));
-        $this->metaRow($table, 'From:', $this->date($report, 'start_date'), 'To:', $this->date($report, 'end_date'));
-    }
-
-    private function metaRow($table, string $leftLabel, string $leftValue, string $rightLabel, string $rightValue): void
-    {
-        $cellStyle = ['borderSize' => 0, 'borderColor' => 'FFFFFF'];
+        $table = $section->addTable([
+            'borderSize' => 6,
+            'borderColor' => 'E5E7EB',
+            'cellMargin' => 120,
+            'alignment' => Jc::CENTER,
+        ]);
         $table->addRow();
-        $this->metaCell($table->addCell(2700, $cellStyle), $leftLabel, $leftValue);
-        $this->metaCell($table->addCell(2700, $cellStyle), $rightLabel, $rightValue);
-    }
-
-    private function metaCell($cell, string $label, string $value): void
-    {
-        $run = $cell->addTextRun(['spaceAfter' => 0]);
-        $run->addText($label . ' ', ['bold' => true]);
-        $run->addText($value);
+        
+        $cellStyle = ['bgColor' => 'F9FAFB', 'valign' => 'center'];
+        
+        $run1 = $table->addCell(2400, $cellStyle)->addTextRun(['alignment' => Jc::CENTER]);
+        $run1->addText('SCHOOL YEAR: ', ['color' => '6B7280', 'bold' => true, 'size' => 8]);
+        $run1->addText($report['school_year']['name'] ?? 'No school year', ['color' => '374151', 'bold' => true, 'size' => 9]);
+        
+        $run2 = $table->addCell(2400, $cellStyle)->addTextRun(['alignment' => Jc::CENTER]);
+        $run2->addText('VISITOR TYPE: ', ['color' => '6B7280', 'bold' => true, 'size' => 8]);
+        $run2->addText(ucfirst($report['summary']['visitor_type'] ?? 'visitor'), ['color' => '374151', 'bold' => true, 'size' => 9]);
+        
+        $run3 = $table->addCell(2400, $cellStyle)->addTextRun(['alignment' => Jc::CENTER]);
+        $run3->addText('FROM: ', ['color' => '6B7280', 'bold' => true, 'size' => 8]);
+        $run3->addText($this->date($report, 'start_date'), ['color' => '374151', 'bold' => true, 'size' => 9]);
+        
+        $run4 = $table->addCell(2400, $cellStyle)->addTextRun(['alignment' => Jc::CENTER]);
+        $run4->addText('TO: ', ['color' => '6B7280', 'bold' => true, 'size' => 8]);
+        $run4->addText($this->date($report, 'end_date'), ['color' => '374151', 'bold' => true, 'size' => 9]);
+        
+        $section->addText('', [], ['spaceAfter' => 240]);
     }
 
     private function group($section, array $report, array $group): void
@@ -146,5 +157,66 @@ class VisitReportWordExportService
     private function date(array $report, string $key): string
     {
         return Carbon::parse($report['filters'][$key])->format('F j, Y');
+    }
+
+    private function comparison($section, array $report, array $groups): void
+    {
+        $overallVisits = max(1, collect($report['rows'])->sum('visit_count'));
+        $comparison = app(\App\Services\Reports\VisitReportExportService::class)->comparison($groups, $overallVisits);
+
+        if (count($comparison) < 2) {
+            return;
+        }
+
+        $section->addPageBreak();
+
+        $section->addText('Analysis Summary', ['bold' => true, 'color' => '010440', 'size' => 16], [
+            'alignment' => Jc::CENTER,
+            'spaceBefore' => 160,
+            'spaceAfter' => 80,
+        ]);
+
+        $table = $section->addTable([
+            'borderSize' => 0,
+            'borderColor' => 'FFFFFF',
+            'cellMargin' => 70,
+            'alignment' => Jc::CENTER,
+        ]);
+
+        foreach ($comparison as $item) {
+            $table->addRow();
+            
+            // Left Column: Label
+            $labelCell = $table->addCell(3000, ['valign' => 'center']);
+            $labelCell->addText((string) ($item['label'] ?? ''), ['bold' => true, 'size' => 11, 'color' => '111827'], ['alignment' => Jc::END, 'spaceAfter' => 0]);
+            
+            // Right Column: Stacked Bars & Stats
+            $chartCell = $table->addCell(6000);
+            
+            // Completion Bar
+            $compRun = $chartCell->addTextRun(['spaceAfter' => 0]);
+            $compRun->addText('Completion: ', ['color' => '6B7280', 'size' => 9]);
+            $compRun->addText($this->barText((int) ($item['completion_percent'] ?? 0)), ['color' => '10B981']);
+            $compRun->addText(' ' . ($item['completion_percent'] ?? 0) . '%', ['bold' => true, 'color' => '374151', 'size' => 10]);
+            
+            // Visit Share Bar
+            $shareRun = $chartCell->addTextRun(['spaceAfter' => 0]);
+            $shareRun->addText('Visit Share: ', ['color' => '6B7280', 'size' => 9]);
+            $shareRun->addText($this->barText((int) ($item['visit_share_percent'] ?? 0)), ['color' => '3B82F6']);
+            $shareRun->addText(' ' . ($item['visit_share_percent'] ?? 0) . '%', ['bold' => true, 'color' => '374151', 'size' => 10]);
+            
+            // Metrics
+            $metricRun = $chartCell->addTextRun(['spaceAfter' => 180]);
+            $metricRun->addText('Total Visits: ', ['color' => '6B7280', 'size' => 9]);
+            $metricRun->addText((string) ($item['total_visits'] ?? 0), ['bold' => true, 'color' => '374151', 'size' => 10]);
+            $metricRun->addText('  |  Avg/Met: ', ['color' => '6B7280', 'size' => 9]);
+            $metricRun->addText(($item['average_visits'] ?? 0) . ' avg / ' . ($item['met_required'] ?? 0) . ' met', ['bold' => true, 'color' => '374151', 'size' => 10]);
+        }
+    }
+
+    private function barText(int $percent): string
+    {
+        $filled = (int) round(max(0, min(100, $percent)) / 10);
+        return str_repeat('█', $filled) . str_repeat('░', 10 - $filled);
     }
 }
