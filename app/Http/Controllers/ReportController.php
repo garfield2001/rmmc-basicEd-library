@@ -57,8 +57,8 @@ class ReportController extends Controller
                 fputcsv($file, [$groupPrefix.': '.$group['label']]);
                 fputcsv($file, array_column($columns, 'label'));
 
-                foreach ($group['rows'] as $row) {
-                    fputcsv($file, $exports->row($columns, $report, $row));
+                foreach ($group['rows'] as $index => $row) {
+                    fputcsv($file, $exports->row($columns, $report, $row, $index));
                 }
             }
 

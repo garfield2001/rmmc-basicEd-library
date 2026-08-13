@@ -10,6 +10,25 @@ class LibraryVisitLookupService
     public function resolveVisitor(string $lookup, int $schoolYearId): LibraryMember
     {
         $normalizedLookup = $this->normalizeLookup($lookup);
+
+        $exactIdentifierMatch = LibraryMember::query()
+            ->visitEligibleForSchoolYear($schoolYearId)
+            ->where(function ($query) use ($normalizedLookup) {
+                $query->whereRaw('LOWER(rfid_uid) = ?', [$normalizedLookup])
+                    ->orWhereRaw('LOWER(school_id) = ?', [$normalizedLookup]);
+            })
+            ->get();
+
+        if ($exactIdentifierMatch->count() === 1) {
+            return $exactIdentifierMatch->first();
+        }
+
+        if ($exactIdentifierMatch->count() > 1) {
+            throw ValidationException::withMessages([
+                'rfid_uid' => 'Multiple registered visitors match that search. Please use the RFID or school ID.',
+            ]);
+        }
+
         $visitors = $this->matchingVisitors($normalizedLookup, $schoolYearId, false);
 
         if ($visitors->isEmpty()) {

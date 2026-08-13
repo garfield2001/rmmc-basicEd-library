@@ -41,12 +41,14 @@ export interface VisitTrendPoint {
 export type VisitTrafficRange = 'last7' | 'last14' | 'lastMonth' | 'custom';
 
 export interface StudentActivityVisit {
+    visitorId: number;
     visitedAt: string | null;
     yearLevel: string | null;
     section: string | null;
 }
 
 export interface EmployeeActivityVisit {
+    visitorId: number;
     visitedAt: string | null;
     department: string | null;
 }

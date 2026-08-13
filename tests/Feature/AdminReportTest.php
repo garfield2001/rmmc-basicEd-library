@@ -54,21 +54,21 @@ class AdminReportTest extends TestCase
         SchoolYear::factory()->active()->create();
 
         $this->actingAs(User::factory()->create(['role' => 'admin']))
-            ->get('/admin/visit-logs/students')
+            ->get('/admin/visit-history/students')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('admin/visit-logs')
+                ->component('admin/visit-history')
                 ->where('initialVisitorType', LibraryMember::TYPE_STUDENT)
-                ->where('pagePath', '/admin/visit-logs/students')
+                ->where('pagePath', '/admin/visit-history/students')
                 ->has('visitLogs'));
 
         $this->actingAs(User::factory()->create(['role' => 'admin']))
-            ->get('/admin/visit-logs/employees')
+            ->get('/admin/visit-history/employees')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('admin/visit-logs')
+                ->component('admin/visit-history')
                 ->where('initialVisitorType', LibraryMember::TYPE_EMPLOYEE)
-                ->where('pagePath', '/admin/visit-logs/employees')
+                ->where('pagePath', '/admin/visit-history/employees')
                 ->has('visitLogs'));
     }
 
@@ -77,21 +77,21 @@ class AdminReportTest extends TestCase
         SchoolYear::factory()->active()->create();
 
         $this->actingAs(User::factory()->create(['role' => 'admin']))
-            ->get('/admin/visit-progress/students')
+            ->get('/admin/visit-history/students')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('admin/visit-progress')
+                ->component('admin/visit-history')
                 ->where('initialVisitorType', LibraryMember::TYPE_STUDENT)
-                ->where('pagePath', '/admin/visit-progress/students')
+                ->where('pagePath', '/admin/visit-history/students')
                 ->has('visitLogs'));
 
         $this->actingAs(User::factory()->create(['role' => 'admin']))
-            ->get('/admin/visit-progress/employees')
+            ->get('/admin/visit-history/employees')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('admin/visit-progress')
+                ->component('admin/visit-history')
                 ->where('initialVisitorType', LibraryMember::TYPE_EMPLOYEE)
-                ->where('pagePath', '/admin/visit-progress/employees')
+                ->where('pagePath', '/admin/visit-history/employees')
                 ->has('visitLogs'));
     }
 
@@ -282,74 +282,6 @@ class AdminReportTest extends TestCase
             ->assertSee('%PDF', false);
     }
 
-    public function test_page_exports_are_available_for_visit_logs_progress_and_registered_visitors(): void
-    {
-        $user = User::factory()->create(['role' => 'admin']);
-        $schoolYear = SchoolYear::factory()->active()->create([
-            'name' => '2026-2027',
-            'starts_at' => '2026-06-01',
-            'ends_at' => '2027-03-31',
-            'student_required_visits' => 4,
-        ]);
-        $student = LibraryMember::factory()->student()->create([
-            'school_id' => '2603010018',
-            'first_name' => 'Alden',
-            'last_name' => 'Abbott',
-            'rfid_uid' => 'RFID-STUDENT-1',
-        ]);
-
-        StudentSchoolYearRecord::factory()->create([
-            'library_member_id' => $student->id,
-            'school_year_id' => $schoolYear->id,
-            'year_level' => 'Grade 1',
-            'section' => 'Bonifacio',
-        ]);
-        LibraryVisit::factory()->count(2)->create([
-            'library_member_id' => $student->id,
-            'school_year_id' => $schoolYear->id,
-            'visited_at' => '2026-08-01 09:00:00',
-        ]);
-
-        $query = http_build_query([
-            'school_year_id' => $schoolYear->id,
-            'start_date' => '2026-06-01',
-            'end_date' => '2027-03-31',
-            'search' => 'Alden',
-            'sort' => 'name',
-            'direction' => 'asc',
-        ]);
-
-        $logs = $this->actingAs($user)
-            ->get("/admin/visit-logs/students/exports/xlsx?{$query}")
-            ->assertOk()
-            ->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-
-        $this->assertStringContainsString('Student Visit Logs', $this->zipText($logs));
-        $this->assertStringContainsString('Grade 1 - Bonifacio', $this->zipText($logs));
-        $this->assertStringContainsString('2 / 4', $this->zipText($logs));
-
-        $this->actingAs($user)
-            ->get("/admin/visit-logs/students/exports/pdf?{$query}")
-            ->assertOk()
-            ->assertHeader('content-type', 'application/pdf')
-            ->assertSee('%PDF', false);
-
-        $progress = $this->actingAs($user)
-            ->get("/admin/visit-progress/students/exports/docx?{$query}")
-            ->assertOk()
-            ->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-
-        $this->assertStringContainsString('Student Visit Progress', $this->zipText($progress));
-        $this->assertStringContainsString('Remaining', $this->zipText($progress));
-
-        $this->actingAs($user)
-            ->get('/admin/registered-visitors/students/exports/print?search=Alden')
-            ->assertOk()
-            ->assertSee('Student Registered Visitors', false)
-            ->assertSee('RFID-STUDENT-1', false)
-            ->assertSee('Grade 1 - Bonifacio', false)
-            ->assertSee('Print report', false);
-    }
 
     private function zipText(TestResponse $response): string
     {

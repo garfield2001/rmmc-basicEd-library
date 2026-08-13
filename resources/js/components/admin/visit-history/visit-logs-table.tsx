@@ -1,4 +1,4 @@
-import { SortableHead } from '@/components/admin/visit-logs/visit-logs-ui';
+import { SortableHead } from '@/components/admin/visit-history/visit-logs-ui';
 import { formatDisplayDate } from '@/components/ui/date-input';
 import { PaginationControls, type RowsPerPageOption } from '@/components/ui/pagination-controls';
 import { SearchableSelect } from '@/components/ui/searchable-select';

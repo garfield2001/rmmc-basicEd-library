@@ -24,6 +24,14 @@ export const yearLevelOrder = [
     'Grade 10',
 ];
 
+export function getAcademicDepartment(yearLevel?: string | null): string {
+    if (!yearLevel) return 'Unassigned';
+    if (yearLevel === 'Kindergarten 1' || yearLevel === 'Kindergarten 2') return 'Pre-school';
+    if (['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'].includes(yearLevel)) return 'Elementary';
+    if (['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].includes(yearLevel)) return 'High School';
+    return 'Unassigned';
+}
+
 export function sortVisitors(visitors: VisitorWithRangeVisits[], column: SortColumn, direction: SortDirection) {
     return [...visitors].sort((first, second) => {
         const comparison = compareValues(sortValue(first, column), sortValue(second, column));

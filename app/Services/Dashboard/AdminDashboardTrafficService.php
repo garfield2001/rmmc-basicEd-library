@@ -12,18 +12,33 @@ class AdminDashboardTrafficService
     public function visitsByDay(?int $schoolYearId, int $days): array
     {
         $start = now()->subDays($days - 1)->startOfDay();
-        $visits = LibraryVisit::query()
-            ->with('visitor:id,type')
-            ->where('visited_at', '>=', $start)
+        $aggregates = LibraryVisit::query()
+            ->join('library_members', 'library_visits.library_member_id', '=', 'library_members.id')
+            ->where('library_visits.visited_at', '>=', $start)
             ->forRequiredSchoolYear($schoolYearId)
+            ->selectRaw('DATE(library_visits.visited_at) as visit_date')
+            ->selectRaw('SUM(CASE WHEN library_members.type = ? THEN 1 ELSE 0 END) as student_count', [LibraryMember::TYPE_STUDENT])
+            ->selectRaw('SUM(CASE WHEN library_members.type = ? THEN 1 ELSE 0 END) as employee_count', [LibraryMember::TYPE_EMPLOYEE])
+            ->groupByRaw('DATE(library_visits.visited_at)')
             ->get()
-            ->groupBy(fn (LibraryVisit $visit): string => $visit->visited_at->toDateString());
+            ->keyBy('visit_date');
 
         return collect(range(0, $days - 1))
-            ->map(function (int $daysAgo) use ($visits, $days): array {
+            ->map(function (int $daysAgo) use ($aggregates, $days): array {
                 $date = now()->subDays(($days - 1) - $daysAgo);
+                $dateKey = $date->toDateString();
+                $record = $aggregates->get($dateKey);
 
-                return $this->trafficPoint($date, $visits->get($date->toDateString(), collect()));
+                $studentVisits = (int) ($record?->student_count ?? 0);
+                $employeeVisits = (int) ($record?->employee_count ?? 0);
+
+                return [
+                    'date' => $dateKey,
+                    'label' => $date->format('M d'),
+                    'students' => $studentVisits,
+                    'employees' => $employeeVisits,
+                    'total' => $studentVisits + $employeeVisits,
+                ];
             })
             ->values()
             ->all();
@@ -42,31 +57,35 @@ class AdminDashboardTrafficService
             return [];
         }
 
-        $visits = LibraryVisit::query()
-            ->with('visitor:id,type')
-            ->where('school_year_id', $schoolYear->id)
-            ->whereBetween('visited_at', [$start, $end->copy()->endOfDay()])
+        $aggregates = LibraryVisit::query()
+            ->join('library_members', 'library_visits.library_member_id', '=', 'library_members.id')
+            ->where('library_visits.school_year_id', $schoolYear->id)
+            ->whereBetween('library_visits.visited_at', [$start, $end->copy()->endOfDay()])
+            ->selectRaw('DATE(library_visits.visited_at) as visit_date')
+            ->selectRaw('SUM(CASE WHEN library_members.type = ? THEN 1 ELSE 0 END) as student_count', [LibraryMember::TYPE_STUDENT])
+            ->selectRaw('SUM(CASE WHEN library_members.type = ? THEN 1 ELSE 0 END) as employee_count', [LibraryMember::TYPE_EMPLOYEE])
+            ->groupByRaw('DATE(library_visits.visited_at)')
             ->get()
-            ->groupBy(fn (LibraryVisit $visit): string => $visit->visited_at->toDateString());
+            ->keyBy('visit_date');
 
         return collect($start->daysUntil($end->copy()->addDay()))
-            ->map(fn (Carbon $date): array => $this->trafficPoint($date, $visits->get($date->toDateString(), collect())))
+            ->map(function (Carbon $date) use ($aggregates): array {
+                $dateKey = $date->toDateString();
+                $record = $aggregates->get($dateKey);
+
+                $studentVisits = (int) ($record?->student_count ?? 0);
+                $employeeVisits = (int) ($record?->employee_count ?? 0);
+
+                return [
+                    'date' => $dateKey,
+                    'label' => $date->format('M d'),
+                    'students' => $studentVisits,
+                    'employees' => $employeeVisits,
+                    'total' => $studentVisits + $employeeVisits,
+                ];
+            })
             ->values()
             ->all();
-    }
-
-    private function trafficPoint(Carbon $date, mixed $dailyVisits): array
-    {
-        $studentVisits = $dailyVisits->filter(fn (LibraryVisit $visit): bool => $visit->visitor?->type === LibraryMember::TYPE_STUDENT)->count();
-        $employeeVisits = $dailyVisits->filter(fn (LibraryVisit $visit): bool => $visit->visitor?->type === LibraryMember::TYPE_EMPLOYEE)->count();
-
-        return [
-            'date' => $date->toDateString(),
-            'label' => $date->format('M d'),
-            'students' => $studentVisits,
-            'employees' => $employeeVisits,
-            'total' => $studentVisits + $employeeVisits,
-        ];
     }
 
     private function dailyEndDate(SchoolYear $schoolYear): Carbon

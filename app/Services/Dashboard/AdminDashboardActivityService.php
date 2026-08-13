@@ -18,6 +18,7 @@ class AdminDashboardActivityService
                 $registration = $visit->visitor?->studentSchoolYearRecords?->firstWhere('school_year_id', $visit->school_year_id);
 
                 return [
+                    'visitorId' => $visit->library_member_id,
                     'visitedAt' => $visit->visited_at?->toDateString(),
                     'yearLevel' => $registration?->year_level,
                     'section' => $registration?->section,
@@ -33,7 +34,11 @@ class AdminDashboardActivityService
             ->map(function (LibraryVisit $visit): array {
                 $profile = $visit->visitor?->employeeSchoolYearRecords?->firstWhere('school_year_id', $visit->school_year_id);
 
-                return ['visitedAt' => $visit->visited_at?->toDateString(), 'department' => $profile?->department];
+                return [
+                    'visitorId' => $visit->library_member_id,
+                    'visitedAt' => $visit->visited_at?->toDateString(),
+                    'department' => $profile?->department,
+                ];
             })
             ->values()
             ->all();

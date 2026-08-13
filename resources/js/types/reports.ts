@@ -30,6 +30,21 @@ export interface VisitReportSchoolYear {
     is_active: boolean;
 }
 
+export interface VisitReportComparisonItem {
+    label: string;
+    completion_percent: number;
+    visit_share_percent: number;
+    total_visits: number;
+    average_visits: number;
+    met_required: number;
+    visitors: number;
+}
+
+export interface VisitReportComparison {
+    top_by_visits: VisitReportComparisonItem[];
+    top_by_completion: VisitReportComparisonItem[];
+}
+
 export interface VisitReport {
     filters: {
         school_year_id: number | null;
@@ -42,6 +57,7 @@ export interface VisitReport {
         year_levels: string[];
         sections: string[];
         departments: string[];
+        order_direction?: 'asc' | 'desc';
     };
     school_year: VisitReportSchoolYear | null;
     summary: {
@@ -57,6 +73,7 @@ export interface VisitReport {
         progress_percent: number;
     };
     rows: VisitReportRow[];
+    comparison?: VisitReportComparison;
 }
 
 export interface VisitReportOptions {

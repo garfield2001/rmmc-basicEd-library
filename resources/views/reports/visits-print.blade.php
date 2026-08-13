@@ -33,6 +33,13 @@
                 <div><span class="meta-label">To:</span> {{ $toDate }}</div>
             </section>
 
+            @php
+                $topVisits = $groupComparison['top_by_visits'] ?? [];
+                $topCompletion = $groupComparison['top_by_completion'] ?? [];
+            @endphp
+
+
+
             @php $colTotal = collect($columns)->sum(fn ($c) => (float) $c['width']); @endphp
             @foreach ($groups as $group)
                 <section class="report-group">
@@ -46,7 +53,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($group['rows'] as $row)
+                        @foreach ($group['rows'] as $index => $row)
                             <tr>
                                 @foreach ($columns as $column)
                                     <td>
@@ -75,6 +82,63 @@
                 </table>
                 </section>
             @endforeach
+
+            @if (count($topVisits) > 1)
+                <div style="page-break-before: always;"></div>
+                <section class="comparison-summary" style="margin-bottom: 24px; break-inside: avoid;">
+                    <h2>Analysis Summary: Top {{ $groupPrefix }}s by Total Visits</h2>
+                    <p>Ranked by highest total volume of library visits in the selected date range</p>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%; text-align: center;">Rank</th>
+                                <th style="width: 36%;">{{ $groupPrefix }}</th>
+                                <th style="width: 18%; text-align: center;">Total Visits</th>
+                                <th style="width: 18%; text-align: center;">Visit Share</th>
+                                <th style="width: 18%; text-align: center;">Average Visits</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($topVisits as $index => $item)
+                                <tr>
+                                    <td style="text-align: center; font-weight: 700; color: #1e40af;">#{{ $index + 1 }}</td>
+                                    <td style="font-weight: 600; color: #111827;">{{ $item['label'] }}</td>
+                                    <td style="text-align: center; font-weight: 600;">{{ $item['total_visits'] }} visits</td>
+                                    <td style="text-align: center;">{{ $item['visit_share_percent'] }}%</td>
+                                    <td style="text-align: center;">{{ $item['average_visits'] }} avg</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </section>
+
+                <section class="comparison-summary" style="margin-bottom: 24px; break-inside: avoid;">
+                    <h2>Analysis Summary: Top {{ $groupPrefix }}s by Target Completion Rate</h2>
+                    <p>Ranked by percentage of members meeting the target required visit quota</p>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%; text-align: center;">Rank</th>
+                                <th style="width: 36%;">{{ $groupPrefix }}</th>
+                                <th style="width: 18%; text-align: center;">Completion Rate</th>
+                                <th style="width: 18%; text-align: center;">Met Target</th>
+                                <th style="width: 18%; text-align: center;">Average Visits</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($topCompletion as $index => $item)
+                                <tr>
+                                    <td style="text-align: center; font-weight: 700; color: #047857;">#{{ $index + 1 }}</td>
+                                    <td style="font-weight: 600; color: #111827;">{{ $item['label'] }}</td>
+                                    <td style="text-align: center; font-weight: 600; color: #047857;">{{ $item['completion_percent'] }}%</td>
+                                    <td style="text-align: center;">{{ $item['met_required'] }} / {{ $item['visitors'] }}</td>
+                                    <td style="text-align: center;">{{ $item['average_visits'] }} avg</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </section>
+            @endif
         </main>
 
         @if ($showActions ?? true)

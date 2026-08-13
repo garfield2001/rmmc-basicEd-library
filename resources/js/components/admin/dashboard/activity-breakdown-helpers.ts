@@ -23,7 +23,7 @@ const sectionPalette = ['#2563eb', '#16a34a', '#9333ea', '#f59e0b', '#dc2626', '
 export const activityPanelDetails = {
     yearLevel: {
         title: 'Year Level Activity',
-        detail: 'student year level, stacked by section',
+        detail: 'unique students, stacked by section',
         label: 'Year level',
         icon: GraduationCap,
         emptyMessage: 'Student visits by year level will appear after scanning.',
@@ -48,7 +48,7 @@ export function filterEmployeeActivityVisits(visits: EmployeeActivityVisit[], st
 }
 
 export function groupStudentActivityByYearLevel(visits: StudentActivityVisit[], yearLevelLabels: string[]): ActivityChartPoint[] {
-    const yearGroups = new Map<string, Map<string, number>>();
+    const yearGroups = new Map<string, Map<string, Set<number>>>();
     const sectionLabels = new Set<string>();
 
     yearLevelLabels.forEach((label) => yearGroups.set(label, new Map()));
@@ -56,9 +56,11 @@ export function groupStudentActivityByYearLevel(visits: StudentActivityVisit[], 
     visits.forEach((visit) => {
         const yearLevel = visit.yearLevel || 'Unassigned';
         const section = visit.section || 'Unassigned';
-        const sections = yearGroups.get(yearLevel) ?? new Map<string, number>();
+        const sections = yearGroups.get(yearLevel) ?? new Map<string, Set<number>>();
+        const visitors = sections.get(section) ?? new Set<number>();
 
-        sections.set(section, (sections.get(section) ?? 0) + 1);
+        visitors.add(visit.visitorId);
+        sections.set(section, visitors);
         sectionLabels.add(section);
         yearGroups.set(yearLevel, sections);
     });
@@ -73,10 +75,10 @@ export function groupStudentActivityByYearLevel(visits: StudentActivityVisit[], 
         .map(([label, sections]) => {
             const segments = [...sections.entries()]
                 .sort(([first], [second]) => sortLabel(first, second))
-                .map(([section, value]) => ({
+                .map(([section, visitorsSet]) => ({
                     key: `section_${slugify(section)}`,
                     label: section,
-                    value,
+                    value: visitorsSet.size,
                     color: sectionColorMap.get(section) ?? sectionPalette[0],
                 }));
             const value = segments.reduce((sum, segment) => sum + segment.value, 0);
@@ -92,22 +94,20 @@ export function groupStudentActivityByYearLevel(visits: StudentActivityVisit[], 
 }
 
 export function groupEmployeeActivity(visits: EmployeeActivityVisit[], labels: string[]): ActivityChartPoint[] {
-    const groups = countByLabel(labels);
+    const groups = new Map<string, Set<number>>(labels.map((label) => [label, new Set()]));
 
     visits.forEach((visit) => {
         const label = visit.department || 'Unassigned';
-        groups.set(label, (groups.get(label) ?? 0) + 1);
+        const visitors = groups.get(label) ?? new Set<number>();
+        visitors.add(visit.visitorId);
+        groups.set(label, visitors);
     });
 
     return chartPoints(groups).map((point) => ({ ...point }));
 }
 
-function countByLabel(labels: string[]) {
-    return new Map(labels.map((label) => [label, 0]));
-}
-
-function chartPoints(groups: Map<string, number>) {
-    return [...groups.entries()].map(([label, value]) => ({ label, value })).sort((first, second) => second.value - first.value);
+function chartPoints(groups: Map<string, Set<number>>) {
+    return [...groups.entries()].map(([label, visitors]) => ({ label, value: visitors.size })).sort((first, second) => second.value - first.value);
 }
 
 function slugify(value: string) {

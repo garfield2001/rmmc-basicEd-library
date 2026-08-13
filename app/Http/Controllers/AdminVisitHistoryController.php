@@ -7,17 +7,17 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class AdminVisitLogsController extends Controller
+class AdminVisitHistoryController extends Controller
 {
     public function index(Request $request, AdminVisitMonitorService $visitMonitor, ?string $audience = null): Response
     {
         $type = $this->visitorType($audience, $request->string('type')->toString());
         $audienceSlug = $audience ?? ($type === 'employee' ? 'employees' : 'students');
 
-        return Inertia::render('admin/visit-logs', [
+        return Inertia::render('admin/visit-history', [
             'visitLogs' => $visitMonitor->getVisitLogs(),
             'initialVisitorType' => $type,
-            'pagePath' => "/admin/visit-logs/{$audienceSlug}",
+            'pagePath' => "/admin/visit-history/{$audienceSlug}",
         ]);
     }
 

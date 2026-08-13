@@ -26,16 +26,17 @@ class VisitReportService
         $yearLevels = $this->selectedValues($filters['year_levels'] ?? [], $yearLevel);
         $sections = $this->selectedValues($filters['sections'] ?? [], $section);
         $departments = $this->selectedValues($filters['departments'] ?? [], $department);
+        $direction = ($filters['order_direction'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
         $requiredVisits = $this->summary->requiredVisitsForType($schoolYear, $visitorType);
 
         $visitors = $this->visitors->get($schoolYear, $startDate, $endDate, $visitorType, $yearLevels, $sections, $departments);
 
         $rows = $visitors
             ->map(fn (LibraryMember $visitor): array => $this->rows->visitorRow($visitor, $requiredVisits))
-            ->sort(fn (array $first, array $second): int => $this->rows->compare($first, $second, $visitorType, $yearLevel))
+            ->sort(fn (array $first, array $second): int => $this->rows->compare($first, $second, $visitorType, $yearLevel, $direction))
             ->values();
 
-        return [
+        $report = [
             'filters' => [
                 'school_year_id' => $schoolYearId,
                 'start_date' => $startDate->toDateString(),
@@ -47,11 +48,19 @@ class VisitReportService
                 'year_levels' => $visitorType === LibraryMember::TYPE_STUDENT ? $yearLevels : [],
                 'sections' => $visitorType === LibraryMember::TYPE_STUDENT ? $sections : [],
                 'departments' => $visitorType === LibraryMember::TYPE_EMPLOYEE ? $departments : [],
+                'order_direction' => $direction,
             ],
             'school_year' => $schoolYear ? $this->schoolYearData($schoolYear) : null,
             'summary' => $this->summary->fromVisitors($visitors, $visitorType, $requiredVisits),
             'rows' => $rows,
         ];
+
+        $exportService = app(VisitReportExportService::class);
+        $groups = $exportService->groups($report);
+        $overallVisits = max(1, $rows->sum('visit_count'));
+        $report['comparison'] = $exportService->comparison($groups, $overallVisits);
+
+        return $report;
     }
 
     private function selectedValues(mixed $values, ?string $fallback): array

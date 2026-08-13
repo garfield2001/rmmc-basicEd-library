@@ -1,6 +1,6 @@
-# RMMC Basic Education Library Attendance Monitoring System
+# RMMC Integration School Library Attendance Monitoring System
 
-A web-based library attendance monitoring system for RMMC Basic Education. The application records student and employee library visits through RFID scanning and gives library staff a practical admin workspace for daily monitoring, roster management, visit progress tracking, and report preparation.
+A web-based library attendance monitoring system for RMMC Integration School. The application records student and employee library visits through RFID scanning and gives library staff a practical admin workspace for daily monitoring, roster management, visit progress tracking, and report preparation.
 
 The system is built around a simple operational goal: make every library visit easy to record, easy to review, and useful for attendance-based library decisions.
 

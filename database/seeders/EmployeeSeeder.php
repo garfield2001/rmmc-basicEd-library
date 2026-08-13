@@ -30,7 +30,7 @@ class EmployeeSeeder extends LibraryMemberSeeder
     {
         return $this->attachManualDetails($this->manualEmployeeVisitors(), [
             'EMP-2001' => [
-                'department' => 'Basic Education Faculty',
+                'department' => 'Integration School Faculty',
             ],
             'EMP-2002' => [
                 'department' => 'College of Engineering Faculty',
@@ -62,7 +62,7 @@ class EmployeeSeeder extends LibraryMemberSeeder
     private function fakeEmployeeDepartmentPlan(): array
     {
         return [
-            'Basic Education Faculty' => 10,
+            'Integration School Faculty' => 10,
             'Senior High School Faculty' => 5,
             'College of Engineering Faculty' => 5,
             'College of Medical Technology Faculty' => 5,

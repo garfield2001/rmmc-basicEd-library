@@ -2,7 +2,7 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "rmmc/basic-ed-library",
     "type": "project",
-    "description": "A Laravel, React, and Inertia application for the RMMC Basic Education Library.",
+    "description": "A Laravel, React, and Inertia application for the RMMC Integration School Library.",
     "keywords": [
         "laravel",
         "framework"

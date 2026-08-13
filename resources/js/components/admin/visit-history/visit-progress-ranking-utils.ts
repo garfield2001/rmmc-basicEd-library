@@ -1,10 +1,4 @@
-import {
-    formatVisitDateTime,
-    yearLevelOrder,
-    type SortColumn,
-    type SortDirection,
-    type VisitorWithRangeVisits,
-} from '../visit-logs/visit-logs-helpers';
+import { formatVisitDateTime, yearLevelOrder, type SortColumn, type SortDirection, type VisitorWithRangeVisits } from './visit-logs-helpers';
 import { progressPercent } from './visit-progress-helpers';
 
 export function toProgressRow(visitor: VisitorWithRangeVisits, requiredVisits: number) {

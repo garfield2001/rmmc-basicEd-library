@@ -40,10 +40,10 @@ class VisitReportRowService
         ];
     }
 
-    public function compare(array $first, array $second, string $visitorType, ?string $yearLevel): int
+    public function compare(array $first, array $second, string $visitorType, ?string $yearLevel, string $direction = 'asc'): int
     {
         if ($visitorType === LibraryMember::TYPE_STUDENT) {
-            $studentCompare = $this->compareStudents($first, $second, $yearLevel);
+            $studentCompare = $this->compareStudents($first, $second, $yearLevel, $direction);
 
             if ($studentCompare !== 0) {
                 return $studentCompare;
@@ -54,24 +54,31 @@ class VisitReportRowService
             $departmentCompare = strnatcasecmp((string) ($first['department'] ?? ''), (string) ($second['department'] ?? ''));
 
             if ($departmentCompare !== 0) {
-                return $departmentCompare;
+                return $direction === 'desc' ? -$departmentCompare : $departmentCompare;
             }
         }
 
         return $this->compareNames($first, $second);
     }
 
-    private function compareStudents(array $first, array $second, ?string $yearLevel): int
+    private function compareStudents(array $first, array $second, ?string $yearLevel, string $direction = 'asc'): int
     {
         if (! $yearLevel) {
-            $yearCompare = ($this->yearLevelRank($first['year_level'] ?? null) <=> $this->yearLevelRank($second['year_level'] ?? null));
+            $firstRank = $this->yearLevelRank($first['year_level'] ?? null);
+            $secondRank = $this->yearLevelRank($second['year_level'] ?? null);
+            $yearCompare = $firstRank <=> $secondRank;
 
             if ($yearCompare !== 0) {
-                return $yearCompare;
+                return $direction === 'desc' ? -$yearCompare : $yearCompare;
             }
         }
 
-        return strnatcasecmp((string) ($first['year_section_label'] ?? ''), (string) ($second['year_section_label'] ?? ''));
+        $sectionCompare = strnatcasecmp((string) ($first['year_section_label'] ?? ''), (string) ($second['year_section_label'] ?? ''));
+        if ($sectionCompare !== 0) {
+            return $direction === 'desc' ? -$sectionCompare : $sectionCompare;
+        }
+
+        return 0;
     }
 
     private function compareNames(array $first, array $second): int

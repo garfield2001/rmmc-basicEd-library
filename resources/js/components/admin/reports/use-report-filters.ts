@@ -30,6 +30,7 @@ export function useReportFilters(
     const [yearLevels, setYearLevels] = useState<string[]>(() => initialYearLevels(report, reportOptions.yearLevels));
     const [sections, setSections] = useState<string[]>(() => initialSections(report));
     const [departments, setDepartments] = useState<string[]>(() => initialDepartments(report, reportOptions.departments));
+    const [orderDirection, setOrderDirection] = useState<'asc' | 'desc'>(() => (report?.filters.order_direction === 'desc' ? 'desc' : 'asc'));
 
     const selectedSchoolYear = useMemo(
         () => reportOptions.schoolYears.find((schoolYear) => String(schoolYear.id) === schoolYearId) ?? null,
@@ -131,6 +132,7 @@ export function useReportFilters(
             yearLevels,
             sections,
             departments,
+            orderDirection,
             selectedSchoolYear,
             dateRangeSummary,
             reportCanFetch: validation.reportCanFetch,
@@ -147,6 +149,7 @@ export function useReportFilters(
             yearLevels,
             sections,
             departments,
+            orderDirection,
             availableSections,
             showVisitorTypeSelector: false,
             dateRangeIsValid: validation.dateRangeIsValid,
@@ -164,6 +167,7 @@ export function useReportFilters(
             },
             onSectionsChange: setSections,
             onDepartmentsChange: setDepartments,
+            onOrderDirectionChange: setOrderDirection,
         },
     };
 }

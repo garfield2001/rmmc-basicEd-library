@@ -115,7 +115,7 @@ class DatabaseSeederTest extends TestCase
         $this->assertLessThanOrEqual($previousSchoolYear->endDateString(), Carbon::parse((clone $previousVisits)->max('visited_at'))->toDateString());
 
         $employeeDepartments = [
-            'Basic Education Faculty',
+            'Integration School Faculty',
             'Senior High School Faculty',
             'College of Engineering Faculty',
             'College of Medical Technology Faculty',

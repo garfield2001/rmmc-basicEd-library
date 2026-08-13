@@ -106,7 +106,7 @@ class VisitReportWordExportService
         $table = $section->addTable('report-table');
         $this->headerRow($table, ['School ID', 'Name', 'Visits', 'Excess', 'Progress'], self::COLUMN_WIDTHS);
 
-        foreach ($group['rows'] as $row) {
+        foreach ($group['rows'] as $index => $row) {
             $this->dataRow($table, [$row['school_id'], $row['name'], $row['visit_count'] . ' / ' . ($report['summary']['required_visits'] ?? 0), $row['excess_visits'] ?? 0, $row['progress_percent'] . '%'], self::COLUMN_WIDTHS);
         }
     }
@@ -164,59 +164,63 @@ class VisitReportWordExportService
         $overallVisits = max(1, collect($report['rows'])->sum('visit_count'));
         $comparison = app(\App\Services\Reports\VisitReportExportService::class)->comparison($groups, $overallVisits);
 
-        if (count($comparison) < 2) {
+        $topVisits = $comparison['top_by_visits'] ?? [];
+        $topCompletion = $comparison['top_by_completion'] ?? [];
+
+        if (count($topVisits) < 2) {
             return;
         }
 
         $section->addPageBreak();
 
-        $section->addText('Analysis Summary', ['bold' => true, 'color' => '010440', 'size' => 16], [
+        $prefix = $this->groupPrefix($report);
+
+        // Subsection 1: Highest Total Visits
+        $section->addText("Analysis Summary: Top {$prefix}s by Total Visits", ['bold' => true, 'color' => '010440', 'size' => 14], [
             'alignment' => Jc::CENTER,
-            'spaceBefore' => 160,
+            'spaceBefore' => 120,
             'spaceAfter' => 80,
         ]);
 
-        $table = $section->addTable([
-            'borderSize' => 0,
-            'borderColor' => 'FFFFFF',
-            'cellMargin' => 70,
+        $table1 = $section->addTable('report-table');
+        $table1->addRow(360, ['tblHeader' => true, 'cantSplit' => true]);
+        $table1->addCell(1000)->addText('Rank', ['bold' => true, 'color' => '010440', 'size' => 10], ['alignment' => Jc::CENTER]);
+        $table1->addCell(3000)->addText($prefix, ['bold' => true, 'color' => '010440', 'size' => 10]);
+        $table1->addCell(2000)->addText('Total Visits', ['bold' => true, 'color' => '010440', 'size' => 10], ['alignment' => Jc::CENTER]);
+        $table1->addCell(2000)->addText('Visit Share (%)', ['bold' => true, 'color' => '010440', 'size' => 10], ['alignment' => Jc::CENTER]);
+        $table1->addCell(2000)->addText('Average Visits', ['bold' => true, 'color' => '010440', 'size' => 10], ['alignment' => Jc::CENTER]);
+
+        foreach ($topVisits as $index => $item) {
+            $table1->addRow(300, ['cantSplit' => true]);
+            $table1->addCell(1000)->addText('#'.($index + 1), ['bold' => true, 'size' => 10], ['alignment' => Jc::CENTER]);
+            $table1->addCell(3000)->addText((string) ($item['label'] ?? ''), ['bold' => true, 'size' => 10]);
+            $table1->addCell(2000)->addText((string) ($item['total_visits'] ?? 0).' Visits', ['size' => 10], ['alignment' => Jc::CENTER]);
+            $table1->addCell(2000)->addText(($item['visit_share_percent'] ?? 0).'%', ['size' => 10], ['alignment' => Jc::CENTER]);
+            $table1->addCell(2000)->addText(($item['average_visits'] ?? 0).' Avg Visits', ['size' => 10], ['alignment' => Jc::CENTER]);
+        }
+
+        // Subsection 2: Highest Completion Summary
+        $section->addText("Analysis Summary: Top {$prefix}s by Target Completion Rate", ['bold' => true, 'color' => '010440', 'size' => 14], [
             'alignment' => Jc::CENTER,
+            'spaceBefore' => 200,
+            'spaceAfter' => 80,
         ]);
 
-        foreach ($comparison as $item) {
-            $table->addRow();
-            
-            // Left Column: Label
-            $labelCell = $table->addCell(3000, ['valign' => 'center']);
-            $labelCell->addText((string) ($item['label'] ?? ''), ['bold' => true, 'size' => 11, 'color' => '111827'], ['alignment' => Jc::END, 'spaceAfter' => 0]);
-            
-            // Right Column: Stacked Bars & Stats
-            $chartCell = $table->addCell(6000);
-            
-            // Completion Bar
-            $compRun = $chartCell->addTextRun(['spaceAfter' => 0]);
-            $compRun->addText('Completion: ', ['color' => '6B7280', 'size' => 9]);
-            $compRun->addText($this->barText((int) ($item['completion_percent'] ?? 0)), ['color' => '10B981']);
-            $compRun->addText(' ' . ($item['completion_percent'] ?? 0) . '%', ['bold' => true, 'color' => '374151', 'size' => 10]);
-            
-            // Visit Share Bar
-            $shareRun = $chartCell->addTextRun(['spaceAfter' => 0]);
-            $shareRun->addText('Visit Share: ', ['color' => '6B7280', 'size' => 9]);
-            $shareRun->addText($this->barText((int) ($item['visit_share_percent'] ?? 0)), ['color' => '3B82F6']);
-            $shareRun->addText(' ' . ($item['visit_share_percent'] ?? 0) . '%', ['bold' => true, 'color' => '374151', 'size' => 10]);
-            
-            // Metrics
-            $metricRun = $chartCell->addTextRun(['spaceAfter' => 180]);
-            $metricRun->addText('Total Visits: ', ['color' => '6B7280', 'size' => 9]);
-            $metricRun->addText((string) ($item['total_visits'] ?? 0), ['bold' => true, 'color' => '374151', 'size' => 10]);
-            $metricRun->addText('  |  Avg/Met: ', ['color' => '6B7280', 'size' => 9]);
-            $metricRun->addText(($item['average_visits'] ?? 0) . ' avg / ' . ($item['met_required'] ?? 0) . ' met', ['bold' => true, 'color' => '374151', 'size' => 10]);
-        }
-    }
+        $table2 = $section->addTable('report-table');
+        $table2->addRow(360, ['tblHeader' => true, 'cantSplit' => true]);
+        $table2->addCell(1000)->addText('Rank', ['bold' => true, 'color' => '010440', 'size' => 10], ['alignment' => Jc::CENTER]);
+        $table2->addCell(3000)->addText($prefix, ['bold' => true, 'color' => '010440', 'size' => 10]);
+        $table2->addCell(2000)->addText('Completion Rate', ['bold' => true, 'color' => '010440', 'size' => 10], ['alignment' => Jc::CENTER]);
+        $table2->addCell(2000)->addText('Met Target / Total', ['bold' => true, 'color' => '010440', 'size' => 10], ['alignment' => Jc::CENTER]);
+        $table2->addCell(2000)->addText('Average Visits', ['bold' => true, 'color' => '010440', 'size' => 10], ['alignment' => Jc::CENTER]);
 
-    private function barText(int $percent): string
-    {
-        $filled = (int) round(max(0, min(100, $percent)) / 10);
-        return str_repeat('█', $filled) . str_repeat('░', 10 - $filled);
+        foreach ($topCompletion as $index => $item) {
+            $table2->addRow(300, ['cantSplit' => true]);
+            $table2->addCell(1000)->addText('#'.($index + 1), ['bold' => true, 'size' => 10], ['alignment' => Jc::CENTER]);
+            $table2->addCell(3000)->addText((string) ($item['label'] ?? ''), ['bold' => true, 'size' => 10]);
+            $table2->addCell(2000)->addText(($item['completion_percent'] ?? 0).'%', ['size' => 10], ['alignment' => Jc::CENTER]);
+            $table2->addCell(2000)->addText(($item['met_required'] ?? 0).' / '.($item['visitors'] ?? 0).' Met', ['size' => 10], ['alignment' => Jc::CENTER]);
+            $table2->addCell(2000)->addText(($item['average_visits'] ?? 0).' Avg Visits', ['size' => 10], ['alignment' => Jc::CENTER]);
+        }
     }
 }

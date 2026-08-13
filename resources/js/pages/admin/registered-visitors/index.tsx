@@ -1,4 +1,3 @@
-import { PageExportActions } from '@/components/admin/exports/page-export-actions';
 import { VisitorFormModal } from '@/components/admin/registered-visitors/form/visitor-form-modal';
 import { RegisteredVisitorsHeaderActions } from '@/components/admin/registered-visitors/import/header-actions';
 import { ImportPreviewDialog } from '@/components/admin/registered-visitors/import/import-preview-dialog';
@@ -42,11 +41,6 @@ export default function VisitorsIndex({ visitors, pagePath, filters, filterOptio
                             description="Manage student and employee RFID identities, school-year details, and searchable roster records."
                             actions={
                                 <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
-                                    <PageExportActions
-                                        page="registered-visitors"
-                                        audience={table.activeType === 'student' ? 'students' : 'employees'}
-                                        query={{ search, year_level: yearLevel, section, department, sort, direction }}
-                                    />
                                     <RegisteredVisitorsHeaderActions
                                         importing={importer.importing}
                                         importInputRef={importer.importInputRef}

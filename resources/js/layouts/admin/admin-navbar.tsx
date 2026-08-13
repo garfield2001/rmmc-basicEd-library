@@ -37,7 +37,7 @@ export function AdminNavbar({
                 </button>
 
                 <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-[#010440]">{name}</p>
+                    <p className="truncate text-sm font-semibold text-[#010440]">RMMC Integrated School Library</p>
                     <p className="truncate text-xs text-[#030A8C]">Library attendance monitoring</p>
                 </div>
             </div>

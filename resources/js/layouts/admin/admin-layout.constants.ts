@@ -1,4 +1,4 @@
-import { Activity, BriefcaseBusiness, ChartColumn, ClipboardList, FileText, GraduationCap, LayoutDashboard, UsersRound } from 'lucide-react';
+import { Activity, BriefcaseBusiness, ClipboardList, FileText, GraduationCap, LayoutDashboard, UsersRound } from 'lucide-react';
 import type { AdminNavItem } from './admin-layout.types';
 
 export const sidebarCollapsedStorageKey = 'rmmc-admin-sidebar-collapsed-v1';
@@ -21,21 +21,12 @@ export const navItems: AdminNavItem[] = [
         icon: Activity,
     },
     {
-        key: 'visit-logs',
-        label: 'Visit Logs',
+        key: 'visit-history',
+        label: 'Visit History',
         icon: ClipboardList,
         children: [
-            { label: 'Students', href: '/admin/visit-logs/students', icon: GraduationCap },
-            { label: 'Employees', href: '/admin/visit-logs/employees', icon: BriefcaseBusiness },
-        ],
-    },
-    {
-        key: 'visit-progress',
-        label: 'Visit Progress',
-        icon: ChartColumn,
-        children: [
-            { label: 'Students', href: '/admin/visit-progress/students', icon: GraduationCap },
-            { label: 'Employees', href: '/admin/visit-progress/employees', icon: BriefcaseBusiness },
+            { label: 'Students', href: '/admin/visit-history/students', icon: GraduationCap },
+            { label: 'Employees', href: '/admin/visit-history/employees', icon: BriefcaseBusiness },
         ],
     },
     {

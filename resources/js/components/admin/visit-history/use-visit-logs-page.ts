@@ -6,7 +6,7 @@ import {
     type SortDirection,
     type VisitLogStatusFilter,
     type VisitorTypeFilter,
-} from '@/components/admin/visit-logs/visit-logs-helpers';
+} from '@/components/admin/visit-history/visit-logs-helpers';
 import { toIsoDate } from '@/components/ui/date-input-utils';
 import type { RowsPerPageOption } from '@/components/ui/pagination-controls';
 import type { AdminVisitLogs, VisitLogVisitor } from '@/types/dashboard';
@@ -26,9 +26,10 @@ export function useVisitLogsPage(visitLogs: AdminVisitLogs, initialVisitorType: 
     const schoolYearEnd = visitLogs.schoolYear?.ends_at ?? '';
     const today = useMemo(() => toIsoDate(new Date()), []);
     const defaultEndDate = schoolYearEnd && schoolYearEnd < today ? schoolYearEnd : today;
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    const [startDate, setStartDate] = useState(schoolYearStart);
+    const [endDate, setEndDate] = useState(defaultEndDate);
     const [visitorType, setVisitorType] = useState<VisitorTypeFilter>(initialVisitorType);
+    const [academicDepartment, setAcademicDepartment] = useState('');
     const [yearLevel, setYearLevel] = useState('');
     const [section, setSection] = useState('');
     const [department, setDepartment] = useState('');
@@ -46,6 +47,7 @@ export function useVisitLogsPage(visitLogs: AdminVisitLogs, initialVisitorType: 
 
     useEffect(() => {
         setVisitorType(initialVisitorType);
+        setAcademicDepartment('');
         setYearLevel('');
         setSection('');
         setDepartment('');
@@ -67,15 +69,26 @@ export function useVisitLogsPage(visitLogs: AdminVisitLogs, initialVisitorType: 
 
     const filteredVisitors = useMemo(() => {
         return filterVisitLogStatus(
-            filterVisitLogVisitors(visitorsWithRangeVisits, { visitorType, yearLevel, section, department, search }),
+            filterVisitLogVisitors(visitorsWithRangeVisits, { visitorType, academicDepartment, yearLevel, section, department, search }),
             logStatus,
             requiredVisits,
         );
-    }, [department, logStatus, requiredVisits, search, section, visitorType, visitorsWithRangeVisits, yearLevel]);
+    }, [department, logStatus, requiredVisits, search, section, visitorType, academicDepartment, visitorsWithRangeVisits, yearLevel]);
 
     const progressVisitors = useMemo(() => {
-        return filterVisitProgressVisitors(visitorsWithRangeVisits, { visitorType, yearLevel, section, department, search });
-    }, [department, search, section, visitorType, visitorsWithRangeVisits, yearLevel]);
+        return filterVisitProgressVisitors(visitorsWithRangeVisits, { visitorType, academicDepartment, yearLevel, section, department, search });
+    }, [department, search, section, visitorType, academicDepartment, visitorsWithRangeVisits, yearLevel]);
+
+    const summaryCardVisitors = useMemo(() => {
+        return filterVisitProgressVisitors(visitorsWithRangeVisits, {
+            visitorType,
+            academicDepartment,
+            department,
+            search,
+            yearLevel: '',
+            section: '',
+        });
+    }, [department, search, visitorType, academicDepartment, visitorsWithRangeVisits]);
 
     const sortedVisitors = useMemo(() => sortVisitors(filteredVisitors, sortColumn, sortDirection), [filteredVisitors, sortColumn, sortDirection]);
     const totalPages = rowsPerPage === 'all' ? 1 : Math.max(1, Math.ceil(sortedVisitors.length / rowsPerPage));
@@ -85,7 +98,7 @@ export function useVisitLogsPage(visitLogs: AdminVisitLogs, initialVisitorType: 
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [department, endDate, logStatus, rowsPerPage, search, section, startDate, visitorType, yearLevel]);
+    }, [department, endDate, logStatus, rowsPerPage, search, section, startDate, visitorType, academicDepartment, yearLevel]);
 
     useEffect(() => {
         setCurrentPage((page) => Math.min(page, totalPages));
@@ -93,6 +106,7 @@ export function useVisitLogsPage(visitLogs: AdminVisitLogs, initialVisitorType: 
 
     const changeVisitorType = (value: VisitorTypeFilter) => {
         setVisitorType(value);
+        setAcademicDepartment('');
         setYearLevel('');
         setSection('');
         setDepartment('');
@@ -103,17 +117,24 @@ export function useVisitLogsPage(visitLogs: AdminVisitLogs, initialVisitorType: 
         }
     };
 
+    const changeAcademicDepartment = (value: string) => {
+        setAcademicDepartment(value);
+        setYearLevel('');
+        setSection('');
+    };
+
     const changeYearLevel = (value: string) => {
         setYearLevel(value);
         setSection('');
     };
 
     const resetDateCoverage = () => {
-        setStartDate('');
-        setEndDate('');
+        setStartDate(schoolYearStart);
+        setEndDate(defaultEndDate);
     };
 
     const clearFilters = () => {
+        setAcademicDepartment('');
         setYearLevel('');
         setSection('');
         setDepartment('');
@@ -157,6 +178,7 @@ export function useVisitLogsPage(visitLogs: AdminVisitLogs, initialVisitorType: 
         resetDateCoverage,
         clearFilters,
         visitorType,
+        academicDepartment,
         yearLevel,
         section,
         department,
@@ -167,6 +189,7 @@ export function useVisitLogsPage(visitLogs: AdminVisitLogs, initialVisitorType: 
         setSection,
         setDepartment,
         changeVisitorType,
+        changeAcademicDepartment,
         changeYearLevel,
         currentPage,
         rowsPerPage,
@@ -175,6 +198,8 @@ export function useVisitLogsPage(visitLogs: AdminVisitLogs, initialVisitorType: 
         visibleVisitors,
         visitorsWithRangeVisits,
         progressVisitors,
+        summaryCardVisitors,
+        filteredVisitors,
         sortedVisitors,
         selectedVisitor,
         selectedVisitorVisits,

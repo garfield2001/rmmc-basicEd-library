@@ -17,7 +17,7 @@ configureEcho({
     enabledTransports: [import.meta.env.VITE_REVERB_SCHEME === 'https' ? 'wss' : 'ws'],
 });
 
-const appName = (import.meta.env.VITE_APP_NAME || 'RMMC Basic Education Library').replaceAll('_', ' ');
+const appName = (import.meta.env.VITE_APP_NAME || 'RMMC Integration School Library').replaceAll('_', ' ');
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,

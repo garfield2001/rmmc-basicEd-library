@@ -7,7 +7,7 @@
     <meta name="color-scheme" content="light dark">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title inertia>{{ config('app.display_name', 'RMMC Basic Education Library') }}</title>
+    <title inertia>{{ config('app.display_name', 'RMMC Integration School Library') }}</title>
 
     <script>
         (() => {

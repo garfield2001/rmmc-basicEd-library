@@ -20,7 +20,7 @@ class EmployeeSchoolYearRecordFactory extends Factory
             'library_member_id' => LibraryMember::factory()->employee(),
             'school_year_id' => SchoolYear::query()->active()->value('id') ?? SchoolYear::factory()->active()->create()->id,
             'department' => fake()->randomElement([
-                'Basic Education Faculty',
+                'Integration School Faculty',
                 'Senior High School Faculty',
                 'College of Engineering Faculty',
                 'College of Medical Technology Faculty',

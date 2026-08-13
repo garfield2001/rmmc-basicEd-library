@@ -23,6 +23,7 @@ interface ReportQuery {
     year_levels: string[];
     sections: string[];
     departments: string[];
+    order_direction: 'asc' | 'desc';
 }
 
 export function useReportPage(
@@ -32,7 +33,7 @@ export function useReportPage(
     pagePath = '/admin/reports',
 ) {
     const filters = useReportFilters(report, reportOptions, initialVisitorType);
-    const { schoolYearId, startDate, endDate, visitorType, yearLevels, sections, departments, selectedSchoolYear, dateRangeSummary, reportCanFetch } =
+    const { schoolYearId, startDate, endDate, visitorType, yearLevels, sections, departments, orderDirection, selectedSchoolYear, dateRangeSummary, reportCanFetch } =
         filters.values;
     const [currentPage, setCurrentPage] = useState(1);
     const [sortColumn, setSortColumn] = useState<ReportSortColumn | null>(null);
@@ -59,8 +60,9 @@ export function useReportPage(
             year_levels: visitorType === 'student' ? yearLevels : [],
             sections: visitorType === 'student' ? sections : [],
             departments: visitorType === 'employee' ? departments : [],
+            order_direction: orderDirection,
         }),
-        [departments, endDate, visitorType, schoolYearId, sections, startDate, yearLevels],
+        [departments, endDate, visitorType, schoolYearId, sections, startDate, yearLevels, orderDirection],
     );
     const queryString = useMemo(() => toSearchParams(query).toString(), [query]);
     const reportQueryString = useMemo(() => (report ? toSearchParams(report.filters).toString() : ''), [report]);

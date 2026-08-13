@@ -899,26 +899,26 @@
         box-shadow: 0 8px 20px rgb(15 23 42 / 0.06);
     }
 
-    .visit-logs-audience-badge {
+    .visit-history-audience-badge {
         background: #ffffff;
     }
 
-    .visit-logs-audience-badge.visit-logs-audience-student {
+    .visit-history-audience-badge.visit-history-audience-student {
         border-color: rgb(37 99 235 / 0.18);
         color: #1d4ed8;
     }
 
-    .visit-logs-audience-badge.visit-logs-audience-employee {
+    .visit-history-audience-badge.visit-history-audience-employee {
         border-color: rgb(5 150 105 / 0.2);
         color: #047857;
     }
 
-    .visit-logs-audience-surface {
+    .visit-history-audience-surface {
         position: relative;
         isolation: isolate;
     }
 
-    .visit-logs-audience-surface::before {
+    .visit-history-audience-surface::before {
         position: absolute;
         inset: 0 0 auto;
         z-index: 1;
@@ -927,11 +927,11 @@
         pointer-events: none;
     }
 
-    .visit-logs-audience-surface.visit-logs-audience-student::before {
+    .visit-history-audience-surface.visit-history-audience-student::before {
         background: linear-gradient(90deg, #0284c7, #2563eb, #16a34a);
     }
 
-    .visit-logs-audience-surface.visit-logs-audience-employee::before {
+    .visit-history-audience-surface.visit-history-audience-employee::before {
         background: linear-gradient(90deg, #059669, #0d9488, #2563eb);
     }
 
@@ -951,17 +951,17 @@
         box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05) !important;
     }
 
-    .admin-theme-root.admin-theme-dark .visit-logs-audience-badge {
+    .admin-theme-root.admin-theme-dark .visit-history-audience-badge {
         background-color: rgb(15 23 42 / 0.92) !important;
         box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05) !important;
     }
 
-    .admin-theme-root.admin-theme-dark .visit-logs-audience-badge.visit-logs-audience-student {
+    .admin-theme-root.admin-theme-dark .visit-history-audience-badge.visit-history-audience-student {
         border-color: rgb(96 165 250 / 0.34) !important;
         color: #bfdbfe !important;
     }
 
-    .admin-theme-root.admin-theme-dark .visit-logs-audience-badge.visit-logs-audience-employee {
+    .admin-theme-root.admin-theme-dark .visit-history-audience-badge.visit-history-audience-employee {
         border-color: rgb(52 211 153 / 0.34) !important;
         color: #bbf7d0 !important;
     }

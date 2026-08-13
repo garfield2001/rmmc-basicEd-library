@@ -35,12 +35,19 @@ class VisitReportExportService
     public function groups(array $report): array
     {
         $isStudent = ($report['summary']['visitor_type'] ?? null) === 'student';
+        $direction = ($report['filters']['order_direction'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
         $groups = [];
 
         foreach ($report['rows'] as $row) {
             $label = $isStudent ? $this->studentGroupLabel($report, $row) : (($row['department'] ?? null) ?: 'Unassigned');
 
-            $groups[$label] ??= ['label' => $label, 'rows' => [], 'summary' => $this->emptyGroupSummary()];
+            $groups[$label] ??= [
+                'label' => $label,
+                'rows' => [],
+                'summary' => $this->emptyGroupSummary(),
+                'year_level' => $row['year_level'] ?? null,
+                'section' => $row['section'] ?? null,
+            ];
             $groups[$label]['rows'][] = $row;
             $groups[$label]['summary']['visitors']++;
             $groups[$label]['summary']['total_visits'] += (int) ($row['visit_count'] ?? 0);
@@ -53,14 +60,31 @@ class VisitReportExportService
         }
 
         return collect($groups)
-            ->sortKeysUsing(fn (string $first, string $second): int => strnatcasecmp($first, $second))
+            ->sort(function (array $first, array $second) use ($isStudent, $direction): int {
+                if ($isStudent) {
+                    $firstRank = \App\Support\Academics\AcademicLevels::rank($first['year_level'] ?? null) ?? 999;
+                    $secondRank = \App\Support\Academics\AcademicLevels::rank($second['year_level'] ?? null) ?? 999;
+
+                    if ($firstRank !== $secondRank) {
+                        return $direction === 'desc' ? ($secondRank <=> $firstRank) : ($firstRank <=> $secondRank);
+                    }
+
+                    $sectionCompare = strnatcasecmp((string) ($first['section'] ?? ''), (string) ($second['section'] ?? ''));
+                    if ($sectionCompare !== 0) {
+                        return $direction === 'desc' ? -$sectionCompare : $sectionCompare;
+                    }
+                }
+
+                $labelCompare = strnatcasecmp($first['label'], $second['label']);
+                return $direction === 'desc' ? -$labelCompare : $labelCompare;
+            })
             ->values()
             ->all();
     }
 
-    public function row(array $columns, array $report, array $row): array
+    public function row(array $columns, array $report, array $row, int $index = 0): array
     {
-        return array_map(function (array $column) use ($report, $row): string|int|null {
+        return array_map(function (array $column) use ($report, $row, $index): string|int|null {
             return match ($column['key']) {
                 'school_year' => $report['school_year']['name'] ?? null,
                 'school_id' => $row['school_id'],
@@ -95,16 +119,19 @@ class VisitReportExportService
     public function comparison(array $groups, int $overallVisits): array
     {
         if (count($groups) < 2) {
-            return [];
+            return [
+                'top_by_visits' => [],
+                'top_by_completion' => [],
+            ];
         }
 
-        return collect($groups)->map(function (array $group) use ($overallVisits): array {
+        $items = collect($groups)->map(function (array $group) use ($overallVisits): array {
             $visitors = $group['summary']['visitors'] ?? 0;
             $totalVisits = $group['summary']['total_visits'] ?? 0;
             $metRequired = $group['summary']['met_required'] ?? 0;
 
-            $completionPercent = $visitors > 0 ? (int) round($metRequired / $visitors * 100) : 0;
-            $visitSharePercent = $overallVisits > 0 ? (int) round($totalVisits / $overallVisits * 100) : 0;
+            $completionPercent = $visitors > 0 ? round(($metRequired / $visitors) * 100, 1) : 0;
+            $visitSharePercent = $overallVisits > 0 ? round(($totalVisits / $overallVisits) * 100, 1) : 0;
             $averageVisits = $visitors > 0 ? round($totalVisits / $visitors, 1) : 0;
 
             return [
@@ -114,8 +141,30 @@ class VisitReportExportService
                 'total_visits' => $totalVisits,
                 'average_visits' => $averageVisits,
                 'met_required' => $metRequired,
+                'visitors' => $visitors,
             ];
-        })->sortByDesc('completion_percent')->values()->all();
+        });
+
+        $topByVisits = $items->sort(function (array $a, array $b): int {
+            $visitCompare = $b['total_visits'] <=> $a['total_visits'];
+            if ($visitCompare !== 0) {
+                return $visitCompare;
+            }
+            return $b['completion_percent'] <=> $a['completion_percent'];
+        })->values()->all();
+
+        $topByCompletion = $items->sort(function (array $a, array $b): int {
+            $compCompare = $b['completion_percent'] <=> $a['completion_percent'];
+            if ($compCompare !== 0) {
+                return $compCompare;
+            }
+            return $b['total_visits'] <=> $a['total_visits'];
+        })->values()->all();
+
+        return [
+            'top_by_visits' => $topByVisits,
+            'top_by_completion' => $topByCompletion,
+        ];
     }
 
     public function viewData(array $report, bool $showActions = true): array
@@ -142,15 +191,7 @@ class VisitReportExportService
             return 'Department';
         }
 
-        if (! empty($report['filters']['sections']) || empty($report['filters']['year_levels'])) {
-            return 'Year & Section';
-        }
-
-        if (count($report['filters']['year_levels'] ?? []) === 1) {
-            return 'Section';
-        }
-
-        return 'Year Level';
+        return 'Year & Section';
     }
 
     public function logoDataUri(): ?string
@@ -181,14 +222,6 @@ class VisitReportExportService
 
     private function studentGroupLabel(array $report, array $row): string
     {
-        if (! empty($report['filters']['sections']) || empty($report['filters']['year_levels'])) {
-            return ($row['year_section_label'] ?? trim(collect([$row['year_level'] ?? null, $row['section'] ?? null])->filter()->implode(' - '))) ?: 'Unassigned';
-        }
-
-        if (count($report['filters']['year_levels'] ?? []) === 1) {
-            return ($row['section'] ?? null) ?: 'Unassigned';
-        }
-
-        return ($row['year_level'] ?? null) ?: 'Unassigned';
+        return ($row['year_section_label'] ?? trim(collect([$row['year_level'] ?? null, $row['section'] ?? null])->filter()->implode(' - '))) ?: 'Unassigned';
     }
 }

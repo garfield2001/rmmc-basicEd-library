@@ -5,15 +5,7 @@ import { ReportsSkeleton } from '@/layouts/admin/loading-skeleton/reports-skelet
 import { SettingsSkeleton } from '@/layouts/admin/loading-skeleton/settings-skeleton';
 import { VisitorFormSkeleton, VisitorsSkeleton } from '@/layouts/admin/loading-skeleton/visitors-skeleton';
 
-export type AdminLoadingTarget =
-    | 'dashboard'
-    | 'live-visits'
-    | 'visit-logs'
-    | 'visit-progress'
-    | 'visitors-index'
-    | 'visitors-form'
-    | 'reports'
-    | 'settings';
+export type AdminLoadingTarget = 'dashboard' | 'live-visits' | 'visit-history' | 'visitors-index' | 'visitors-form' | 'reports' | 'settings';
 
 export function AdminContentLoadingSkeleton({ target }: { target: AdminLoadingTarget }) {
     return (
@@ -28,8 +20,7 @@ export function AdminContentLoadingSkeleton({ target }: { target: AdminLoadingTa
             )}
             {target === 'dashboard' && <DashboardSkeleton />}
             {target === 'live-visits' && <LiveVisitsSkeleton />}
-            {target === 'visit-logs' && <VisitorsSkeleton />}
-            {target === 'visit-progress' && <ReportsSkeleton />}
+            {target === 'visit-history' && <VisitorsSkeleton />}
             {target === 'visitors-index' && <VisitorsSkeleton />}
             {target === 'visitors-form' && <VisitorFormSkeleton />}
             {target === 'reports' && <ReportsSkeleton />}

@@ -1,4 +1,4 @@
-import { VisitTypeTab } from '@/components/admin/visit-logs/visit-logs-ui';
+import { VisitTypeTab } from '@/components/admin/visit-history/visit-logs-ui';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { SelectInput } from '@/components/ui/select-input';
 import type { AdminVisitLogs } from '@/types/dashboard';

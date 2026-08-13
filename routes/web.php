@@ -1,14 +1,13 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
-use App\Http\Controllers\AdminPageExportController;
+
 use App\Http\Controllers\AdminProfileController;
 use App\Http\Controllers\AdminScanSettingsController;
 use App\Http\Controllers\AdminSchoolYearController;
 use App\Http\Controllers\AdminSettingsController;
-use App\Http\Controllers\AdminVisitLogsController;
+use App\Http\Controllers\AdminVisitHistoryController;
 use App\Http\Controllers\AdminVisitMonitorController;
-use App\Http\Controllers\AdminVisitProgressController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LibraryMemberController;
 use App\Http\Controllers\LibraryVisitController;
@@ -36,25 +35,14 @@ Route::post('library-visits', [LibraryVisitController::class, 'store'])
 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('admin', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-    Route::get('admin/{page}/{audience}/exports/{format}', [AdminPageExportController::class, 'show'])
-        ->whereIn('page', ['visit-logs', 'visit-progress', 'registered-visitors'])
-        ->whereIn('audience', ['students', 'employees'])
-        ->whereIn('format', ['xlsx', 'docx', 'pdf', 'print'])
-        ->name('admin.page-exports.show');
+
     Route::get('admin/live-visits/scan-targets', [AdminVisitMonitorController::class, 'scanTargets'])->name('admin.live-visits.scan-targets');
     Route::get('admin/live-visits', [AdminVisitMonitorController::class, 'index'])->name('admin.live-visits');
-    Route::get('admin/visit-logs/{audience}', [AdminVisitLogsController::class, 'index'])
+    Route::get('admin/visit-history/{audience}', [AdminVisitHistoryController::class, 'index'])
         ->whereIn('audience', ['students', 'employees'])
-        ->name('admin.visit-logs.audience');
-    Route::get('admin/visit-logs', [AdminVisitLogsController::class, 'index'])->name('admin.visit-logs');
-    Route::get('admin/visit-progress/{audience}', [AdminVisitProgressController::class, 'index'])
-        ->whereIn('audience', ['students', 'employees'])
-        ->name('admin.visit-progress.audience');
-    Route::get('admin/visit-progress', [AdminVisitProgressController::class, 'index'])->name('admin.visit-progress');
-    Route::get('admin/visits-history/{audience}', [AdminVisitLogsController::class, 'index'])
-        ->whereIn('audience', ['students', 'employees'])
-        ->name('admin.visits-history.audience');
-    Route::get('admin/visits-history', [AdminVisitLogsController::class, 'index'])->name('admin.visits-history');
+        ->name('admin.visit-history.audience');
+    Route::get('admin/visit-history', [AdminVisitHistoryController::class, 'index'])->name('admin.visit-history');
+
     Route::get('admin/settings', [AdminSettingsController::class, 'index'])->name('admin.settings');
     Route::patch('admin/profile', [AdminProfileController::class, 'update'])->name('admin.profile.update');
     Route::patch('admin/scan-settings', [AdminScanSettingsController::class, 'update'])->name('admin.scan-settings.update');

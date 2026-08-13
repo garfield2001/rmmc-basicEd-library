@@ -30,6 +30,7 @@ class ReportFilterRequest extends FormRequest
             'sections.*' => ['string', 'max:255'],
             'departments' => ['nullable', 'array'],
             'departments.*' => ['string', 'max:255'],
+            'order_direction' => ['nullable', Rule::in(['asc', 'desc'])],
         ];
     }
 

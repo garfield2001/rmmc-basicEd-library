@@ -1,5 +1,6 @@
 import type { VisitReport, VisitReportRow, VisitReportSchoolYear } from '@/types/reports';
 import { Activity, Target, UsersRound } from 'lucide-react';
+import { ReportAnalysisSummary } from './report-analysis-summary';
 import type { ReportSortColumn, SortDirection, VisitorType } from './report-helpers';
 import { ReportMetricCard } from './report-metric-card';
 import { ReportResultsTable } from './report-results-table';
@@ -91,6 +92,8 @@ export function ReportResults({
                     </div>
                 </div>
             </section>
+
+            <ReportAnalysisSummary comparison={report.comparison} visitorType={visitorType} />
 
             <ReportResultsTable
                 visitorType={visitorType}

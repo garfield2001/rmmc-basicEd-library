@@ -1,8 +1,15 @@
 import type { VisitLogVisitor } from '@/types/dashboard';
-import { visitsInDateRange, type VisitLogStatusFilter, type VisitorTypeFilter, type VisitorWithRangeVisits } from './visit-logs-helpers';
+import {
+    getAcademicDepartment,
+    visitsInDateRange,
+    type VisitLogStatusFilter,
+    type VisitorTypeFilter,
+    type VisitorWithRangeVisits,
+} from './visit-logs-helpers';
 
 interface VisitLogFilterState {
     visitorType: VisitorTypeFilter;
+    academicDepartment: string;
     yearLevel: string;
     section: string;
     department: string;
@@ -59,6 +66,9 @@ function filterVisitors(visitors: VisitorWithRangeVisits[], filters: VisitLogFil
 
         return (
             visitor.type === filters.visitorType &&
+            (filters.visitorType !== 'student' ||
+                !filters.academicDepartment ||
+                getAcademicDepartment(visitor.yearLevel) === filters.academicDepartment) &&
             (filters.visitorType !== 'student' || !filters.yearLevel || visitor.yearLevel === filters.yearLevel) &&
             (filters.visitorType !== 'student' || !filters.section || visitor.section === filters.section) &&
             (filters.visitorType !== 'employee' || !filters.department || visitor.department === filters.department) &&

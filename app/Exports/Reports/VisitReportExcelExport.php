@@ -40,7 +40,7 @@ class VisitReportExcelExport implements FromArray, WithColumnFormatting, WithCol
             $this->headerRows[] = count($rows);
             $tableStart = count($rows);
 
-            foreach ($group['rows'] as $row) {
+            foreach ($group['rows'] as $index => $row) {
                 $rows[] = [
                     (string) ($row['school_id'] ?? ''),
                     (string) ($row['name'] ?? ''),
@@ -56,34 +56,52 @@ class VisitReportExcelExport implements FromArray, WithColumnFormatting, WithCol
         $overallVisits = max(1, collect($this->report['rows'])->sum('visit_count'));
         $comparison = (new \App\Services\Reports\VisitReportExportService())->comparison($this->groups, $overallVisits);
 
-        if (count($comparison) > 1) {
-            $rows[] = ['', '', '', '', ''];
-            $rows[] = ['Analysis Summary', '', '', '', ''];
-            $this->groupTitleRows[] = count($rows);
-            
-            $tableStart = count($rows) + 1;
+        $topVisits = $comparison['top_by_visits'] ?? [];
+        $topCompletion = $comparison['top_by_completion'] ?? [];
 
-            foreach ($comparison as $comp) {
+        if (count($topVisits) > 1) {
+            $prefix = $this->groupPrefix();
+
+            // Subsection 1: Highest Total Visits
+            $rows[] = ['', '', '', '', ''];
+            $rows[] = ["Analysis Summary: Top {$prefix}s by Total Visits", '', '', '', ''];
+            $this->groupTitleRows[] = count($rows);
+            $rows[] = ['Rank', $prefix, 'Total Visits', 'Visit Share (%)', 'Average Visits'];
+            $this->headerRows[] = count($rows);
+            $tableStart = count($rows);
+
+            foreach ($topVisits as $index => $comp) {
                 $rows[] = [
-                    $comp['label'],
-                    $this->barText((int) $comp['completion_percent']) . '  ' . $comp['completion_percent'].'% (Completion)',
-                    $this->barText((int) $comp['visit_share_percent']) . '  ' . $comp['visit_share_percent'].'% (Share)',
-                    $comp['total_visits'] . ' Visits',
-                    $comp['average_visits'] . ' Avg / ' . $comp['met_required'] . ' Met',
-                    '',
+                    '#'.($index + 1),
+                    (string) $comp['label'],
+                    (int) $comp['total_visits'].' Visits',
+                    $comp['visit_share_percent'].'%',
+                    (string) $comp['average_visits'].' Avg Visits',
                 ];
             }
+            $this->tableRanges[] = [$tableStart, count($rows)];
 
-            $this->summaryTableRanges[] = [$tableStart, count($rows)];
+            // Subsection 2: Highest Completion Summary
+            $rows[] = ['', '', '', '', ''];
+            $rows[] = ["Analysis Summary: Top {$prefix}s by Target Completion Rate", '', '', '', ''];
+            $this->groupTitleRows[] = count($rows);
+            $rows[] = ['Rank', $prefix, 'Completion Rate (%)', 'Met Target / Total', 'Average Visits'];
+            $this->headerRows[] = count($rows);
+            $tableStart = count($rows);
+
+            foreach ($topCompletion as $index => $comp) {
+                $rows[] = [
+                    '#'.($index + 1),
+                    (string) $comp['label'],
+                    $comp['completion_percent'].'%',
+                    $comp['met_required'].' / '.$comp['visitors'].' Met Target',
+                    (string) $comp['average_visits'].' Avg Visits',
+                ];
+            }
+            $this->tableRanges[] = [$tableStart, count($rows)];
         }
 
         return $rows;
-    }
-
-    private function barText(int $percent): string
-    {
-        $filled = (int) round(max(0, min(100, $percent)) / 10);
-        return str_repeat('█', $filled) . str_repeat('░', 10 - $filled);
     }
 
     public function columnWidths(): array

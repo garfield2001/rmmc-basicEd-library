@@ -1,4 +1,4 @@
-import { HistoryMetricCard } from '@/components/admin/visit-logs/visit-logs-ui';
+import { HistoryMetricCard } from '@/components/admin/visit-history/visit-logs-ui';
 import type { AdminVisitLogs } from '@/types/dashboard';
 import { BriefcaseBusiness, GraduationCap, UserRound } from 'lucide-react';
 import type { VisitorTypeFilter } from './visit-logs-helpers';

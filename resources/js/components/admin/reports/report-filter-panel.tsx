@@ -17,6 +17,7 @@ interface ReportFilterPanelProps {
     yearLevels: string[];
     sections: string[];
     departments: string[];
+    orderDirection?: 'asc' | 'desc';
     availableSections: Array<{ value: string; label: string }>;
     showVisitorTypeSelector?: boolean;
     dateRangeIsValid: boolean;
@@ -28,6 +29,7 @@ interface ReportFilterPanelProps {
     onYearLevelsChange: (value: string[]) => void;
     onSectionsChange: (value: string[]) => void;
     onDepartmentsChange: (value: string[]) => void;
+    onOrderDirectionChange?: (value: 'asc' | 'desc') => void;
 }
 
 export function ReportFilterPanel({
@@ -42,6 +44,7 @@ export function ReportFilterPanel({
     yearLevels,
     sections,
     departments,
+    orderDirection,
     availableSections,
     showVisitorTypeSelector = true,
     dateRangeIsValid,
@@ -53,6 +56,7 @@ export function ReportFilterPanel({
     onYearLevelsChange,
     onSectionsChange,
     onDepartmentsChange,
+    onOrderDirectionChange,
 }: ReportFilterPanelProps) {
     const schoolYearDateLabel = schoolYearBounds ? `${formatDisplayDate(schoolYearBounds.start)} to ${formatDisplayDate(schoolYearBounds.end)}` : '';
 
@@ -122,10 +126,12 @@ export function ReportFilterPanel({
                         yearLevels={yearLevels}
                         sections={sections}
                         departments={departments}
+                        orderDirection={orderDirection}
                         availableSections={availableSections}
                         onYearLevelsChange={onYearLevelsChange}
                         onSectionsChange={onSectionsChange}
                         onDepartmentsChange={onDepartmentsChange}
+                        onOrderDirectionChange={onOrderDirectionChange}
                     />
                 )}
             </div>

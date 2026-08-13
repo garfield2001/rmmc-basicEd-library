@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-type AdminSection = 'dashboard' | 'live-visits' | 'visit-logs' | 'visit-progress' | 'visitors' | 'reports' | 'settings';
+type AdminSection = 'dashboard' | 'live-visits' | 'visit-history' | 'visitors' | 'reports' | 'settings';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 

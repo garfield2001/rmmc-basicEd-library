@@ -6,7 +6,7 @@ import { EmptyChartState } from './empty-chart-state';
 
 const defaultChartConfig = {
     value: {
-        label: 'Visits',
+        label: 'Visitors',
         color: '#6ea0ee',
     },
 } satisfies ChartConfig;
@@ -42,12 +42,18 @@ export function HorizontalBarChart({ data, emptyMessage, labelWidth = 104, heigh
         label,
     }: {
         active?: boolean;
-        payload?: { payload: ActivityChartPoint }[];
+        payload?: Array<{
+            dataKey?: string | number;
+            name?: string | number;
+            color?: string;
+            value?: string | number;
+            payload: ActivityChartPoint;
+        }>;
         label?: React.ReactNode;
     }) => {
         if (!active || !payload || !payload.length) return null;
 
-        const pointData = payload[0].payload as ActivityChartPoint;
+        const pointData = payload[0].payload;
 
         if (pointData.segments && pointData.segments.length > 0) {
             const segmentsPayload = pointData.segments.map((seg) => ({
@@ -59,7 +65,16 @@ export function HorizontalBarChart({ data, emptyMessage, labelWidth = 104, heigh
             return <ChartTooltipContent active={active} payload={segmentsPayload} label={label} />;
         }
 
-        return <ChartTooltipContent active={active} payload={payload} label={label} />;
+        const defaultPayload = [
+            {
+                dataKey: 'value',
+                name: 'Visitors',
+                color: '#4f46e5',
+                value: pointData.value,
+            },
+        ];
+
+        return <ChartTooltipContent active={active} payload={defaultPayload} label={label} />;
     };
 
     return (
