@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('role')->default('admin')->index();
             $table->rememberToken();
+            $table->string('active_session_id')->nullable();
             $table->timestamps();
         });
 

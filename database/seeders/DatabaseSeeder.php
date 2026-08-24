@@ -35,8 +35,7 @@ class DatabaseSeeder extends Seeder
             SchoolYearSeeder::class,
             StudentSeeder::class,
             EmployeeSeeder::class,
-            HistoricalSchoolYearSeeder::class,
-            CurrentSchoolYearVisitSeeder::class,
+            LibraryVisitSeeder::class,
         ]);
     }
 }

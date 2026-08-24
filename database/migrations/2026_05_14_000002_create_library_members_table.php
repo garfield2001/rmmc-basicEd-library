@@ -8,7 +8,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Historical filename retained so existing installs do not rerun this migration after the schema rename.
         Schema::create('library_members', function (Blueprint $table): void {
             $table->id();
             $table->string('rfid_uid', 10)->nullable()->unique();
@@ -27,6 +26,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('library_members');
-        Schema::dropIfExists('registered_visitors');
     }
 };

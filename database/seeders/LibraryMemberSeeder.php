@@ -82,21 +82,21 @@ abstract class LibraryMemberSeeder extends Seeder
     /**
      * @param  array<string, mixed>  $student
      */
-    protected function createStudentVisitor(array $student): LibraryMember
+    protected function createStudentVisitor(array $student, ?SchoolYear $schoolYear = null): LibraryMember
     {
         LibraryVisitorSeederGuard::requiredDetails($student, ['year_level', 'section']);
         LibraryVisitorSeederGuard::studentSchoolId($student['school_id']);
 
         $visitor = $this->createVisitor($student, LibraryMember::TYPE_STUDENT);
-        $schoolYear = SchoolYear::active()->firstOrFail();
+        $targetSchoolYear = $schoolYear ?? SchoolYear::active()->firstOrFail();
         $section = SchoolYearSection::query()->firstOrCreate([
-            'school_year_id' => $schoolYear->id,
+            'school_year_id' => $targetSchoolYear->id,
             'year_level' => $student['year_level'],
             'name' => $student['section'],
         ]);
 
         $visitor->studentSchoolYearRecords()->create([
-            'school_year_id' => $schoolYear->id,
+            'school_year_id' => $targetSchoolYear->id,
             'school_year_section_id' => $section->id,
             ...$this->visitorSnapshot($visitor),
             'year_level' => $student['year_level'],
@@ -109,25 +109,25 @@ abstract class LibraryMemberSeeder extends Seeder
     /**
      * @param  array<int, array<string, mixed>>  $students
      */
-    protected function createStudentVisitors(array $students): void
+    protected function createStudentVisitors(array $students, ?SchoolYear $schoolYear = null): void
     {
         foreach ($students as $student) {
-            $this->createStudentVisitor($student);
+            $this->createStudentVisitor($student, $schoolYear);
         }
     }
 
     /**
      * @param  array<string, mixed>  $employee
      */
-    protected function createEmployeeVisitor(array $employee): LibraryMember
+    protected function createEmployeeVisitor(array $employee, ?SchoolYear $schoolYear = null): LibraryMember
     {
         LibraryVisitorSeederGuard::requiredDetails($employee, ['department']);
 
         $visitor = $this->createVisitor($employee, LibraryMember::TYPE_EMPLOYEE);
-        $schoolYear = SchoolYear::active()->firstOrFail();
+        $targetSchoolYear = $schoolYear ?? SchoolYear::active()->firstOrFail();
 
         $visitor->employeeSchoolYearRecords()->create([
-            'school_year_id' => $schoolYear->id,
+            'school_year_id' => $targetSchoolYear->id,
             ...$this->visitorSnapshot($visitor),
             'department' => $employee['department'],
         ]);
@@ -135,10 +135,10 @@ abstract class LibraryMemberSeeder extends Seeder
         return $visitor;
     }
 
-    protected function createEmployeeVisitors(array $employees): void
+    protected function createEmployeeVisitors(array $employees, ?SchoolYear $schoolYear = null): void
     {
         foreach ($employees as $employee) {
-            $this->createEmployeeVisitor($employee);
+            $this->createEmployeeVisitor($employee, $schoolYear);
         }
     }
 

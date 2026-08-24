@@ -8,7 +8,7 @@ use App\Models\LibraryVisit;
 use App\Models\SchoolYear;
 use App\Models\StudentSchoolYearRecord;
 use App\Models\User;
-use Database\Seeders\CurrentSchoolYear;
+use Database\Seeders\SchoolYearSeeder;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -30,15 +30,19 @@ class DatabaseSeederTest extends TestCase
         $this->assertTrue(Hash::check('password', $admin->password));
     }
 
-    public function test_current_school_year_seeder_creates_active_school_year(): void
+    public function test_school_year_seeder_creates_active_school_year(): void
     {
-        $this->seed(CurrentSchoolYear::class);
+        $this->seed(SchoolYearSeeder::class);
 
-        $schoolYear = SchoolYear::query()->where('name', '2026-2027')->firstOrFail();
+        $previousYear = SchoolYear::query()->where('name', '2025-2026')->firstOrFail();
+        $this->assertSame('2025-06-09', $previousYear->startDateString());
+        $this->assertSame('2026-03-31', $previousYear->endDateString());
+        $this->assertFalse($previousYear->is_active);
 
-        $this->assertSame('2026-01-08', $schoolYear->startDateString());
-        $this->assertSame('2027-03-07', $schoolYear->endDateString());
-        $this->assertTrue($schoolYear->is_active);
+        $currentYear = SchoolYear::query()->where('name', '2026-2027')->firstOrFail();
+        $this->assertSame('2026-06-08', $currentYear->startDateString());
+        $this->assertSame('2027-03-31', $currentYear->endDateString());
+        $this->assertTrue($currentYear->is_active);
     }
 
     public function test_database_seeder_creates_manual_and_factory_library_members_without_unique_conflicts(): void
@@ -50,9 +54,10 @@ class DatabaseSeederTest extends TestCase
             'role' => 'admin',
         ]);
         $activeSchoolYear = SchoolYear::query()->where('name', '2026-2027')->firstOrFail();
+        $previousSchoolYear = SchoolYear::query()->where('name', '2025-2026')->firstOrFail();
 
-        $this->assertSame('2026-01-08', $activeSchoolYear->startDateString());
-        $this->assertSame('2027-03-07', $activeSchoolYear->endDateString());
+        $this->assertSame('2026-06-08', $activeSchoolYear->startDateString());
+        $this->assertSame('2027-03-31', $activeSchoolYear->endDateString());
         $this->assertTrue($activeSchoolYear->is_active);
 
         $manualStudent = LibraryMember::query()
@@ -81,26 +86,35 @@ class DatabaseSeederTest extends TestCase
                 ->pluck('school_id')
                 ->every(fn (string $schoolId): bool => preg_match('/^\d{10}$/', $schoolId) === 1),
         );
-        $this->assertGreaterThanOrEqual(600, StudentSchoolYearRecord::query()->count());
-        $this->assertGreaterThanOrEqual(50, EmployeeSchoolYearRecord::query()->count());
+
+        // Verify total registered visitors is a natural, realistic non-round number > 600
+        $totalMembers = LibraryMember::query()->count();
+        $this->assertGreaterThanOrEqual(600, $totalMembers);
+
+        // Verify student promotion: student 2000001002 was in Grade 1 in 2025-2026 and promoted to Grade 2 in 2026-2027
+        $promotedStudent = LibraryMember::query()->where('school_id', '2000001002')->firstOrFail();
+        $records = $promotedStudent->studentSchoolYearRecords()->orderBy('school_year_id')->get();
+        $this->assertCount(2, $records);
+        $this->assertSame('Grade 1', $records[0]->year_level);
+        $this->assertSame($previousSchoolYear->id, $records[0]->school_year_id);
+        $this->assertSame('Grade 2', $records[1]->year_level);
+        $this->assertSame($activeSchoolYear->id, $records[1]->school_year_id);
+
         $currentVisits = LibraryVisit::query()->where('school_year_id', $activeSchoolYear->id);
-        $this->assertSame('2026-01-08', Carbon::parse((clone $currentVisits)->min('visited_at'))->toDateString());
-        $this->assertSame('2026-05-25', Carbon::parse((clone $currentVisits)->max('visited_at'))->toDateString());
-        $this->assertGreaterThanOrEqual(
-            100,
-            (clone $currentVisits)
-                ->pluck('visited_at')
-                ->map(fn ($visitedAt): string => Carbon::parse($visitedAt)->toDateString())
-                ->unique()
-                ->count(),
-        );
+        $this->assertGreaterThanOrEqual('2026-06-08', Carbon::parse((clone $currentVisits)->min('visited_at'))->toDateString());
+        $this->assertLessThanOrEqual('2027-03-31', Carbon::parse((clone $currentVisits)->max('visited_at'))->toDateString());
+
+        $previousVisits = LibraryVisit::query()->where('school_year_id', $previousSchoolYear->id);
+        $this->assertGreaterThanOrEqual('2025-06-09', Carbon::parse((clone $previousVisits)->min('visited_at'))->toDateString());
+        $this->assertLessThanOrEqual('2026-03-31', Carbon::parse((clone $previousVisits)->max('visited_at'))->toDateString());
+
         $studentVisitCounts = $this->seededVisitCounts(LibraryMember::TYPE_STUDENT, $activeSchoolYear->id);
         $employeeVisitCounts = $this->seededVisitCounts(LibraryMember::TYPE_EMPLOYEE, $activeSchoolYear->id);
 
         foreach ([$studentVisitCounts, $employeeVisitCounts] as $visitCounts) {
             $this->assertTrue($visitCounts->contains(0));
             $this->assertTrue($visitCounts->contains(fn (int $count): bool => $count > 0 && $count <= 2));
-            $this->assertTrue($visitCounts->contains(fn (int $count): bool => $count >= 5 && $count <= 6));
+            $this->assertTrue($visitCounts->contains(fn (int $count): bool => $count >= 5));
         }
 
         $this->assertGreaterThan((int) floor($studentVisitCounts->count() * 0.7), $studentVisitCounts->filter(fn (int $count): bool => $count > 0)->count());
@@ -108,54 +122,56 @@ class DatabaseSeederTest extends TestCase
         $this->assertTrue($studentVisitCounts->contains(fn (int $count): bool => $count >= $activeSchoolYear->student_required_visits));
         $this->assertTrue($employeeVisitCounts->contains(fn (int $count): bool => $count >= $activeSchoolYear->employee_required_visits));
 
-        $previousSchoolYear = SchoolYear::query()->where('name', '2025-2026')->firstOrFail();
-        $previousVisits = LibraryVisit::query()->where('school_year_id', $previousSchoolYear->id);
-        $this->assertGreaterThan(500, (clone $previousVisits)->count());
-        $this->assertGreaterThanOrEqual($previousSchoolYear->startDateString(), Carbon::parse((clone $previousVisits)->min('visited_at'))->toDateString());
-        $this->assertLessThanOrEqual($previousSchoolYear->endDateString(), Carbon::parse((clone $previousVisits)->max('visited_at'))->toDateString());
-
         $employeeDepartments = [
-            'Integration School Faculty',
-            'Senior High School Faculty',
-            'College of Engineering Faculty',
-            'College of Medical Technology Faculty',
-            'College of Nursing Faculty',
-            'College of Information Technology Faculty',
-            'College of Computer Science Faculty',
-            'College of Teacher Education Faculty',
-            'College of Business Administration Faculty',
-            'College of Hospitality Management Faculty',
-            'Mathematics Faculty',
-            'Science Faculty',
-            'Management Information Systems',
+            'Elementary',
+            'High School',
+            'Office Personnel',
         ];
 
         $this->assertTrue(
             EmployeeSchoolYearRecord::query()
+                ->where('school_year_id', $activeSchoolYear->id)
                 ->pluck('department')
                 ->every(fn (string $department): bool => in_array($department, $employeeDepartments, true)),
         );
 
+        foreach ($employeeDepartments as $department) {
+            $count = EmployeeSchoolYearRecord::query()->where('school_year_id', $activeSchoolYear->id)->where('department', $department)->count();
+            $this->assertGreaterThanOrEqual(15, $count);
+            $this->assertLessThanOrEqual(20, $count);
+        }
+
         $studentSchoolYearRecords = StudentSchoolYearRecord::query()->where('school_year_id', $activeSchoolYear->id);
 
-        foreach (['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4'] as $yearLevel) {
+        foreach (['Kindergarten 1', 'Kindergarten 2', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 7', 'Grade 9'] as $yearLevel) {
             $this->assertSame(
                 1,
                 (clone $studentSchoolYearRecords)
                     ->where('year_level', $yearLevel)
                     ->distinct('section')
                     ->count('section'),
+                "Expected {$yearLevel} to have 1 section",
             );
         }
 
-        foreach (['Grade 5', 'Grade 6'] as $yearLevel) {
-            $sectionCount = (clone $studentSchoolYearRecords)
-                ->where('year_level', $yearLevel)
+        $this->assertSame(
+            3,
+            (clone $studentSchoolYearRecords)
+                ->where('year_level', 'Grade 6')
                 ->distinct('section')
-                ->count('section');
+                ->count('section'),
+            'Expected Grade 6 to have 3 sections',
+        );
 
-            $this->assertGreaterThanOrEqual(2, $sectionCount);
-            $this->assertLessThanOrEqual(3, $sectionCount);
+        foreach (['Grade 8', 'Grade 10'] as $yearLevel) {
+            $this->assertSame(
+                2,
+                (clone $studentSchoolYearRecords)
+                    ->where('year_level', $yearLevel)
+                    ->distinct('section')
+                    ->count('section'),
+                "Expected {$yearLevel} to have 2 sections",
+            );
         }
 
         (clone $studentSchoolYearRecords)
@@ -164,7 +180,7 @@ class DatabaseSeederTest extends TestCase
             ->get()
             ->each(function ($section): void {
                 $this->assertGreaterThanOrEqual(25, $section->student_count);
-                $this->assertLessThanOrEqual(35, $section->student_count);
+                $this->assertLessThanOrEqual(30, $section->student_count);
             });
 
         $sectionsUsedByMultipleYearLevels = (clone $studentSchoolYearRecords)

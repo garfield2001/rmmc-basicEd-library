@@ -1,5 +1,3 @@
-import { type SharedData } from '@/types/shared';
-import { usePage } from '@inertiajs/react';
 import { Menu, Moon, Sun } from 'lucide-react';
 import type { AdminNavbarProps } from './admin-layout.types';
 import { SchoolYearNavbarControl } from './school-year-navbar-control';
@@ -12,7 +10,6 @@ export function AdminNavbar({
     onMobileSidebarToggle,
     onThemeToggle,
 }: AdminNavbarProps) {
-    const { name } = usePage<SharedData>().props;
     const ThemeIcon = resolvedTheme === 'dark' ? Sun : Moon;
 
     return (

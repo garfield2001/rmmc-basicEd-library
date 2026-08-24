@@ -3,26 +3,61 @@
 namespace Database\Seeders;
 
 use App\Models\EmployeeSchoolYearRecord;
+use App\Models\LibraryMember;
+use App\Models\SchoolYear;
 
 class EmployeeSeeder extends LibraryMemberSeeder
 {
     public function run(): void
     {
-        $this->createEmployeeVisitors($this->schoolEmployees());
+        $previousYear = SchoolYear::query()->where('name', '2025-2026')->firstOrFail();
+        $currentYear = SchoolYear::query()->where('name', '2026-2027')->firstOrFail();
+
+        // 1. Seed 2025-2026 employees
+        $this->createEmployeeVisitors($this->schoolEmployees(), $previousYear);
 
         foreach ($this->fakeEmployeeDepartmentPlan() as $department => $employeeCount) {
-            EmployeeSchoolYearRecord::factory()
-                ->count($employeeCount)
-                ->create([
+            for ($i = 0; $i < $employeeCount; $i++) {
+                EmployeeSchoolYearRecord::factory()->create([
+                    'school_year_id' => $previousYear->id,
                     'department' => $department,
                 ]);
+            }
+        }
+
+        // 2. Transfer all employees to 2026-2027 active school year
+        $this->transferEmployeesToCurrentYear($previousYear, $currentYear);
+    }
+
+    private function transferEmployeesToCurrentYear(SchoolYear $fromYear, SchoolYear $toYear): void
+    {
+        $employees = LibraryMember::query()
+            ->where('type', LibraryMember::TYPE_EMPLOYEE)
+            ->whereHas('employeeSchoolYearRecords', fn ($query) => $query->forSchoolYear($fromYear->id))
+            ->with(['employeeSchoolYearRecords' => fn ($query) => $query->where('school_year_id', $fromYear->id)])
+            ->get();
+
+        foreach ($employees as $member) {
+            $previousRecord = $member->employeeSchoolYearRecords->first();
+            if (! $previousRecord) {
+                continue;
+            }
+
+            $member->employeeSchoolYearRecords()->create([
+                'school_year_id' => $toYear->id,
+                'school_id' => $member->school_id,
+                'rfid_uid' => $member->rfid_uid,
+                'first_name' => $member->first_name,
+                'middle_name' => $member->middle_name,
+                'last_name' => $member->last_name,
+                'photo' => $member->photo,
+                'department' => $previousRecord->department,
+            ]);
         }
     }
 
     /**
      * Add real school employee details here.
-     * Shared visitor data, including RFID, lives in LibraryMemberSeeder.
-     * Factory employee profiles are added separately after this list.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -30,50 +65,40 @@ class EmployeeSeeder extends LibraryMemberSeeder
     {
         return $this->attachManualDetails($this->manualEmployeeVisitors(), [
             'EMP-2001' => [
-                'department' => 'Integration School Faculty',
+                'department' => 'Elementary',
             ],
             'EMP-2002' => [
-                'department' => 'College of Engineering Faculty',
+                'department' => 'Elementary',
             ],
             'EMP-2003' => [
-                'department' => 'College of Medical Technology Faculty',
+                'department' => 'High School',
             ],
             'EMP-2004' => [
-                'department' => 'College of Nursing Faculty',
+                'department' => 'High School',
             ],
             'OP1-308' => [
-                'department' => 'College of Information Technology Faculty',
+                'department' => 'Office Personnel',
             ],
             'OP1164' => [
-                'department' => 'College of Computer Science Faculty',
+                'department' => 'Office Personnel',
             ],
             'OP1-303' => [
-                'department' => 'Management Information Systems',
+                'department' => 'Office Personnel',
             ],
         ]);
     }
 
     /**
-     * Fake employees are grouped by department so every seeded employee
-     * represents an active school employee visitor.
+     * Fake employees are grouped by department (15-20 per department).
      *
      * @return array<string, int>
      */
     private function fakeEmployeeDepartmentPlan(): array
     {
         return [
-            'Integration School Faculty' => 10,
-            'Senior High School Faculty' => 5,
-            'College of Engineering Faculty' => 5,
-            'College of Medical Technology Faculty' => 5,
-            'College of Nursing Faculty' => 4,
-            'College of Information Technology Faculty' => 4,
-            'College of Computer Science Faculty' => 3,
-            'College of Teacher Education Faculty' => 3,
-            'College of Business Administration Faculty' => 3,
-            'College of Hospitality Management Faculty' => 2,
-            'Mathematics Faculty' => 2,
-            'Science Faculty' => 2,
+            'Elementary' => 15,
+            'High School' => 17,
+            'Office Personnel' => 13,
         ];
     }
 }
