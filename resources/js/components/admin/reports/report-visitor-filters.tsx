@@ -1,5 +1,5 @@
 import { MultiSelectDropdown } from '@/components/ui/multi-select-dropdown';
-import { SelectInput } from '@/components/ui/select-input';
+import { SingleSelectDropdown } from '@/components/ui/single-select-dropdown';
 import type { VisitReportOptions } from '@/types/reports';
 import { type VisitorTypeFilter } from './report-helpers';
 
@@ -16,6 +16,16 @@ interface ReportVisitorFiltersProps {
     onDepartmentsChange: (value: string[]) => void;
     onOrderDirectionChange?: (value: 'asc' | 'desc') => void;
 }
+
+const employeeOrderOptions = [
+    { value: 'asc', label: 'Ascending (A to Z)' },
+    { value: 'desc', label: 'Descending (Z to A)' },
+];
+
+const studentOrderOptions = [
+    { value: 'asc', label: 'Ascending (Kinder 1 to Grade 10)' },
+    { value: 'desc', label: 'Descending (Grade 10 to Kinder 1)' },
+];
 
 export function ReportVisitorFilters({
     reportOptions,
@@ -41,18 +51,15 @@ export function ReportVisitorFilters({
                     onChange={onDepartmentsChange}
                 />
 
-                {onOrderDirectionChange && (
-                    <label className="text-sm font-medium text-[#010440]">
-                        Order
-                        <SelectInput
+                {departments.length > 0 && onOrderDirectionChange && (
+                    <div className="flex w-full min-w-0 flex-col gap-1.5">
+                        <label className="flex h-4 items-center truncate text-xs leading-4 font-semibold text-[#010440]">Order</label>
+                        <SingleSelectDropdown
                             value={orderDirection}
-                            onChange={(event) => onOrderDirectionChange(event.target.value as 'asc' | 'desc')}
-                            className="mt-2"
-                        >
-                            <option value="asc">Ascending (A to Z)</option>
-                            <option value="desc">Descending (Z to A)</option>
-                        </SelectInput>
-                    </label>
+                            options={employeeOrderOptions}
+                            onChange={(val) => onOrderDirectionChange(val as 'asc' | 'desc')}
+                        />
+                    </div>
                 )}
             </>
         );
@@ -83,18 +90,15 @@ export function ReportVisitorFilters({
                 />
             )}
 
-            {onOrderDirectionChange && (
-                <label className="text-sm font-medium text-[#010440]">
-                    Order
-                    <SelectInput
+            {yearLevels.length > 0 && onOrderDirectionChange && (
+                <div className="flex w-full min-w-0 flex-col gap-1.5">
+                    <label className="flex h-4 items-center truncate text-xs leading-4 font-semibold text-[#010440]">Order</label>
+                    <SingleSelectDropdown
                         value={orderDirection}
-                        onChange={(event) => onOrderDirectionChange(event.target.value as 'asc' | 'desc')}
-                        className="mt-2"
-                    >
-                        <option value="asc">Ascending (Kinder 1 to Grade 10)</option>
-                        <option value="desc">Descending (Grade 10 to Kinder 1)</option>
-                    </SelectInput>
-                </label>
+                        options={studentOrderOptions}
+                        onChange={(val) => onOrderDirectionChange(val as 'asc' | 'desc')}
+                    />
+                </div>
             )}
         </>
     );

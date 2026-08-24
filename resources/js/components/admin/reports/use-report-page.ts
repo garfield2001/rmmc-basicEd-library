@@ -33,8 +33,19 @@ export function useReportPage(
     pagePath = '/admin/reports',
 ) {
     const filters = useReportFilters(report, reportOptions, initialVisitorType);
-    const { schoolYearId, startDate, endDate, visitorType, yearLevels, sections, departments, orderDirection, selectedSchoolYear, dateRangeSummary, reportCanFetch } =
-        filters.values;
+    const {
+        schoolYearId,
+        startDate,
+        endDate,
+        visitorType,
+        yearLevels,
+        sections,
+        departments,
+        orderDirection,
+        selectedSchoolYear,
+        dateRangeSummary,
+        reportCanFetch,
+    } = filters.values;
     const [currentPage, setCurrentPage] = useState(1);
     const [sortColumn, setSortColumn] = useState<ReportSortColumn | null>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');

@@ -1,9 +1,38 @@
+import { parseIsoDate, toIsoDate } from '@/components/ui/date-input-utils';
 import type { VisitReport, VisitReportOptions } from '@/types/reports';
 import { useEffect, useMemo, useState } from 'react';
 import { reportFilterValidation } from './report-filter-validation';
-import { getSchoolYearBounds, inferDateRangeMode, summarizeDateRange, type DateRangeMode, type VisitorTypeFilter } from './report-helpers';
+import {
+    getSchoolYearBounds,
+    inferDateRangeMode,
+    summarizeDateRange,
+    type DateRangeMode,
+    type SchoolYearBounds,
+    type VisitorTypeFilter,
+} from './report-helpers';
 
 const reportSectionKeySeparator = '::';
+
+function computePresetDates(preset: 'school_year' | 'this_month' | 'last_30_days', bounds: SchoolYearBounds) {
+    const bStart = parseIsoDate(bounds.start);
+    const bEnd = parseIsoDate(bounds.end);
+    if (!bStart || !bEnd || preset === 'school_year') {
+        return { start: bounds.start, end: bounds.end };
+    }
+
+    const today = new Date();
+    const now = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const isThisMonth = preset === 'this_month';
+
+    const base = now < bStart ? bStart : now > bEnd ? bEnd : now;
+    const start = isThisMonth ? new Date(base.getFullYear(), base.getMonth(), 1) : new Date(base.getTime() - 30 * 86400000);
+    const end = isThisMonth ? new Date(base.getFullYear(), base.getMonth() + 1, 0) : new Date(base);
+
+    const clampedStart = start < bStart ? bStart : start > bEnd ? bStart : start;
+    const clampedEnd = end > bEnd ? bEnd : end < bStart ? bEnd : end;
+
+    return { start: toIsoDate(clampedStart), end: toIsoDate(clampedEnd) };
+}
 
 export function useReportFilters(
     report: VisitReport | null,
@@ -101,8 +130,19 @@ export function useReportFilters(
             return;
         }
 
-        setStartDate(value === 'school_year' ? schoolYearBounds.start : '');
-        setEndDate(value === 'school_year' ? schoolYearBounds.end : '');
+        if (value === 'custom') {
+            return;
+        }
+
+        if (value === 'school_year' || value === 'this_month' || value === 'last_30_days') {
+            const dates = computePresetDates(value, schoolYearBounds);
+            setStartDate(dates.start);
+            setEndDate(dates.end);
+            return;
+        }
+
+        setStartDate('');
+        setEndDate('');
         resetDependentFilters();
     };
 
@@ -121,6 +161,46 @@ export function useReportFilters(
 
         setYearLevels([]);
         setSections([]);
+    };
+
+    const chooseYearLevels = (values: string[]) => {
+        setYearLevels(values);
+
+        if (values.length === 0) {
+            setSections([]);
+            return;
+        }
+
+        const nextSections = values.flatMap((yearLevel) => (sectionSource[yearLevel] ?? []).map((section) => sectionKey(yearLevel, section)));
+        setSections(nextSections);
+        setOrderDirection('asc');
+    };
+
+    const applyDatePreset = (preset: 'school_year' | 'this_month' | 'last_30_days') => {
+        if (!schoolYearBounds) return;
+        const dates = computePresetDates(preset, schoolYearBounds);
+        setDateRangeMode(preset === 'school_year' ? 'school_year' : preset);
+        setStartDate(dates.start);
+        setEndDate(dates.end);
+    };
+
+    const resetFilters = () => {
+        const defaultYear = activeSchoolYear;
+        const defaultYearId = defaultYear ? String(defaultYear.id) : '';
+        const bounds = defaultYear ? getSchoolYearBounds(defaultYear) : null;
+
+        setSchoolYearId(defaultYearId);
+        setDateRangeMode('school_year');
+        setStartDate(bounds?.start ?? '');
+        setEndDate(bounds?.end ?? '');
+        setVisitorType(initialVisitorTypeFromPage === 'employee' ? 'employee' : 'student');
+        setYearLevels(reportOptions.yearLevels);
+
+        const source = defaultYearId ? (reportOptions.sectionsBySchoolYear[defaultYearId] ?? {}) : reportOptions.sectionsByYearLevel;
+        const allSecs = reportOptions.yearLevels.flatMap((yl) => (source[yl] ?? []).map((sec) => sectionKey(yl, sec)));
+        setSections(allSecs);
+        setDepartments(reportOptions.departments);
+        setOrderDirection('asc');
     };
 
     return {
@@ -161,13 +241,12 @@ export function useReportFilters(
                 setEndDate(nextEndDate);
             },
             onVisitorTypeChange: chooseVisitorType,
-            onYearLevelsChange: (values: string[]) => {
-                setYearLevels(values);
-                setSections([]);
-            },
+            onYearLevelsChange: chooseYearLevels,
             onSectionsChange: setSections,
             onDepartmentsChange: setDepartments,
             onOrderDirectionChange: setOrderDirection,
+            onApplyDatePreset: applyDatePreset,
+            onResetFilters: resetFilters,
         },
     };
 }

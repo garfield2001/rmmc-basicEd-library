@@ -191,8 +191,9 @@ function SummaryCard({
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <div
-                                            className={`flex size-6 items-center justify-center rounded-full text-xs font-bold ${index < 3 ? 'bg-[#030A8C] text-white' : 'bg-[#f6f8ff] text-[#020659]/60'
-                                                }`}
+                                            className={`flex size-6 items-center justify-center rounded-full text-xs font-bold ${
+                                                index < 3 ? 'bg-[#030A8C] text-white' : 'bg-[#f6f8ff] text-[#020659]/60'
+                                            }`}
                                         >
                                             {index + 1}
                                         </div>

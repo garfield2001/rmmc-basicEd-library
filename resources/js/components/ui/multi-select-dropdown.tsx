@@ -60,12 +60,12 @@ export function MultiSelectDropdown({
     }, []);
 
     return (
-        <div ref={wrapperRef} className={cn('relative min-w-0', className)}>
-            <label className="text-sm font-medium text-[#010440]">{label}</label>
+        <div ref={wrapperRef} className={cn('relative flex w-full min-w-0 flex-col gap-1.5', className)}>
+            <label className="flex h-4 items-center truncate text-xs font-semibold leading-4 text-[#010440]">{label}</label>
             <button
                 type="button"
                 onClick={() => setOpen((current) => !current)}
-                className="mt-2 flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-[#040DBF]/15 bg-white px-3 text-left text-sm text-[#010440] transition outline-none hover:border-[#040DBF]/25 focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10"
+                className="flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-[#040DBF]/15 bg-white px-3 text-left text-sm text-[#010440] transition outline-none hover:border-[#040DBF]/25 focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10"
                 aria-haspopup="listbox"
                 aria-expanded={open}
             >

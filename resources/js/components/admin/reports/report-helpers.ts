@@ -3,7 +3,7 @@ import type { VisitReportRow, VisitReportSchoolYear } from '@/types/reports';
 
 export type VisitorType = 'student' | 'employee';
 export type VisitorTypeFilter = '' | VisitorType;
-export type DateRangeMode = '' | 'school_year' | 'custom';
+export type DateRangeMode = '' | 'school_year' | 'this_month' | 'last_30_days' | 'custom';
 export type ReportSortColumn = 'school_id' | 'name' | 'group' | 'visit_count' | 'progress_percent';
 export type SortDirection = 'asc' | 'desc';
 export type SchoolYearBounds = {
