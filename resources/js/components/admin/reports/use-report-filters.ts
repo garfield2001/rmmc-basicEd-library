@@ -82,7 +82,7 @@ export function useReportFilters(
             })),
         );
     }, [visitorType, sectionSource, yearLevels]);
-    const dateRangeSummary = summarizeDateRange(startDate, endDate);
+    const dateRangeSummary = summarizeDateRange(startDate, endDate, schoolYearBounds);
     const validation = reportFilterValidation({ schoolYearId, startDate, endDate, visitorType, yearLevels, departments, schoolYearBounds });
 
     useEffect(() => {

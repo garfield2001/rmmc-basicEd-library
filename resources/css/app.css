@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
@@ -37,21 +38,21 @@
         background: rgb(71 85 105 / 0.52);
     }
 
-    html:has(.admin-theme-root.admin-theme-dark) {
+    html.dark:has(.admin-theme-root.admin-theme-dark) {
         background-color: #040617;
         scrollbar-color: rgb(148 163 184 / 0.36) rgb(15 23 42 / 0.48);
     }
 
-    html:has(.admin-theme-root.admin-theme-dark)::-webkit-scrollbar-track {
+    html.dark:has(.admin-theme-root.admin-theme-dark)::-webkit-scrollbar-track {
         background: #050817;
     }
 
-    html:has(.admin-theme-root.admin-theme-dark)::-webkit-scrollbar-thumb {
+    html.dark:has(.admin-theme-root.admin-theme-dark)::-webkit-scrollbar-thumb {
         border-color: #050817;
         background: rgb(148 163 184 / 0.34);
     }
 
-    html:has(.admin-theme-root.admin-theme-dark)::-webkit-scrollbar-thumb:hover {
+    html.dark:has(.admin-theme-root.admin-theme-dark)::-webkit-scrollbar-thumb:hover {
         background: rgb(203 213 225 / 0.48);
     }
 
@@ -476,31 +477,6 @@
         animation: scan-success-photo 520ms 90ms cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
-    .admin-theme-root :is(button, a)[class*='bg-zinc-950'] {
-        background-color: #040dbf !important;
-        color: #ffffff !important;
-    }
-
-    .admin-theme-root :is(button, a)[class*='hover:bg-zinc-800']:hover {
-        background-color: #030a8c !important;
-        color: #ffffff !important;
-    }
-
-    .admin-theme-root :is(button, a)[class*='border-zinc-300'],
-    .admin-theme-root :is(button, a)[class*='border-zinc-200'] {
-        border-color: rgb(4 13 191 / 0.16) !important;
-    }
-
-    .admin-theme-root :is(button, a)[class*='text-zinc-700'],
-    .admin-theme-root :is(button, a)[class*='text-zinc-600'] {
-        color: #020659 !important;
-    }
-
-    .admin-theme-root :is(button, a)[class*='hover:bg-zinc-100']:hover {
-        background-color: #f6f8ff !important;
-        color: #030a8c !important;
-    }
-
     .admin-theme-root :is(button, a, .admin-icon-badge) > svg,
     .dialog-content :is(button, a, .admin-icon-badge) > svg {
         flex-shrink: 0;
@@ -619,7 +595,7 @@
         color: #b91c1c !important;
     }
 
-    .admin-theme-root.admin-theme-dark {
+    html.dark .admin-theme-root.admin-theme-dark {
         --chart-1: #60a5fa;
         --chart-2: #34d399;
         --chart-3: #a78bfa;
@@ -629,94 +605,94 @@
         color: #e5edff !important;
     }
 
-    .admin-theme-root.admin-theme-dark .admin-main-shell {
+    html.dark .admin-theme-root.admin-theme-dark .admin-main-shell {
         background:
             radial-gradient(circle at top right, rgb(37 99 235 / 0.16), transparent 24rem),
             linear-gradient(180deg, #040617 0%, #070b1d 45%, #0b1020 100%) !important;
     }
 
-    .admin-theme-root.admin-theme-dark .admin-surface {
+    html.dark .admin-theme-root.admin-theme-dark .admin-surface {
         border-color: rgb(96 165 250 / 0.2) !important;
         background-color: rgb(15 23 42 / 0.94) !important;
         color: #e5edff !important;
         box-shadow: 0 18px 50px rgb(0 0 0 / 0.24) !important;
     }
 
-    .admin-theme-root.admin-theme-dark .admin-contained-scroll,
-    body:has(.admin-theme-root.admin-theme-dark) .dialog-content .admin-contained-scroll {
+    .dark .admin-theme-root.admin-theme-dark .admin-contained-scroll,
+    .dark body:has(.admin-theme-root.admin-theme-dark) .dialog-content .admin-contained-scroll {
         scrollbar-color: rgb(148 163 184 / 0.36) transparent;
     }
 
-    .admin-theme-root.admin-theme-dark .admin-contained-scroll::-webkit-scrollbar-thumb,
-    body:has(.admin-theme-root.admin-theme-dark) .dialog-content .admin-contained-scroll::-webkit-scrollbar-thumb {
+    .dark .admin-theme-root.admin-theme-dark .admin-contained-scroll::-webkit-scrollbar-thumb,
+    .dark body:has(.admin-theme-root.admin-theme-dark) .dialog-content .admin-contained-scroll::-webkit-scrollbar-thumb {
         background: rgb(148 163 184 / 0.34);
     }
 
-    .admin-theme-root.admin-theme-dark :is(section, article, div, form, header)[class*='bg-white'] {
+    .dark .admin-theme-root.admin-theme-dark :is(section, article, div, form, header)[class*='bg-white'] {
         border-color: rgb(96 165 250 / 0.2) !important;
         background-color: rgb(15 23 42 / 0.92) !important;
         color: #e5edff !important;
     }
 
-    body:has(.admin-theme-root.admin-theme-dark) > .admin-theme-root.fixed,
-    body:has(.admin-theme-root.admin-theme-dark) .dialog-content {
+    .dark body:has(.admin-theme-root.admin-theme-dark) > .admin-theme-root.fixed,
+    .dark body:has(.admin-theme-root.admin-theme-dark) .dialog-content {
         border-color: rgb(96 165 250 / 0.24) !important;
         background-color: rgb(15 23 42 / 0.98) !important;
         color: #e5edff !important;
     }
 
-    body:has(.admin-theme-root.admin-theme-dark) > .admin-theme-root.fixed .admin-surface {
+    .dark body:has(.admin-theme-root.admin-theme-dark) > .admin-theme-root.fixed .admin-surface {
         border-color: rgb(96 165 250 / 0.2) !important;
         background-color: rgb(15 23 42 / 0.98) !important;
         color: #e5edff !important;
     }
 
-    body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) [class*='text-[#010440]'],
-    body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) :is(.text-zinc-950, .text-zinc-900) {
+    .dark body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) [class*='text-[#010440]'],
+    .dark body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) :is(.text-zinc-950, .text-zinc-900) {
         color: #f8fbff !important;
     }
 
-    body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) [class*='text-[#020659]'],
-    body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) [class*='text-[#030A8C]'],
-    body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) :is(.text-zinc-600, .text-zinc-500, .text-zinc-400) {
+    .dark body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) [class*='text-[#020659]'],
+    .dark body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) [class*='text-[#030A8C]'],
+    .dark body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) :is(.text-zinc-600, .text-zinc-500, .text-zinc-400) {
         color: #b9c8ff !important;
     }
 
-    body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) :is(input, select, textarea) {
+    .dark body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) :is(input, select, textarea) {
         border-color: rgb(96 165 250 / 0.24) !important;
         background-color: rgb(2 6 23 / 0.9) !important;
         color: #f8fbff !important;
         color-scheme: dark;
     }
 
-    .admin-theme-root.admin-theme-dark :is(.bg-zinc-50, .bg-zinc-100, .bg-zinc-200),
-    .admin-theme-root.admin-theme-dark [class*='bg-zinc-50'],
-    .admin-theme-root.admin-theme-dark [class*='bg-zinc-100'],
-    .admin-theme-root.admin-theme-dark [class*='bg-zinc-200'],
-    .admin-theme-root.admin-theme-dark [class*='bg-[#f8fbff]'],
-    .admin-theme-root.admin-theme-dark [class*='bg-[#f6f8ff]'] {
+    .dark .admin-theme-root.admin-theme-dark :is(.bg-zinc-50, .bg-zinc-100, .bg-zinc-200),
+    .dark .admin-theme-root.admin-theme-dark [class*='bg-zinc-50'],
+    .dark .admin-theme-root.admin-theme-dark [class*='bg-zinc-100'],
+    .dark .admin-theme-root.admin-theme-dark [class*='bg-zinc-200'],
+    .dark .admin-theme-root.admin-theme-dark [class*='bg-[#f8fbff]'],
+    .dark .admin-theme-root.admin-theme-dark [class*='bg-[#f6f8ff]'] {
         background-color: rgb(30 41 59 / 0.78) !important;
     }
 
-    .admin-theme-root.admin-theme-dark :is(.border-zinc-100, .border-zinc-200, .border-zinc-300),
-    .admin-theme-root.admin-theme-dark [class*='border-zinc-'],
-    .admin-theme-root.admin-theme-dark [class*='border-[#040DBF]'],
-    .admin-theme-root.admin-theme-dark [class*='border-[#030A8C]'] {
+    .dark .admin-theme-root.admin-theme-dark :is(.border-zinc-100, .border-zinc-200, .border-zinc-300),
+    .dark .admin-theme-root.admin-theme-dark [class*='border-zinc-'],
+    .dark .admin-theme-root.admin-theme-dark [class*='border-[#040DBF]'],
+    .dark .admin-theme-root.admin-theme-dark [class*='border-[#030A8C]'] {
         border-color: rgb(96 165 250 / 0.2) !important;
     }
 
-    .admin-theme-root.admin-theme-dark :is(.text-zinc-950, .text-zinc-900, .text-zinc-800, .text-zinc-700),
-    .admin-theme-root.admin-theme-dark [class*='text-[#010440]'] {
+    .dark .admin-theme-root.admin-theme-dark :is(.text-zinc-950, .text-zinc-900, .text-zinc-800, .text-zinc-700),
+    .dark .admin-theme-root.admin-theme-dark [class*='text-[#010440]'] {
         color: #f8fbff !important;
     }
 
-    .admin-theme-root.admin-theme-dark :is(.text-zinc-600, .text-zinc-500, .text-zinc-400),
-    .admin-theme-root.admin-theme-dark [class*='text-[#020659]'],
-    .admin-theme-root.admin-theme-dark [class*='text-[#030A8C]'] {
+    .dark .admin-theme-root.admin-theme-dark :is(.text-zinc-600, .text-zinc-500, .text-zinc-400),
+    .dark .admin-theme-root.admin-theme-dark [class*='text-[#020659]'],
+    .dark .admin-theme-root.admin-theme-dark [class*='text-[#030A8C]'] {
         color: #b9c8ff !important;
     }
 
-    .admin-theme-root.admin-theme-dark :is(input, select, textarea) {
+    .dark .admin-theme-root.admin-theme-dark :is(input, select, textarea) {
         border-color: rgb(96 165 250 / 0.24) !important;
         background-color: rgb(2 6 23 / 0.9) !important;
         color: #f8fbff !important;
@@ -724,60 +700,60 @@
         color-scheme: dark;
     }
 
-    .admin-theme-root.admin-theme-dark :is(input, textarea)::placeholder {
+    .dark .admin-theme-root.admin-theme-dark :is(input, textarea)::placeholder {
         color: #7182a3 !important;
     }
 
-    .admin-theme-root.admin-theme-dark input[type='file']::file-selector-button {
+    .dark .admin-theme-root.admin-theme-dark input[type='file']::file-selector-button {
         background-color: #172554 !important;
         color: #dbeafe !important;
     }
 
-    .admin-theme-root.admin-theme-dark input[type='checkbox'] {
+    .dark .admin-theme-root.admin-theme-dark input[type='checkbox'] {
         accent-color: #4f7cff;
     }
 
-    .admin-theme-root.admin-theme-dark :is(table, thead, tbody, tr, th, td),
-    body:has(.admin-theme-root.admin-theme-dark) .dialog-content :is(table, thead, tbody, tr, th, td) {
+    .dark .admin-theme-root.admin-theme-dark :is(table, thead, tbody, tr, th, td),
+    .dark body:has(.admin-theme-root.admin-theme-dark) .dialog-content :is(table, thead, tbody, tr, th, td) {
         border-color: rgb(96 165 250 / 0.16) !important;
     }
 
-    .admin-theme-root.admin-theme-dark thead,
-    .admin-theme-root.admin-theme-dark .admin-table-header,
-    .admin-theme-root.admin-theme-dark [class*='TableHeader'],
-    body:has(.admin-theme-root.admin-theme-dark) .dialog-content :is(thead, .admin-table-header) {
+    .dark .admin-theme-root.admin-theme-dark thead,
+    .dark .admin-theme-root.admin-theme-dark .admin-table-header,
+    .dark .admin-theme-root.admin-theme-dark [class*='TableHeader'],
+    .dark body:has(.admin-theme-root.admin-theme-dark) .dialog-content :is(thead, .admin-table-header) {
         background: linear-gradient(180deg, rgb(30 41 59 / 0.96) 0%, rgb(15 23 42 / 0.96) 100%) !important;
         color: #c7d7ff !important;
     }
 
-    .admin-theme-root.admin-theme-dark :is(thead, .admin-table-header) th,
-    body:has(.admin-theme-root.admin-theme-dark) .dialog-content :is(thead, .admin-table-header) th {
+    .dark .admin-theme-root.admin-theme-dark :is(thead, .admin-table-header) th,
+    .dark body:has(.admin-theme-root.admin-theme-dark) .dialog-content :is(thead, .admin-table-header) th {
         color: #c7d7ff !important;
     }
 
-    .admin-theme-root.admin-theme-dark tbody tr:hover,
-    body:has(.admin-theme-root.admin-theme-dark) .dialog-content tbody tr:hover {
+    .dark .admin-theme-root.admin-theme-dark tbody tr:hover,
+    .dark body:has(.admin-theme-root.admin-theme-dark) .dialog-content tbody tr:hover {
         background-color: rgb(30 41 59 / 0.62) !important;
     }
 
-    .admin-theme-root.admin-theme-dark tbody tr:nth-child(even):not(:hover),
-    body:has(.admin-theme-root.admin-theme-dark) .dialog-content tbody tr:nth-child(even):not(:hover) {
+    .dark .admin-theme-root.admin-theme-dark tbody tr:nth-child(even):not(:hover),
+    .dark body:has(.admin-theme-root.admin-theme-dark) .dialog-content tbody tr:nth-child(even):not(:hover) {
         background-color: rgb(15 23 42 / 0.34) !important;
     }
 
-    .admin-theme-root.admin-theme-dark .report-table-icon {
+    .dark .admin-theme-root.admin-theme-dark .report-table-icon {
         color: #93c5fd !important;
     }
 
-    .admin-theme-root.admin-theme-dark :is(button, a)[class*='bg-white'],
-    .admin-theme-root.admin-theme-dark :is(button, a)[class*='hover:bg-zinc-100']:hover,
-    .admin-theme-root.admin-theme-dark :is(button, a)[class*='hover:bg-white']:hover {
+    .dark .admin-theme-root.admin-theme-dark :is(button, a)[class*='bg-white'],
+    .dark .admin-theme-root.admin-theme-dark :is(button, a)[class*='hover:bg-zinc-100']:hover,
+    .dark .admin-theme-root.admin-theme-dark :is(button, a)[class*='hover:bg-white']:hover {
         background-color: rgb(30 41 59 / 0.94) !important;
         color: #f8fbff !important;
     }
 
-    .admin-theme-root.admin-theme-dark .admin-icon-button,
-    .admin-theme-root.admin-theme-dark .dialog-content .admin-icon-button {
+    .dark .admin-theme-root.admin-theme-dark .admin-icon-button,
+    .dark .admin-theme-root.admin-theme-dark .dialog-content .admin-icon-button {
         border-color: rgb(96 165 250 / 0.24) !important;
         background-color: rgb(15 23 42 / 0.94) !important;
         color: #dbeafe !important;
@@ -786,31 +762,31 @@
             0 10px 24px rgb(0 0 0 / 0.16) !important;
     }
 
-    .admin-theme-root.admin-theme-dark .admin-icon-button:hover,
-    .admin-theme-root.admin-theme-dark .dialog-content .admin-icon-button:hover {
+    .dark .admin-theme-root.admin-theme-dark .admin-icon-button:hover,
+    .dark .admin-theme-root.admin-theme-dark .dialog-content .admin-icon-button:hover {
         border-color: rgb(147 197 253 / 0.36) !important;
         background-color: rgb(30 41 59 / 0.98) !important;
         color: #ffffff !important;
     }
 
-    .admin-theme-root.admin-theme-dark :is(button, a)[class*='bg-zinc-950'] {
+    .dark .admin-theme-root.admin-theme-dark :is(button, a)[class*='bg-zinc-950'] {
         background-color: #1d4ed8 !important;
         color: #ffffff !important;
     }
 
-    .admin-theme-root.admin-theme-dark .admin-danger-action {
+    .dark .admin-theme-root.admin-theme-dark .admin-danger-action {
         border-color: rgb(248 113 113 / 0.45) !important;
         background-color: rgb(127 29 29 / 0.18) !important;
         color: #fca5a5 !important;
     }
 
-    .admin-theme-root.admin-theme-dark .admin-danger-action:hover {
+    .dark .admin-theme-root.admin-theme-dark .admin-danger-action:hover {
         border-color: rgb(252 165 165 / 0.62) !important;
         background-color: rgb(127 29 29 / 0.32) !important;
         color: #fecaca !important;
     }
 
-    .admin-theme-root.admin-theme-dark .admin-school-year-badge {
+    .dark .admin-theme-root.admin-theme-dark .admin-school-year-badge {
         border-color: rgb(96 165 250 / 0.28) !important;
         background-color: rgb(15 23 42 / 0.92) !important;
         color: #e5edff !important;

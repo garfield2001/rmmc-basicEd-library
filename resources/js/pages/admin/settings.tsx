@@ -9,8 +9,8 @@ export default function Settings() {
             <Head title="Settings" />
             <main className="min-h-screen">
                 <AdminLayout active="settings">
-                    <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
-                        <AdminPageHeader title="Settings" description="Manage admin access and profile settings." />
+                    <div className="admin-content-shell mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:py-8">
+                        <AdminPageHeader title="Settings" description="Manage admin credentials and system preferences." />
                         <ProfileSettingsForm />
                     </div>
                 </AdminLayout>

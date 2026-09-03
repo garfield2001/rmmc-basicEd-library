@@ -1,49 +1,65 @@
 import { formatTime } from '@/components/admin/dashboard/dashboard-summary';
 import { IconBadge } from '@/components/ui/icon-badge';
-import { BriefcaseBusiness, GraduationCap, Library, type LucideIcon } from 'lucide-react';
+import { BriefcaseBusiness, Clock3, GraduationCap, Library, type LucideIcon } from 'lucide-react';
 
 interface LiveVisitMetricsProps {
     visitsToday: number;
     studentVisitsToday: number;
     employeeVisitsToday: number;
     scanStartsAt: string;
+    scanEndsAt?: string;
 }
 
-export function LiveVisitMetrics({ visitsToday, studentVisitsToday, employeeVisitsToday, scanStartsAt }: LiveVisitMetricsProps) {
-    const metrics: { label: string; value: number; detail: string; icon: LucideIcon }[] = [
+export function LiveVisitMetrics({ visitsToday, studentVisitsToday, employeeVisitsToday, scanStartsAt, scanEndsAt = '17:00' }: LiveVisitMetricsProps) {
+    const metrics: { label: string; value: string | number; detail: string; icon: LucideIcon; color: string }[] = [
         {
-            label: 'Visits today',
-            value: visitsToday,
-            detail: `Successful RFID scans since ${formatTime(scanStartsAt)}`,
+            label: 'Visits Today',
+            value: visitsToday.toLocaleString(),
+            detail: 'Total scans recorded today',
             icon: Library,
+            color: 'text-[#040DBF] bg-blue-50 dark:bg-blue-950/40 dark:text-blue-400',
         },
         {
-            label: 'Students',
-            value: studentVisitsToday,
-            detail: 'Student entries logged today',
+            label: 'Students Today',
+            value: studentVisitsToday.toLocaleString(),
+            detail: 'Student entries logged',
             icon: GraduationCap,
+            color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 dark:text-indigo-400',
         },
         {
-            label: 'Employees',
-            value: employeeVisitsToday,
-            detail: 'Employee entries logged today',
+            label: 'Employees Today',
+            value: employeeVisitsToday.toLocaleString(),
+            detail: 'Faculty & staff logged',
             icon: BriefcaseBusiness,
+            color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400',
+        },
+        {
+            label: 'Scan Window',
+            value: `${formatTime(scanStartsAt)} - ${formatTime(scanEndsAt)}`,
+            detail: 'Active automated entry hours',
+            icon: Clock3,
+            color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-400',
         },
     ];
 
     return (
-        <section className="grid gap-4 md:grid-cols-3">
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {metrics.map((metric) => {
                 const Icon = metric.icon;
 
                 return (
-                    <div key={metric.label} className="admin-surface rounded-lg border border-[#040DBF]/10 bg-white/95 p-5 shadow-sm">
-                        <div className="flex items-center justify-between gap-4">
-                            <p className="text-sm font-medium text-[#030A8C]">{metric.label}</p>
-                            <IconBadge icon={Icon} className="size-9" iconClassName="size-4" />
+                    <div
+                        key={metric.label}
+                        className="admin-surface rounded-xl border border-[#040DBF]/10 bg-white/95 p-4 shadow-sm transition hover:border-[#040DBF]/25 dark:border-slate-800 dark:bg-slate-900"
+                    >
+                        <div className="flex items-center justify-between gap-3">
+                            <p className="text-xs font-bold tracking-wide text-[#030A8C] uppercase dark:text-sky-300">{metric.label}</p>
+                            <span className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${metric.color}`}>
+                                <Icon className="size-4" />
+                            </span>
                         </div>
-                        <p className="mt-3 text-4xl font-semibold tracking-normal text-[#010440]">{metric.value.toLocaleString()}</p>
-                        <p className="mt-2 text-sm text-[#020659]/70">{metric.detail}</p>
+                        <p className="mt-2 text-2xl font-extrabold tracking-tight text-[#010440] dark:text-white sm:text-3xl">{metric.value}</p>
+                        <p className="mt-1.5 truncate text-[11px] font-medium text-slate-500 dark:text-slate-400">{metric.detail}</p>
                     </div>
                 );
             })}

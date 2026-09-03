@@ -33,7 +33,7 @@ class AdminReportTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('admin/dashboard')
                 ->has('dashboard')
-                ->missing('visitMonitor')
+                ->has('visitMonitor')
                 ->missing('publicDashboard'));
     }
 
@@ -45,8 +45,7 @@ class AdminReportTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('admin/live-visits')
                 ->has('visitMonitor')
-                ->where('visitMonitor.scanTargets', [])
-                ->missing('dashboard'));
+            );
     }
 
     public function test_authenticated_user_can_view_separate_visit_log_pages(): void

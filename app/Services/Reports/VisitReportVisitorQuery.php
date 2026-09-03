@@ -86,7 +86,16 @@ class VisitReportVisitorQuery
     {
         $query->where(function (Builder $query) use ($sections): void {
             foreach ($sections as $section) {
-                [$yearLevel, $sectionName] = array_pad(explode('::', (string) $section, 2), 2, null);
+                $raw = (string) $section;
+
+                if (str_contains($raw, '::')) {
+                    [$yearLevel, $sectionName] = array_pad(explode('::', $raw, 2), 2, null);
+                } elseif (str_contains($raw, ' - ')) {
+                    [$yearLevel, $sectionName] = array_pad(explode(' - ', $raw, 2), 2, null);
+                } else {
+                    $yearLevel = $raw;
+                    $sectionName = null;
+                }
 
                 if (! $sectionName) {
                     $query->orWhere('section', $yearLevel);

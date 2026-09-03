@@ -25,9 +25,14 @@
                     window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 
                 document.documentElement.dataset.adminTheme = theme;
+                document.documentElement.classList.toggle('dark', theme === 'dark');
+                document.documentElement.classList.toggle('admin-theme-dark', theme === 'dark');
+                document.documentElement.classList.toggle('admin-theme-light', theme === 'light');
                 document.documentElement.style.colorScheme = theme === 'dark' ? 'dark' : 'only light';
             } catch {
                 document.documentElement.dataset.adminTheme = 'light';
+                document.documentElement.classList.remove('dark', 'admin-theme-dark');
+                document.documentElement.classList.add('admin-theme-light');
                 document.documentElement.style.colorScheme = 'only light';
             }
         })();

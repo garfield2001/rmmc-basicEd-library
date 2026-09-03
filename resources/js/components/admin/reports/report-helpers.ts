@@ -73,9 +73,13 @@ export function getSchoolYearBounds(schoolYear: VisitReportSchoolYear | null): S
     };
 }
 
-export function summarizeDateRange(startDate: string, endDate: string) {
+export function summarizeDateRange(startDate: string, endDate: string, schoolYearBounds?: SchoolYearBounds | null) {
     if (!startDate && !endDate) {
         return 'Choose a custom start and end date';
+    }
+
+    if (schoolYearBounds && startDate === schoolYearBounds.start && endDate === schoolYearBounds.end) {
+        return 'Whole school year';
     }
 
     if (startDate && !endDate) {

@@ -48,7 +48,15 @@ class ReportController extends Controller
 
             fwrite($file, "\xEF\xBB\xBF");
             fputcsv($file, ['School year: '.($report['school_year']['name'] ?? 'No school year'), 'Visitor type: '.ucfirst((string) ($report['summary']['visitor_type'] ?? 'visitor')).'s']);
-            fputcsv($file, ['From '.$report['filters']['start_date'].' to '.$report['filters']['end_date']]);
+            $isWholeSY = isset($report['school_year']['starts_at'], $report['school_year']['ends_at'])
+                && $report['filters']['start_date'] === $report['school_year']['starts_at']
+                && $report['filters']['end_date'] === $report['school_year']['ends_at'];
+
+            fputcsv($file, [
+                $isWholeSY
+                    ? 'Period: Whole school year'
+                    : 'Period: From '.$report['filters']['start_date'].' to '.$report['filters']['end_date'],
+            ]);
 
             $groupPrefix = $exports->groupPrefix($report);
 

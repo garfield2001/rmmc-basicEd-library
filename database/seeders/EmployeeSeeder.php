@@ -89,16 +89,16 @@ class EmployeeSeeder extends LibraryMemberSeeder
     }
 
     /**
-     * Fake employees are grouped by department (15-20 per department).
+     * Fake employees are grouped by department (totaling 90-100 employees overall).
      *
      * @return array<string, int>
      */
     private function fakeEmployeeDepartmentPlan(): array
     {
         return [
-            'Elementary' => 15,
-            'High School' => 17,
-            'Office Personnel' => 13,
+            'Elementary' => 30,
+            'High School' => 30,
+            'Office Personnel' => 30,
         ];
     }
 }

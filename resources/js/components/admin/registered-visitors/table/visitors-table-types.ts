@@ -4,7 +4,7 @@ import type { LibraryMemberRow } from '@/types/registered-visitors';
 
 export type VisitorType = 'student' | 'employee';
 export type SortDirection = 'asc' | 'desc';
-export type ColumnKey = 'visitor' | 'school_id' | 'year_level' | 'section' | 'department';
+export type ColumnKey = 'visitor' | 'school_id' | 'rfid' | 'year_level' | 'section' | 'department';
 
 export interface ColumnOption {
     key: ColumnKey;
@@ -26,6 +26,8 @@ export interface VisitorsTableProps {
     direction: SortDirection;
     isLoading?: boolean;
     showTypeTabs?: boolean;
+    distribution?: any;
+    onSelectCohort?: (cohort: string | null) => void;
     onSearchChange: (value: string) => void;
     onTypeChange: (type: VisitorType) => void;
     onYearLevelChange: (value: string) => void;

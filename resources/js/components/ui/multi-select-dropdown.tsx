@@ -61,28 +61,28 @@ export function MultiSelectDropdown({
 
     return (
         <div ref={wrapperRef} className={cn('relative flex w-full min-w-0 flex-col gap-1.5', className)}>
-            <label className="flex h-4 items-center truncate text-xs font-semibold leading-4 text-[#010440]">{label}</label>
+            <label className="flex h-4 items-center truncate text-xs font-semibold leading-4 text-[#010440] dark:text-slate-200">{label}</label>
             <button
                 type="button"
                 onClick={() => setOpen((current) => !current)}
-                className="flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-[#040DBF]/15 bg-white px-3 text-left text-sm text-[#010440] transition outline-none hover:border-[#040DBF]/25 focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10"
+                className="flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-[#040DBF]/20 bg-white px-3 text-left text-sm text-[#010440] shadow-xs transition outline-none hover:border-[#040DBF]/40 focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:hover:border-slate-600"
                 aria-haspopup="listbox"
                 aria-expanded={open}
             >
-                <span className={values.length === 0 ? 'truncate text-[#020659]/65' : 'truncate font-medium'}>{selectedLabel}</span>
-                <ChevronDown className="size-4 shrink-0 text-[#020659]/55" />
+                <span className={values.length === 0 ? 'truncate text-slate-600 font-normal dark:text-slate-400' : 'truncate font-medium text-[#010440] dark:text-white'}>{selectedLabel}</span>
+                <ChevronDown className="size-4 shrink-0 text-slate-500 dark:text-slate-400" />
             </button>
 
             {open && (
-                <div className="admin-contained-scroll absolute z-50 mt-2 w-full min-w-64 overflow-hidden rounded-lg border border-[#040DBF]/15 bg-white text-[#010440] shadow-xl shadow-[#010440]/10">
-                    <div className="border-b border-[#040DBF]/10 p-2">
+                <div className="admin-contained-scroll absolute z-50 mt-2 w-full min-w-64 overflow-hidden rounded-xl border border-[#040DBF]/20 bg-white text-[#010440] shadow-xl dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                    <div className="border-b border-[#040DBF]/10 p-2 dark:border-slate-700">
                         <div className="relative">
-                            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#030A8C]/50" />
+                            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
                             <input
                                 value={query}
                                 onChange={(event) => setQuery(event.target.value)}
                                 placeholder={searchPlaceholder ?? `Search ${label.toLowerCase()}`}
-                                className="h-9 w-full rounded-md border border-[#040DBF]/15 bg-white pr-3 pl-9 text-sm outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10"
+                                className="h-9 w-full rounded-md border border-[#040DBF]/15 bg-white pr-3 pl-9 text-sm text-[#010440] outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
                                 autoFocus
                             />
                         </div>
@@ -90,7 +90,7 @@ export function MultiSelectDropdown({
                             <button
                                 type="button"
                                 onClick={() => onChange(allSelected ? [] : options.map((option) => option.value))}
-                                className="inline-flex h-8 items-center rounded-md border border-[#040DBF]/10 bg-[#f6f8ff] px-2 text-xs font-semibold text-[#030A8C] transition hover:bg-white"
+                                className="inline-flex h-8 items-center rounded-md border border-[#040DBF]/15 bg-[#f6f8ff] px-2 text-xs font-semibold text-[#030A8C] transition hover:bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-sky-300 dark:hover:bg-slate-600"
                             >
                                 {allSelected ? 'Clear all' : 'Select all'}
                             </button>
@@ -98,7 +98,7 @@ export function MultiSelectDropdown({
                                 <button
                                     type="button"
                                     onClick={() => onChange([])}
-                                    className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-semibold text-[#020659]/70 transition hover:bg-[#f6f8ff] hover:text-[#030A8C]"
+                                    className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-semibold text-slate-600 transition hover:bg-[#f6f8ff] hover:text-[#030A8C] dark:text-slate-300 dark:hover:bg-slate-700"
                                 >
                                     <X className="size-3.5" />
                                     Clear
@@ -121,15 +121,15 @@ export function MultiSelectDropdown({
                                             onChange(checked ? values.filter((value) => value !== option.value) : [...values, option.value])
                                         }
                                         className={cn(
-                                            'flex min-h-9 w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm transition hover:bg-[#f6f8ff]',
-                                            checked ? 'font-semibold text-[#010440]' : 'text-[#020659]',
+                                            'flex min-h-9 w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm transition hover:bg-[#f6f8ff] dark:hover:bg-slate-700',
+                                            checked ? 'font-semibold text-[#010440] dark:text-white' : 'text-slate-700 dark:text-slate-200',
                                         )}
                                     >
                                         <span className="min-w-0 truncate">{option.label}</span>
                                         <span
                                             className={cn(
                                                 'inline-flex size-5 shrink-0 items-center justify-center rounded border',
-                                                checked ? 'border-[#040DBF] bg-[#040DBF] text-white' : 'border-[#040DBF]/20 bg-white',
+                                                checked ? 'border-[#040DBF] bg-[#040DBF] text-white' : 'border-[#040DBF]/25 bg-white dark:border-slate-600 dark:bg-slate-900',
                                             )}
                                         >
                                             {checked && <Check className="size-3.5" />}
@@ -138,7 +138,7 @@ export function MultiSelectDropdown({
                                 );
                             })
                         ) : (
-                            <div className="px-3 py-6 text-center text-sm text-[#020659]/70">No options found.</div>
+                            <div className="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">No options found.</div>
                         )}
                     </div>
                 </div>

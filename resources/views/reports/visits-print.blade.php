@@ -26,11 +26,21 @@
             @include('reports.partials.report-letterhead')
 
             <h1>Library Progress Report</h1>
+            @php
+                $isWholeSchoolYear = isset($report['school_year']['starts_at'], $report['school_year']['ends_at'])
+                    && $report['filters']['start_date'] === $report['school_year']['starts_at']
+                    && $report['filters']['end_date'] === $report['school_year']['ends_at'];
+            @endphp
+
             <section class="meta-grid">
                 <div><span class="meta-label">School Year:</span> {{ $report['school_year']['name'] ?? 'No school year' }}</div>
                 <div><span class="meta-label">Visitor Type:</span> {{ $visitorType }}</div>
-                <div><span class="meta-label">From:</span> {{ $fromDate }}</div>
-                <div><span class="meta-label">To:</span> {{ $toDate }}</div>
+                @if ($isWholeSchoolYear)
+                    <div><span class="meta-label">Period:</span> Whole School Year</div>
+                @else
+                    <div><span class="meta-label">From:</span> {{ $fromDate }}</div>
+                    <div><span class="meta-label">To:</span> {{ $toDate }}</div>
+                @endif
             </section>
 
             @php

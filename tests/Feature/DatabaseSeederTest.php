@@ -137,13 +137,17 @@ class DatabaseSeederTest extends TestCase
 
         foreach ($employeeDepartments as $department) {
             $count = EmployeeSchoolYearRecord::query()->where('school_year_id', $activeSchoolYear->id)->where('department', $department)->count();
-            $this->assertGreaterThanOrEqual(15, $count);
-            $this->assertLessThanOrEqual(20, $count);
+            $this->assertGreaterThanOrEqual(28, $count);
+            $this->assertLessThanOrEqual(36, $count);
         }
+
+        $totalEmployees = EmployeeSchoolYearRecord::query()->where('school_year_id', $activeSchoolYear->id)->count();
+        $this->assertGreaterThanOrEqual(90, $totalEmployees);
+        $this->assertLessThanOrEqual(100, $totalEmployees);
 
         $studentSchoolYearRecords = StudentSchoolYearRecord::query()->where('school_year_id', $activeSchoolYear->id);
 
-        foreach (['Kindergarten 1', 'Kindergarten 2', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 7', 'Grade 9'] as $yearLevel) {
+        foreach (['Kindergarten 1', 'Kindergarten 2', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 7', 'Grade 10'] as $yearLevel) {
             $this->assertSame(
                 1,
                 (clone $studentSchoolYearRecords)
@@ -154,16 +158,7 @@ class DatabaseSeederTest extends TestCase
             );
         }
 
-        $this->assertSame(
-            3,
-            (clone $studentSchoolYearRecords)
-                ->where('year_level', 'Grade 6')
-                ->distinct('section')
-                ->count('section'),
-            'Expected Grade 6 to have 3 sections',
-        );
-
-        foreach (['Grade 8', 'Grade 10'] as $yearLevel) {
+        foreach (['Grade 5', 'Grade 8'] as $yearLevel) {
             $this->assertSame(
                 2,
                 (clone $studentSchoolYearRecords)
@@ -171,6 +166,17 @@ class DatabaseSeederTest extends TestCase
                     ->distinct('section')
                     ->count('section'),
                 "Expected {$yearLevel} to have 2 sections",
+            );
+        }
+
+        foreach (['Grade 6', 'Grade 9'] as $yearLevel) {
+            $this->assertSame(
+                3,
+                (clone $studentSchoolYearRecords)
+                    ->where('year_level', $yearLevel)
+                    ->distinct('section')
+                    ->count('section'),
+                "Expected {$yearLevel} to have 3 sections",
             );
         }
 

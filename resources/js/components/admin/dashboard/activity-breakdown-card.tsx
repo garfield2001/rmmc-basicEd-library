@@ -92,7 +92,7 @@ export function ActivityBreakdownCard({ dashboard }: { dashboard: AdminDashboard
                 <CarouselButton direction="left" label="Previous activity breakdown" onClick={() => changePanel(previousPanel)} />
                 <CarouselButton direction="right" label="Next activity breakdown" onClick={() => changePanel(nextPanel)} />
                 <div className="mb-3 grid items-center gap-2" style={{ gridTemplateColumns: `${activityLabelWidth}px minmax(0, 1fr)` }}>
-                    <p className="text-sm font-medium text-[#020659]/70">{activityPanel.title}</p>
+                    <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">{activityPanel.title}</p>
                     <div className="justify-self-end">
                         <ShowAllButton
                             total={allActivityData.length}
@@ -149,12 +149,12 @@ function ActivityFilterSelect({
     children: ReactNode;
 }) {
     return (
-        <label className="grid min-w-44 gap-1 text-xs font-semibold text-[#020659]/70">
+        <label className="grid min-w-44 gap-1 text-xs font-semibold text-slate-600 dark:text-slate-400">
             {label}
             <select
                 value={value}
                 onChange={(event) => onChange(event.target.value)}
-                className="h-10 rounded-lg border border-[#040DBF]/10 bg-white px-3 text-sm font-medium text-[#010440] transition outline-none focus:border-[#040DBF]/35 focus:ring-4 focus:ring-[#040DBF]/10"
+                className="h-10 rounded-lg border border-[#040DBF]/20 bg-white px-3 text-sm font-medium text-[#010440] transition outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
             >
                 {children}
             </select>
@@ -203,7 +203,7 @@ function CarouselButton({ direction, label, onClick }: { direction: 'left' | 'ri
             type="button"
             aria-label={label}
             onClick={onClick}
-            className={`absolute top-1/2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#020659] opacity-20 shadow-md ring-1 ring-[#040DBF]/10 backdrop-blur transition duration-200 group-hover/activity:opacity-100 hover:scale-110 hover:bg-[#040DBF] hover:text-white hover:opacity-100 ${
+            className={`absolute top-1/2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#020659] opacity-20 shadow-md ring-1 ring-[#040DBF]/10 backdrop-blur transition duration-200 group-hover/activity:opacity-100 hover:scale-110 hover:bg-[#040DBF] hover:text-white hover:opacity-100 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 ${
                 direction === 'left' ? '-left-3 hover:-translate-x-0.5' : '-right-3 hover:translate-x-0.5'
             }`}
         >

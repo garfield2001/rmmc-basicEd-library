@@ -23,11 +23,12 @@
                 .print-page-number {
                     color: #020659;
                     display: block;
-                    font-size: 10pt;
+                    font-size: 9pt;
                     line-height: 1;
                     position: absolute;
-                    right: -0.35in;
+                    right: 0;
                     text-align: right;
-                    width: 1in;
+                    width: 2in;
+                    pointer-events: none;
                 }
             }

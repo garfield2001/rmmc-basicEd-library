@@ -1,18 +1,19 @@
 import { ActivityBreakdownCard } from '@/components/admin/dashboard/activity-breakdown-card';
 import { ChartCard } from '@/components/admin/dashboard/chart-card';
 import { DashboardActions } from '@/components/admin/dashboard/dashboard-actions';
-import { DashboardOperationsPanel } from '@/components/admin/dashboard/dashboard-operations-panel';
-import { getOverviewMetrics, getSchoolYearDateRange } from '@/components/admin/dashboard/dashboard-summary';
-import { MetricCard } from '@/components/admin/dashboard/metric-card';
+import { formatTime, getSchoolYearDateRange } from '@/components/admin/dashboard/dashboard-summary';
 import { RangeControls, rangeDetail, rangeLabel, relativeDateRange, visitsBetween } from '@/components/admin/dashboard/range-controls';
+import { SectionLeaderboardCard } from '@/components/admin/dashboard/section-leaderboard-card';
 import { VisitTrafficChart } from '@/components/admin/dashboard/visit-traffic-chart';
 import { VisitorMixChart } from '@/components/admin/dashboard/visitor-mix-chart';
+import { ScanSettingsForm } from '@/components/admin/settings/scan-settings-form';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
 import { type AdminDashboard, type VisitTrafficRange } from '@/types/dashboard';
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useEchoPublic } from '@laravel/echo-react';
-import { CalendarRange, UsersRound } from 'lucide-react';
+import { Activity, BriefcaseBusiness, Calendar, CalendarClock, Clock3, GraduationCap, RadioTower, SlidersHorizontal, Users, UsersRound } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 interface DashboardProps {
@@ -22,16 +23,23 @@ interface DashboardProps {
 export default function Dashboard({ dashboard }: DashboardProps) {
     const schoolYearLabel = dashboard.schoolYear?.name ?? 'No school year';
     const schoolYearDates = getSchoolYearDateRange(dashboard);
-    const metrics = getOverviewMetrics(dashboard, schoolYearLabel);
+    const [scanRulesModalOpen, setScanRulesModalOpen] = useState(false);
+
     const [trafficRange, setTrafficRange] = useState<VisitTrafficRange>('last14');
     const [trafficStartDate, setTrafficStartDate] = useState(() => relativeDateRange('last14')[0]);
     const [trafficEndDate, setTrafficEndDate] = useState(() => relativeDateRange('last14')[1]);
+
     const trafficData = useMemo(
         () => visitsBetween(dashboard.charts.dailyVisits, trafficStartDate, trafficEndDate),
         [dashboard.charts.dailyVisits, trafficEndDate, trafficStartDate],
     );
     const trafficTotal = useMemo(() => trafficData.reduce((sum, point) => sum + point.total, 0), [trafficData]);
-    const trafficDetail = `${rangeDetail(trafficRange, trafficStartDate, trafficEndDate)} - ${trafficTotal.toLocaleString()} visits`;
+    const trafficDetail = `${rangeDetail(trafficRange, trafficStartDate, trafficEndDate)} • ${trafficTotal.toLocaleString()} visits`;
+
+    const sectionLeaderboard = useMemo(
+        () => dashboard.charts.studentVisitsBySection ?? [],
+        [dashboard.charts.studentVisitsBySection],
+    );
 
     useEchoPublic('library-visits', '.LibraryVisitRecorded', () => {
         router.reload({ only: ['dashboard'] });
@@ -39,29 +47,101 @@ export default function Dashboard({ dashboard }: DashboardProps) {
 
     return (
         <>
-            <Head title="Dashboard" />
+            <Head title="Dashboard Overview" />
             <main className="min-h-screen">
                 <AdminLayout active="dashboard">
-                    <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
+                    <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8 max-w-7xl">
+                        {/* Page Header */}
                         <AdminPageHeader
-                            title="Dashboard"
-                            description="A bird's-eye view of library visit operations, scanning activity, visitor coverage, and required progress."
-                            actions={<DashboardActions requiredProgress={dashboard.charts.requiredProgress} />}
+                            title="Dashboard Overview"
+                            description="Comprehensive library operations command center, school-year visit performance, visitor demographic mix, and section rankings."
+                            badge={
+                                <Link
+                                    href="/admin/live-visits"
+                                    className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
+                                >
+                                    <span className="relative flex size-2">
+                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                                        <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+                                    </span>
+                                    <span>Live Visits Terminal</span>
+                                    <RadioTower className="size-3.5" />
+                                </Link>
+                            }
+                            actions={
+                                <DashboardActions
+                                    requiredProgress={dashboard.charts.requiredProgress}
+                                    individualProgress={dashboard.charts.individualProgress}
+                                />
+                            }
                         />
 
-                        <section className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                            {metrics.map((metric) => (
-                                <MetricCard key={metric.label} {...metric} />
-                            ))}
-                        </section>
+                        {/* Inline Executive Statistics Strip (Seamless, Zero Cards) */}
+                        <div className="flex flex-wrap items-center justify-between gap-y-3 gap-x-6 rounded-xl border border-[#040DBF]/10 bg-white/95 px-4 py-3 text-xs font-semibold text-slate-700 shadow-xs sm:px-5 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+                            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                                {/* 1. Active School Year */}
+                                <div className="flex items-center gap-2">
+                                    <span className="flex size-6 items-center justify-center rounded-full bg-blue-50 text-[#040DBF] dark:bg-blue-950/50 dark:text-blue-400">
+                                        <Calendar className="size-3.5" />
+                                    </span>
+                                    <span className="text-slate-500 dark:text-slate-400 font-medium">School Year:</span>
+                                    <span className="font-extrabold text-[#010440] dark:text-white">{schoolYearLabel}</span>
+                                </div>
 
-                        <DashboardOperationsPanel dashboard={dashboard} scanSettings={dashboard.scanSettings} />
+                                <div className="h-3.5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
 
-                        <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.9fr)_minmax(20rem,0.9fr)]">
+                                {/* 2. Visits Today */}
+                                <div className="flex items-center gap-2">
+                                    <span className="flex size-6 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
+                                        <Activity className="size-3.5" />
+                                    </span>
+                                    <span className="text-slate-500 dark:text-slate-400 font-medium">Visits Today:</span>
+                                    <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">
+                                        {dashboard.metrics.visitsToday.toLocaleString()}
+                                    </span>
+                                </div>
+
+                                <div className="h-3.5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
+
+                                {/* 3. Registered Visitors (Students & Employees) */}
+                                <div className="flex items-center gap-2">
+                                    <span className="flex size-6 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
+                                        <UsersRound className="size-3.5" />
+                                    </span>
+                                    <span className="text-slate-500 dark:text-slate-400 font-medium">Registered:</span>
+                                    <span className="font-extrabold text-[#010440] dark:text-white">
+                                        {dashboard.metrics.registeredVisitors.toLocaleString()}
+                                    </span>
+                                    <span className="text-[11px] text-slate-400 dark:text-slate-500 font-normal">
+                                        ({dashboard.visitorBreakdown.students} students • {dashboard.visitorBreakdown.employees} staff)
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* 4. Scan Window + Rule Trigger (Replaces clumsy right drawer) */}
+                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-medium">
+                                <Clock3 className="size-3.5 text-amber-600 dark:text-amber-400" />
+                                <span>Scan Window:</span>
+                                <span className="font-bold text-[#010440] dark:text-white">
+                                    {formatTime(dashboard.scanWindow.starts_at)} - {formatTime(dashboard.scanWindow.ends_at)}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => setScanRulesModalOpen(true)}
+                                    className="ml-1 inline-flex items-center gap-1 rounded-md bg-[#040DBF]/10 px-2 py-0.5 text-[11px] font-bold text-[#040DBF] transition hover:bg-[#040DBF]/20 dark:bg-sky-500/20 dark:text-sky-300 dark:hover:bg-sky-500/30"
+                                >
+                                    <SlidersHorizontal className="size-3" />
+                                    <span>Rules</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Visual Analytics Row: Trajectory Trend (Area Chart) & Demographic Composition (Donut Chart) */}
+                        <section className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1.9fr)_minmax(20rem,0.9fr)]">
                             <ChartCard
-                                title="Visit Volume"
+                                title="Visit Volume Trends"
                                 detail={trafficDetail}
-                                icon={CalendarRange}
+                                icon={CalendarClock}
                                 actions={
                                     <RangeControls
                                         value={trafficRange}
@@ -71,7 +151,6 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                                         maxDate={dashboard.schoolYear?.ends_at}
                                         onRangeChange={(range) => {
                                             setTrafficRange(range);
-
                                             if (range !== 'custom') {
                                                 const [start, end] = relativeDateRange(range);
                                                 setTrafficStartDate(start);
@@ -95,19 +174,39 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                             >
                                 <VisitTrafficChart
                                     data={trafficData}
-                                    emptyMessage={`No visits have been recorded for ${rangeLabel(trafficRange, trafficStartDate, trafficEndDate)}.`}
+                                    emptyMessage={`No visits recorded for ${rangeLabel(trafficRange, trafficStartDate, trafficEndDate)}.`}
                                 />
                             </ChartCard>
 
-                            <ChartCard title="Visitor Mix" detail={schoolYearDates} icon={UsersRound}>
+                            <ChartCard title="Visitor Demographic Mix" detail={schoolYearDates} icon={Users}>
                                 <VisitorMixChart students={dashboard.visitorBreakdown.students} employees={dashboard.visitorBreakdown.employees} />
                             </ChartCard>
                         </section>
 
-                        <section className="min-w-0">
+                        {/* Operational Activity Row: Top Sections Recognition & Multi-Tab Academic Breakdown */}
+                        <section className="grid min-w-0 gap-6 xl:grid-cols-[minmax(19rem,1fr)_minmax(0,1.9fr)] items-start">
+                            <SectionLeaderboardCard sections={sectionLeaderboard} />
                             <ActivityBreakdownCard dashboard={dashboard} />
                         </section>
                     </div>
+
+                    {/* Scan Rules Modal (Clean Centered Modal dialog instead of right drawer) */}
+                    <Dialog open={scanRulesModalOpen} onOpenChange={setScanRulesModalOpen}>
+                        <DialogContent className="max-w-lg">
+                            <DialogHeader>
+                                <DialogTitle className="flex items-center gap-2">
+                                    <SlidersHorizontal className="size-5 text-[#040DBF] dark:text-sky-400" />
+                                    <span>Library RFID Scan Settings</span>
+                                </DialogTitle>
+                                <DialogDescription>
+                                    Configure operating scan hours, cooldown times, and duplicate scan interval windows.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="mt-2">
+                                <ScanSettingsForm settings={dashboard.scanSettings} noWrapper={true} />
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                 </AdminLayout>
             </main>
         </>

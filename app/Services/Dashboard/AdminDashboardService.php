@@ -63,7 +63,7 @@ class AdminDashboardService
     private function visitsToday(?int $schoolYearId, string $scanStartTime): int
     {
         return LibraryVisit::query()
-            ->where('visited_at', '>=', $this->todayScanStartsAt($scanStartTime))
+            ->whereBetween('visited_at', [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()])
             ->forRequiredSchoolYear($schoolYearId)
             ->count();
     }

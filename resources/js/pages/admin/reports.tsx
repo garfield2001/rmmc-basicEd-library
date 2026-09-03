@@ -25,7 +25,7 @@ export default function Reports({ report, initialVisitorType, pagePath, reportOp
             <Head title={`${audienceLabel} Reports`} />
             <main className="min-h-screen">
                 <AdminLayout active="reports">
-                    <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
+                    <div className="admin-content-shell mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
                             title={`${audienceLabel} Reports`}
                             description={

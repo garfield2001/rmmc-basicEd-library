@@ -5,7 +5,12 @@ import { Link } from '@inertiajs/react';
 import { RadioTower, Trophy } from 'lucide-react';
 import { useState } from 'react';
 
-export function DashboardActions({ requiredProgress }: { requiredProgress: RequiredProgressPoint[] }) {
+interface DashboardActionsProps {
+    requiredProgress: RequiredProgressPoint[];
+    individualProgress?: any[];
+}
+
+export function DashboardActions({ requiredProgress, individualProgress = [] }: DashboardActionsProps) {
     const [progressOpen, setProgressOpen] = useState(false);
 
     return (
@@ -24,7 +29,7 @@ export function DashboardActions({ requiredProgress }: { requiredProgress: Requi
                     <DialogHeader>
                         <DialogTitle>Required Visit Progress</DialogTitle>
                     </DialogHeader>
-                    <RequiredProgressPanel progress={requiredProgress} framed={false} />
+                    <RequiredProgressPanel progress={requiredProgress} individualProgress={individualProgress} framed={false} />
                 </DialogContent>
             </Dialog>
             <Link

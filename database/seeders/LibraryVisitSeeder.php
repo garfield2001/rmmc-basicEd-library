@@ -27,7 +27,11 @@ class LibraryVisitSeeder extends Seeder
 
     private function buildSchoolCalendar(SchoolYear $schoolYear): void
     {
-        $period = CarbonPeriod::create($schoolYear->startDate(), $schoolYear->endDate());
+        $calendarEndDate = $schoolYear->is_active
+            ? min($schoolYear->endDate(), now()->subDay()->startOfDay())
+            : $schoolYear->endDate();
+
+        $period = CarbonPeriod::create($schoolYear->startDate(), $calendarEndDate);
         $startYear = $schoolYear->startDate()->year;
         $holidayStart = Carbon::create($startYear, 12, 20);
         $holidayEnd = Carbon::create($startYear + 1, 1, 4);

@@ -16,38 +16,49 @@ interface LiveVisitScannerProps {
 
 export function LiveVisitScanner({ value, options, inputRef, processing, loadingOptions = false, error, onChange, onSubmit }: LiveVisitScannerProps) {
     return (
-        <section className="grid gap-4">
-            <form onSubmit={onSubmit} className="admin-surface rounded-lg border border-[#040DBF]/10 bg-white/95 p-5 shadow-sm">
-                <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-                    <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#040DBF] text-white shadow-sm shadow-[#040DBF]/25">
-                            <RadioTower className="size-5" />
-                        </div>
-                        <div className="min-w-0">
-                            <p className="text-sm font-medium text-[#030A8C]">RFID scanner</p>
-                            <h2 className="text-xl font-semibold tracking-normal text-[#010440]">Record a library visit</h2>
-                        </div>
+        <div className="admin-surface flex h-full flex-col justify-between rounded-xl border border-[#040DBF]/10 bg-white/95 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div>
+                <div className="flex items-center gap-3">
+                    <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#040DBF] text-white shadow-sm shadow-[#040DBF]/25 dark:bg-blue-600">
+                        <RadioTower className="size-5" />
                     </div>
-
-                    <div className="flex w-full flex-col gap-3 sm:flex-row xl:max-w-xl">
-                        <ScanLookupInput
-                            id="admin-scan-lookup"
-                            ref={inputRef}
-                            value={value}
-                            options={options}
-                            loading={loadingOptions}
-                            onChange={onChange}
-                            placeholder="Scan card or type name / school ID"
-                            className="w-full"
-                        />
-                        <Button type="submit" disabled={processing} className="h-11 shrink-0 bg-[#040DBF] px-5 text-white hover:bg-[#030A8C]">
-                            <ScanLine className="size-4" />
-                            {processing ? 'Recording...' : 'Record visit'}
-                        </Button>
+                    <div className="min-w-0">
+                        <p className="text-xs font-bold tracking-wide text-[#030A8C] uppercase dark:text-sky-300">RFID Scanner Terminal</p>
+                        <h2 className="text-xl font-extrabold tracking-tight text-[#010440] dark:text-white sm:text-2xl">Record a library visit</h2>
                     </div>
                 </div>
-                {error && <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+                <p className="mt-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+                    Tap physical RFID card or search by visitor name / school ID to register instantaneous entry.
+                </p>
+            </div>
+
+            <form onSubmit={onSubmit} className="mt-5 space-y-3">
+                <div className="flex flex-col gap-3 sm:flex-row">
+                    <ScanLookupInput
+                        id="admin-scan-lookup"
+                        ref={inputRef}
+                        value={value}
+                        options={options}
+                        loading={loadingOptions}
+                        onChange={onChange}
+                        placeholder="Scan card or type name / school ID"
+                        className="w-full"
+                    />
+                    <Button
+                        type="submit"
+                        disabled={processing}
+                        className="h-11 shrink-0 bg-[#040DBF] px-5 font-semibold text-white shadow-sm transition hover:bg-[#030A8C] active:scale-[0.98] dark:bg-blue-600 dark:hover:bg-blue-700"
+                    >
+                        <ScanLine className="size-4" />
+                        {processing ? 'Recording...' : 'Record visit'}
+                    </Button>
+                </div>
+                {error && (
+                    <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
+                        {error}
+                    </p>
+                )}
             </form>
-        </section>
+        </div>
     );
 }

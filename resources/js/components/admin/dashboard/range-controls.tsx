@@ -58,14 +58,16 @@ export function RangeControls({
                 className,
             )}
         >
-            <div className="admin-segmented-tabs shrink-0 flex-nowrap overflow-x-auto">
+            <div className="admin-segmented-tabs shrink-0 flex-nowrap overflow-x-auto dark:bg-slate-800 dark:border-slate-700">
                 {(['last7', 'last14', 'lastMonth'] as VisitTrafficRange[]).map((range) => (
                     <button
                         key={range}
                         type="button"
                         onClick={() => onRangeChange(range)}
                         className={`admin-segmented-tab rounded-md px-2.5 py-1.5 text-xs font-semibold whitespace-nowrap transition ${
-                            value === range ? 'admin-segmented-tab-active' : 'text-[#020659]/75 hover:bg-white hover:text-[#010440]'
+                            value === range
+                                ? 'admin-segmented-tab-active dark:bg-blue-600 dark:text-white'
+                                : 'text-slate-700 hover:bg-white hover:text-[#010440] dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white'
                         }`}
                     >
                         {trafficRangeOptions[range].label.replace('last ', '')}
@@ -75,7 +77,9 @@ export function RangeControls({
                     type="button"
                     onClick={() => onRangeChange('custom')}
                     className={`admin-segmented-tab rounded-md px-2.5 py-1.5 text-xs font-semibold whitespace-nowrap transition ${
-                        value === 'custom' ? 'admin-segmented-tab-active' : 'text-[#020659]/75 hover:bg-white hover:text-[#010440]'
+                        value === 'custom'
+                            ? 'admin-segmented-tab-active dark:bg-blue-600 dark:text-white'
+                            : 'text-slate-700 hover:bg-white hover:text-[#010440] dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white'
                     }`}
                 >
                     Custom

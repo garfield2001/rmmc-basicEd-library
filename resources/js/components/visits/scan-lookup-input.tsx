@@ -80,7 +80,7 @@ export const ScanLookupInput = forwardRef<HTMLInputElement, ScanLookupInputProps
 
     return (
         <div className={cn('relative flex-1', className)}>
-            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
             <input
                 id={id}
                 ref={ref}
@@ -96,7 +96,7 @@ export const ScanLookupInput = forwardRef<HTMLInputElement, ScanLookupInputProps
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
                 className={cn(
-                    'h-11 w-full rounded-lg border border-zinc-300 bg-white pl-9 text-sm transition outline-none focus:border-zinc-500 focus:ring-4 focus:ring-zinc-100',
+                    'h-11 w-full rounded-lg border border-[#040DBF]/20 bg-white pl-9 text-sm text-[#010440] placeholder:text-slate-500 shadow-xs transition outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-500',
                     value ? 'pr-24' : 'pr-3',
                 )}
                 autoComplete="off"
@@ -110,7 +110,7 @@ export const ScanLookupInput = forwardRef<HTMLInputElement, ScanLookupInputProps
                         onChange('');
                         setActiveIndex(-1);
                     }}
-                    className="absolute top-1/2 right-1.5 inline-flex h-8 -translate-y-1/2 cursor-pointer items-center gap-1 rounded-md px-2 text-xs font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800 focus:ring-2 focus:ring-zinc-300 focus:outline-none"
+                    className="absolute top-1/2 right-1.5 inline-flex h-8 -translate-y-1/2 cursor-pointer items-center gap-1 rounded-md px-2 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
                     aria-label="Clear search"
                 >
                     <X className="size-4" />
@@ -119,9 +119,9 @@ export const ScanLookupInput = forwardRef<HTMLInputElement, ScanLookupInputProps
             )}
 
             {shouldShowOptions && (
-                <div className="absolute top-full right-0 left-0 z-50 mt-2 max-h-72 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg">
+                <div className="absolute top-full right-0 left-0 z-50 mt-2 max-h-72 overflow-y-auto rounded-xl border border-[#040DBF]/20 bg-white py-1 shadow-xl dark:bg-slate-800 dark:border-slate-700 dark:text-white">
                     {loading ? (
-                        <div className="px-3 py-3 text-sm text-zinc-500">Searching registered visitors...</div>
+                        <div className="px-3 py-3 text-sm text-slate-500 dark:text-slate-400">Searching registered visitors...</div>
                     ) : (
                         filteredOptions.map((option, index) => (
                             <button
@@ -133,11 +133,11 @@ export const ScanLookupInput = forwardRef<HTMLInputElement, ScanLookupInputProps
                                 }}
                                 className={cn(
                                     'flex w-full cursor-pointer flex-col px-3 py-2 text-left text-sm transition',
-                                    activeIndex === index ? 'bg-zinc-100 text-zinc-950' : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950',
+                                    activeIndex === index ? 'bg-[#040DBF]/10 font-bold text-[#040DBF] dark:bg-sky-500/20 dark:text-sky-300' : 'text-[#010440] hover:bg-[#f6f8ff] dark:text-slate-200 dark:hover:bg-slate-700',
                                 )}
                             >
-                                <span className="font-medium">{option.label}</span>
-                                <span className="mt-0.5 truncate text-xs text-zinc-500">{option.meta}</span>
+                                <span className="font-semibold">{option.label}</span>
+                                <span className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">{option.meta}</span>
                             </button>
                         ))
                     )}

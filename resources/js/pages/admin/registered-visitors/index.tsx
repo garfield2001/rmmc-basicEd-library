@@ -6,7 +6,6 @@ import { useVisitorImport } from '@/components/admin/registered-visitors/import/
 import { useVisitorsTableControls } from '@/components/admin/registered-visitors/table/use-visitors-table-controls';
 import type { VisitorsIndexProps } from '@/components/admin/registered-visitors/table/visitors-index-types';
 import { VisitorsTable } from '@/components/admin/registered-visitors/table/visitors-table';
-import { VisitorDistributionChart } from '@/components/admin/registered-visitors/visitor-distribution-chart';
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
 import { type LibraryMemberRow } from '@/types/registered-visitors';
@@ -32,13 +31,17 @@ export default function VisitorsIndex({ visitors, pagePath, filters, filterOptio
 
     return (
         <>
-            <Head title="Registered Visitors" />
-            <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f4f5_42%,#e7e5e4_100%)] text-zinc-950">
+            <Head title={table.activeType === 'student' ? 'Registered Students' : 'Registered Employees'} />
+            <main className="min-h-screen">
                 <AdminLayout active="visitors">
-                    <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
+                    <div className="admin-content-shell mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
-                            title="Registered Visitors"
-                            description="Manage student and employee RFID identities, school-year details, and searchable roster records."
+                            title={table.activeType === 'student' ? 'Registered Students' : 'Registered Employees'}
+                            description={
+                                table.activeType === 'student'
+                                    ? 'Manage student RFID cards, school-year grade & section placements, and searchable roster records.'
+                                    : 'Manage employee and faculty RFID cards, department assignments, and searchable records.'
+                            }
                             actions={
                                 <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
                                     <RegisteredVisitorsHeaderActions
@@ -55,6 +58,8 @@ export default function VisitorsIndex({ visitors, pagePath, filters, filterOptio
                         <VisitorsTable
                             visitors={visitors}
                             activeType={table.activeType}
+                            distribution={distribution}
+                            showTypeTabs={false}
                             search={search}
                             yearLevel={yearLevel}
                             section={section}
@@ -81,9 +86,8 @@ export default function VisitorsIndex({ visitors, pagePath, filters, filterOptio
                             onNext={() => table.visitUrl(visitors.next_page_url ?? visitors.links.find((link) => link.label.includes('Next'))?.url)}
                             onPageChange={table.requestPage}
                         />
-                        <VisitorDistributionChart activeType={table.activeType} distribution={distribution} />
                         {importer.importError && (
-                            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+                            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
                                 {importer.importError}
                             </p>
                         )}

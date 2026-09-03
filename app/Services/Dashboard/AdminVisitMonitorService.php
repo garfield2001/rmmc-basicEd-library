@@ -54,7 +54,7 @@ class AdminVisitMonitorService
                 'visitor.student' => AdminVisitRelations::student($schoolYearId),
                 'visitor.employee' => AdminVisitRelations::employee($schoolYearId),
             ])
-            ->where('visited_at', '>=', $this->todayScanStartsAt($scanStartTime))
+            ->whereBetween('visited_at', [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()])
             ->forRequiredSchoolYear($schoolYearId)
             ->latest('visited_at')
             ->get()
@@ -64,7 +64,7 @@ class AdminVisitMonitorService
     private function todayVisitQuery(?int $schoolYearId, string $scanStartTime): Builder
     {
         return LibraryVisit::query()
-            ->where('visited_at', '>=', $this->todayScanStartsAt($scanStartTime))
+            ->whereBetween('visited_at', [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()])
             ->forRequiredSchoolYear($schoolYearId);
     }
 

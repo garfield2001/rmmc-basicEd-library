@@ -97,14 +97,14 @@ class StudentSeeder extends LibraryMemberSeeder
                 continue;
             }
 
-            // Only promote the continuing section when transitioning from multi-section to single-section
+            // Only promote the continuing sections when transitioning from multi-section to single-section
             if ($currentYearLevel === 'Grade 6' && ! in_array($currentSection, ['Integrity', null], true)) {
                 // Grade 6 Justice & Kindness are elementary graduates
                 continue;
             }
 
-            if ($currentYearLevel === 'Grade 8' && ! in_array($currentSection, ['Nobility', null], true)) {
-                // Grade 8 Optimism moved / transferred
+            if ($currentYearLevel === 'Grade 9' && ! in_array($currentSection, ['Quest', null], true)) {
+                // Grade 9 Quality & Quantum route to other tracks
                 continue;
             }
 
@@ -116,10 +116,16 @@ class StudentSeeder extends LibraryMemberSeeder
                 'Grade 3' => 'Emerald',
                 'Grade 4' => 'Fortitude',
                 'Grade 5' => 'Garnet',
-                'Grade 6' => 'Integrity',
+                'Grade 6' => match ($currentSection) {
+                    'Granite' => 'Justice',
+                    default => 'Integrity',
+                },
                 'Grade 7' => 'Loyalty',
                 'Grade 8' => 'Nobility',
-                'Grade 9' => 'Quest',
+                'Grade 9' => match ($currentSection) {
+                    'Optimism' => 'Quality',
+                    default => 'Quest',
+                },
                 'Grade 10' => 'Wisdom',
                 default => 'A',
             };
@@ -148,10 +154,11 @@ class StudentSeeder extends LibraryMemberSeeder
     private function seedIncomingCurrentYearStudents(SchoolYear $currentYear): void
     {
         $incomingPlan = [
-            'Kindergarten 1' => ['Acacia' => 28],
-            'Grade 6' => ['Justice' => 26, 'Kindness' => 29],
+            'Kindergarten 1' => ['Acacia' => 27],
+            'Grade 5' => ['Granite' => 26],
+            'Grade 6' => ['Kindness' => 27],
             'Grade 8' => ['Optimism' => 28],
-            'Grade 10' => ['Xavier' => 27],
+            'Grade 9' => ['Quantum' => 27],
         ];
 
         $students = [];

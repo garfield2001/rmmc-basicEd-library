@@ -9,7 +9,7 @@ export function VisitorDataRow({ visitor, activeType, onEdit }: { visitor: Libra
     return (
         <TableRow>
             <TableCell>
-                <VisitorIdentity visitor={visitor} />
+                <VisitorIdentity visitor={visitor} onEdit={onEdit} />
             </TableCell>
             <TableCell className="font-medium">{visitor.school_id || '-'}</TableCell>
             {activeType === 'student' ? (
@@ -78,14 +78,32 @@ function SkeletonBlock({ className }: { className: string }) {
     return <div className={`animate-pulse bg-zinc-200/80 ${className}`} />;
 }
 
-function VisitorIdentity({ visitor }: { visitor: LibraryMemberRow }) {
+function VisitorIdentity({ visitor, onEdit }: { visitor: LibraryMemberRow; onEdit?: () => void }) {
+    const hasNoRfid = !visitor.rfid_uid;
+
     return (
         <div className="flex items-center gap-3">
             <VisitorAvatar name={visitor.name} src={visitor.photo_url} />
             <div className="min-w-0">
-                <p className="min-w-0 font-medium">{visitor.name}</p>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="min-w-0 font-medium text-[#010440] dark:text-white">{visitor.name}</p>
+
+                    {/* Subtle info indicator badge when member has no RFID */}
+                    {hasNoRfid && (
+                        <button
+                            type="button"
+                            onClick={onEdit}
+                            className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 transition hover:bg-amber-100 dark:bg-amber-950/50 dark:text-amber-300"
+                            title="No RFID assigned. Click to register RFID card."
+                        >
+                            <span className="size-1 rounded-full bg-amber-500" />
+                            <span>No RFID</span>
+                        </button>
+                    )}
+                </div>
+
                 {visitor.duplicate_count > 0 && (
-                    <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                    <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-medium text-rose-700 dark:bg-rose-950/50 dark:text-rose-300">
                         <AlertTriangle className="size-3" />
                         {visitor.duplicate_count} duplicate{visitor.duplicate_count === 1 ? '' : 's'} to merge
                     </p>

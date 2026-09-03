@@ -10,7 +10,10 @@ export function useAdminTheme(preference: ThemePreference) {
             const theme = resolveTheme(preference);
             const root = document.documentElement;
 
-            root.removeAttribute('data-admin-theme');
+            root.classList.toggle('dark', theme === 'dark');
+            root.classList.toggle('admin-theme-dark', theme === 'dark');
+            root.classList.toggle('admin-theme-light', theme === 'light');
+            root.setAttribute('data-admin-theme', theme);
             root.style.colorScheme = theme === 'dark' ? 'dark' : 'only light';
             setResolvedTheme(theme);
         };
@@ -18,7 +21,7 @@ export function useAdminTheme(preference: ThemePreference) {
         applyTheme();
 
         if (preference !== 'system' || typeof window === 'undefined') {
-            return () => clearAdminTheme();
+            return;
         }
 
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -27,7 +30,6 @@ export function useAdminTheme(preference: ThemePreference) {
 
         return () => {
             mediaQuery.removeEventListener('change', applyTheme);
-            clearAdminTheme();
         };
     }, [preference]);
 
@@ -37,6 +39,7 @@ export function useAdminTheme(preference: ThemePreference) {
 function clearAdminTheme() {
     const root = document.documentElement;
 
+    root.classList.remove('dark', 'admin-theme-dark', 'admin-theme-light');
     root.removeAttribute('data-admin-theme');
     root.style.colorScheme = 'only light';
 }

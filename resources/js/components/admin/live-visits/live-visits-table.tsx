@@ -17,8 +17,8 @@ export function LiveVisitsTable({ visits, studentCount, employeeCount, mode = 'l
     const table = useLiveVisitsTable({ visits, studentCount, employeeCount, mode });
 
     return (
-        <section className="admin-surface overflow-hidden rounded-xl border border-[#040DBF]/10 bg-white/95 shadow-sm">
-            <div className="h-2 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800" />
+        <section className="admin-surface overflow-hidden rounded-xl border border-[#040DBF]/10 bg-white/95 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="h-1.5 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800 dark:from-blue-500 dark:to-indigo-500" />
             <LiveVisitsTableHeader
                 title={table.title}
                 description={table.description}

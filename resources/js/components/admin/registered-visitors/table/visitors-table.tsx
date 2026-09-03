@@ -1,6 +1,7 @@
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { useViewportHeight, useWindowVirtualRows } from '@/hooks/use-window-virtual-rows';
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { VisitorDistributionChart } from '../visitor-distribution-chart';
 import { VisitorsTableContent } from './visitors-table-content';
 import { VisitorsTableToolbar } from './visitors-table-toolbar';
 import type { ColumnOption, VisitorsTableProps } from './visitors-table-types';
@@ -11,6 +12,7 @@ const VIRTUAL_OVERSCAN = 8;
 export function VisitorsTable({
     visitors,
     activeType,
+    distribution,
     search,
     yearLevel,
     section,
@@ -56,9 +58,13 @@ export function VisitorsTable({
     });
     const displayedVisitors = usesVirtualRows ? visitors.data.slice(virtualRows.startIndex, virtualRows.endIndex) : visitors.data;
 
+    const [showBreakdown, setShowBreakdown] = useState(false);
+    const withRfidCount = useMemo(() => visitors.data.filter((v) => Boolean(v.rfid_uid)).length, [visitors.data]);
+    const withoutRfidCount = useMemo(() => visitors.data.filter((v) => !v.rfid_uid).length, [visitors.data]);
+
     return (
-        <div className="relative overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm" aria-busy={isLoading}>
-            <div className="h-2 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800" />
+        <div className="relative overflow-hidden rounded-xl border border-[#040DBF]/10 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900" aria-busy={isLoading}>
+            <div className="h-1.5 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800 dark:from-blue-500 dark:to-indigo-500" />
             <VisitorsTableToolbar
                 activeType={activeType}
                 search={search}
@@ -70,6 +76,11 @@ export function VisitorsTable({
                 departments={departments}
                 sort={sort}
                 showTypeTabs={showTypeTabs}
+                totalCount={total}
+                withRfidCount={withRfidCount}
+                withoutRfidCount={withoutRfidCount}
+                showBreakdown={showBreakdown}
+                onToggleBreakdown={() => setShowBreakdown((prev) => !prev)}
                 onSearchChange={onSearchChange}
                 onTypeChange={onTypeChange}
                 onYearLevelChange={onYearLevelChange}
@@ -77,6 +88,13 @@ export function VisitorsTable({
                 onDepartmentChange={onDepartmentChange}
                 onSortClear={onSortClear}
             />
+
+            {/* Collapsible Cohort Breakdown Strip */}
+            {showBreakdown && distribution && (
+                <div className="border-b border-[#040DBF]/10 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/60">
+                    <VisitorDistributionChart activeType={activeType} distribution={distribution} />
+                </div>
+            )}
             <VisitorsTableContent
                 activeType={activeType}
                 columns={columns}

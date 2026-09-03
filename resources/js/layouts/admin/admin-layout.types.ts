@@ -30,11 +30,8 @@ export interface AdminSidebarProps {
 }
 
 export interface AdminNavbarProps {
-    collapsed: boolean;
-    mobileSidebarOpen: boolean;
+    active: AdminSection;
     resolvedTheme: 'light' | 'dark';
-    onCollapsedChange: (collapsed: boolean) => void;
-    onMobileSidebarToggle: () => void;
     onThemeToggle: () => void;
 }
 

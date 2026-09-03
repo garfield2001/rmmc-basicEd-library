@@ -41,13 +41,13 @@ export function LiveVisitsTableHeader({
     onDepartmentChange,
 }: LiveVisitsTableHeaderProps) {
     return (
-        <div className="space-y-4 border-b border-[#040DBF]/10 px-5 py-4">
+        <div className="space-y-4 border-b border-[#040DBF]/10 bg-[#f8faff] px-5 py-4 dark:border-slate-800 dark:bg-slate-800/50">
             <div>
                 <div className="flex items-center gap-2">
-                    <BarChart3 className="size-5 text-[#030A8C]" />
-                    <h2 className="text-lg font-semibold tracking-normal text-[#010440]">{title}</h2>
+                    <BarChart3 className="size-5 text-[#040DBF] dark:text-sky-400" />
+                    <h2 className="text-lg font-bold tracking-tight text-[#010440] dark:text-white">{title}</h2>
                 </div>
-                <p className="mt-1 text-sm text-[#020659]/70">{description}</p>
+                <p className="mt-1 text-xs font-medium text-slate-600 dark:text-slate-400">{description}</p>
             </div>
             <div className="space-y-3">
                 <div className="admin-segmented-tabs w-full sm:w-fit">
@@ -71,18 +71,18 @@ export function LiveVisitsTableHeader({
                         <FilterSelect value={department} options={departmentOptions} placeholder="All departments" onChange={onDepartmentChange} />
                     )}
                     <div className={visitTab === 'student' ? 'relative md:col-span-1' : 'relative md:col-span-2'}>
-                        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#030A8C]/50" />
+                        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
                         <input
                             value={search}
                             onChange={(event) => onSearchChange(event.target.value)}
                             placeholder={visitTab === 'student' ? 'Search ID, name, section' : 'Search ID, name, department'}
-                            className="h-10 w-full rounded-lg border border-[#040DBF]/15 bg-white pr-9 pl-9 text-sm transition outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10"
+                            className="h-10 w-full rounded-lg border border-[#040DBF]/20 bg-white pr-9 pl-9 text-sm text-[#010440] placeholder:text-slate-500 transition outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-500"
                         />
                         {search && (
                             <button
                                 type="button"
                                 onClick={() => onSearchChange('')}
-                                className="absolute top-1/2 right-2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-[#030A8C]/50 transition hover:bg-[#040DBF]/5 hover:text-[#010440]"
+                                className="absolute top-1/2 right-2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-slate-500 transition hover:bg-[#040DBF]/5 hover:text-[#010440] dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
                                 title="Clear search"
                             >
                                 <X className="size-4" />
@@ -103,7 +103,7 @@ function LiveVisitTabButton({ tab, activeTab, onChange }: { tab: LiveVisitTabOpt
         <button type="button" onClick={() => onChange(tab.value)} className={`admin-segmented-tab ${isActive ? 'admin-segmented-tab-active' : ''}`}>
             <Icon className="size-3.5" />
             {tab.label}
-            <span className={isActive ? 'text-white/75' : 'text-[#030A8C]/60'}>{tab.count}</span>
+            <span className={isActive ? 'text-white/75' : 'text-[#030A8C]/60 dark:text-slate-400'}>{tab.count}</span>
         </button>
     );
 }

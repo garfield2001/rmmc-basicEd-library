@@ -16,12 +16,12 @@ export function LatestVisitDetailsDialog({ open, visit, onOpenChange }: LatestVi
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto p-0 sm:max-w-4xl" onOpenAutoFocus={(event) => event.preventDefault()}>
-                <div className="h-2 bg-[linear-gradient(90deg,#040DBF_0%,#030A8C_52%,#010440_100%)]" />
+            <DialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto p-0 sm:max-w-4xl dark:bg-slate-900 dark:border-slate-800" onOpenAutoFocus={(event) => event.preventDefault()}>
+                <div className="h-2 bg-[linear-gradient(90deg,#040DBF_0%,#030A8C_52%,#010440_100%)] dark:from-blue-600 dark:to-indigo-600" />
                 <DialogHeader>
                     <div className="px-6 pt-6">
-                        <DialogTitle className="text-2xl text-[#010440]">Latest scanned visitor</DialogTitle>
-                        <DialogDescription className="mt-1">Complete details for the most recent Radio-Frequency ID visit.</DialogDescription>
+                        <DialogTitle className="text-2xl font-bold text-[#010440] dark:text-white">Latest scanned visitor</DialogTitle>
+                        <DialogDescription className="mt-1 text-xs font-medium text-slate-600 dark:text-slate-400">Complete details for the most recent Radio-Frequency ID visit.</DialogDescription>
                     </div>
                 </DialogHeader>
 
@@ -30,23 +30,23 @@ export function LatestVisitDetailsDialog({ open, visit, onOpenChange }: LatestVi
 
                     <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#040DBF]/15 bg-[#f6f8ff] px-3 py-1 text-xs font-medium text-[#030A8C]">
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#040DBF]/15 bg-[#f6f8ff] px-3 py-1 text-xs font-semibold text-[#030A8C] dark:border-slate-700 dark:bg-slate-800 dark:text-sky-300">
                                 <TypeIcon className="size-3.5" />
                                 {visitorTypeLabel(visit)}
                             </span>
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#040DBF]/15 bg-white px-3 py-1 text-xs font-medium text-[#030A8C]">
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#040DBF]/15 bg-white px-3 py-1 text-xs font-semibold text-[#030A8C] dark:border-slate-700 dark:bg-slate-800 dark:text-sky-300">
                                 <CalendarClock className="size-3.5" />
                                 {formatVisitDateTime(visit)}
                             </span>
                         </div>
 
-                        <p className="mt-5 text-3xl font-semibold tracking-normal text-[#010440]">{visit.visitor.name ?? 'Unknown visitor'}</p>
-                        <p className="mt-2 flex items-center gap-2 text-sm text-[#030A8C]">
+                        <p className="mt-5 text-3xl font-extrabold tracking-tight text-[#010440] dark:text-white">{visit.visitor.name ?? 'Unknown visitor'}</p>
+                        <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-[#030A8C] dark:text-sky-300">
                             <IdCard className="size-4" />
                             {visit.visitor.schoolId ?? 'No ID'}
                         </p>
 
-                        <div className="mt-6 divide-y divide-[#040DBF]/10 rounded-lg border border-[#040DBF]/10 text-sm">
+                        <div className="mt-6 divide-y divide-[#040DBF]/10 rounded-xl border border-[#040DBF]/10 text-sm dark:divide-slate-800 dark:border-slate-800">
                             <LatestVisitDetailItem
                                 className="grid gap-1 px-4 py-4 sm:grid-cols-[11rem_minmax(0,1fr)]"
                                 label="Visitor type"
@@ -74,9 +74,9 @@ export function LatestVisitDetailsDialog({ open, visit, onOpenChange }: LatestVi
                             )}
                         </div>
 
-                        <div className="mt-5 flex items-start gap-3 text-sm text-[#020659]/75">
-                            <ScanLine className="mt-0.5 size-4 shrink-0 text-[#040DBF]" />
-                            <p className="leading-6">
+                        <div className="mt-5 flex items-start gap-3 text-xs font-medium text-slate-600 dark:text-slate-400">
+                            <ScanLine className="mt-0.5 size-4 shrink-0 text-[#040DBF] dark:text-sky-400" />
+                            <p className="leading-5">
                                 Read-only visit record. Edit profile information from Registered Visitors when a name, photo, or department needs
                                 correction.
                             </p>
@@ -94,7 +94,7 @@ function VisitPhoto({ visit }: { visit: DashboardVisit }) {
             <VisitorAvatar
                 name={visit.visitor.name}
                 src={visit.visitor.photoUrl}
-                className="live-visit-avatar aspect-square size-full min-h-48 rounded-xl bg-[#eef2ff] text-4xl text-[#030A8C]/70 ring-1 ring-[#040DBF]/10"
+                className="live-visit-avatar aspect-square size-full min-h-48 rounded-xl bg-[#eef2ff] text-4xl text-[#030A8C]/70 ring-1 ring-[#040DBF]/10 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700"
             />
         </div>
     );
