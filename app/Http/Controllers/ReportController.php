@@ -4,13 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Exports\Reports\VisitReportExcelExport;
 use App\Http\Requests\ReportFilterRequest;
-use App\Models\EmployeeSchoolYearRecord;
-use App\Models\SchoolYear;
 use App\Services\Reports\VisitReportExportService;
 use App\Services\Reports\VisitReportService;
 use App\Services\Reports\VisitReportWordExportService;
 use App\Services\SchoolYears\SchoolYearSectionService;
-use App\Support\Academics\AcademicLevels;
 use App\Support\Reports\ReportPdfBrowser;
 use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;

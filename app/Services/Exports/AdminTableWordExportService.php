@@ -19,8 +19,8 @@ class AdminTableWordExportService
     /**
      * Generate and download a Word document export.
      *
-     * @param array  $payload    The data payload containing columns, groups, and metadata
-     * @param string $filename   The name of the file to be downloaded
+     * @param  array  $payload  The data payload containing columns, groups, and metadata
+     * @param  string  $filename  The name of the file to be downloaded
      * @return BinaryFileResponse The downloadable file response
      */
     public function download(array $payload, string $filename): BinaryFileResponse
@@ -36,8 +36,8 @@ class AdminTableWordExportService
     /**
      * Create the PhpWord document object with all content.
      *
-     * @param array $payload The data payload to be exported
-     * @return PhpWord       The configured PhpWord document instance
+     * @param  array  $payload  The data payload to be exported
+     * @return PhpWord The configured PhpWord document instance
      */
     private function document(array $payload): PhpWord
     {
@@ -66,8 +66,7 @@ class AdminTableWordExportService
     /**
      * Add the letterhead section to the document.
      *
-     * @param object $section The section to add the letterhead to
-     * @return void
+     * @param  object  $section  The section to add the letterhead to
      */
     private function letterhead($section): void
     {
@@ -77,11 +76,11 @@ class AdminTableWordExportService
         $left = $table->addCell(1300, $cellStyle);
         $center = $table->addCell(6600, $cellStyle);
         $right = $table->addCell(1300, $cellStyle);
-        
+
         $leftLogo = public_path('images/rmmc-left-logo.jpg');
         $rightLogo = public_path('images/rmmc-right-logo.jpg');
         $defaultLogo = public_path('images/rmmc-logo.jpg');
-        
+
         $leftLogoPath = is_file($leftLogo) ? $leftLogo : (is_file($defaultLogo) ? $defaultLogo : null);
         $rightLogoPath = is_file($rightLogo) ? $rightLogo : (is_file($defaultLogo) ? $defaultLogo : null);
 
@@ -101,9 +100,8 @@ class AdminTableWordExportService
     /**
      * Add metadata section (school year, visitor type, date range) to the document.
      *
-     * @param object $section The section to add metadata to
-     * @param array  $payload The data payload containing metadata
-     * @return void
+     * @param  object  $section  The section to add metadata to
+     * @param  array  $payload  The data payload containing metadata
      */
     private function metadata($section, array $payload): void
     {
@@ -114,39 +112,38 @@ class AdminTableWordExportService
             'alignment' => Jc::CENTER,
         ]);
         $table->addRow();
-        
+
         $cellStyle = ['bgColor' => 'F9FAFB', 'valign' => 'center'];
-        
+
         $run1 = $table->addCell(2400, $cellStyle)->addTextRun(['alignment' => Jc::CENTER]);
         $run1->addText('SCHOOL YEAR: ', ['color' => '6B7280', 'bold' => true, 'size' => 8]);
         $run1->addText($payload['school_year']['name'] ?? 'No school year', ['color' => '374151', 'bold' => true, 'size' => 9]);
-        
+
         $run2 = $table->addCell(2400, $cellStyle)->addTextRun(['alignment' => Jc::CENTER]);
         $run2->addText('VISITOR TYPE: ', ['color' => '6B7280', 'bold' => true, 'size' => 8]);
         $run2->addText($payload['visitor_label'], ['color' => '374151', 'bold' => true, 'size' => 9]);
-        
+
         $dates = explode(' to ', $payload['date_range']);
         $start = $dates[0] ?? '';
         $end = $dates[1] ?? '';
-        
+
         $run3 = $table->addCell(2400, $cellStyle)->addTextRun(['alignment' => Jc::CENTER]);
         $run3->addText('FROM: ', ['color' => '6B7280', 'bold' => true, 'size' => 8]);
         $run3->addText($start, ['color' => '374151', 'bold' => true, 'size' => 9]);
-        
+
         $run4 = $table->addCell(2400, $cellStyle)->addTextRun(['alignment' => Jc::CENTER]);
         $run4->addText('TO: ', ['color' => '6B7280', 'bold' => true, 'size' => 8]);
         $run4->addText($end, ['color' => '374151', 'bold' => true, 'size' => 9]);
-        
+
         $section->addText('', [], ['spaceAfter' => 240]);
     }
 
     /**
      * Add a data group section to the document.
      *
-     * @param object $section The section to add the group to
-     * @param array  $payload The data payload containing column definitions
-     * @param array  $group   The group data to export
-     * @return void
+     * @param  object  $section  The section to add the group to
+     * @param  array  $payload  The data payload containing column definitions
+     * @param  array  $group  The group data to export
      */
     private function group($section, array $payload, array $group): void
     {
@@ -235,32 +232,32 @@ class AdminTableWordExportService
 
         foreach ($comparison as $item) {
             $table->addRow();
-            
+
             // Left Column: Label
             $labelCell = $table->addCell(3000, ['valign' => 'center']);
             $labelCell->addText((string) ($item['label'] ?? ''), ['bold' => true, 'size' => 11, 'color' => '111827'], ['alignment' => Jc::END, 'spaceAfter' => 0]);
-            
+
             // Right Column: Stacked Bars & Stats
             $chartCell = $table->addCell(6000);
-            
+
             // Completion Bar
             $compRun = $chartCell->addTextRun(['spaceAfter' => 0]);
             $compRun->addText('Completion: ', ['color' => '6B7280', 'size' => 9]);
             $compRun->addText($this->barText((int) ($item['completion_percent'] ?? 0)), ['color' => '10B981']);
-            $compRun->addText(' ' . ($item['completion_percent'] ?? 0) . '%', ['bold' => true, 'color' => '374151', 'size' => 10]);
-            
+            $compRun->addText(' '.($item['completion_percent'] ?? 0).'%', ['bold' => true, 'color' => '374151', 'size' => 10]);
+
             // Visit Share Bar
             $shareRun = $chartCell->addTextRun(['spaceAfter' => 0]);
             $shareRun->addText('Visit Share: ', ['color' => '6B7280', 'size' => 9]);
             $shareRun->addText($this->barText((int) ($item['visit_share_percent'] ?? 0)), ['color' => '3B82F6']);
-            $shareRun->addText(' ' . ($item['visit_share_percent'] ?? 0) . '%', ['bold' => true, 'color' => '374151', 'size' => 10]);
-            
+            $shareRun->addText(' '.($item['visit_share_percent'] ?? 0).'%', ['bold' => true, 'color' => '374151', 'size' => 10]);
+
             // Metrics
             $metricRun = $chartCell->addTextRun(['spaceAfter' => 180]);
             $metricRun->addText('Total Visits: ', ['color' => '6B7280', 'size' => 9]);
             $metricRun->addText((string) ($item['total_visits'] ?? 0), ['bold' => true, 'color' => '374151', 'size' => 10]);
             $metricRun->addText('  |  Avg/Met: ', ['color' => '6B7280', 'size' => 9]);
-            $metricRun->addText(($item['average_visits'] ?? 0) . ' avg / ' . ($item['met_required'] ?? 0) . ' met', ['bold' => true, 'color' => '374151', 'size' => 10]);
+            $metricRun->addText(($item['average_visits'] ?? 0).' avg / '.($item['met_required'] ?? 0).' met', ['bold' => true, 'color' => '374151', 'size' => 10]);
         }
     }
 

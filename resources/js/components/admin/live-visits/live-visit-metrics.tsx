@@ -1,5 +1,4 @@
 import { formatTime } from '@/components/admin/dashboard/dashboard-summary';
-import { IconBadge } from '@/components/ui/icon-badge';
 import { BriefcaseBusiness, Clock3, GraduationCap, Library, type LucideIcon } from 'lucide-react';
 
 interface LiveVisitMetricsProps {
@@ -10,7 +9,13 @@ interface LiveVisitMetricsProps {
     scanEndsAt?: string;
 }
 
-export function LiveVisitMetrics({ visitsToday, studentVisitsToday, employeeVisitsToday, scanStartsAt, scanEndsAt = '17:00' }: LiveVisitMetricsProps) {
+export function LiveVisitMetrics({
+    visitsToday,
+    studentVisitsToday,
+    employeeVisitsToday,
+    scanStartsAt,
+    scanEndsAt = '17:00',
+}: LiveVisitMetricsProps) {
     const metrics: { label: string; value: string | number; detail: string; icon: LucideIcon; color: string }[] = [
         {
             label: 'Visits Today',
@@ -58,7 +63,7 @@ export function LiveVisitMetrics({ visitsToday, studentVisitsToday, employeeVisi
                                 <Icon className="size-4" />
                             </span>
                         </div>
-                        <p className="mt-2 text-2xl font-extrabold tracking-tight text-[#010440] dark:text-white sm:text-3xl">{metric.value}</p>
+                        <p className="mt-2 text-2xl font-extrabold tracking-tight text-[#010440] sm:text-3xl dark:text-white">{metric.value}</p>
                         <p className="mt-1.5 truncate text-[11px] font-medium text-slate-500 dark:text-slate-400">{metric.detail}</p>
                     </div>
                 );

@@ -63,7 +63,10 @@ export function VisitorsTable({
     const withoutRfidCount = useMemo(() => visitors.data.filter((v) => !v.rfid_uid).length, [visitors.data]);
 
     return (
-        <div className="relative overflow-hidden rounded-xl border border-[#040DBF]/10 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900" aria-busy={isLoading}>
+        <div
+            className="relative overflow-hidden rounded-xl border border-[#040DBF]/10 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900"
+            aria-busy={isLoading}
+        >
             <div className="h-1.5 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800 dark:from-blue-500 dark:to-indigo-500" />
             <VisitorsTableToolbar
                 activeType={activeType}

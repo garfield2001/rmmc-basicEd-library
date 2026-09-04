@@ -3,6 +3,7 @@
 namespace App\Services\Dashboard;
 
 use App\Models\LibraryMember;
+use App\Models\LibraryVisit;
 use App\Models\SchoolYear;
 use Illuminate\Support\Collection;
 
@@ -37,17 +38,23 @@ class AdminDashboardProgressService
 
     private function progressForType(SchoolYear $schoolYear, string $type, string $label, int $requiredVisits): array
     {
-        /** @var Collection<int, LibraryMember> $visitors */
-        $visitors = LibraryMember::query()
+        $baseQuery = LibraryMember::query()
             ->where('type', $type)
-            ->visitEligibleForSchoolYear($schoolYear->id)
-            ->withCount([
-                'visits as visits_count' => fn ($query) => $query->where('school_year_id', $schoolYear->id),
-            ])
-            ->get();
+            ->visitEligibleForSchoolYear($schoolYear->id);
 
-        $visitorCount = $visitors->count();
-        $visitCount = $visitors->sum('visits_count');
+        $visitorCount = (clone $baseQuery)->count();
+
+        $visitCount = LibraryVisit::query()
+            ->where('school_year_id', $schoolYear->id)
+            ->whereHas('visitor', fn ($query) => $query->where('type', $type))
+            ->count();
+
+        $metRequired = $requiredVisits > 0
+            ? (clone $baseQuery)
+                ->has('visits', '>=', $requiredVisits, 'and', fn ($query) => $query->where('school_year_id', $schoolYear->id))
+                ->count()
+            : 0;
+
         $requiredTotal = $visitorCount * $requiredVisits;
 
         return [
@@ -56,7 +63,7 @@ class AdminDashboardProgressService
             'visitors' => $visitorCount,
             'visits' => $visitCount,
             'required_total' => $requiredTotal,
-            'met_required' => $requiredVisits > 0 ? $visitors->where('visits_count', '>=', $requiredVisits)->count() : 0,
+            'met_required' => $metRequired,
             'percent' => $requiredTotal > 0 ? min(100, round(($visitCount / $requiredTotal) * 100)) : 0,
         ];
     }
@@ -65,6 +72,7 @@ class AdminDashboardProgressService
     {
         /** @var Collection<int, LibraryMember> $visitors */
         $visitors = LibraryMember::query()
+            ->select(['id', 'school_id', 'rfid_uid', 'first_name', 'middle_name', 'last_name', 'type'])
             ->where('type', $type)
             ->visitEligibleForSchoolYear($schoolYear->id)
             ->with([

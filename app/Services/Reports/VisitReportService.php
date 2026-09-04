@@ -2,8 +2,11 @@
 
 namespace App\Services\Reports;
 
+use App\Models\EmployeeSchoolYearRecord;
 use App\Models\LibraryMember;
 use App\Models\SchoolYear;
+use App\Services\SchoolYears\SchoolYearSectionService;
+use App\Support\Academics\AcademicLevels;
 use Illuminate\Support\Carbon;
 
 class VisitReportService
@@ -128,7 +131,7 @@ class VisitReportService
         ];
     }
 
-    public function getReportOptions(\App\Services\SchoolYears\SchoolYearSectionService $sections, ?int $activeSchoolYearId): array
+    public function getReportOptions(SchoolYearSectionService $sections, ?int $activeSchoolYearId): array
     {
         return [
             'schoolYears' => SchoolYear::query()
@@ -143,10 +146,10 @@ class VisitReportService
                     'employee_required_visits' => $schoolYear->employee_required_visits,
                     'is_active' => $schoolYear->is_active,
                 ]),
-            'yearLevels' => \App\Support\Academics\AcademicLevels::options(),
+            'yearLevels' => AcademicLevels::options(),
             'sectionsByYearLevel' => $sections->groupedByYearLevel($activeSchoolYearId ?: SchoolYear::active()->value('id')),
             'sectionsBySchoolYear' => $sections->groupedBySchoolYear(),
-            'departments' => \App\Models\EmployeeSchoolYearRecord::query()
+            'departments' => EmployeeSchoolYearRecord::query()
                 ->when($activeSchoolYearId, fn ($query, $schoolYearId) => $query->where('school_year_id', $schoolYearId))
                 ->whereNotNull('department')
                 ->distinct()

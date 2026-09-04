@@ -1,13 +1,13 @@
 import { RequiredProgressPanel } from '@/components/admin/dashboard/required-progress-panel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import type { RequiredProgressPoint } from '@/types/dashboard';
+import type { IndividualProgressPoint, RequiredProgressPoint } from '@/types/dashboard';
 import { Link } from '@inertiajs/react';
 import { RadioTower, Trophy } from 'lucide-react';
 import { useState } from 'react';
 
 interface DashboardActionsProps {
     requiredProgress: RequiredProgressPoint[];
-    individualProgress?: any[];
+    individualProgress?: IndividualProgressPoint[];
 }
 
 export function DashboardActions({ requiredProgress, individualProgress = [] }: DashboardActionsProps) {

@@ -1,4 +1,4 @@
-import { Trophy, Medal, Award } from 'lucide-react';
+import { Award, Medal, Trophy } from 'lucide-react';
 
 interface SectionLeaderboardProps {
     sections: Array<{ label: string; value: number }>;
@@ -39,7 +39,7 @@ export function SectionLeaderboardCard({ sections }: SectionLeaderboardProps) {
 
     return (
         <section className="admin-surface flex h-full flex-col rounded-xl border border-[#040DBF]/10 bg-white/95 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex items-center justify-between pb-3 border-b border-[#040DBF]/10 dark:border-slate-800">
+            <div className="flex items-center justify-between border-b border-[#040DBF]/10 pb-3 dark:border-slate-800">
                 <div className="flex items-center gap-2">
                     <span className="flex size-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
                         <Trophy className="size-4" />
@@ -53,22 +53,21 @@ export function SectionLeaderboardCard({ sections }: SectionLeaderboardProps) {
 
             <div className="mt-4 flex-1 space-y-3">
                 {topSections.length === 0 ? (
-                    <div className="flex h-32 items-center justify-center text-xs text-slate-400">
-                        No section visits recorded yet.
-                    </div>
+                    <div className="flex h-32 items-center justify-center text-xs text-slate-400">No section visits recorded yet.</div>
                 ) : (
                     topSections.map((item, index) => {
                         const percent = Math.round((item.value / maxVisits) * 100);
                         return (
-                            <div key={item.label} className="group relative rounded-lg border border-[#040DBF]/5 bg-[#f6f8ff]/50 p-2.5 transition hover:border-[#040DBF]/20 hover:bg-[#f6f8ff] dark:border-slate-800 dark:bg-slate-800/40 dark:hover:bg-slate-800/80">
+                            <div
+                                key={item.label}
+                                className="group relative rounded-lg border border-[#040DBF]/5 bg-[#f6f8ff]/50 p-2.5 transition hover:border-[#040DBF]/20 hover:bg-[#f6f8ff] dark:border-slate-800 dark:bg-slate-800/40 dark:hover:bg-slate-800/80"
+                            >
                                 <div className="flex items-center justify-between text-xs">
-                                    <div className="flex items-center gap-2.5 min-w-0">
+                                    <div className="flex min-w-0 items-center gap-2.5">
                                         {rankBadge(index)}
-                                        <span className="font-bold text-[#010440] dark:text-white truncate">
-                                            {item.label}
-                                        </span>
+                                        <span className="truncate font-bold text-[#010440] dark:text-white">{item.label}</span>
                                     </div>
-                                    <span className="font-semibold text-[#040DBF] dark:text-sky-400 shrink-0 ml-2">
+                                    <span className="ml-2 shrink-0 font-semibold text-[#040DBF] dark:text-sky-400">
                                         {item.value.toLocaleString()} visits
                                     </span>
                                 </div>

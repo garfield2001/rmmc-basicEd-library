@@ -165,20 +165,20 @@ function SummaryCard({
 
     return (
         <div className="flex h-full flex-col">
-            <div className="flex items-center gap-2 border-b border-[#040DBF]/10 px-5 py-4">
-                <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[#f6f8ff]">{icon}</div>
-                <h3 className="text-sm font-semibold tracking-normal text-[#010440]">{title}</h3>
+            <div className="flex items-center gap-2 border-b border-[#040DBF]/10 px-5 py-4 dark:border-slate-800">
+                <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[#f6f8ff] dark:bg-slate-800">{icon}</div>
+                <h3 className="text-sm font-semibold tracking-normal text-[#010440] dark:text-white">{title}</h3>
             </div>
             {items.length === 0 ? (
                 <div className="flex flex-1 flex-col items-center justify-center p-8 text-center">
-                    <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-[#f6f8ff]">
-                        <Users className="size-6 text-[#020659]/30" />
+                    <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-[#f6f8ff] dark:bg-slate-800">
+                        <Users className="size-6 text-[#020659]/30 dark:text-slate-500" />
                     </div>
-                    <p className="text-sm font-medium text-[#020659]/70">No activity found</p>
-                    <p className="mt-1 text-xs text-[#020659]/40">Try adjusting your filters or date range.</p>
+                    <p className="text-sm font-medium text-[#020659]/70 dark:text-slate-400">No activity found</p>
+                    <p className="mt-1 text-xs text-[#020659]/40 dark:text-slate-500">Try adjusting your filters or date range.</p>
                 </div>
             ) : (
-                <div className="custom-scrollbar flex flex-1 flex-col overflow-y-auto">
+                <div className="hover-scrollbar flex flex-1 flex-col overflow-y-auto">
                     {displayedItems.map((item, index) => {
                         const active = isActive?.(item);
 
@@ -186,32 +186,36 @@ function SummaryCard({
                             <div
                                 key={item.label}
                                 onClick={() => onClick?.(item)}
-                                className={`group flex cursor-pointer flex-col gap-3 border-b border-[#040DBF]/5 px-5 py-4 transition-colors last:border-0 hover:bg-[#f6f8ff] ${active ? 'bg-[#f6f8ff]' : ''}`}
+                                className={`group flex cursor-pointer flex-col gap-3 border-b border-[#040DBF]/5 px-5 py-4 transition-colors last:border-0 hover:bg-[#f6f8ff] dark:border-slate-800/60 dark:hover:bg-slate-800/50 ${active ? 'bg-[#f6f8ff] dark:bg-slate-800/70' : ''}`}
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <div
                                             className={`flex size-6 items-center justify-center rounded-full text-xs font-bold ${
-                                                index < 3 ? 'bg-[#030A8C] text-white' : 'bg-[#f6f8ff] text-[#020659]/60'
+                                                index < 3
+                                                    ? 'bg-[#030A8C] text-white dark:bg-blue-600'
+                                                    : 'bg-[#f6f8ff] text-[#020659]/60 dark:bg-slate-800 dark:text-slate-300'
                                             }`}
                                         >
                                             {index + 1}
                                         </div>
                                         <div>
-                                            <div className="text-[13px] font-semibold text-[#010440]">{item.label}</div>
-                                            <div className="mt-0.5 text-[11px] font-medium text-[#020659]/60">
+                                            <div className="text-[13px] font-semibold text-[#010440] dark:text-slate-100">{item.label}</div>
+                                            <div className="mt-0.5 text-[11px] font-medium text-[#020659]/60 dark:text-slate-400">
                                                 {item.visitors} active {item.visitors === 1 ? 'member' : 'members'}
                                             </div>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-sm font-bold text-[#010440]">{item.visits}</div>
-                                        <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-[#020659]/50 uppercase">Visits</div>
+                                        <div className="text-sm font-bold text-[#010440] dark:text-white">{item.visits}</div>
+                                        <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-[#020659]/50 uppercase dark:text-slate-400">
+                                            Visits
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <ProgressBar value={item.averagePercent} className="flex-1" />
-                                    <span className="min-w-[3ch] text-xs font-bold text-[#010440]">{item.averagePercent}%</span>
+                                    <span className="min-w-[3ch] text-xs font-bold text-[#010440] dark:text-slate-200">{item.averagePercent}%</span>
                                 </div>
                             </div>
                         );

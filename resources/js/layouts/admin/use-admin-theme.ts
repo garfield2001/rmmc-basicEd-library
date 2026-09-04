@@ -35,11 +35,3 @@ export function useAdminTheme(preference: ThemePreference) {
 
     return resolvedTheme;
 }
-
-function clearAdminTheme() {
-    const root = document.documentElement;
-
-    root.classList.remove('dark', 'admin-theme-dark', 'admin-theme-light');
-    root.removeAttribute('data-admin-theme');
-    root.style.colorScheme = 'only light';
-}

@@ -19,7 +19,7 @@ export function ChartCard({ title, detail, icon: Icon, actions, children }: Char
                     </span>
                     <div className="min-w-0">
                         <h2 className="text-lg font-bold tracking-tight text-[#010440] dark:text-white">{title}</h2>
-                        <p className="mt-1 text-xs font-medium leading-5 wrap-break-word text-slate-600 dark:text-slate-400">{detail}</p>
+                        <p className="mt-1 text-xs leading-5 font-medium wrap-break-word text-slate-600 dark:text-slate-400">{detail}</p>
                     </div>
                 </div>
                 {actions && <div className="flex w-full min-w-0 flex-wrap items-center gap-2">{actions}</div>}

@@ -60,9 +60,9 @@ class ReportPdfBrowser
     private function userDataDir(): string
     {
         return rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR)
-            . DIRECTORY_SEPARATOR
-            . 'rmmc-basiced-library-browsershot-'
-            . substr(sha1(base_path()), 0, 12);
+            .DIRECTORY_SEPARATOR
+            .'rmmc-basiced-library-browsershot-'
+            .substr(sha1(base_path()), 0, 12);
     }
 
     private function windowsBrowserPaths(): array

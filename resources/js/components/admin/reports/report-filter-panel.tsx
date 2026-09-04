@@ -93,7 +93,9 @@ export function ReportFilterPanel({
             {/* Auto-flowing Responsive Filter Toolbar */}
             <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
                 <div className="flex w-full min-w-0 flex-col gap-1.5">
-                    <label className="flex h-4 items-center truncate text-xs leading-4 font-semibold text-[#010440] dark:text-slate-200">1. School year</label>
+                    <label className="flex h-4 items-center truncate text-xs leading-4 font-semibold text-[#010440] dark:text-slate-200">
+                        1. School year
+                    </label>
                     <SingleSelectDropdown
                         value={schoolYearId}
                         options={schoolYearOptions}
@@ -104,7 +106,9 @@ export function ReportFilterPanel({
 
                 {selectedSchoolYear && (
                     <div className="flex w-full min-w-0 flex-col gap-1.5">
-                        <label className="flex h-4 items-center truncate text-xs leading-4 font-semibold text-[#010440] dark:text-slate-200">2. Date range</label>
+                        <label className="flex h-4 items-center truncate text-xs leading-4 font-semibold text-[#010440] dark:text-slate-200">
+                            2. Date range
+                        </label>
                         <SingleSelectDropdown
                             value={dateRangeMode}
                             options={dateRangeOptions}
@@ -116,7 +120,9 @@ export function ReportFilterPanel({
 
                 {selectedSchoolYear && dateRangeMode === 'custom' && schoolYearBounds && (
                     <div className="flex w-full min-w-0 flex-col gap-1.5">
-                        <label className="flex h-4 items-center truncate text-xs leading-4 font-semibold text-[#010440] dark:text-slate-200">3. Custom dates</label>
+                        <label className="flex h-4 items-center truncate text-xs leading-4 font-semibold text-[#010440] dark:text-slate-200">
+                            3. Custom dates
+                        </label>
                         <CustomDateRangePicker
                             startDate={startDate}
                             endDate={endDate}

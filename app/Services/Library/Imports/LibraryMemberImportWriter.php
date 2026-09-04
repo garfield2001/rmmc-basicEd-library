@@ -109,5 +109,4 @@ class LibraryMemberImportWriter
 
         return $value === '' ? null : $value;
     }
-
 }

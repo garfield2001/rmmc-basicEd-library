@@ -89,7 +89,7 @@ class AdminTableExcelExport implements FromArray, WithColumnWidths, WithDrawings
                 $sheet->mergeCells("B1:{$centerEndColumn}1")->mergeCells("B2:{$centerEndColumn}2")->mergeCells("B3:{$centerEndColumn}3")->mergeCells("B4:{$centerEndColumn}4");
                 $sheet->getStyle("A1:{$lastColumn}".max(1, $sheet->getHighestRow()))->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
                 $sheet->getStyle("B1:{$lastColumn}7")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $sheet->getStyle("B1:B2")->getFont()->setBold(true)->setSize(16);
+                $sheet->getStyle('B1:B2')->getFont()->setBold(true)->setSize(16);
                 $sheet->getStyle("A5:{$lastColumn}7")->getFont()->setBold(true);
 
                 foreach ($this->groupRows as $row) {

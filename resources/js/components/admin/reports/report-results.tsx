@@ -63,11 +63,12 @@ export function ReportResults({
                         <p className="mt-0.5 text-xs text-[#020659]/70 dark:text-slate-400">Date range: {dateRangeSummary}</p>
                     </div>
 
-                    <div className="w-full lg:w-80 shrink-0">
+                    <div className="w-full shrink-0 lg:w-80">
                         <div className="flex items-center justify-between gap-3 text-xs">
                             <span className="font-semibold text-slate-600 dark:text-slate-300">Overall Target Progress</span>
                             <span className="font-bold text-[#010440] dark:text-white">
-                                {report.summary.met_required.toLocaleString()} / {report.summary.visitors.toLocaleString()} ({report.summary.progress_percent}%)
+                                {report.summary.met_required.toLocaleString()} / {report.summary.visitors.toLocaleString()} (
+                                {report.summary.progress_percent}%)
                             </span>
                         </div>
                         <ProgressBar value={report.summary.progress_percent} className="mt-1.5" />
@@ -75,48 +76,42 @@ export function ReportResults({
                 </div>
 
                 {/* Inline Metrics Strip */}
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-y-3 gap-x-6 text-xs">
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-slate-100 pt-3 text-xs dark:border-slate-800">
                     <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                         {/* 1. Total Visitors */}
                         <div className="flex items-center gap-2">
                             <span className="flex size-6 items-center justify-center rounded-full bg-blue-50 text-[#040DBF] dark:bg-blue-950/50 dark:text-blue-400">
                                 <UsersRound className="size-3.5" />
                             </span>
-                            <span className="text-slate-500 dark:text-slate-400 font-medium">
+                            <span className="font-medium text-slate-500 dark:text-slate-400">
                                 {visitorType === 'student' ? 'Students:' : 'Employees:'}
                             </span>
-                            <span className="font-extrabold text-[#010440] dark:text-white">
-                                {report.summary.visitors.toLocaleString()}
-                            </span>
+                            <span className="font-extrabold text-[#010440] dark:text-white">{report.summary.visitors.toLocaleString()}</span>
                             <span className="text-[11px] text-slate-400 dark:text-slate-500">
                                 ({report.summary.visited_visitors.toLocaleString()} active)
                             </span>
                         </div>
 
-                        <div className="h-3.5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
+                        <div className="hidden h-3.5 w-px bg-slate-200 sm:block dark:bg-slate-700" />
 
                         {/* 2. Visits Recorded */}
                         <div className="flex items-center gap-2">
                             <span className="flex size-6 items-center justify-center rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-400">
                                 <Activity className="size-3.5" />
                             </span>
-                            <span className="text-slate-500 dark:text-slate-400 font-medium">Visits recorded:</span>
-                            <span className="font-extrabold text-[#010440] dark:text-white">
-                                {report.summary.total_visits.toLocaleString()}
-                            </span>
-                            <span className="text-[11px] text-slate-400 dark:text-slate-500">
-                                (avg {report.summary.average_visits})
-                            </span>
+                            <span className="font-medium text-slate-500 dark:text-slate-400">Visits recorded:</span>
+                            <span className="font-extrabold text-[#010440] dark:text-white">{report.summary.total_visits.toLocaleString()}</span>
+                            <span className="text-[11px] text-slate-400 dark:text-slate-500">(avg {report.summary.average_visits})</span>
                         </div>
 
-                        <div className="h-3.5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
+                        <div className="hidden h-3.5 w-px bg-slate-200 sm:block dark:bg-slate-700" />
 
                         {/* 3. Target Quota Met */}
                         <div className="flex items-center gap-2">
                             <span className="flex size-6 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
                                 <Target className="size-3.5" />
                             </span>
-                            <span className="text-slate-500 dark:text-slate-400 font-medium">Target quota met:</span>
+                            <span className="font-medium text-slate-500 dark:text-slate-400">Target quota met:</span>
                             <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
                                 {report.summary.met_required.toLocaleString()}
                             </span>
@@ -125,14 +120,14 @@ export function ReportResults({
                             </span>
                         </div>
 
-                        <div className="h-3.5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
+                        <div className="hidden h-3.5 w-px bg-slate-200 sm:block dark:bg-slate-700" />
 
                         {/* 4. No Visits */}
                         <div className="flex items-center gap-2">
                             <span className="flex size-6 items-center justify-center rounded-full bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400">
                                 <UserX className="size-3.5" />
                             </span>
-                            <span className="text-slate-500 dark:text-slate-400 font-medium">No visits:</span>
+                            <span className="font-medium text-slate-500 dark:text-slate-400">No visits:</span>
                             <span className="font-extrabold text-rose-600 dark:text-rose-400">
                                 {report.summary.unvisited_visitors.toLocaleString()}
                             </span>

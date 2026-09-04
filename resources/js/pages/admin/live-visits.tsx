@@ -27,7 +27,7 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
             <Head title="Live Visits" />
             <main className="min-h-screen">
                 <AdminLayout active="live-visits">
-                    <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8">
+                    <div className="admin-content-shell mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         <AdminPageHeader
                             title="Live Visits"
                             description="Real-time RFID check-in terminal, instant attendee spotlight, and today's live attendance feed."
@@ -41,7 +41,7 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
                                 </div>
                             }
                             actions={
-                                <div className="inline-flex items-center gap-2 rounded-lg border border-[#040DBF]/15 bg-white px-3.5 py-1.5 text-xs font-bold text-[#030A8C] shadow-sm dark:bg-slate-800 dark:border-slate-700 dark:text-sky-300">
+                                <div className="inline-flex items-center gap-2 rounded-lg border border-[#040DBF]/15 bg-white px-3.5 py-1.5 text-xs font-bold text-[#030A8C] shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-sky-300">
                                     <Clock3 className="size-3.5 text-[#040DBF] dark:text-sky-400" />
                                     <span>{page.formattedManilaTime}</span>
                                 </div>
@@ -49,44 +49,44 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
                         />
 
                         {/* Inline Live Statistics Bar - Clean, seamless strip without cards */}
-                        <div className="flex flex-wrap items-center justify-between gap-y-3 gap-x-6 border-y border-slate-200/80 bg-[#f8faff] px-4 py-3 text-xs font-semibold text-slate-700 sm:px-5 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300">
+                        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-y border-slate-200/80 bg-[#f8faff] px-4 py-3 text-xs font-semibold text-slate-700 sm:px-5 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300">
                             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                                 <div className="flex items-center gap-2">
                                     <span className="flex size-6 items-center justify-center rounded-full bg-blue-100 text-[#040DBF] dark:bg-blue-950/50 dark:text-blue-400">
                                         <Users className="size-3.5" />
                                     </span>
-                                    <span className="text-slate-500 dark:text-slate-400 font-medium">Visits today:</span>
+                                    <span className="font-medium text-slate-500 dark:text-slate-400">Visits today:</span>
                                     <span className="text-sm font-extrabold text-[#010440] dark:text-white">
                                         {metrics.visitsToday.toLocaleString()}
                                     </span>
                                 </div>
 
-                                <div className="h-3.5 w-px bg-slate-300 dark:bg-slate-700 hidden sm:block" />
+                                <div className="hidden h-3.5 w-px bg-slate-300 sm:block dark:bg-slate-700" />
 
                                 <div className="flex items-center gap-2">
                                     <span className="flex size-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-400">
                                         <GraduationCap className="size-3.5" />
                                     </span>
-                                    <span className="text-slate-500 dark:text-slate-400 font-medium">Students:</span>
+                                    <span className="font-medium text-slate-500 dark:text-slate-400">Students:</span>
                                     <span className="text-sm font-extrabold text-[#010440] dark:text-white">
                                         {metrics.studentVisitsToday.toLocaleString()}
                                     </span>
                                 </div>
 
-                                <div className="h-3.5 w-px bg-slate-300 dark:bg-slate-700 hidden sm:block" />
+                                <div className="hidden h-3.5 w-px bg-slate-300 sm:block dark:bg-slate-700" />
 
                                 <div className="flex items-center gap-2">
                                     <span className="flex size-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
                                         <BriefcaseBusiness className="size-3.5" />
                                     </span>
-                                    <span className="text-slate-500 dark:text-slate-400 font-medium">Employees:</span>
+                                    <span className="font-medium text-slate-500 dark:text-slate-400">Employees:</span>
                                     <span className="text-sm font-extrabold text-[#010440] dark:text-white">
                                         {metrics.employeeVisitsToday.toLocaleString()}
                                     </span>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-medium">
+                            <div className="flex items-center gap-2 font-medium text-slate-500 dark:text-slate-400">
                                 <CalendarClock className="size-3.5 text-amber-600 dark:text-amber-400" />
                                 <span>Scan window:</span>
                                 <span className="font-bold text-[#010440] dark:text-white">
@@ -107,10 +107,7 @@ export default function LiveVisits({ visitMonitor }: LiveVisitsProps) {
                                 onChange={(value) => page.setScanData('rfid_uid', value)}
                                 onSubmit={page.submitScan}
                             />
-                            <LatestVisitCard
-                                visit={lastVisit ?? null}
-                                emptyMessage="Scanned students and employees will appear here in real-time."
-                            />
+                            <LatestVisitCard visit={lastVisit ?? null} emptyMessage="Scanned students and employees will appear here in real-time." />
                         </section>
 
                         {/* Today's Scans Table Feed */}

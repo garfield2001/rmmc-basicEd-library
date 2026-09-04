@@ -85,7 +85,7 @@ function VisitorIdentity({ visitor, onEdit }: { visitor: LibraryMemberRow; onEdi
         <div className="flex items-center gap-3">
             <VisitorAvatar name={visitor.name} src={visitor.photo_url} />
             <div className="min-w-0">
-                <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="flex flex-wrap items-center gap-1.5">
                     <p className="min-w-0 font-medium text-[#010440] dark:text-white">{visitor.name}</p>
 
                     {/* Subtle info indicator badge when member has no RFID */}

@@ -40,7 +40,9 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                                 <IconBadge icon={Clock3} className="size-11 bg-[#040DBF] text-white shadow-sm shadow-[#040DBF]/25 dark:bg-blue-600" />
                                 <div className="min-w-0">
                                     <p className="text-xs font-bold tracking-wide text-[#030A8C] uppercase dark:text-sky-300">Latest scan</p>
-                                    <p className="mt-0.5 text-xl font-extrabold text-[#010440] dark:text-white sm:text-2xl">{formatVisitTime(visit)}</p>
+                                    <p className="mt-0.5 text-xl font-extrabold text-[#010440] sm:text-2xl dark:text-white">
+                                        {formatVisitTime(visit)}
+                                    </p>
                                 </div>
                             </div>
                             <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
@@ -79,7 +81,7 @@ export function LatestVisitCard({ visit, emptyMessage }: LatestVisitCardProps) {
                             <IconBadge icon={Clock3} className="size-11 bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500" />
                             <div>
                                 <p className="text-xs font-bold tracking-wide text-slate-400 uppercase dark:text-slate-500">Latest scan</p>
-                                <p className="mt-0.5 text-xl font-extrabold text-slate-400 dark:text-slate-500 sm:text-2xl">Awaiting scan</p>
+                                <p className="mt-0.5 text-xl font-extrabold text-slate-400 sm:text-2xl dark:text-slate-500">Awaiting scan</p>
                             </div>
                         </div>
                         <p className="mt-4 text-xs font-medium text-slate-500 dark:text-slate-400">{emptyMessage}</p>

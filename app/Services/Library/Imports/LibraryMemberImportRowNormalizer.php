@@ -131,5 +131,4 @@ class LibraryMemberImportRowNormalizer
     {
         return array_key_exists('first_name', $row) && array_key_exists('last_name', $row);
     }
-
 }

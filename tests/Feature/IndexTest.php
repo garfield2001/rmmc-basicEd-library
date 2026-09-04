@@ -17,7 +17,7 @@ class IndexTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertInertia(fn(Assert $page) => $page
+            ->assertInertia(fn (Assert $page) => $page
                 ->component('index')
                 ->has('home')
                 ->missing('adminDashboard'));
@@ -30,7 +30,7 @@ class IndexTest extends TestCase
         $this->actingAs($user)
             ->get('/')
             ->assertOk()
-            ->assertInertia(fn(Assert $page) => $page
+            ->assertInertia(fn (Assert $page) => $page
                 ->component('index')
                 ->has('home')
                 ->has('adminDashboard'));

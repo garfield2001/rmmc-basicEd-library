@@ -76,7 +76,7 @@ export function LiveVisitsTableHeader({
                             value={search}
                             onChange={(event) => onSearchChange(event.target.value)}
                             placeholder={visitTab === 'student' ? 'Search ID, name, section' : 'Search ID, name, department'}
-                            className="h-10 w-full rounded-lg border border-[#040DBF]/20 bg-white pr-9 pl-9 text-sm text-[#010440] placeholder:text-slate-500 transition outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-500"
+                            className="h-10 w-full rounded-lg border border-[#040DBF]/20 bg-white pr-9 pl-9 text-sm text-[#010440] transition outline-none placeholder:text-slate-500 focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                         />
                         {search && (
                             <button

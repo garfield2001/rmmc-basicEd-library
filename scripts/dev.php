@@ -1,7 +1,7 @@
 <?php
 
 $isWindows = PHP_OS_FAMILY === 'Windows';
-$npm = $isWindows ? 'npm.cmd' : 'npm';
+$pnpm = $isWindows ? 'pnpm.cmd' : 'pnpm';
 $localConcurrently = __DIR__.'/../node_modules/.bin/concurrently'.($isWindows ? '.cmd' : '');
 $concurrently = file_exists($localConcurrently) ? $localConcurrently : 'concurrently';
 
@@ -9,7 +9,7 @@ $commands = [
     'server' => 'php artisan serve',
     'queue' => 'php artisan queue:listen --tries=1',
     'reverb' => 'php artisan reverb:start --host=0.0.0.0 --port=8080',
-    'vite' => $npm.' run dev',
+    'vite' => $pnpm.' run dev',
 ];
 
 if (function_exists('pcntl_fork')) {

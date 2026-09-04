@@ -30,7 +30,7 @@ export interface VisitReportSchoolYear {
     is_active: boolean;
 }
 
-export interface VisitReportComparisonItem {
+interface VisitReportComparisonItem {
     label: string;
     completion_percent: number;
     visit_share_percent: number;

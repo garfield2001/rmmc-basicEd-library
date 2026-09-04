@@ -2,6 +2,7 @@
 
 namespace App\Services\Reports;
 
+use App\Support\Academics\AcademicLevels;
 use Illuminate\Support\Str;
 
 class VisitReportExportService
@@ -52,7 +53,7 @@ class VisitReportExportService
             $groups[$label]['summary']['visitors']++;
             $groups[$label]['summary']['total_visits'] += (int) ($row['visit_count'] ?? 0);
             $groups[$label]['summary']['excess_visits'] += (int) ($row['excess_visits'] ?? 0);
-            
+
             $requiredVisits = (int) ($report['summary']['required_visits'] ?? 0);
             if ($requiredVisits > 0 && ((int) ($row['visit_count'] ?? 0)) >= $requiredVisits) {
                 $groups[$label]['summary']['met_required']++;
@@ -62,8 +63,8 @@ class VisitReportExportService
         return collect($groups)
             ->sort(function (array $first, array $second) use ($isStudent, $direction): int {
                 if ($isStudent) {
-                    $firstRank = \App\Support\Academics\AcademicLevels::rank($first['year_level'] ?? null) ?? 999;
-                    $secondRank = \App\Support\Academics\AcademicLevels::rank($second['year_level'] ?? null) ?? 999;
+                    $firstRank = AcademicLevels::rank($first['year_level'] ?? null) ?? 999;
+                    $secondRank = AcademicLevels::rank($second['year_level'] ?? null) ?? 999;
 
                     if ($firstRank !== $secondRank) {
                         return $direction === 'desc' ? ($secondRank <=> $firstRank) : ($firstRank <=> $secondRank);
@@ -76,6 +77,7 @@ class VisitReportExportService
                 }
 
                 $labelCompare = strnatcasecmp($first['label'], $second['label']);
+
                 return $direction === 'desc' ? -$labelCompare : $labelCompare;
             })
             ->values()
@@ -84,7 +86,7 @@ class VisitReportExportService
 
     public function row(array $columns, array $report, array $row, int $index = 0): array
     {
-        return array_map(function (array $column) use ($report, $row, $index): string|int|null {
+        return array_map(function (array $column) use ($report, $row): string|int|null {
             return match ($column['key']) {
                 'school_year' => $report['school_year']['name'] ?? null,
                 'school_id' => $row['school_id'],
@@ -150,6 +152,7 @@ class VisitReportExportService
             if ($visitCompare !== 0) {
                 return $visitCompare;
             }
+
             return $b['completion_percent'] <=> $a['completion_percent'];
         })->values()->all();
 
@@ -158,6 +161,7 @@ class VisitReportExportService
             if ($compCompare !== 0) {
                 return $compCompare;
             }
+
             return $b['total_visits'] <=> $a['total_visits'];
         })->values()->all();
 

@@ -11,7 +11,7 @@
         "lint:check": "eslint . --max-warnings=0",
         "lint:files": "node scripts/check-file-sizes.mjs --strict",
         "lint:unused": "knip",
-        "quality": "npm run lint:files && npm run lint:unused && npm run lint:check && npm run format:check"
+        "quality": "pnpm run lint:files && pnpm run lint:unused && pnpm run lint:check && pnpm run format:check"
     },
     "devDependencies": {
         "@eslint/js": "^9.19.0",
@@ -39,7 +39,6 @@
         "@vitejs/plugin-react": "^4.3.4",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
-        "framer-motion": "^13.0.0",
         "globals": "^15.14.0",
         "laravel-echo": "^2.3.4",
         "laravel-vite-plugin": "^1.0",

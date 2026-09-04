@@ -67,5 +67,4 @@ class AcademicLevels
 
         return self::options()[$rank + 1] ?? null;
     }
-
 }

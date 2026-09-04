@@ -26,6 +26,8 @@ final class ManualLibraryVisitors
             ['school_id' => '2211600042', 'rfid_uid' => '1296838226', 'first_name' => 'Brian Angelo', 'middle_name' => null, 'last_name' => 'Bognot'],
             ['school_id' => '2311600068', 'rfid_uid' => '0870893162', 'first_name' => 'John Christian', 'middle_name' => null, 'last_name' => 'Abelgas'],
             ['school_id' => '1811600033', 'rfid_uid' => '1202953041', 'first_name' => 'Bernard', 'middle_name' => 'R.', 'last_name' => 'Villarias'],
+            ['school_id' => '2410203023', 'rfid_uid' => '1145541815', 'first_name' => 'Vanessa', 'middle_name' => null, 'last_name' => 'Durban'],
+            
         ];
     }
 
@@ -47,6 +49,7 @@ final class ManualLibraryVisitors
             ['school_id' => 'OP1-308', 'rfid_uid' => '0163313553', 'first_name' => 'Aaron', 'middle_name' => null, 'last_name' => 'Ayunan'],
             ['school_id' => 'OP1164', 'rfid_uid' => '0111029083', 'first_name' => 'Anisia', 'middle_name' => null, 'last_name' => 'Flores'],
             ['school_id' => 'OP1-303', 'rfid_uid' => '1395154304', 'first_name' => 'Gay Marie', 'middle_name' => null, 'last_name' => 'Farnazo'],
+            ['school_id' => 'rmmc-gsc-2309140342', 'rfid_uid' => '1283355946', 'first_name' => 'Basiren', 'middle_name' => 'Sambutuan', 'last_name' => 'Abdurajik'],
         ];
     }
 }

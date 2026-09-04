@@ -2,7 +2,9 @@
 
 namespace App\Services\Library;
 
+use App\Models\EmployeeSchoolYearRecord;
 use App\Models\LibraryMember;
+use App\Services\SchoolYears\SchoolYearSectionService;
 use App\Support\Academics\AcademicLevels;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -142,12 +144,12 @@ class LibraryMemberTableService
         ];
     }
 
-    public function filterOptions(\App\Services\SchoolYears\SchoolYearSectionService $sections, ?int $activeSchoolYearId): array
+    public function filterOptions(SchoolYearSectionService $sections, ?int $activeSchoolYearId): array
     {
         return [
             'yearLevels' => AcademicLevels::options(),
             'sectionsByYearLevel' => $sections->groupedByYearLevel($activeSchoolYearId),
-            'departments' => \App\Models\EmployeeSchoolYearRecord::query()
+            'departments' => EmployeeSchoolYearRecord::query()
                 ->forRequiredSchoolYear($activeSchoolYearId)
                 ->distinct()
                 ->orderBy('department')

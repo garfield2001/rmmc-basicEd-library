@@ -48,7 +48,7 @@ export function DashboardOperationsPanel({ dashboard, scanSettings }: DashboardO
                         </span>
                         <div className="min-w-0">
                             <p className="text-xs font-bold tracking-wide text-[#030A8C] uppercase dark:text-sky-300">Scan window</p>
-                            <h2 className="mt-1 text-lg font-bold tracking-tight text-[#010440] dark:text-white sm:text-xl">
+                            <h2 className="mt-1 text-lg font-bold tracking-tight text-[#010440] sm:text-xl dark:text-white">
                                 Opens at {formatTime(dashboard.scanWindow.starts_at)}, closes at {formatTime(dashboard.scanWindow.ends_at)}
                             </h2>
                         </div>
@@ -80,7 +80,9 @@ export function DashboardOperationsPanel({ dashboard, scanSettings }: DashboardO
                             <div className="flex shrink-0 items-center justify-between border-b border-[#040DBF]/10 px-6 py-5 dark:border-slate-800">
                                 <div>
                                     <h2 className="text-lg font-bold text-[#010440] dark:text-white">Scan rules</h2>
-                                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400">Edit repeat-scan interval and daily visit scanning window.</p>
+                                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                                        Edit repeat-scan interval and daily visit scanning window.
+                                    </p>
                                 </div>
                                 <button
                                     type="button"

@@ -96,7 +96,7 @@ export const ScanLookupInput = forwardRef<HTMLInputElement, ScanLookupInputProps
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
                 className={cn(
-                    'h-11 w-full rounded-lg border border-[#040DBF]/20 bg-white pl-9 text-sm text-[#010440] placeholder:text-slate-500 shadow-xs transition outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-500',
+                    'h-11 w-full rounded-lg border border-[#040DBF]/20 bg-white pl-9 text-sm text-[#010440] shadow-xs transition outline-none placeholder:text-slate-500 focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500',
                     value ? 'pr-24' : 'pr-3',
                 )}
                 autoComplete="off"
@@ -119,7 +119,7 @@ export const ScanLookupInput = forwardRef<HTMLInputElement, ScanLookupInputProps
             )}
 
             {shouldShowOptions && (
-                <div className="absolute top-full right-0 left-0 z-50 mt-2 max-h-72 overflow-y-auto rounded-xl border border-[#040DBF]/20 bg-white py-1 shadow-xl dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                <div className="absolute top-full right-0 left-0 z-50 mt-2 max-h-72 overflow-y-auto rounded-xl border border-[#040DBF]/20 bg-white py-1 shadow-xl dark:border-slate-700 dark:bg-slate-800 dark:text-white">
                     {loading ? (
                         <div className="px-3 py-3 text-sm text-slate-500 dark:text-slate-400">Searching registered visitors...</div>
                     ) : (
@@ -133,7 +133,9 @@ export const ScanLookupInput = forwardRef<HTMLInputElement, ScanLookupInputProps
                                 }}
                                 className={cn(
                                     'flex w-full cursor-pointer flex-col px-3 py-2 text-left text-sm transition',
-                                    activeIndex === index ? 'bg-[#040DBF]/10 font-bold text-[#040DBF] dark:bg-sky-500/20 dark:text-sky-300' : 'text-[#010440] hover:bg-[#f6f8ff] dark:text-slate-200 dark:hover:bg-slate-700',
+                                    activeIndex === index
+                                        ? 'bg-[#040DBF]/10 font-bold text-[#040DBF] dark:bg-sky-500/20 dark:text-sky-300'
+                                        : 'text-[#010440] hover:bg-[#f6f8ff] dark:text-slate-200 dark:hover:bg-slate-700',
                                 )}
                             >
                                 <span className="font-semibold">{option.label}</span>

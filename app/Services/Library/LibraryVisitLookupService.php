@@ -3,6 +3,7 @@
 namespace App\Services\Library;
 
 use App\Models\LibraryMember;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\ValidationException;
 
 class LibraryVisitLookupService
@@ -52,8 +53,33 @@ class LibraryVisitLookupService
 
     private function matchingVisitors(string $normalizedLookup, int $schoolYearId, bool $partial): mixed
     {
-        return LibraryMember::query()
-            ->visitEligibleForSchoolYear($schoolYearId)
+        $words = array_values(array_filter(explode(' ', $normalizedLookup), fn (string $word): bool => mb_strlen($word) > 0));
+
+        $query = LibraryMember::query()->visitEligibleForSchoolYear($schoolYearId);
+
+        if (! empty($words)) {
+            $query->where(function (Builder $builder) use ($words, $normalizedLookup): void {
+                $builder->where('rfid_uid', 'like', "%{$normalizedLookup}%")
+                    ->orWhere('school_id', 'like', "%{$normalizedLookup}%")
+                    ->orWhere('first_name', 'like', "%{$normalizedLookup}%")
+                    ->orWhere('last_name', 'like', "%{$normalizedLookup}%")
+                    ->orWhere('middle_name', 'like', "%{$normalizedLookup}%");
+
+                if (count($words) > 1) {
+                    $builder->orWhere(function (Builder $sub) use ($words): void {
+                        foreach ($words as $word) {
+                            $sub->where(function (Builder $w) use ($word): void {
+                                $w->where('first_name', 'like', "%{$word}%")
+                                    ->orWhere('last_name', 'like', "%{$word}%")
+                                    ->orWhere('middle_name', 'like', "%{$word}%");
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        return $query
             ->get()
             ->filter(fn (LibraryMember $visitor): bool => $this->visitorMatches($visitor, $normalizedLookup, $partial))
             ->values();

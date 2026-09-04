@@ -1,5 +1,5 @@
 import type { IndividualProgressPoint, RequiredProgressPoint } from '@/types/dashboard';
-import { BriefcaseBusiness, CheckCircle2, Clock, GraduationCap, Search, Users } from 'lucide-react';
+import { BriefcaseBusiness, CheckCircle2, Clock, GraduationCap, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { EmptyChartState } from './empty-chart-state';
 
@@ -63,12 +63,10 @@ export function RequiredProgressPanel({ progress, individualProgress = [], frame
                                     {/* Primary Completion Rate */}
                                     <div className="mt-4 flex items-baseline justify-between">
                                         <div>
-                                            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                                            <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
                                                 Quota Completion Rate
                                             </p>
-                                            <p className="text-2xl font-extrabold text-[#010440] dark:text-white mt-0.5">
-                                                {completionRate}%
-                                            </p>
+                                            <p className="mt-0.5 text-2xl font-extrabold text-[#010440] dark:text-white">{completionRate}%</p>
                                         </div>
                                         <p className="text-xs font-medium text-slate-600 dark:text-slate-300">
                                             <span className="font-bold text-[#010440] dark:text-white">{item.met_required.toLocaleString()}</span> of{' '}
@@ -79,7 +77,7 @@ export function RequiredProgressPanel({ progress, individualProgress = [], frame
                                     {/* Dual Progress Bars */}
                                     <div className="mt-3 space-y-2">
                                         <div>
-                                            <div className="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
+                                            <div className="mb-1 flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400">
                                                 <span>Target Met ({completionRate}%)</span>
                                                 <span>{item.visitors - item.met_required} pending</span>
                                             </div>
@@ -92,13 +90,15 @@ export function RequiredProgressPanel({ progress, individualProgress = [], frame
                                         </div>
 
                                         <div>
-                                            <div className="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
+                                            <div className="mb-1 flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400">
                                                 <span>Volume Progress ({item.percent}%)</span>
-                                                <span>{item.visits.toLocaleString()} / {item.required_total.toLocaleString()} scans</span>
+                                                <span>
+                                                    {item.visits.toLocaleString()} / {item.required_total.toLocaleString()} scans
+                                                </span>
                                             </div>
                                             <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                                                 <div
-                                                    className="h-full rounded-full bg-[#040DBF] dark:bg-blue-500 transition-all duration-300"
+                                                    className="h-full rounded-full bg-[#040DBF] transition-all duration-300 dark:bg-blue-500"
                                                     style={{ width: `${item.percent}%` }}
                                                 />
                                             </div>
@@ -173,13 +173,13 @@ export function RequiredProgressPanel({ progress, individualProgress = [], frame
 
                             {/* Search Input */}
                             <div className="relative">
-                                <Search className="absolute left-3 top-2.5 size-3.5 text-slate-400" />
+                                <Search className="absolute top-2.5 left-3 size-3.5 text-slate-400" />
                                 <input
                                     type="text"
                                     placeholder="Search by name, ID number, grade, or department..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs text-[#010440] placeholder-slate-400 focus:border-[#040DBF] focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                                    className="h-9 w-full rounded-lg border border-slate-200 bg-white pr-3 pl-9 text-xs text-[#010440] placeholder-slate-400 focus:border-[#040DBF] focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                                 />
                             </div>
 
@@ -207,14 +207,15 @@ export function RequiredProgressPanel({ progress, individualProgress = [], frame
                                                 const isMet = member.visits >= member.required;
 
                                                 return (
-                                                    <tr key={`${member.type}-${member.id}`} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
+                                                    <tr
+                                                        key={`${member.type}-${member.id}`}
+                                                        className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
+                                                    >
                                                         <td className="px-3 py-2 font-medium text-[#010440] dark:text-white">
                                                             <div>{member.name}</div>
-                                                            {member.schoolId && (
-                                                                <div className="text-[10px] text-slate-400">{member.schoolId}</div>
-                                                            )}
+                                                            {member.schoolId && <div className="text-[10px] text-slate-400">{member.schoolId}</div>}
                                                         </td>
-                                                        <td className="px-3 py-2 text-slate-500 dark:text-slate-400 truncate max-w-[140px]">
+                                                        <td className="max-w-[140px] truncate px-3 py-2 text-slate-500 dark:text-slate-400">
                                                             {member.group}
                                                         </td>
                                                         <td className="px-3 py-2 text-center font-bold text-[#010440] dark:text-white">
@@ -244,7 +245,7 @@ export function RequiredProgressPanel({ progress, individualProgress = [], frame
                                 </table>
                             </div>
                             {filteredIndividuals.length > 100 && (
-                                <p className="text-[11px] text-slate-400 text-right">
+                                <p className="text-right text-[11px] text-slate-400">
                                     Showing top 100 of {filteredIndividuals.length.toLocaleString()} matching records.
                                 </p>
                             )}

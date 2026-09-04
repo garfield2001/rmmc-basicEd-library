@@ -14,7 +14,7 @@ class VisitReportWordExportService
 {
     public function download(array $report, array $groups, string $filename): BinaryFileResponse
     {
-        $path = tempnam(sys_get_temp_dir(), 'visit-report-') . '.docx';
+        $path = tempnam(sys_get_temp_dir(), 'visit-report-').'.docx';
         Settings::setOutputEscapingEnabled(true);
         IOFactory::createWriter($this->document($report, $groups), 'Word2007')->save($path);
         app(WordDocumentCleaner::class)->clean($path);
@@ -78,36 +78,36 @@ class VisitReportWordExportService
             'alignment' => Jc::CENTER,
         ]);
         $table->addRow();
-        
+
         $cellStyle = ['bgColor' => 'F9FAFB', 'valign' => 'center'];
-        
+
         $run1 = $table->addCell(2400, $cellStyle)->addTextRun(['alignment' => Jc::CENTER]);
         $run1->addText('SCHOOL YEAR: ', ['color' => '6B7280', 'bold' => true, 'size' => 8]);
         $run1->addText($report['school_year']['name'] ?? 'No school year', ['color' => '374151', 'bold' => true, 'size' => 9]);
-        
+
         $run2 = $table->addCell(2400, $cellStyle)->addTextRun(['alignment' => Jc::CENTER]);
         $run2->addText('VISITOR TYPE: ', ['color' => '6B7280', 'bold' => true, 'size' => 8]);
         $run2->addText(ucfirst($report['summary']['visitor_type'] ?? 'visitor'), ['color' => '374151', 'bold' => true, 'size' => 9]);
-        
+
         $run3 = $table->addCell(2400, $cellStyle)->addTextRun(['alignment' => Jc::CENTER]);
         $run3->addText('FROM: ', ['color' => '6B7280', 'bold' => true, 'size' => 8]);
         $run3->addText($this->date($report, 'start_date'), ['color' => '374151', 'bold' => true, 'size' => 9]);
-        
+
         $run4 = $table->addCell(2400, $cellStyle)->addTextRun(['alignment' => Jc::CENTER]);
         $run4->addText('TO: ', ['color' => '6B7280', 'bold' => true, 'size' => 8]);
         $run4->addText($this->date($report, 'end_date'), ['color' => '374151', 'bold' => true, 'size' => 9]);
-        
+
         $section->addText('', [], ['spaceAfter' => 240]);
     }
 
     private function group($section, array $report, array $group): void
     {
-        $section->addText($this->groupPrefix($report) . ': ' . $group['label'], ['bold' => true, 'color' => '010440'], ['alignment' => Jc::CENTER, 'spaceBefore' => 180, 'spaceAfter' => 80]);
+        $section->addText($this->groupPrefix($report).': '.$group['label'], ['bold' => true, 'color' => '010440'], ['alignment' => Jc::CENTER, 'spaceBefore' => 180, 'spaceAfter' => 80]);
         $table = $section->addTable('report-table');
         $this->headerRow($table, ['School ID', 'Name', 'Visits', 'Excess', 'Progress'], self::COLUMN_WIDTHS);
 
         foreach ($group['rows'] as $index => $row) {
-            $this->dataRow($table, [$row['school_id'], $row['name'], $row['visit_count'] . ' / ' . ($report['summary']['required_visits'] ?? 0), $row['excess_visits'] ?? 0, $row['progress_percent'] . '%'], self::COLUMN_WIDTHS);
+            $this->dataRow($table, [$row['school_id'], $row['name'], $row['visit_count'].' / '.($report['summary']['required_visits'] ?? 0), $row['excess_visits'] ?? 0, $row['progress_percent'].'%'], self::COLUMN_WIDTHS);
         }
     }
 
@@ -162,7 +162,7 @@ class VisitReportWordExportService
     private function comparison($section, array $report, array $groups): void
     {
         $overallVisits = max(1, collect($report['rows'])->sum('visit_count'));
-        $comparison = app(\App\Services\Reports\VisitReportExportService::class)->comparison($groups, $overallVisits);
+        $comparison = app(VisitReportExportService::class)->comparison($groups, $overallVisits);
 
         $topVisits = $comparison['top_by_visits'] ?? [];
         $topCompletion = $comparison['top_by_completion'] ?? [];

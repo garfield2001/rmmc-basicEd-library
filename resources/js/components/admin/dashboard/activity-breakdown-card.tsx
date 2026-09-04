@@ -154,7 +154,7 @@ function ActivityFilterSelect({
             <select
                 value={value}
                 onChange={(event) => onChange(event.target.value)}
-                className="h-10 rounded-lg border border-[#040DBF]/20 bg-white px-3 text-sm font-medium text-[#010440] transition outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                className="h-10 rounded-lg border border-[#040DBF]/20 bg-white px-3 text-sm font-medium text-[#010440] transition outline-none focus:border-[#040DBF] focus:ring-4 focus:ring-[#040DBF]/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
             >
                 {children}
             </select>

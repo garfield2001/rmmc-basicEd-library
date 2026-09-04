@@ -24,7 +24,7 @@ export function LiveVisitScanner({ value, options, inputRef, processing, loading
                     </div>
                     <div className="min-w-0">
                         <p className="text-xs font-bold tracking-wide text-[#030A8C] uppercase dark:text-sky-300">RFID Scanner Terminal</p>
-                        <h2 className="text-xl font-extrabold tracking-tight text-[#010440] dark:text-white sm:text-2xl">Record a library visit</h2>
+                        <h2 className="text-xl font-extrabold tracking-tight text-[#010440] sm:text-2xl dark:text-white">Record a library visit</h2>
                     </div>
                 </div>
                 <p className="mt-2 text-xs font-medium text-slate-500 dark:text-slate-400">

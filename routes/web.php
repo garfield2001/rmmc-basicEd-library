@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
-
 use App\Http\Controllers\AdminProfileController;
 use App\Http\Controllers\AdminScanSettingsController;
 use App\Http\Controllers\AdminSchoolYearController;

@@ -38,7 +38,6 @@ export function VisitorsTableToolbar({
     sort,
     showTypeTabs = true,
     totalCount,
-    withRfidCount,
     withoutRfidCount,
     showBreakdown = false,
     onToggleBreakdown,
@@ -74,7 +73,7 @@ export function VisitorsTableToolbar({
 
             {/* Seamless Inline Quick Stats Strip (No Cards) */}
             {totalCount !== undefined && (
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs border-y border-slate-200/70 py-2 dark:border-slate-800">
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-y border-slate-200/70 py-2 text-xs dark:border-slate-800">
                     <div className="flex items-center gap-1.5 font-medium text-slate-600 dark:text-slate-300">
                         <span>Total Registered:</span>
                         <span className="font-extrabold text-[#010440] dark:text-white">{totalCount.toLocaleString()}</span>
@@ -82,7 +81,7 @@ export function VisitorsTableToolbar({
 
                     {withoutRfidCount !== undefined && withoutRfidCount > 0 && (
                         <>
-                            <div className="h-3 w-px bg-slate-300 dark:bg-slate-700 hidden sm:block" />
+                            <div className="hidden h-3 w-px bg-slate-300 sm:block dark:bg-slate-700" />
                             <div className="flex items-center gap-1.5 font-medium text-amber-700 dark:text-amber-400">
                                 <span className="size-1.5 rounded-full bg-amber-500" />
                                 <span>
@@ -120,7 +119,7 @@ export function VisitorsTableToolbar({
                         <button
                             type="button"
                             onClick={onSortClear}
-                            className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm sm:w-auto dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700"
+                            className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-[#040DBF]/15 bg-white px-3 text-sm font-medium text-[#020659] transition-[background-color,border-color,color,box-shadow] hover:border-[#040DBF]/25 hover:bg-[#f6f8ff] hover:text-[#010440] hover:shadow-sm sm:w-auto dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                         >
                             <RotateCcw className="size-4" />
                             Clear sort

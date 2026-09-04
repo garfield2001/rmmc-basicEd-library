@@ -194,7 +194,7 @@ export function VisitProgressRanking({
                 </div>
             </div>
 
-            <div className="mt-4 overflow-x-auto">
+            <div className="hover-scrollbar mt-4 overflow-x-auto">
                 <table className="w-full min-w-[820px] text-left text-sm">
                     <thead className="border-b border-[#040DBF]/10 bg-[#f6f8ff] text-[#020659]/70">
                         <tr>

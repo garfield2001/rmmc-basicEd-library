@@ -58,7 +58,7 @@ export function RangeControls({
                 className,
             )}
         >
-            <div className="admin-segmented-tabs shrink-0 flex-nowrap overflow-x-auto dark:bg-slate-800 dark:border-slate-700">
+            <div className="admin-segmented-tabs shrink-0 flex-nowrap overflow-x-auto dark:border-slate-700 dark:bg-slate-800">
                 {(['last7', 'last14', 'lastMonth'] as VisitTrafficRange[]).map((range) => (
                     <button
                         key={range}

@@ -18,6 +18,7 @@ class StudentSeederData
             '2211600042' => ['year_level' => 'Grade 9', 'section' => 'Quest'],
             '2311600068' => ['year_level' => 'Grade 8', 'section' => 'Nobility'],
             '1811600033' => ['year_level' => 'Grade 10', 'section' => 'Wisdom'],
+            '2410203023' => ['year_level' => 'Grade 10', 'section' => 'Wisdom'],
         ];
     }
 
@@ -35,7 +36,7 @@ class StudentSeederData
             'Grade 7' => ['Loyalty' => 29],
             'Grade 8' => ['Nobility' => 27, 'Optimism' => 28],
             'Grade 9' => ['Quest' => 28, 'Quality' => 26, 'Quantum' => 27],
-            'Grade 10' => ['Wisdom' => 27],
+            'Grade 10' => ['Wisdom' => 28],
         ];
     }
 }

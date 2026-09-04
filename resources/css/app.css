@@ -65,6 +65,54 @@
         display: none;
     }
 
+    .hover-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: transparent transparent;
+        transition: scrollbar-color 0.2s ease;
+    }
+
+    .hover-scrollbar:hover {
+        scrollbar-color: rgb(100 116 139 / 0.38) transparent;
+    }
+
+    .dark .hover-scrollbar:hover,
+    html.dark .hover-scrollbar:hover {
+        scrollbar-color: rgb(148 163 184 / 0.38) transparent;
+    }
+
+    .hover-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .hover-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .hover-scrollbar::-webkit-scrollbar-thumb {
+        background: transparent;
+        border-radius: 9999px;
+        transition: background-color 0.2s ease;
+    }
+
+    .hover-scrollbar:hover::-webkit-scrollbar-thumb {
+        background: rgb(100 116 139 / 0.38);
+    }
+
+    .hover-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgb(71 85 105 / 0.65);
+    }
+
+    .dark .hover-scrollbar:hover::-webkit-scrollbar-thumb,
+    html.dark .hover-scrollbar:hover::-webkit-scrollbar-thumb {
+        background: rgb(148 163 184 / 0.38);
+    }
+
+    .dark .hover-scrollbar::-webkit-scrollbar-thumb:hover,
+    html.dark .hover-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgb(203 213 225 / 0.65);
+    }
+
     body {
         min-height: 100vh;
         margin: 0;
@@ -654,7 +702,10 @@
 
     .dark body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) [class*='text-[#020659]'],
     .dark body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) [class*='text-[#030A8C]'],
-    .dark body:has(.admin-theme-root.admin-theme-dark) :is(.dialog-content, .admin-theme-root.fixed) :is(.text-zinc-600, .text-zinc-500, .text-zinc-400) {
+    .dark
+        body:has(.admin-theme-root.admin-theme-dark)
+        :is(.dialog-content, .admin-theme-root.fixed)
+        :is(.text-zinc-600, .text-zinc-500, .text-zinc-400) {
         color: #b9c8ff !important;
     }
 

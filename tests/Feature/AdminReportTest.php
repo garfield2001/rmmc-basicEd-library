@@ -281,7 +281,6 @@ class AdminReportTest extends TestCase
             ->assertSee('%PDF', false);
     }
 
-
     private function zipText(TestResponse $response): string
     {
         $zip = new ZipArchive;

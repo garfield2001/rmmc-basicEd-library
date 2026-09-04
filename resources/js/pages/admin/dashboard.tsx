@@ -13,7 +13,7 @@ import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
 import { type AdminDashboard, type VisitTrafficRange } from '@/types/dashboard';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEchoPublic } from '@laravel/echo-react';
-import { Activity, BriefcaseBusiness, Calendar, CalendarClock, Clock3, GraduationCap, RadioTower, SlidersHorizontal, Users, UsersRound } from 'lucide-react';
+import { Activity, Calendar, CalendarClock, Clock3, RadioTower, SlidersHorizontal, Users, UsersRound } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 interface DashboardProps {
@@ -36,10 +36,7 @@ export default function Dashboard({ dashboard }: DashboardProps) {
     const trafficTotal = useMemo(() => trafficData.reduce((sum, point) => sum + point.total, 0), [trafficData]);
     const trafficDetail = `${rangeDetail(trafficRange, trafficStartDate, trafficEndDate)} • ${trafficTotal.toLocaleString()} visits`;
 
-    const sectionLeaderboard = useMemo(
-        () => dashboard.charts.studentVisitsBySection ?? [],
-        [dashboard.charts.studentVisitsBySection],
-    );
+    const sectionLeaderboard = useMemo(() => dashboard.charts.studentVisitsBySection ?? [], [dashboard.charts.studentVisitsBySection]);
 
     useEchoPublic('library-visits', '.LibraryVisitRecorded', () => {
         router.reload({ only: ['dashboard'] });
@@ -50,7 +47,7 @@ export default function Dashboard({ dashboard }: DashboardProps) {
             <Head title="Dashboard Overview" />
             <main className="min-h-screen">
                 <AdminLayout active="dashboard">
-                    <div className="admin-content-shell mx-auto w-full space-y-6 px-4 py-6 sm:px-6 lg:py-8 max-w-7xl">
+                    <div className="admin-content-shell mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:py-8">
                         {/* Page Header */}
                         <AdminPageHeader
                             title="Dashboard Overview"
@@ -77,49 +74,49 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                         />
 
                         {/* Inline Executive Statistics Strip (Seamless, Zero Cards) */}
-                        <div className="flex flex-wrap items-center justify-between gap-y-3 gap-x-6 rounded-xl border border-[#040DBF]/10 bg-white/95 px-4 py-3 text-xs font-semibold text-slate-700 shadow-xs sm:px-5 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+                        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-xl border border-[#040DBF]/10 bg-white/95 px-4 py-3 text-xs font-semibold text-slate-700 shadow-xs sm:px-5 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
                             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                                 {/* 1. Active School Year */}
                                 <div className="flex items-center gap-2">
                                     <span className="flex size-6 items-center justify-center rounded-full bg-blue-50 text-[#040DBF] dark:bg-blue-950/50 dark:text-blue-400">
                                         <Calendar className="size-3.5" />
                                     </span>
-                                    <span className="text-slate-500 dark:text-slate-400 font-medium">School Year:</span>
+                                    <span className="font-medium text-slate-500 dark:text-slate-400">School Year:</span>
                                     <span className="font-extrabold text-[#010440] dark:text-white">{schoolYearLabel}</span>
                                 </div>
 
-                                <div className="h-3.5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
+                                <div className="hidden h-3.5 w-px bg-slate-200 sm:block dark:bg-slate-700" />
 
                                 {/* 2. Visits Today */}
                                 <div className="flex items-center gap-2">
                                     <span className="flex size-6 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
                                         <Activity className="size-3.5" />
                                     </span>
-                                    <span className="text-slate-500 dark:text-slate-400 font-medium">Visits Today:</span>
-                                    <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">
+                                    <span className="font-medium text-slate-500 dark:text-slate-400">Visits Today:</span>
+                                    <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
                                         {dashboard.metrics.visitsToday.toLocaleString()}
                                     </span>
                                 </div>
 
-                                <div className="h-3.5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
+                                <div className="hidden h-3.5 w-px bg-slate-200 sm:block dark:bg-slate-700" />
 
                                 {/* 3. Registered Visitors (Students & Employees) */}
                                 <div className="flex items-center gap-2">
                                     <span className="flex size-6 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
                                         <UsersRound className="size-3.5" />
                                     </span>
-                                    <span className="text-slate-500 dark:text-slate-400 font-medium">Registered:</span>
+                                    <span className="font-medium text-slate-500 dark:text-slate-400">Registered:</span>
                                     <span className="font-extrabold text-[#010440] dark:text-white">
                                         {dashboard.metrics.registeredVisitors.toLocaleString()}
                                     </span>
-                                    <span className="text-[11px] text-slate-400 dark:text-slate-500 font-normal">
+                                    <span className="text-[11px] font-normal text-slate-400 dark:text-slate-500">
                                         ({dashboard.visitorBreakdown.students} students • {dashboard.visitorBreakdown.employees} staff)
                                     </span>
                                 </div>
                             </div>
 
                             {/* 4. Scan Window + Rule Trigger (Replaces clumsy right drawer) */}
-                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-medium">
+                            <div className="flex items-center gap-2 font-medium text-slate-500 dark:text-slate-400">
                                 <Clock3 className="size-3.5 text-amber-600 dark:text-amber-400" />
                                 <span>Scan Window:</span>
                                 <span className="font-bold text-[#010440] dark:text-white">
@@ -184,7 +181,7 @@ export default function Dashboard({ dashboard }: DashboardProps) {
                         </section>
 
                         {/* Operational Activity Row: Top Sections Recognition & Multi-Tab Academic Breakdown */}
-                        <section className="grid min-w-0 gap-6 xl:grid-cols-[minmax(19rem,1fr)_minmax(0,1.9fr)] items-start">
+                        <section className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(19rem,1fr)_minmax(0,1.9fr)]">
                             <SectionLeaderboardCard sections={sectionLeaderboard} />
                             <ActivityBreakdownCard dashboard={dashboard} />
                         </section>

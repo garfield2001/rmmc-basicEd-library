@@ -13,9 +13,9 @@ class AdminTableExportService
     /**
      * Generate a filename for the export based on payload data.
      *
-     * @param array  $payload    The data payload containing school year, title, and filters
-     * @param string $extension  The file extension (e.g., 'xlsx', 'csv')
-     * @return string            The formatted filename
+     * @param  array  $payload  The data payload containing school year, title, and filters
+     * @param  string  $extension  The file extension (e.g., 'xlsx', 'csv')
+     * @return string The formatted filename
      */
     public function filename(array $payload, string $extension): string
     {
@@ -30,9 +30,9 @@ class AdminTableExportService
     /**
      * Prepare view data for the export template.
      *
-     * @param array  $payload    The data payload to be exported
-     * @param bool   $showActions Whether to show action columns in the export
-     * @return array             The view data array
+     * @param  array  $payload  The data payload to be exported
+     * @param  bool  $showActions  Whether to show action columns in the export
+     * @return array The view data array
      */
     public function viewData(array $payload, bool $showActions = true): array
     {

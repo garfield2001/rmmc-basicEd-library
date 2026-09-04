@@ -1,8 +1,7 @@
-import { AdminNavbar } from '@/layouts/admin/admin-navbar';
 import { adminThemePreferenceStorageKey } from '@/layouts/admin/admin-layout.constants';
-import type { ThemePreference } from '@/layouts/admin/admin-layout.types';
+import type { AdminLayoutProps, ThemePreference } from '@/layouts/admin/admin-layout.types';
+import { AdminNavbar } from '@/layouts/admin/admin-navbar';
 import { useAdminTheme } from '@/layouts/admin/use-admin-theme';
-import type { AdminLayoutProps } from '@/types/dashboard';
 import { useState } from 'react';
 
 export function AdminLayout({ active, children }: AdminLayoutProps) {
@@ -34,12 +33,10 @@ export function AdminLayout({ active, children }: AdminLayoutProps) {
     };
 
     return (
-        <div className={`admin-theme-root admin-theme-${resolvedTheme} ${resolvedTheme === 'dark' ? 'dark' : ''} admin-readable min-h-screen overflow-x-hidden bg-[#f5f7ff] text-[#010440] dark:bg-slate-950 dark:text-slate-100`}>
-            <AdminNavbar
-                active={active}
-                resolvedTheme={resolvedTheme}
-                onThemeToggle={handleThemeToggle}
-            />
+        <div
+            className={`admin-theme-root admin-theme-${resolvedTheme} ${resolvedTheme === 'dark' ? 'dark' : ''} admin-readable min-h-screen overflow-x-hidden bg-[#f5f7ff] text-[#010440] dark:bg-slate-950 dark:text-slate-100`}
+        >
+            <AdminNavbar active={active} resolvedTheme={resolvedTheme} onThemeToggle={handleThemeToggle} />
 
             {children}
         </div>

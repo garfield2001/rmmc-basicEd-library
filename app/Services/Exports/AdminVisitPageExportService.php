@@ -123,12 +123,12 @@ class AdminVisitPageExportService
                     'excess' => $visits > $required,
                     default => true,
                 }
-                : match ($status) {
-                    'no-visits' => $visits === 0,
-                    'complete' => $visits >= $required,
-                    'in-progress' => $visits > 0 && $visits < $required,
-                    default => true,
-                };
+            : match ($status) {
+                'no-visits' => $visits === 0,
+                'complete' => $visits >= $required,
+                'in-progress' => $visits > 0 && $visits < $required,
+                default => true,
+            };
         });
     }
 

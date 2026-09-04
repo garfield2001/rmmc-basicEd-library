@@ -11,7 +11,3 @@ export function resolveTheme(preference: ThemePreference): 'light' | 'dark' {
 
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
-
-export function resolveStoredThemePreference(value: string | null): ThemePreference {
-    return value === 'light' || value === 'dark' || value === 'system' ? value : 'system';
-}

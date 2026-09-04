@@ -2,6 +2,7 @@
 
 namespace App\Exports\Reports;
 
+use App\Services\Reports\VisitReportExportService;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
@@ -54,7 +55,7 @@ class VisitReportExcelExport implements FromArray, WithColumnFormatting, WithCol
         }
 
         $overallVisits = max(1, collect($this->report['rows'])->sum('visit_count'));
-        $comparison = (new \App\Services\Reports\VisitReportExportService())->comparison($this->groups, $overallVisits);
+        $comparison = (new VisitReportExportService)->comparison($this->groups, $overallVisits);
 
         $topVisits = $comparison['top_by_visits'] ?? [];
         $topCompletion = $comparison['top_by_completion'] ?? [];

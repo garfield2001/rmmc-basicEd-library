@@ -62,9 +62,7 @@ export function StudentSectionDetail({ activeSection, requiredVisits, reportFilt
     }
 
     const sectionParam =
-        activeSection.yearLevel && activeSection.sectionName
-            ? `${activeSection.yearLevel}::${activeSection.sectionName}`
-            : activeSection.key;
+        activeSection.yearLevel && activeSection.sectionName ? `${activeSection.yearLevel}::${activeSection.sectionName}` : activeSection.key;
 
     const printSectionUrl = `/admin/reports/visits/print?school_year_id=${reportFilters.school_year_id ?? ''}&start_date=${reportFilters.start_date ?? ''}&end_date=${reportFilters.end_date ?? ''}&visitor_type=student&sections[]=${encodeURIComponent(sectionParam)}`;
 
@@ -97,7 +95,7 @@ export function StudentSectionDetail({ activeSection, requiredVisits, reportFilt
                             href={printSectionUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex h-11 items-center gap-1.5 rounded-lg border border-[#040DBF]/20 bg-white px-3 text-xs font-semibold text-[#040DBF] shadow-xs transition hover:border-[#040DBF]/40 hover:bg-[#f6f8ff] dark:bg-slate-800 dark:border-slate-700 dark:text-sky-300 dark:hover:bg-slate-700"
+                            className="inline-flex h-11 items-center gap-1.5 rounded-lg border border-[#040DBF]/20 bg-white px-3 text-xs font-semibold text-[#040DBF] shadow-xs transition hover:border-[#040DBF]/40 hover:bg-[#f6f8ff] dark:border-slate-700 dark:bg-slate-800 dark:text-sky-300 dark:hover:bg-slate-700"
                             title="Open printable roster for this section"
                         >
                             <Printer className="size-3.5" />
@@ -111,19 +109,28 @@ export function StudentSectionDetail({ activeSection, requiredVisits, reportFilt
                     <div className="relative overflow-hidden rounded-xl border border-[#040DBF]/15 bg-[#f8faff] p-3.5 shadow-xs dark:border-slate-800 dark:bg-slate-800/60">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             <div className="flex min-w-0 items-center gap-3">
-                                <IconBadge icon={Trophy} className="size-10 rounded-lg bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400" />
+                                <IconBadge
+                                    icon={Trophy}
+                                    className="size-10 rounded-lg bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400"
+                                />
                                 <div className="min-w-0">
                                     <div className="flex items-center gap-2">
                                         <span className="text-[11px] font-bold text-[#030A8C] dark:text-sky-300">Top Section Visitor</span>
-                                        <span className="font-mono text-xs text-slate-500 dark:text-slate-400">ID: {activeSection.topStudent.school_id || '—'}</span>
+                                        <span className="font-mono text-xs text-slate-500 dark:text-slate-400">
+                                            ID: {activeSection.topStudent.school_id || '—'}
+                                        </span>
                                     </div>
-                                    <h4 className="mt-0.5 truncate text-sm font-bold text-[#010440] dark:text-white">{activeSection.topStudent.name}</h4>
+                                    <h4 className="mt-0.5 truncate text-sm font-bold text-[#010440] dark:text-white">
+                                        {activeSection.topStudent.name}
+                                    </h4>
                                 </div>
                             </div>
 
                             <div className="text-right">
                                 <div className="flex items-baseline justify-end gap-1.5">
-                                    <span className="text-xl font-black text-[#040DBF] dark:text-sky-400">{activeSection.topStudent.visit_count}</span>
+                                    <span className="text-xl font-black text-[#040DBF] dark:text-sky-400">
+                                        {activeSection.topStudent.visit_count}
+                                    </span>
                                     <span className="text-xs font-medium text-slate-600 dark:text-slate-400">visits recorded</span>
                                 </div>
                                 <p className="text-[11px] font-medium text-slate-600 dark:text-slate-300">
@@ -148,7 +155,7 @@ export function StudentSectionDetail({ activeSection, requiredVisits, reportFilt
                             'rounded-lg px-2.5 py-1 text-xs font-semibold transition-all',
                             statusFilter === 'all'
                                 ? 'bg-[#040DBF] text-white shadow-xs dark:bg-blue-600'
-                                : 'border border-[#040DBF]/20 bg-white text-slate-700 hover:bg-[#f6f8ff] dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700',
+                                : 'border border-[#040DBF]/20 bg-white text-slate-700 hover:bg-[#f6f8ff] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700',
                         )}
                     >
                         All ({counts.all})
@@ -160,7 +167,7 @@ export function StudentSectionDetail({ activeSection, requiredVisits, reportFilt
                             'rounded-lg px-2.5 py-1 text-xs font-semibold transition-all',
                             statusFilter === 'met'
                                 ? 'bg-[#040DBF] text-white shadow-xs dark:bg-blue-600'
-                                : 'border border-[#040DBF]/20 bg-white text-slate-700 hover:bg-[#f6f8ff] dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700',
+                                : 'border border-[#040DBF]/20 bg-white text-slate-700 hover:bg-[#f6f8ff] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700',
                         )}
                     >
                         Target Met ({counts.met})
@@ -172,7 +179,7 @@ export function StudentSectionDetail({ activeSection, requiredVisits, reportFilt
                             'rounded-lg px-2.5 py-1 text-xs font-semibold transition-all',
                             statusFilter === 'in_progress'
                                 ? 'bg-[#040DBF] text-white shadow-xs dark:bg-blue-600'
-                                : 'border border-[#040DBF]/20 bg-white text-slate-700 hover:bg-[#f6f8ff] dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700',
+                                : 'border border-[#040DBF]/20 bg-white text-slate-700 hover:bg-[#f6f8ff] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700',
                         )}
                     >
                         In Progress ({counts.in_progress})
@@ -184,7 +191,7 @@ export function StudentSectionDetail({ activeSection, requiredVisits, reportFilt
                             'rounded-lg px-2.5 py-1 text-xs font-semibold transition-all',
                             statusFilter === 'zero'
                                 ? 'bg-[#040DBF] text-white shadow-xs dark:bg-blue-600'
-                                : 'border border-[#040DBF]/20 bg-white text-slate-700 hover:bg-[#f6f8ff] dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700',
+                                : 'border border-[#040DBF]/20 bg-white text-slate-700 hover:bg-[#f6f8ff] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700',
                         )}
                     >
                         0 Visits ({counts.zero})
@@ -199,7 +206,7 @@ export function StudentSectionDetail({ activeSection, requiredVisits, reportFilt
                         placeholder="Search in this section..."
                         value={studentSearch}
                         onChange={(e) => setStudentSearch(e.target.value)}
-                        className="w-full rounded-md border border-[#040DBF]/20 bg-white py-1 pr-2.5 pl-8 text-xs text-[#010440] placeholder:text-slate-400 focus:border-[#040DBF] focus:ring-1 focus:ring-[#040DBF] focus:outline-none dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-500"
+                        className="w-full rounded-md border border-[#040DBF]/20 bg-white py-1 pr-2.5 pl-8 text-xs text-[#010440] placeholder:text-slate-400 focus:border-[#040DBF] focus:ring-1 focus:ring-[#040DBF] focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                     />
                 </div>
             </div>

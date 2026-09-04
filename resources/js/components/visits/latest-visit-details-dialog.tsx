@@ -16,12 +16,17 @@ export function LatestVisitDetailsDialog({ open, visit, onOpenChange }: LatestVi
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto p-0 sm:max-w-4xl dark:bg-slate-900 dark:border-slate-800" onOpenAutoFocus={(event) => event.preventDefault()}>
+            <DialogContent
+                className="max-h-[calc(100dvh-1rem)] overflow-y-auto p-0 sm:max-w-4xl dark:border-slate-800 dark:bg-slate-900"
+                onOpenAutoFocus={(event) => event.preventDefault()}
+            >
                 <div className="h-2 bg-[linear-gradient(90deg,#040DBF_0%,#030A8C_52%,#010440_100%)] dark:from-blue-600 dark:to-indigo-600" />
                 <DialogHeader>
                     <div className="px-6 pt-6">
                         <DialogTitle className="text-2xl font-bold text-[#010440] dark:text-white">Latest scanned visitor</DialogTitle>
-                        <DialogDescription className="mt-1 text-xs font-medium text-slate-600 dark:text-slate-400">Complete details for the most recent Radio-Frequency ID visit.</DialogDescription>
+                        <DialogDescription className="mt-1 text-xs font-medium text-slate-600 dark:text-slate-400">
+                            Complete details for the most recent Radio-Frequency ID visit.
+                        </DialogDescription>
                     </div>
                 </DialogHeader>
 
@@ -40,7 +45,9 @@ export function LatestVisitDetailsDialog({ open, visit, onOpenChange }: LatestVi
                             </span>
                         </div>
 
-                        <p className="mt-5 text-3xl font-extrabold tracking-tight text-[#010440] dark:text-white">{visit.visitor.name ?? 'Unknown visitor'}</p>
+                        <p className="mt-5 text-3xl font-extrabold tracking-tight text-[#010440] dark:text-white">
+                            {visit.visitor.name ?? 'Unknown visitor'}
+                        </p>
                         <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-[#030A8C] dark:text-sky-300">
                             <IdCard className="size-4" />
                             {visit.visitor.schoolId ?? 'No ID'}

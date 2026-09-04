@@ -85,6 +85,9 @@ class EmployeeSeeder extends LibraryMemberSeeder
             'OP1-303' => [
                 'department' => 'Office Personnel',
             ],
+            'rmmc-gsc-2309140342' => [
+                'department' => 'High School',
+            ],
         ]);
     }
 
