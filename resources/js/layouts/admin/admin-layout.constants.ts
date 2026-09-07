@@ -19,16 +19,6 @@ export const navItems: AdminNavItem[] = [
         icon: Activity,
     },
     {
-        key: 'visitors',
-        label: 'Registered Visitors',
-        href: '/admin/registered-visitors/students',
-        icon: UsersRound,
-        children: [
-            { label: 'Students', href: '/admin/registered-visitors/students', icon: GraduationCap },
-            { label: 'Employees', href: '/admin/registered-visitors/employees', icon: BriefcaseBusiness },
-        ],
-    },
-    {
         key: 'visit-history',
         label: 'Visit History',
         href: '/admin/visit-history/students',
@@ -36,6 +26,16 @@ export const navItems: AdminNavItem[] = [
         children: [
             { label: 'Students', href: '/admin/visit-history/students', icon: GraduationCap },
             { label: 'Employees', href: '/admin/visit-history/employees', icon: BriefcaseBusiness },
+        ],
+    },
+    {
+        key: 'visitors',
+        label: 'Registered Visitors',
+        href: '/admin/registered-visitors/students',
+        icon: UsersRound,
+        children: [
+            { label: 'Students', href: '/admin/registered-visitors/students', icon: GraduationCap },
+            { label: 'Employees', href: '/admin/registered-visitors/employees', icon: BriefcaseBusiness },
         ],
     },
     {

@@ -1,4 +1,4 @@
-﻿import type { VisitReport, VisitReportRow } from '@/types/reports';
+import type { VisitReport, VisitReportRow } from '@/types/reports';
 import { LayoutGrid } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { ReportExportActions, type ReportExportActionsProps } from '../report-export-actions';
@@ -41,10 +41,11 @@ export function StudentSectionReportView({ report, exportUrls }: StudentSectionR
                 </div>
             </div>
 
-            {/* Main Sections Workspace */}
-            <section className="admin-surface overflow-hidden rounded-xl border border-[#040DBF]/10 bg-white/95 shadow-sm">
-                <div className="h-1.5 w-full bg-[#040DBF]" />
-                <div className="flex flex-col divide-y divide-[#040DBF]/10 md:flex-row md:divide-x md:divide-y-0">
+            {/* Main Sections Workspace: Left Section Selector & Right Section Details separated by gap */}
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
+                {/* Left Card: Section Navigation & Filters */}
+                <div className="admin-surface flex w-full shrink-0 flex-col overflow-hidden rounded-xl border border-[#040DBF]/10 bg-white/95 shadow-sm lg:w-80 xl:w-96 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="h-1.5 w-full bg-[#040DBF]" />
                     <StudentSectionSidebar
                         sections={sections}
                         activeSectionKey={activeSection?.key ?? null}
@@ -52,6 +53,11 @@ export function StudentSectionReportView({ report, exportUrls }: StudentSectionR
                         onSearchChange={setSectionSearch}
                         onSelectSection={setActiveSectionKey}
                     />
+                </div>
+
+                {/* Right Card: Section Details & Student List */}
+                <div className="admin-surface flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-[#040DBF]/10 bg-white/95 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="h-1.5 w-full bg-[#040DBF]" />
                     <StudentSectionDetail
                         activeSection={activeSection}
                         requiredVisits={requiredVisits}
@@ -59,7 +65,7 @@ export function StudentSectionReportView({ report, exportUrls }: StudentSectionR
                         onSelectStudent={setSelectedStudent}
                     />
                 </div>
-            </section>
+            </div>
 
             {/* Student Visit History Popup Modal */}
             <StudentVisitHistoryModal

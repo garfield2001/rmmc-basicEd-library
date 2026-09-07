@@ -2,6 +2,7 @@ import { VisitorFormModal } from '@/components/admin/registered-visitors/form/vi
 import { RegisteredVisitorsHeaderActions } from '@/components/admin/registered-visitors/import/header-actions';
 import { ImportPreviewDialog } from '@/components/admin/registered-visitors/import/import-preview-dialog';
 import { ImportProgressOverlay } from '@/components/admin/registered-visitors/import/import-progress-overlay';
+import { ImportResultDialog } from '@/components/admin/registered-visitors/import/import-result-dialog';
 import { useVisitorImport } from '@/components/admin/registered-visitors/import/use-visitor-import';
 import { useVisitorsTableControls } from '@/components/admin/registered-visitors/table/use-visitors-table-controls';
 import type { VisitorsIndexProps } from '@/components/admin/registered-visitors/table/visitors-index-types';
@@ -9,14 +10,26 @@ import { VisitorsTable } from '@/components/admin/registered-visitors/table/visi
 import { AdminLayout } from '@/layouts/admin/admin-layout';
 import { AdminPageHeader } from '@/layouts/admin/admin-page-header';
 import { type LibraryMemberRow } from '@/types/registered-visitors';
-import { Head } from '@inertiajs/react';
-import { useState } from 'react';
+import type { SharedData } from '@/types/shared';
+import { Head, usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 
 export default function VisitorsIndex({ visitors, pagePath, filters, filterOptions, distribution }: VisitorsIndexProps) {
+    const { flash } = usePage<SharedData>().props;
     const table = useVisitorsTableControls(filters, filterOptions, pagePath);
     const importer = useVisitorImport();
     const [visitorFormOpen, setVisitorFormOpen] = useState(false);
     const [selectedVisitor, setSelectedVisitor] = useState<LibraryMemberRow | null>(null);
+    const [resultSummary, setResultSummary] = useState(flash?.importSummary ?? null);
+    const [resultOpen, setResultOpen] = useState(false);
+
+    useEffect(() => {
+        if (flash?.importSummary) {
+            setResultSummary(flash.importSummary);
+            setResultOpen(true);
+        }
+    }, [flash?.importSummary]);
+
     const { search, yearLevel, section, department, sort, direction, perPage } = table.fields;
 
     const openCreateVisitor = () => {
@@ -106,6 +119,11 @@ export default function VisitorsIndex({ visitors, pagePath, filters, filterOptio
                         processing={importer.importing}
                         onCancel={importer.cancelImport}
                         onConfirm={importer.confirmImport}
+                    />
+                    <ImportResultDialog
+                        open={resultOpen}
+                        summary={resultSummary}
+                        onClose={() => setResultOpen(false)}
                     />
                     {importer.importing && <ImportProgressOverlay previewOpen={importer.importPreviewOpen} />}
                 </AdminLayout>

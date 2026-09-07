@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { LogIn, ShieldCheck } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 import type { FormEventHandler } from 'react';
+import { RMMC_LOGO_PATH } from './constants';
 import type { LoginForm } from './types';
 
 interface AdminLoginDialogProps {
@@ -26,8 +27,8 @@ export function AdminLoginDialog({ open, onOpenChange, data, errors, processing,
                 <div className="p-6">
                     <DialogHeader>
                         <div className="mb-2 flex items-center gap-3">
-                            <div className="flex size-12 items-center justify-center rounded-lg bg-[#040DBF] text-white shadow-lg shadow-[#040DBF]/25">
-                                <ShieldCheck className="size-5" />
+                            <div className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-slate-200/60 bg-white p-1 shadow-sm">
+                                <img src={RMMC_LOGO_PATH} alt="RMMC logo" className="size-full object-contain" />
                             </div>
                             <div>
                                 <DialogTitle className="text-2xl tracking-tight text-slate-900">Admin login</DialogTitle>

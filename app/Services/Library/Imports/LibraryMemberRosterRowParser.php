@@ -18,19 +18,52 @@ class LibraryMemberRosterRowParser
     {
         $headers = [];
         $rows = [];
+        $headerIndex = null;
 
-        foreach ($sheetRows as $values) {
-            if ($headers === []) {
-                $headers = array_map(fn ($header) => $this->rows->normalizeHeader($header), $values);
+        foreach ($sheetRows as $idx => $values) {
+            $candidateHeaders = array_map(fn ($header) => $this->rows->normalizeHeader((string) $header), $values);
 
+            if ($this->isHeaderRowCandidate($candidateHeaders)) {
+                $headerIndex = $idx;
+                $headers = $candidateHeaders;
+
+                break;
+            }
+        }
+
+        if ($headerIndex === null) {
+            foreach ($sheetRows as $idx => $values) {
+                if (count(array_filter($values, fn ($v) => trim((string) $v) !== '')) > 0) {
+                    $headerIndex = $idx;
+                    $headers = array_map(fn ($header) => $this->rows->normalizeHeader((string) $header), $values);
+
+                    break;
+                }
+            }
+        }
+
+        if ($headerIndex === null || $headers === []) {
+            return [];
+        }
+
+        for ($i = $headerIndex + 1; $i < count($sheetRows); $i++) {
+            $values = $sheetRows[$i];
+
+            if (count(array_filter($values, fn ($value) => trim((string) $value) !== '')) === 0) {
                 continue;
             }
 
-            $row = array_combine($headers, array_pad($values, count($headers), '')) ?: [];
+            $sliced = array_slice($values, 0, count($headers));
+            $padded = array_pad(array_map('strval', $sliced), count($headers), '');
+            $row = array_combine($headers, $padded) ?: [];
 
             if ($classGroup) {
-                $row['year_level'] = ($row['year_level'] ?? '') !== '' ? $row['year_level'] : $classGroup['year_level'];
-                $row['section'] = ($row['section'] ?? '') !== '' ? $row['section'] : ($classGroup['section'] ?? '');
+                if (! empty($classGroup['year_level'])) {
+                    $row['year_level'] = ($row['year_level'] ?? '') !== '' ? $row['year_level'] : $classGroup['year_level'];
+                }
+                if (! empty($classGroup['section'])) {
+                    $row['section'] = ($row['section'] ?? '') !== '' ? $row['section'] : $classGroup['section'];
+                }
             }
 
             $rows[] = $row;
@@ -97,6 +130,9 @@ class LibraryMemberRosterRowParser
             return null;
         }
 
+        $yearLevel = ($classGroup['year_level'] ?? '') !== '' ? $classGroup['year_level'] : (string) ($values['year_level'] ?? '');
+        $section = ($classGroup['section'] ?? '') !== '' ? $classGroup['section'] : (string) ($values['section'] ?? '');
+
         return [
             'school_id' => $this->cleanImportedText((string) ($values['school_id'] ?? '')),
             'rfid_uid' => $this->rows->normalizeRFIDUid((string) ($values['rfid_uid'] ?? '')),
@@ -104,8 +140,8 @@ class LibraryMemberRosterRowParser
             'first_name' => $firstName,
             'middle_name' => $middleName ?? '',
             'last_name' => $lastName,
-            'year_level' => $classGroup['year_level'],
-            'section' => $classGroup['section'] ?? '',
+            'year_level' => $yearLevel,
+            'section' => $section,
             'department' => $this->cleanImportedText((string) ($values['department'] ?? '')),
         ];
     }
@@ -117,7 +153,17 @@ class LibraryMemberRosterRowParser
 
     public function isSchoolIdHeader(string $header): bool
     {
-        return in_array($header, ['school_id', 'id'], true);
+        return in_array($header, [
+            'school_id',
+            'student_no',
+            'student_id',
+            'student_number',
+            'school_id_no',
+            'school_id_number',
+            'student_id_no',
+            'employee_id',
+            'employee_no',
+        ], true);
     }
 
     private function cleanNamePart(?string $value): ?string
@@ -146,5 +192,25 @@ class LibraryMemberRosterRowParser
         $hasSchoolId = collect($headers)->contains(fn (string $header) => $this->isSchoolIdHeader($header));
 
         return $hasFirstName && $hasLastName && $hasSchoolId;
+    }
+
+    /**
+     * @param  array<int, string>  $headers
+     */
+    private function isHeaderRowCandidate(array $headers): bool
+    {
+        $hasFirstName = in_array('first_name', $headers, true) || in_array('given_name', $headers, true) || in_array('first', $headers, true);
+        $hasLastName = in_array('last_name', $headers, true) || in_array('surname', $headers, true) || in_array('last', $headers, true);
+        $hasSchoolId = collect($headers)->contains(fn (string $header) => $this->isSchoolIdHeader($header));
+
+        if ($hasFirstName && $hasLastName) {
+            return true;
+        }
+
+        if ($hasSchoolId && ($hasFirstName || $hasLastName)) {
+            return true;
+        }
+
+        return false;
     }
 }

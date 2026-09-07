@@ -34,6 +34,26 @@ export interface LibraryMemberImportPreviewMember {
     department: string | null;
 }
 
+export interface LibraryMemberImportSkippedRow {
+    name: string;
+    type: 'student' | 'employee';
+    school_id: string | null;
+    rfid_uid: string | null;
+    year_level: string | null;
+    section: string | null;
+    department: string | null;
+    reason: string;
+}
+
+export interface LibraryMemberImportSummary {
+    created: number;
+    updated: number;
+    restored: number;
+    visits: number;
+    skipped: number;
+    skipped_rows: LibraryMemberImportSkippedRow[];
+}
+
 export interface LibraryMemberImportPreview {
     file_name: string;
     total_rows: number;
@@ -42,8 +62,5 @@ export interface LibraryMemberImportPreview {
     create_count: number;
     update_count: number;
     members: LibraryMemberImportPreviewMember[];
-    skipped: {
-        name: string;
-        reason: string;
-    }[];
+    skipped: LibraryMemberImportSkippedRow[];
 }

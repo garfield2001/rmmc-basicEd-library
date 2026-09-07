@@ -13,10 +13,22 @@ export function AdminNavbar({ active, resolvedTheme, onThemeToggle }: AdminNavba
     const user = auth.user;
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [schoolYearDetailsOpen, setSchoolYearDetailsOpen] = useState(false);
+    const [schoolYearDetailsOpen, setSchoolYearDetailsOpen] = useState(!schoolYear);
     const menuRef = useRef<HTMLDivElement | null>(null);
 
     const ThemeIcon = resolvedTheme === 'dark' ? Sun : Moon;
+
+    useEffect(() => {
+        if (!schoolYear) {
+            setSchoolYearDetailsOpen(true);
+        }
+    }, [schoolYear]);
+
+    useEffect(() => {
+        const handleOpen = () => setSchoolYearDetailsOpen(true);
+        window.addEventListener('open-school-year-details', handleOpen);
+        return () => window.removeEventListener('open-school-year-details', handleOpen);
+    }, []);
 
     useEffect(() => {
         if (!userMenuOpen) return;
@@ -166,7 +178,7 @@ export function AdminNavbar({ active, resolvedTheme, onThemeToggle }: AdminNavba
                                 </div>
 
                                 <div className="py-1">
-                                    {/* School Year & Transitioning item inside Admin Dropdown */}
+                                    {/* School Year item inside Admin Dropdown */}
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -179,7 +191,7 @@ export function AdminNavbar({ active, resolvedTheme, onThemeToggle }: AdminNavba
                                             <CalendarClock className="size-4 shrink-0 text-[#040DBF] dark:text-sky-400" />
                                             <div className="min-w-0 text-left">
                                                 <p className="truncate leading-tight font-semibold text-[#010440] dark:text-white">
-                                                    School Year & Transition
+                                                    School year
                                                 </p>
                                                 <p className="truncate text-[10px] text-slate-500 dark:text-slate-400">
                                                     {schoolYear ? `Active: ${schoolYear.name}` : 'No active year'}
@@ -294,7 +306,7 @@ export function AdminNavbar({ active, resolvedTheme, onThemeToggle }: AdminNavba
                         })}
                     </div>
 
-                    <div className="mt-2 border-t border-slate-100 pt-2 dark:border-slate-800">
+                    <div className="mt-2 space-y-1 border-t border-slate-100 pt-2 dark:border-slate-800">
                         <button
                             type="button"
                             onClick={() => {
@@ -305,12 +317,20 @@ export function AdminNavbar({ active, resolvedTheme, onThemeToggle }: AdminNavba
                         >
                             <div className="flex items-center gap-2.5">
                                 <CalendarClock className="size-4 shrink-0 text-[#040DBF] dark:text-sky-400" />
-                                <span>School Year & Transition</span>
+                                <span>School year</span>
                             </div>
                             <span className="text-[10px] font-normal text-slate-500 dark:text-slate-400">
                                 {schoolYear ? schoolYear.name : 'None'}
                             </span>
                         </button>
+                        <Link
+                            href="/admin/settings"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-[#020659] hover:bg-[#f6f8ff] dark:text-slate-200 dark:hover:bg-slate-800"
+                        >
+                            <Settings className="size-4 shrink-0" />
+                            <span>Settings</span>
+                        </Link>
                     </div>
                 </nav>
             )}

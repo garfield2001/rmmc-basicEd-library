@@ -52,7 +52,26 @@ export default function VisitHistory({ visitLogs, initialVisitorType }: VisitHis
                         />
 
                         <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-stretch">
-                            <div className="admin-surface relative order-2 flex w-full flex-col overflow-hidden rounded-xl border border-[#040DBF]/10 bg-white/95 shadow-sm lg:order-1 lg:flex-1 dark:border-slate-800 dark:bg-slate-900">
+                            <div className="admin-surface relative order-1 flex h-[420px] w-full shrink-0 flex-col overflow-hidden rounded-xl border border-[#040DBF]/10 bg-white/95 shadow-sm lg:h-auto lg:w-80 xl:w-96 dark:border-slate-800 dark:bg-slate-900">
+                                <div className="h-1.5 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800 dark:from-blue-500 dark:to-indigo-500" />
+                                <div className="relative flex-1">
+                                    <div className="absolute inset-0">
+                                        <VisitProgressSummaryCards
+                                            visitors={page.summaryCardVisitors}
+                                            visitorType={page.visitorType}
+                                            requiredVisits={requiredVisits}
+                                            onYearLevelChange={page.changeYearLevel}
+                                            onSectionChange={page.setSection}
+                                            onDepartmentChange={page.setDepartment}
+                                            activeYearLevel={page.yearLevel}
+                                            activeSection={page.section}
+                                            activeDepartment={page.department}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="admin-surface relative order-2 flex w-full flex-col overflow-hidden rounded-xl border border-[#040DBF]/10 bg-white/95 shadow-sm lg:flex-1 dark:border-slate-800 dark:bg-slate-900">
                                 <div className="h-1.5 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800 dark:from-blue-500 dark:to-indigo-500" />
                                 <VisitProgressRanking
                                     visitorType={page.visitorType}
@@ -80,25 +99,6 @@ export default function VisitHistory({ visitLogs, initialVisitorType }: VisitHis
                                     onYearLevelChange={page.changeYearLevel}
                                     onSectionChange={page.setSection}
                                 />
-                            </div>
-
-                            <div className="admin-surface relative order-1 flex h-[420px] w-full shrink-0 flex-col overflow-hidden rounded-xl border border-[#040DBF]/10 bg-white/95 shadow-sm lg:order-2 lg:h-auto lg:w-80 xl:w-96 dark:border-slate-800 dark:bg-slate-900">
-                                <div className="h-1.5 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800 dark:from-blue-500 dark:to-indigo-500" />
-                                <div className="relative flex-1">
-                                    <div className="absolute inset-0">
-                                        <VisitProgressSummaryCards
-                                            visitors={page.summaryCardVisitors}
-                                            visitorType={page.visitorType}
-                                            requiredVisits={requiredVisits}
-                                            onYearLevelChange={page.changeYearLevel}
-                                            onSectionChange={page.setSection}
-                                            onDepartmentChange={page.setDepartment}
-                                            activeYearLevel={page.yearLevel}
-                                            activeSection={page.section}
-                                            activeDepartment={page.department}
-                                        />
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>

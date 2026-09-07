@@ -59,11 +59,17 @@ class LibraryMemberWordRosterReader
                 continue;
             }
 
-            if ($child->localName !== 'tbl' || ! $classGroup) {
+            if ($child->localName !== 'tbl') {
                 continue;
             }
 
-            $rows = [...$rows, ...$this->roster->rosterRowsFromValues($this->tableRows($child, $xpath), $classGroup)];
+            $tableRows = $this->tableRows($child, $xpath);
+            $rosterRows = $this->roster->rosterRowsFromValues($tableRows, $classGroup);
+            $headerRows = $classGroup && $rosterRows !== []
+                ? []
+                : $this->roster->headerRowsFromValues($tableRows, $classGroup);
+
+            $rows = [...$rows, ...$headerRows, ...$rosterRows];
         }
 
         return $rows;

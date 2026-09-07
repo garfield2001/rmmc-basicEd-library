@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import type { LibraryMemberImportPreview } from '@/types/registered-visitors';
 import { CheckCircle2, XCircle } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { compareImportValues, importSearchValue, importSortValue } from './import-preview-helpers';
 import { ImportPreviewSearch } from './import-preview-search';
 import { ImportPreviewSummary } from './import-preview-summary';
@@ -18,17 +18,15 @@ interface ImportPreviewDialogProps {
     onConfirm: () => void;
 }
 
-const rowHeight = 58,
-    overscan = 10;
-
 export function ImportPreviewDialog({ open, preview, processing, onCancel, onConfirm }: ImportPreviewDialogProps) {
     const members = useMemo(() => preview?.members ?? [], [preview?.members]);
     const [importSearch, setImportSearch] = useState('');
     const [sortColumn, setSortColumn] = useState<ImportPreviewSort>('status');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-    const tableScrollerRef = useRef<HTMLDivElement | null>(null);
-    const [scrollTop, setScrollTop] = useState(0);
-    const [viewportHeight, setViewportHeight] = useState(420);
+    const [activeTab, setActiveTab] = useState<'ready' | 'skipped'>('ready');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+
     const displayedMembers = useMemo(() => {
         const normalizedSearch = importSearch.trim().toLowerCase();
         const filtered = normalizedSearch ? members.filter((member) => importSearchValue(member).includes(normalizedSearch)) : members;
@@ -39,11 +37,15 @@ export function ImportPreviewDialog({ open, preview, processing, onCancel, onCon
             return sortDirection === 'asc' ? comparison : comparison * -1;
         });
     }, [importSearch, members, sortColumn, sortDirection]);
-    const startIndex = Math.max(0, Math.floor(scrollTop / rowHeight) - overscan);
-    const endIndex = Math.min(displayedMembers.length, Math.ceil((scrollTop + viewportHeight) / rowHeight) + overscan);
-    const visibleMembers = displayedMembers.slice(startIndex, Math.max(startIndex + 1, endIndex));
-    const topPadding = startIndex * rowHeight;
-    const bottomPadding = Math.max(0, (displayedMembers.length - endIndex) * rowHeight);
+
+    const totalRows = displayedMembers.length;
+    const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage));
+    const safePage = Math.min(currentPage, totalPages);
+    const startIndex = (safePage - 1) * rowsPerPage;
+    const paginatedMembers = displayedMembers.slice(startIndex, startIndex + rowsPerPage);
+    const from = totalRows === 0 ? 0 : startIndex + 1;
+    const to = Math.min(startIndex + rowsPerPage, totalRows);
+
     const canImport = (preview?.importable_count ?? 0) > 0;
     const importActionLabel = preview?.importable_count === 1 ? 'Import 1 row' : `Import ${preview?.importable_count ?? 0} rows`;
 
@@ -52,28 +54,19 @@ export function ImportPreviewDialog({ open, preview, processing, onCancel, onCon
             return;
         }
 
-        setScrollTop(0);
+        setCurrentPage(1);
         setImportSearch('');
         setSortColumn('status');
         setSortDirection('asc');
-        tableScrollerRef.current?.scrollTo({ top: 0 });
+        setActiveTab(preview && preview.importable_count === 0 && preview.skipped_count > 0 ? 'skipped' : 'ready');
     }, [open, preview]);
 
     useEffect(() => {
-        if (!open) {
-            return;
-        }
-
-        const updateViewportHeight = () => setViewportHeight(tableScrollerRef.current?.clientHeight ?? 420);
-
-        updateViewportHeight();
-        window.addEventListener('resize', updateViewportHeight);
-
-        return () => window.removeEventListener('resize', updateViewportHeight);
-    }, [open]);
+        setCurrentPage(1);
+    }, [importSearch, rowsPerPage]);
 
     const changeSort = (column: ImportPreviewSort) => {
-        resetTableScroll();
+        setCurrentPage(1);
         setSortColumn((currentColumn) => {
             if (currentColumn === column) {
                 setSortDirection((currentDirection) => (currentDirection === 'asc' ? 'desc' : 'asc'));
@@ -85,11 +78,6 @@ export function ImportPreviewDialog({ open, preview, processing, onCancel, onCon
 
             return column;
         });
-    };
-
-    const resetTableScroll = () => {
-        setScrollTop(0);
-        tableScrollerRef.current?.scrollTo({ top: 0 });
     };
 
     return (
@@ -109,30 +97,70 @@ export function ImportPreviewDialog({ open, preview, processing, onCancel, onCon
                 {preview && (
                     <div className="min-h-0 space-y-4 overflow-y-auto pr-1 pb-2">
                         <ImportPreviewSummary preview={preview} />
-                        <ImportPreviewSearch
-                            value={importSearch}
-                            displayedCount={displayedMembers.length}
-                            totalCount={members.length}
-                            onChange={(value) => {
-                                setImportSearch(value);
-                                resetTableScroll();
-                            }}
-                        />
-                        <ImportPreviewTable
-                            tableScrollerRef={tableScrollerRef}
-                            visibleMembers={visibleMembers}
-                            membersCount={members.length}
-                            displayedCount={displayedMembers.length}
-                            topPadding={topPadding}
-                            bottomPadding={bottomPadding}
-                            startIndex={startIndex}
-                            sortColumn={sortColumn}
-                            sortDirection={sortDirection}
-                            onScroll={setScrollTop}
-                            onSort={changeSort}
-                        />
-                        {canImport && <p className="text-xs text-zinc-500">Scroll to review all importable members.</p>}
-                        {preview.skipped.length > 0 && <SkippedRows rows={preview.skipped} />}
+
+                        {preview.skipped_count > 0 && (
+                            <div className="flex gap-4 border-b border-zinc-200">
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('ready')}
+                                    className={`-mb-px flex items-center gap-2 border-b-2 pb-2 text-sm font-medium transition-colors ${
+                                        activeTab === 'ready'
+                                            ? 'border-[#040DBF] text-[#040DBF]'
+                                            : 'border-transparent text-zinc-500 hover:text-zinc-800'
+                                    }`}
+                                >
+                                    <span>Ready to import</span>
+                                    <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-700">
+                                        {preview.importable_count}
+                                    </span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('skipped')}
+                                    className={`-mb-px flex items-center gap-2 border-b-2 pb-2 text-sm font-medium transition-colors ${
+                                        activeTab === 'skipped'
+                                            ? 'border-amber-600 font-semibold text-amber-700'
+                                            : 'border-transparent text-amber-700/80 hover:text-amber-800'
+                                    }`}
+                                >
+                                    <span>Skipped / Needs attention</span>
+                                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
+                                        {preview.skipped_count}
+                                    </span>
+                                </button>
+                            </div>
+                        )}
+
+                        {activeTab === 'ready' ? (
+                            <>
+                                <ImportPreviewSearch
+                                    value={importSearch}
+                                    displayedCount={displayedMembers.length}
+                                    totalCount={members.length}
+                                    onChange={(value) => setImportSearch(value)}
+                                />
+                                <ImportPreviewTable
+                                    members={paginatedMembers}
+                                    membersCount={members.length}
+                                    displayedCount={displayedMembers.length}
+                                    startIndex={startIndex}
+                                    sortColumn={sortColumn}
+                                    sortDirection={sortDirection}
+                                    onSort={changeSort}
+                                    currentPage={safePage}
+                                    totalPages={totalPages}
+                                    from={from}
+                                    to={to}
+                                    total={totalRows}
+                                    rowsPerPage={rowsPerPage}
+                                    onPageChange={setCurrentPage}
+                                    onRowsPerPageChange={setRowsPerPage}
+                                />
+                            </>
+                        ) : (
+                            <SkippedRows rows={preview.skipped} fileName={preview.file_name} />
+                        )}
                     </div>
                 )}
 

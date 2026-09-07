@@ -24,7 +24,7 @@ class LibraryMemberImportService
     ) {}
 
     /**
-     * @return array{created: int, updated: int, restored: int, visits: int, skipped: int}
+     * @return array{created: int, updated: int, restored: int, visits: int, skipped: int, skipped_rows: array<int, array<string, mixed>>}
      */
     public function import(UploadedFile $file): array
     {
@@ -45,21 +45,25 @@ class LibraryMemberImportService
                 'restored' => 0,
                 'visits' => 0,
                 'skipped' => 0,
+                'skipped_rows' => [],
             ];
 
             foreach ($rows as $row) {
                 $row = $this->rows->normalize($row);
 
                 if (! $this->rows->hasMinimumVisitorData($row)) {
+                    $reason = $this->rows->minimumVisitorDataMessage($row);
                     $summary['skipped']++;
+                    $summary['skipped_rows'][] = $this->preview->formatSkippedRow($row, $reason);
 
                     continue;
                 }
 
                 $visitor = $this->identity->findVisitor($row);
 
-                if ($this->identity->rejectionMessage($row, $visitor)) {
+                if ($reason = $this->identity->rejectionMessage($row, $visitor)) {
                     $summary['skipped']++;
+                    $summary['skipped_rows'][] = $this->preview->formatSkippedRow($row, $reason);
 
                     continue;
                 }

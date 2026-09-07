@@ -1,4 +1,4 @@
-﻿import { SelectInput } from '@/components/ui/select-input';
+import { SelectInput } from '@/components/ui/select-input';
 import { cn } from '@/lib/utils';
 import { ArrowUpDown, Search, User } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -67,7 +67,7 @@ export function StudentSectionSidebar({ sections, activeSectionKey, searchQuery,
     }, [sections, departmentTab, searchQuery, sortMode]);
 
     return (
-        <aside className="flex w-full flex-col border-b border-[#040DBF]/10 bg-[#f8faff] md:w-80 md:border-r md:border-b-0 lg:w-96">
+        <aside className="flex flex-1 flex-col bg-[#f8faff] dark:bg-slate-900">
             {/* Header: Department Tabs (All, Pre-school, Elem, JHS) */}
             <div className="space-y-2.5 border-b border-[#040DBF]/10 bg-white p-3">
                 <div className="grid grid-cols-4 gap-1 rounded-lg border border-[#040DBF]/10 bg-[#f8faff] p-1 text-[11px] font-semibold">

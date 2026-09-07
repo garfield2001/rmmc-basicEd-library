@@ -4,7 +4,10 @@ namespace App\Services\Library\Imports;
 
 class LibraryMemberDelimitedReader
 {
-    public function __construct(private readonly LibraryMemberImportRowNormalizer $rows) {}
+    public function __construct(
+        private readonly LibraryMemberImportRowNormalizer $rows,
+        private readonly LibraryMemberRosterRowParser $roster,
+    ) {}
 
     /**
      * @return array<int, array<string, string>>
@@ -17,26 +20,17 @@ class LibraryMemberDelimitedReader
             return [];
         }
 
-        $headers = null;
-        $rows = [];
+        $rawRows = [];
 
         while (($data = fgetcsv($handle, separator: $delimiter)) !== false) {
-            if ($headers === null) {
-                $headers = array_map(fn ($header) => $this->rows->normalizeHeader((string) $header), $data);
-
-                continue;
+            if (count(array_filter($data, fn ($value) => trim((string) $value) !== '')) > 0) {
+                $rawRows[] = $data;
             }
-
-            if (count(array_filter($data, fn ($value) => trim((string) $value) !== '')) === 0) {
-                continue;
-            }
-
-            $rows[] = array_combine($headers, array_pad(array_map('strval', $data), count($headers), '')) ?: [];
         }
 
         fclose($handle);
 
-        return $rows;
+        return $this->roster->headerRowsFromValues($rawRows);
     }
 
     /**
@@ -50,10 +44,9 @@ class LibraryMemberDelimitedReader
         libxml_clear_errors();
         libxml_use_internal_errors($previous);
 
-        $headers = [];
-        $rows = [];
+        $rawRows = [];
 
-        foreach ($document->getElementsByTagName('tr') as $trIndex => $row) {
+        foreach ($document->getElementsByTagName('tr') as $row) {
             $cells = [];
 
             foreach (['th', 'td'] as $tag) {
@@ -62,19 +55,11 @@ class LibraryMemberDelimitedReader
                 }
             }
 
-            if ($trIndex === 0) {
-                $headers = array_map(fn ($header) => $this->rows->normalizeHeader($header), $cells);
-
-                continue;
+            if (count(array_filter($cells, fn ($value) => trim((string) $value) !== '')) > 0) {
+                $rawRows[] = $cells;
             }
-
-            if ($headers === [] || count(array_filter($cells, fn ($value) => trim($value) !== '')) === 0) {
-                continue;
-            }
-
-            $rows[] = array_combine($headers, array_pad($cells, count($headers), '')) ?: [];
         }
 
-        return $rows;
+        return $this->roster->headerRowsFromValues($rawRows);
     }
 }

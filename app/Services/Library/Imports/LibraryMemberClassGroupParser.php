@@ -54,18 +54,46 @@ class LibraryMemberClassGroupParser
             }
         }
 
+        $noiseWords = [
+            'CLASS', 'LIST', 'WITH', 'LRN', 'SHEET', 'SHEET1', 'SHEET2', 'SHEET3',
+            'SHEET4', 'SHEET5', 'SHEET6', 'SHEET7', 'SHEET8', 'SHEET9', 'SHEET10',
+            'PAGE', 'STUDENT', 'STUDENTS', 'ROSTER', 'DATA', 'TABLE', 'EXPORT',
+            'ENROLLMENT', 'SUMMARY', 'SECTION',
+        ];
+
+        $headerWords = [
+            'FIRST', 'LAST', 'SURNAME', 'NAME', 'ID', 'SCHOOL', 'MIDDLE', 'DEPARTMENT',
+            'PROGRAM', 'STATUS', 'CURRICULUM', 'RELIGION', 'DATE', 'NUMBER', 'NO', 'RFID', 'GENDER',
+        ];
+
+        // If no year level was found, check if line contains header words
         if (! $yearLevel) {
-            return null;
+            foreach ($tokens as $t) {
+                if (in_array($t, $headerWords, true)) {
+                    return null;
+                }
+            }
         }
 
         $sectionTokens = array_values(array_filter(
             $tokens,
-            fn (string $token, int $index): bool => ! isset($skip[$index]) && ! in_array($token, ['CLASS', 'LIST', 'WITH', 'LRN'], true),
+            fn (string $token, int $index): bool => ! isset($skip[$index]) && ! in_array($token, $noiseWords, true) && ! is_numeric($token),
             ARRAY_FILTER_USE_BOTH,
         ));
-        $section = Str::of(implode(' ', $sectionTokens))->lower()->title()->trim()->toString();
 
-        return ['year_level' => $yearLevel, 'section' => $section !== '' ? $section : null];
+        // If no year level was found, a standalone section name shouldn't have more than 2 words
+        if (! $yearLevel && count($sectionTokens) > 2) {
+            return null;
+        }
+
+        $section = Str::of(implode(' ', $sectionTokens))->lower()->title()->trim()->toString();
+        $section = $section !== '' ? $section : null;
+
+        if (! $yearLevel && ! $section) {
+            return null;
+        }
+
+        return ['year_level' => $yearLevel, 'section' => $section];
     }
 
     private function looksLikeGradeToken(string $token): bool

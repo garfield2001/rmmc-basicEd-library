@@ -62,17 +62,8 @@ export function ImportPreviewRow({ member }: { member: LibraryMemberImportPrevie
     );
 }
 
-export function SkippedRows({ rows }: { rows: LibraryMemberImportPreview['skipped'] }) {
-    return (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
-            <p className="text-sm font-semibold text-amber-800">Skipped row preview</p>
-            <div className="mt-2 space-y-1">
-                {rows.map((row, index) => (
-                    <p key={`${row.name}-${index}`} className="text-xs text-amber-800">
-                        {row.name}: {row.reason}
-                    </p>
-                ))}
-            </div>
-        </div>
-    );
+import { ImportSkippedTable } from './import-skipped-table';
+
+export function SkippedRows({ rows, fileName }: { rows: LibraryMemberImportPreview['skipped']; fileName?: string }) {
+    return <ImportSkippedTable rows={rows} fileName={fileName} />;
 }

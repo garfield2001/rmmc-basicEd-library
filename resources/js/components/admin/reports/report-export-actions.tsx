@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Download, FileDown, FileSpreadsheet, FileText, Printer, type LucideIcon } from 'lucide-react';
 
-interface ReportExportActionsProps {
+export interface ReportExportActionsProps {
     excelUrl: string;
     wordUrl: string;
     pdfUrl: string;

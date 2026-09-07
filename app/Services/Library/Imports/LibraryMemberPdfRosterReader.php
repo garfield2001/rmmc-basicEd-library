@@ -34,13 +34,13 @@ class LibraryMemberPdfRosterReader
                 continue;
             }
 
-            if (preg_match('/\b(LAST\s*NAME|SURNAME|GIVEN\s*NAME|FIRST\s*NAME|MIDDLE\s*NAME|LRN|RFID|SCHOOL\s*ID|ID|DEPARTMENT)\b/i', $line)) {
+            if (preg_match('/\b(LAST\s*NAME|SURNAME|GIVEN\s*NAME|FIRST\s*NAME|MIDDLE\s*NAME|STUDENT\s*NO|STUDENT\s*ID|LRN|RFID|SCHOOL\s*ID|ID|YEAR\s*LEVEL|GRADE|SECTION|DEPARTMENT)\b/i', $line)) {
                 $headerMap = $this->headerMap($line);
 
                 continue;
             }
 
-            if (! $classGroup || $this->roster->isRosterLabel($line)) {
+            if ($this->roster->isRosterLabel($line)) {
                 continue;
             }
 
@@ -74,6 +74,10 @@ class LibraryMemberPdfRosterReader
                 $map['school_id'] = $index;
             } elseif (str_contains($normalized, 'rfid')) {
                 $map['rfid_uid'] = $index;
+            } elseif (in_array($normalized, ['year_level', 'grade_level', 'grade'], true)) {
+                $map['year_level'] = $index;
+            } elseif ($normalized === 'section') {
+                $map['section'] = $index;
             } elseif ($normalized === 'department') {
                 $map['department'] = $index;
             }
@@ -83,13 +87,13 @@ class LibraryMemberPdfRosterReader
     }
 
     /**
-     * @param  array{year_level: string, section: string|null}  $classGroup
+     * @param  array{year_level: string, section: string|null}|null  $classGroup
      * @param  array<string, int>|null  $headerMap
      * @return array<string, string>|null
      */
-    private function rosterRow(string $line, array $classGroup, ?array $headerMap): ?array
+    private function rosterRow(string $line, ?array $classGroup, ?array $headerMap): ?array
     {
-        if (! $headerMap || ! isset($headerMap['first_name'], $headerMap['middle_name'], $headerMap['last_name'])) {
+        if (! $headerMap || ! isset($headerMap['first_name'], $headerMap['last_name'])) {
             return null;
         }
 
@@ -100,6 +104,18 @@ class LibraryMemberPdfRosterReader
             $values[$field] = $columns[$index] ?? '';
         }
 
-        return $this->roster->studentRowFromAssociativeValues($values, $classGroup);
+        $rowClassGroup = $classGroup;
+        if (! $rowClassGroup && isset($values['year_level'])) {
+            $rowClassGroup = [
+                'year_level' => $values['year_level'],
+                'section' => $values['section'] ?? null,
+            ];
+        }
+
+        if (! $rowClassGroup) {
+            return null;
+        }
+
+        return $this->roster->studentRowFromAssociativeValues($values, $rowClassGroup);
     }
 }

@@ -73,13 +73,28 @@ class LibraryMemberImportPreviewBuilder
 
     /**
      * @param  array<string, string>  $row
+     * @return array{name: string, type: string, school_id: ?string, rfid_uid: ?string, year_level: ?string, section: ?string, department: ?string, reason: string}
      */
-    private function skippedRow(array $row, string $reason): array
+    public function formatSkippedRow(array $row, string $reason): array
     {
         return [
             'name' => $this->previewName($row) ?: 'Incomplete row',
+            'type' => $row['type'] ?? LibraryMember::TYPE_STUDENT,
+            'school_id' => ($row['_school_id_raw'] ?? '') !== '' ? $row['_school_id_raw'] : ($row['school_id'] ?? null),
+            'rfid_uid' => ($row['_rfid_uid_raw'] ?? '') !== '' ? $row['_rfid_uid_raw'] : ($row['rfid_uid'] ?? null),
+            'year_level' => ($row['year_level'] ?? '') !== '' ? $row['year_level'] : null,
+            'section' => ($row['section'] ?? '') !== '' ? $row['section'] : null,
+            'department' => ($row['department'] ?? '') !== '' ? $row['department'] : null,
             'reason' => $reason,
         ];
+    }
+
+    /**
+     * @param  array<string, string>  $row
+     */
+    private function skippedRow(array $row, string $reason): array
+    {
+        return $this->formatSkippedRow($row, $reason);
     }
 
     /**

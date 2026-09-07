@@ -115,7 +115,7 @@ export function SchoolYearFormPanel({
             <div className="mt-5 flex justify-end">
                 <Button type="submit" disabled={processing || (!editingSchoolYear && !data.confirmed_transition)}>
                     {editingSchoolYear ? <Save className="size-4" /> : <Plus className="size-4" />}
-                    {processing ? 'Saving...' : editingSchoolYear ? 'Save changes' : 'Transition school year'}
+                    {processing ? 'Saving...' : editingSchoolYear ? 'Save changes' : hasPreviousSchoolYear ? 'Transition school year' : 'Create school year'}
                 </Button>
             </div>
         </form>

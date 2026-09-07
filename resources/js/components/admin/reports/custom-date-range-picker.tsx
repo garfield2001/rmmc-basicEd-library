@@ -1,4 +1,4 @@
-﻿import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import {
     buildCalendarDays,
     buildYearOptions,
@@ -278,7 +278,7 @@ export function CustomDateRangePicker({ startDate, endDate, min, max, onChange }
                                             : isInRange || isInHoverRange
                                               ? 'bg-[#040DBF]/10 text-[#010440]'
                                               : 'text-[#010440] hover:bg-[#f6f8ff]',
-                                        isStart && (draftEnd || (hoverDate && hoverDate > draftStart)) && 'rounded-l-md',
+                                        isStart && (draftEnd || (hoverDate && draftStart && hoverDate > draftStart)) && 'rounded-l-md',
                                         isEnd && draftStart && 'rounded-r-md',
                                         isStart && !draftEnd && !hoverDate && 'rounded-md',
                                         isStart && isEnd && 'rounded-md',

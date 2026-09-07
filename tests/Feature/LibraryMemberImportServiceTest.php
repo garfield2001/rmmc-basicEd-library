@@ -175,13 +175,13 @@ CSV));
         $this->assertStringContainsString('School ID must be exactly 10 digits', $preview['skipped'][0]['reason']);
     }
 
-    public function test_import_accepts_id_header_as_school_id_and_skips_same_identity_with_different_school_id(): void
+    public function test_import_accepts_student_id_header_as_school_id_and_skips_same_identity_with_different_school_id(): void
     {
         $this->activeSchoolYear();
         $imports = app(LibraryMemberImportService::class);
 
         $summary = $imports->import($this->csvUpload(<<<'CSV'
-first_name,middle_name,last_name,ID,rfid_uid
+first_name,middle_name,last_name,Student ID,rfid_uid
 ANDRINO,PHILLIP VIKTOR,GAMOTIN,1000000001,1231233332
 CSV));
 
@@ -481,13 +481,13 @@ CSV));
         $this->activeSchoolYear();
 
         $preview = app(LibraryMemberImportService::class)->preview($this->csvUpload(<<<'CSV'
-first_name,middle_name,last_name,LRN,student_id,id_number
-Juan,Santos,Dela Cruz,123456789012,1000000001,1000000002
+first_name,middle_name,last_name,LRN,ID,id_number
+Juan,Santos,Dela Cruz,123456789012,1,1000000002
 CSV));
 
         $this->assertSame(0, $preview['importable_count']);
         $this->assertSame(1, $preview['skipped_count']);
-        $this->assertStringContainsString('Use a column named School ID or ID only', $preview['skipped'][0]['reason']);
+        $this->assertStringContainsString('Use a column named Student No, School ID, or Student ID', $preview['skipped'][0]['reason']);
     }
 
     public function test_import_rejects_roster_lrn_without_school_id_header(): void
@@ -755,7 +755,7 @@ TEXT));
                 ['AHAT', 'JOSHUA REUEL', 'ABELLA', '405843160004', '1000000001'],
             ],
             'GRADE 8 AMBER' => [
-                ['SURNAME', 'GIVEN NAME', 'MIDDLE NAME', 'LRN', 'ID'],
+                ['SURNAME', 'GIVEN NAME', 'MIDDLE NAME', 'LRN', 'Student ID'],
                 ['ARBAN', 'ARBIE PHERIEL', 'ALIPO-ON', '405847160162', '1000000002'],
             ],
         ]));
@@ -808,6 +808,151 @@ TEXT));
         ]);
     }
 
+    public function test_import_supports_enrollment_list_with_metadata_headers_and_kindergarten_levels(): void
+    {
+        $this->activeSchoolYear();
+
+        $summary = app(LibraryMemberImportService::class)->import($this->xlsxUpload([
+            'Sheet1' => [
+                ['Ramon Magsaysay Memorial Colleges'],
+                ['Pioneer Avenue, General Santos City, 9500'],
+                ['Student Lists'],
+                ['Whole Year - 2026-2027'],
+                ['ID.', 'Student No', 'Status', 'Last Name', 'First Name', 'Middle Name', 'Gender', 'Curriculum', 'Department', 'Program', 'Year Level', 'Student CP No.', 'Email Address', 'Section', 'Religion', 'LRN'],
+                ['1', '2610001956', 'REGULAR', 'ALONDRA', 'ALFIX GREIGH', 'ALON', 'Male', 'Pre-School - IS RMMC - 2024', 'Pre-School - IS RMMC', 'Pre-School', 'Kinder 1', '09763822592', 'test@test.com', 'NEON', 'Roman Catholic', ''],
+                ['2', '2610006279', 'REGULAR', 'BASILIO', 'REIGN VERNICE', '', 'Female', 'Pre-School - IS RMMC - 2024', 'Pre-School - IS RMMC', 'Pre-School', 'Kinder 2', '09205180016', 'n/a', 'COPPER', 'Roman Catholic', ''],
+                ['3', '2401130004', 'REGULAR', 'ABAPO', 'NEAH CELESTINE', '', 'Female', 'Elementary - IS RMMC - 2024', 'Elementary - IS RMMC', 'Elementary', 'Grade 5', '', '', 'BERYLLIUM', '', ''],
+            ],
+        ]));
+
+        $this->assertSame(3, $summary['created']);
+        $this->assertSame(0, $summary['skipped']);
+
+        $this->assertDatabaseHas('student_school_year_records', [
+            'school_id' => '2610001956',
+            'first_name' => 'Alfix Greigh',
+            'middle_name' => 'Alon',
+            'last_name' => 'Alondra',
+            'year_level' => 'Kindergarten 1',
+            'section' => 'Neon',
+        ]);
+
+        $this->assertDatabaseHas('student_school_year_records', [
+            'school_id' => '2610006279',
+            'first_name' => 'Reign Vernice',
+            'last_name' => 'Basilio',
+            'year_level' => 'Kindergarten 2',
+            'section' => 'Copper',
+        ]);
+
+        $this->assertDatabaseHas('student_school_year_records', [
+            'school_id' => '2401130004',
+            'first_name' => 'Neah Celestine',
+            'last_name' => 'Abapo',
+            'year_level' => 'Grade 5',
+            'section' => 'Beryllium',
+        ]);
+
+        // Ensure members are students, not employees
+        $this->assertSame(3, LibraryMember::query()->where('type', LibraryMember::TYPE_STUDENT)->count());
+        $this->assertSame(0, LibraryMember::query()->where('type', LibraryMember::TYPE_EMPLOYEE)->count());
+    }
+
+    public function test_xlsx_import_supports_multiple_sheets_where_sections_are_in_sheet_names(): void
+    {
+        $this->activeSchoolYear();
+
+        $summary = app(LibraryMemberImportService::class)->import($this->xlsxUpload([
+            'Alexandrite' => [
+                ['Student No', 'Last Name', 'First Name', 'Middle Name', 'Year Level'],
+                ['2610000085', 'ABAO', 'ALCHIYO', 'ELLAGA', 'Grade 7'],
+            ],
+            'Grade 8 - Emerald' => [
+                ['Student No', 'Last Name', 'First Name', 'Middle Name'],
+                ['2301150007', 'YNCIERTO', 'JAREH DANIEL', 'ALFEREZ'],
+            ],
+            'Kinder 1 - Neon' => [
+                ['Student No', 'Last Name', 'First Name'],
+                ['2610001956', 'ALONDRA', 'ALFIX GREIGH'],
+            ],
+        ]));
+
+        $this->assertSame(3, $summary['created']);
+        $this->assertSame(0, $summary['skipped']);
+
+        // Student from sheet 'Alexandrite': took Year Level from column, Section from sheet name
+        $this->assertDatabaseHas('student_school_year_records', [
+            'school_id' => '2610000085',
+            'first_name' => 'Alchiyo',
+            'last_name' => 'Abao',
+            'year_level' => 'Grade 7',
+            'section' => 'Alexandrite',
+        ]);
+
+        // Student from sheet 'Grade 8 - Emerald': took both Year Level and Section from sheet name
+        $this->assertDatabaseHas('student_school_year_records', [
+            'school_id' => '2301150007',
+            'first_name' => 'Jareh Daniel',
+            'last_name' => 'Yncierto',
+            'year_level' => 'Grade 8',
+            'section' => 'Emerald',
+        ]);
+
+        // Student from sheet 'Kinder 1 - Neon': took Kindergarten 1 and Neon from sheet name
+        $this->assertDatabaseHas('student_school_year_records', [
+            'school_id' => '2610001956',
+            'first_name' => 'Alfix Greigh',
+            'last_name' => 'Alondra',
+            'year_level' => 'Kindergarten 1',
+            'section' => 'Neon',
+        ]);
+    }
+
+    public function test_import_and_preview_return_detailed_skipped_summary_with_diagnostics_for_wrong_ids(): void
+    {
+        $this->activeSchoolYear();
+        $imports = app(LibraryMemberImportService::class);
+
+        $file = $this->csvUpload(<<<'CSV'
+first_name,middle_name,last_name,school_id,year_level,section
+Valid,Student,One,2610001956,Grade 1,Ruby
+Short,Id,Student,2401123,Grade 1,Ruby
+Long,Id,Student,123456789012,Grade 1,Ruby
+Missing,Id,Student,,Grade 1,Ruby
+CSV);
+
+        // Preview should have detailed skipped entries
+        $preview = $imports->preview($file);
+        $this->assertSame(1, $preview['importable_count']);
+        $this->assertSame(3, $preview['skipped_count']);
+        $this->assertCount(3, $preview['skipped']);
+
+        // Check short ID diagnostic
+        $shortSkipped = collect($preview['skipped'])->firstWhere('name', 'Short I. Student');
+        $this->assertNotNull($shortSkipped);
+        $this->assertSame('2401123', $shortSkipped['school_id']);
+        $this->assertSame('Grade 1', $shortSkipped['year_level']);
+        $this->assertSame('Ruby', $shortSkipped['section']);
+        $this->assertStringContainsString('School ID must be exactly 10 digits (found 7 digits: \'2401123\')', $shortSkipped['reason']);
+
+        // Check long ID diagnostic
+        $longSkipped = collect($preview['skipped'])->firstWhere('name', 'Long I. Student');
+        $this->assertNotNull($longSkipped);
+        $this->assertSame('123456789012', $longSkipped['school_id']);
+        $this->assertStringContainsString('School ID must be exactly 10 digits (found 12 digits)', $longSkipped['reason']);
+
+        // Import should return skipped_rows in summary
+        $summary = $imports->import($file);
+        $this->assertSame(1, $summary['created']);
+        $this->assertSame(3, $summary['skipped']);
+        $this->assertCount(3, $summary['skipped_rows']);
+
+        $shortImportSkipped = collect($summary['skipped_rows'])->firstWhere('name', 'Short I. Student');
+        $this->assertNotNull($shortImportSkipped);
+        $this->assertSame('2401123', $shortImportSkipped['school_id']);
+        $this->assertStringContainsString('found 7 digits', $shortImportSkipped['reason']);
+    }
+
     private function activeSchoolYear(): SchoolYear
     {
         return SchoolYear::factory()->active()->create([
@@ -819,7 +964,7 @@ TEXT));
 
     private function csvUpload(string $content): UploadedFile
     {
-        $path = tempnam(sys_get_temp_dir(), 'visitor-import-');
+        $path = @tempnam(sys_get_temp_dir(), 'visitor-import-');
         file_put_contents($path, $content);
 
         return new UploadedFile($path, 'visitors.csv', 'text/csv', null, true);
@@ -836,7 +981,7 @@ TEXT));
 
         $stream .= 'ET';
         $pdf = "%PDF-1.4\n1 0 obj\n<< /Length ".strlen($stream)." >>\nstream\n{$stream}\nendstream\nendobj\n%%EOF";
-        $path = tempnam(sys_get_temp_dir(), 'visitor-import-pdf-');
+        $path = @tempnam(sys_get_temp_dir(), 'visitor-import-pdf-');
         file_put_contents($path, $pdf);
 
         return new UploadedFile($path, 'visitors.pdf', 'application/pdf', null, true);
@@ -847,7 +992,7 @@ TEXT));
      */
     private function xlsxUpload(array $sheets): UploadedFile
     {
-        $path = tempnam(sys_get_temp_dir(), 'visitor-import-xlsx-');
+        $path = @tempnam(sys_get_temp_dir(), 'visitor-import-xlsx-');
         $zip = new \ZipArchive;
         $zip->open($path, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
 

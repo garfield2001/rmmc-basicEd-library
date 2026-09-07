@@ -82,9 +82,18 @@ class LibraryMemberController extends Controller
 
     public function import(ImportLibraryMembersRequest $request, LibraryMemberImportService $imports): RedirectResponse
     {
-        $imports->import($request->file('visitors_file'));
+        $summary = $imports->import($request->file('visitors_file'));
 
-        return back()->with('success', 'Import successful.');
+        $message = sprintf(
+            'Import completed: %d created, %d updated%s.',
+            $summary['created'],
+            $summary['updated'],
+            $summary['skipped'] > 0 ? ", {$summary['skipped']} skipped" : ''
+        );
+
+        return back()
+            ->with('success', $message)
+            ->with('importSummary', $summary);
     }
 
     public function importPreview(ImportLibraryMembersRequest $request, LibraryMemberImportService $imports): JsonResponse

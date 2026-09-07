@@ -4,6 +4,7 @@ namespace App\Services\Library\Imports;
 
 use App\Models\LibraryMember;
 use App\Support\Names\PersonName;
+use Illuminate\Support\Str;
 
 class LibraryMemberImportRowNormalizer
 {
@@ -32,6 +33,10 @@ class LibraryMemberImportRowNormalizer
 
         if (($row['year_level'] ?? '') !== '') {
             $row['year_level'] = $this->normalizeYearLevel($row['year_level']);
+        }
+
+        if (($row['section'] ?? '') !== '') {
+            $row['section'] = Str::title(mb_strtolower($this->optionalText($row['section'])));
         }
 
         return $row;
@@ -75,10 +80,22 @@ class LibraryMemberImportRowNormalizer
         }
 
         if (($row['_has_school_id_column'] ?? '') !== '1') {
-            return 'A School ID column is required. Use a column named School ID or ID only; LRN and other ID columns are ignored.';
+            return 'A School ID column is required. Use a column named Student No, School ID, or Student ID; LRN and generic ID columns are ignored.';
         }
 
         if (($row['_has_valid_school_id'] ?? '') !== '1') {
+            $rawId = trim((string) ($row['_school_id_raw'] ?? ''));
+            $digits = preg_replace('/\D+/', '', $rawId) ?: '';
+            $len = strlen($digits);
+
+            if ($len > 10) {
+                return "School ID must be exactly 10 digits (found {$len} digits). LRN values are not accepted as School ID.";
+            }
+
+            if ($len > 0) {
+                return "School ID must be exactly 10 digits (found {$len} digits: '{$rawId}'). Please verify for typos or missing digits.";
+            }
+
             return 'School ID must be exactly 10 digits. LRN values are not accepted as School ID.';
         }
 
@@ -100,8 +117,25 @@ class LibraryMemberImportRowNormalizer
     {
         $value = strtolower(trim($yearLevel));
 
-        if (preg_match('/(?:grade|g|gr|gradfe)?\s*(\d{1,2})/', $value, $matches)) {
-            return 'Grade '.(int) $matches[1];
+        if (preg_match('/(?:kindergarten|kinder|kd|k)\s*[-_]?\s*1\b/i', $value)) {
+            return 'Kindergarten 1';
+        }
+
+        if (preg_match('/(?:kindergarten|kinder|kd|k)\s*[-_]?\s*2\b/i', $value)) {
+            return 'Kindergarten 2';
+        }
+
+        if (preg_match('/^(?:kindergarten|kinder|preschool|pre-school)\b/i', $value)) {
+            return 'Kindergarten 1';
+        }
+
+        if (preg_match('/(?:grade|g|gr|gradfe)\s*[-_]?\s*(\d{1,2})\b/i', $value, $matches)
+            || preg_match('/^(\d{1,2})$/', $value, $matches)
+        ) {
+            $num = (int) $matches[1];
+            if ($num >= 1 && $num <= 10) {
+                return 'Grade '.$num;
+            }
         }
 
         return $this->optionalText($yearLevel);
@@ -116,11 +150,21 @@ class LibraryMemberImportRowNormalizer
     {
         $type = strtolower($row['type'] ?? $row['visitor_type'] ?? '');
 
-        if (str_contains($type, 'employee') || str_contains($type, 'staff') || str_contains($type, 'faculty')) {
+        if (str_contains($type, 'employee') || str_contains($type, 'staff') || str_contains($type, 'faculty') || str_contains($type, 'teacher')) {
             return LibraryMember::TYPE_EMPLOYEE;
         }
 
-        if (str_contains($type, 'student')) {
+        if (str_contains($type, 'student') || str_contains($type, 'pupil')) {
+            return LibraryMember::TYPE_STUDENT;
+        }
+
+        if (($row['year_level'] ?? '') !== ''
+            || ($row['section'] ?? '') !== ''
+            || ($row['student_no'] ?? '') !== ''
+            || ($row['student_id'] ?? '') !== ''
+            || ($row['lrn'] ?? '') !== ''
+            || in_array(strtolower($row['program'] ?? ''), ['elementary', 'pre-school', 'preschool', 'jhs', 'junior high school', 'high school', 'kindergarten', 'kinder'], true)
+        ) {
             return LibraryMember::TYPE_STUDENT;
         }
 

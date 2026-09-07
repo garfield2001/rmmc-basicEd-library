@@ -45,7 +45,14 @@ class LibraryMemberImportHeaderRules
     private function aliases(): array
     {
         return [
-            'id' => 'school_id',
+            'student_no' => 'school_id',
+            'student_id' => 'school_id',
+            'student_number' => 'school_id',
+            'school_id_no' => 'school_id',
+            'school_id_number' => 'school_id',
+            'student_id_no' => 'school_id',
+            'employee_id' => 'school_id',
+            'employee_no' => 'school_id',
             'rfid' => 'rfid_uid',
             'rfid_id' => 'rfid_uid',
             'rfid_unique_id' => 'rfid_uid',
